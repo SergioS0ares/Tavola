@@ -1,0 +1,50 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh; /* Altura total da janela */
+  background-color: #f4f4f4; /* Cor de fundo suave */
+}
+
+.form-container {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  min-height: 100px; /* Altura mínima */
+}
+
+
+h1 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 1.5rem;
+  color: #333; /* Cor do texto */
+}
+
+.mt-5 {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza os elementos dentro do container */
+}
+
+p-button {
+  width: auto; /* Ajusta a largura do botão ao conteúdo */
+}
+
+::ng-deep .p-button {
+  background-color: #e57d00fc !important; /* Laranja */
+  border: none !important;
+  color: #fff !important; /* Texto branco */
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: #e57d00fc !important; /* Laranja mais escuro */
+  }
+}
