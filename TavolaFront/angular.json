@@ -3,23 +3,21 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "frontend": {
+    "TavolaFront": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-           "style": "scss",
-          "skipTests": true,
-          "inlineStyle": true
+          "style": "scss"
         }
       },
       "root": "",
       "sourceRoot": "src",
-      "prefix": "my-app",
+      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/frontend",
+            "outputPath": "dist/tavola-front",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -28,30 +26,33 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
             ],
             "styles": [
-              "src/styles.scss",
-              "node_modules/primeng/resources/themes/aura-light-noir/theme.css",
-              "node_modules/primeng/resources/primeng.min.css",
-              "node_modules/leaflet/dist/leaflet.css",
-              "src/app/pages/routeMap/routeMap.component.scss"
+              "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "ssr": {
+              "entry": "src/server.ts"
+            }
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
                 }
               ],
               "outputHashing": "all"
@@ -59,13 +60,7 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.development.ts"
-                }
-              ]
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
@@ -74,19 +69,16 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "frontend:build:production"
+              "buildTarget": "TavolaFront:build:production"
             },
             "development": {
-              "buildTarget": "frontend:build:development"
+              "buildTarget": "TavolaFront:build:development"
             }
           },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "frontend:build"
-          }
+          "builder": "@angular-devkit/build-angular:extract-i18n"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -98,8 +90,10 @@
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
             ],
             "styles": [
               "src/styles.scss"
@@ -111,6 +105,6 @@
     }
   },
   "cli": {
-    "analytics": "2a5cbb38-7c95-497b-8dc0-64540206eb29"
+    "analytics": "59cbb4bc-c78c-4066-931b-a3ebf8a365c8"
   }
 }
