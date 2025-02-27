@@ -1,0 +1,153 @@
+<p-table [value]="data" dataKey="id">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Nome</th>
+      <th>Telefone</th>
+      <th>Latitude</th>
+      <th>Longitude</th>
+      <th>Descrição do Endereço</th>
+      <th>Sugestão de Horário</th>  <!-- Coluna para mostrar o horário -->
+      <th>Quantidade de Marmitas</th>
+      <th>
+        Ações
+        <button pButton icon="pi pi-plus" (click)="openDialog()" class="p-button-rounded p-button-success" style="float: right;"></button>
+      </th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-item>
+    <tr>
+      <td>{{ item.nome }}</td>
+      <td>{{ item.telefone }}</td>
+      <td>{{ item.latitude }}</td>
+      <td>{{ item.longitude }}</td>
+      <td>{{ item.descricaoEndereco }}</td>
+      <td>{{ item.sujestH }}</td>
+      <td>{{ item.quantPedido || 1 }}</td>
+      <td>
+        <div class="button-group">
+          <button pButton icon="pi pi-pencil" (click)="editItem(item)" class="p-button-rounded p-button-info"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-danger" (click)="confirmDelete(item.id)"></button>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-confirmDialog></p-confirmDialog>
+
+
+<!-- Dialog to add an item -->
+<!-- Formulário de Adição -->
+
+
+<p-dialog header="Adicionar Item" [(visible)]="displayDialog" [style]="{width: '400px'}">
+  <form (ngSubmit)="addItem()" #itemForm="ngForm">
+    <div class="p-fluid">
+      <div class="p-field">
+        <label for="nome">Nome</label>
+        <input id="nome" pInputText [(ngModel)]="newItem.nome" name="nome" required #nome="ngModel" />
+        <div *ngIf="nome.invalid && nome.touched" class="p-error">Nome é obrigatório.</div>
+      </div>
+      <br/>
+      <div class="p-field">
+        <label for="telefone">Telefone</label>
+        <p-inputMask mask="(99) 99999-9999" [(ngModel)]="newItem.telefone" name="telefone" required #telefone="ngModel"></p-inputMask>
+        <div *ngIf="telefone.invalid && telefone.touched" class="p-error">Telefone é obrigatório.</div>
+      </div>
+      <br/>
+      <div class="p-field">
+        <label for="latitude">Latitude</label>
+        <input pInputText [(ngModel)]="newItem.latitude" name="latitude" required #latitude="ngModel"/>
+        <div *ngIf="latitude.invalid && latitude.touched" class="p-error">Latitude é obrigatória.</div>
+      </div>
+      <br/>
+      <div class="p-field">
+        <label for="longitude">Longitude</label>
+        <input pInputText [(ngModel)]="newItem.longitude" name="longitude" required #longitude="ngModel"/>
+        <div *ngIf="longitude.invalid && longitude.touched" class="p-error">Longitude é obrigatória.</div>
+      </div>
+      <br/>
+      <div class="p-field">
+        <label for="descricaoEndereco">Descrição do Endereço</label>
+        <input id="descricaoEndereco" pInputText [(ngModel)]="newItem.descricaoEndereco" name="descricaoEndereco" required #descricaoEndereco="ngModel" />
+        <div *ngIf="descricaoEndereco.invalid && descricaoEndereco.touched" class="p-error">Descrição do Endereço é obrigatória.</div>
+      </div>
+      <br/>
+
+
+      <div class="p-field">
+        <label for="sujestH">Sugestão de Horário</label>
+        <input id="sujestH" pInputText [(ngModel)]="newItem.sujestH" name="sujestH" required #sujestH="ngModel" />
+        <div *ngIf="sujestH.invalid && sujestH.touched" class="p-error">Digite o horário</div>
+      </div>
+
+      <br/>
+      <!-- Quantidade de Marmitas -->
+      <div class="p-field">
+        <label for="quantPedido">Quantidade de Marmitas</label>
+        <input id="quantPedido" pInputText [(ngModel)]="newItem.quantPedido" name="quantPedido" type="number" required #quantPedido="ngModel" min="0" />
+        <div *ngIf="quantPedido.invalid && quantPedido.touched" class="p-error">Quantidade de marmitas não pode ser negativa.</div>
+      </div>
+      <br/>
+      <p-footer style="display: flex; flex-direction: column; gap: 10px;">
+        <button pButton label="Adicionar" type="submit" [disabled]="itemForm.invalid" style="background-color: #22c55e; color: white; border: none;"></button>
+        <button pButton label="Cancelar" icon="pi pi-times" (click)="displayDialog = false" style="background-color: #ef4444; color: white; border: none;"></button>
+      </p-footer>
+    </div>
+  </form>
+</p-dialog>
+
+
+
+<p-dialog header="Editar Item" [(visible)]="editDialog" [style]="{ width: '400px' }" [modal]="true" [closable]="false"  [closable]="true">
+  <form (ngSubmit)="saveItem()" #editForm="ngForm">
+    <div class="p-fluid">
+      <div class="p-field">
+        <label for="nome">Nome</label>
+        <input id="nome" pInputText [(ngModel)]="selectedItem.nome" name="nome" required #nome="ngModel" />
+        <div *ngIf="nome.invalid && nome.touched" class="p-error">Nome é obrigatório.</div>
+      </div>
+      <br />
+      <div class="p-field">
+        <label for="telefone">Telefone</label>
+        <p-inputMask mask="(99) 99999-9999" [(ngModel)]="selectedItem.telefone" name="telefone" required #telefone="ngModel"></p-inputMask>
+        <div *ngIf="telefone.invalid && telefone.touched" class="p-error">Telefone é obrigatório.</div>
+      </div>
+      <br />
+      <div class="p-field">
+        <label for="latitude">Latitude</label>
+        <input id="latitude" pInputText [(ngModel)]="selectedItem.latitude" name="latitude" required #latitude="ngModel" />
+        <div *ngIf="latitude.invalid && latitude.touched" class="p-error">Latitude é obrigatória.</div>
+      </div>
+      <br />
+      <div class="p-field">
+        <label for="longitude">Longitude</label>
+        <input id="longitude" pInputText [(ngModel)]="selectedItem.longitude" name="longitude" required #longitude="ngModel" />
+        <div *ngIf="longitude.invalid && longitude.touched" class="p-error">Longitude é obrigatória.</div>
+      </div>
+      <br />
+      <div class="p-field">
+        <label for="descricaoEndereco">Descrição do Endereço</label>
+        <input id="descricaoEndereco" pInputText [(ngModel)]="selectedItem.descricaoEndereco" name="descricaoEndereco" required #descricaoEndereco="ngModel" />
+        <div *ngIf="descricaoEndereco.invalid && descricaoEndereco.touched" class="p-error">Descrição do Endereço é obrigatória.</div>
+      </div>
+      <br />
+      <div class="p-field">
+        <label for="sujestH">Sugestão de Horário</label>
+        <input id="sujestHora" pInputText [(ngModel)]="selectedItem.sujestH" name="sujestH" required #sujestH="ngModel" />
+        <div *ngIf="sujestH.invalid && sujestH.touched" class="p-error">Digite o horário</div>
+      </div>
+      <br />
+      <div class="p-field">
+        <label for="quantPedido">Quantidade de Marmitas</label>
+        <input id="quantidadePedido" pInputText [(ngModel)]="selectedItem.quantPedido" name="quantPedido" type="number" required #quantPedido="ngModel" min="0" />
+        <div *ngIf="quantPedido.invalid && quantPedido.touched" class="p-error">Quantidade de marmitas não pode ser negativa.</div>
+      </div>
+      <br />
+      <p-footer style="display: flex; flex-direction: column; gap: 10px;">
+        <button pButton label="Salvar" type="submit" [disabled]="editForm.invalid" style="background-color: #22c55e; color: white; border: none;"></button>
+        <button pButton label="Cancelar" icon="pi pi-times" type="button" (click)="cancelEdit()" style="background-color: #ef4444; color: white; border: none;"></button>
+      </p-footer>
+    </div>
+  </form>
+</p-dialog>

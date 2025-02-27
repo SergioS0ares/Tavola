@@ -1,5 +1,5 @@
 import {inject, Injectable} from "@angular/core";
-import {UserInterface} from "../interface/user.interface";
+import {UserInterface} from "../models/user.interface";
 import {AuthService} from "./auth.service";
 import {Router} from "@angular/router";
 import {MenuService} from "./menu.service";

@@ -2,7 +2,7 @@ import {Component, inject} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {HttpClient} from "@angular/common/http";
 import {LoginService} from "../../services/login.service";
-import {UserInterface} from "../../interface/user.interface";
+import {UserInterface} from "../../models/user.interface";
 import {environment} from "../../../environments/environment";
 import {FloatLabelModule} from "primeng/floatlabel";
 import {InputTextModule} from "primeng/inputtext";
