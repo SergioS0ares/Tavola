@@ -1,0 +1,30 @@
+<p-card header="Bem-vindo ao Tavola" styleClass="login-card">
+  <p-tabview>
+    <p-tabpanel header="Login">
+      <form>
+        <div class="p-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" pInputText />
+        </div>
+        <div class="p-field">
+          <label for="password">Senha</label>
+          <input id="password" type="password" pInputText />
+        </div>
+        <p-button label="Entrar" class="p-mt-2" styleClass="p-button-primary"></p-button>
+      </form>
+    </p-tabpanel>
+    <p-tabpanel header="Cadastro">
+      <form>
+        <div class="p-field">
+          <label for="newEmail">Email</label>
+          <input id="newEmail" type="email" pInputText />
+        </div>
+        <div class="p-field">
+          <label for="newPassword">Senha</label>
+          <input id="newPassword" type="password" pInputText />
+        </div>
+        <p-button label="Cadastrar" class="p-mt-2" styleClass="p-button-success"></p-button>
+      </form>
+    </p-tabpanel>
+  </p-tabview>
+</p-card>
