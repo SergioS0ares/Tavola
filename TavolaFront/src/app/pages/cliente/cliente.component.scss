@@ -1,0 +1,18 @@
+.ml-2 {
+  margin-left: 0.5rem;
+}
+.button-group {
+  display: flex;
+  gap: 2px; /* Espaçamento entre os botões */
+}
+
+.button-group button {
+  margin-right: 5px; /* Margem opcional entre os botões */
+}
+
+.white-text {
+  color: white !important;
+}
+.p-menubar .p-menubar-root-list > .p-menuitem > .p-menuitem-content .p-menuitem-link .p-menuitem-text {
+  color: #ffffff !important;
+}

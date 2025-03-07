@@ -1,0 +1,95 @@
+.login-container {
+  display: flex;
+  height: 100vh;
+
+  .form-container {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center
+  }
+
+
+
+  .image-container {
+    height: 100%;
+    width: 50%;
+    background-color: #020d40; // Azul escuro da imagem de referência
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      max-width: 80%;
+      height: auto;
+    }
+  }
+
+  .login-card {
+    width: 400px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background-color: white;
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  }
+
+  .captcha-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .captcha-image {
+      width: 100px;
+      height: 40px;
+      border: 1px solid #ddd;
+    }
+
+    .captcha-refresh {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #007bff;
+    }
+  }
+
+  .p-button.p-button-sm {
+    font-size: 0.875rem;
+    padding: 0.4375rem 0.875rem;
+    width: 100%;
+}
+
+.input-group {
+  display: flex;
+  align-items: center; /* Alinha o ícone e o input verticalmente */
+  margin-bottom: 30px;
+}
+
+.input-wrapper {
+  display: flex;
+  width: 100% !important;
+  align-items: center; /* Alinha o ícone e o input verticalmente */
+}
+
+.input-wrapper i {
+  color: #aaa;
+  margin-right: 10px; /* Espaço entre o ícone e o input */
+  font-size: 1.2rem; /* Ajuste o tamanho do ícone conforme necessário */
+}
+
+.p-floatLabel input {
+  padding-left: 30px; /* Dá espaço para o ícone, sem alterar o tamanho do input */
+  width: 200%!important; /* Garante que o input ocupe 100% da largura */
+}
+
+}

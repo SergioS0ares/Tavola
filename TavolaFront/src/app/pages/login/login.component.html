@@ -1,0 +1,40 @@
+<div class="login-container">
+  <!-- Área do formulário -->
+  <div class="form-container">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="login-header">
+        <h2>Faça login aqui</h2>
+        <p>Se você não tem uma conta, você pode se <a href="#">registrar aqui!</a></p>
+      </div>
+      <br />
+      <div class="input-group-container">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <i class="pi pi-at"></i> <!-- Ícone de email (arroba) -->
+            <p-floatLabel>
+              <input id="email" pInputText type="text" formControlName="email" class="input-group-wrapper" />
+              <label for="email">Email</label>
+            </p-floatLabel>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <i class="pi pi-lock"></i> <!-- Ícone de senha (cadeado) -->
+            <p-floatLabel>
+              <input id="password" pInputText type="password" formControlName="password" class="input-group-wrapper" />
+              <label for="password">Senha</label>
+            </p-floatLabel>
+          </div>
+        </div>
+      </div>
+
+
+      <p-button label="Login" type="submit" class="p-button" size="small"></p-button>
+    </form>
+  </div>
+
+  <!-- Área da imagem -->
+  <div class="image-container">
+    <img src="assets/illustration.png" alt="Illustration" />
+  </div>
+</div>
