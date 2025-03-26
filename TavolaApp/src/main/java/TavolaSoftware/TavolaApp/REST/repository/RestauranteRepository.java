@@ -9,5 +9,6 @@ import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 
 @Repository
 public interface RestauranteRepository extends JpaRepository<Restaurante, UUID>{
-
+	Restaurante findByEmail(String email);
+	
 }

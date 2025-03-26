@@ -9,5 +9,6 @@ import TavolaSoftware.TavolaApp.REST.model.Cliente;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
+	Cliente findByEmail(String email);
 
 }

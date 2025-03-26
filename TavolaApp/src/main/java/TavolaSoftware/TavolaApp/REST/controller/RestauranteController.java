@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/restaurantes")
+@RequestMapping("/auth/restaurantes")
 public class RestauranteController {
 
     @Autowired

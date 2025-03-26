@@ -25,6 +25,12 @@ public class Restaurante {
 
     @Column(name = "establishment_name", nullable = false)
     private String name;
+    
+    @Column(name = "establishment_email", nullable = false)
+    private String email;
+    
+    @Column(name = "establishment_password", nullable = false)
+    private String password;
 
     @Column(name = "establishment_adress", nullable = false)
     private Endereco adress;
@@ -85,4 +91,20 @@ public class Restaurante {
     public void setHour(String hour) {
         this.hour = hour;
     }
+
+	public String getPassword() {
+		return password;
+	}
+	
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
+	public String getEmail() {
+		return email;
+	}
+	
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }

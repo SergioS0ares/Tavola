@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/cardapios")
+@RequestMapping("/auth/cardapios")
 public class CardapioController {
 
     @Autowired
