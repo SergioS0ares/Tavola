@@ -18,10 +18,10 @@ public class LoginController {
     private ClienteRepository repo;
 
     @Autowired
-    private RestauranteRepository repoRestaurante;
+    private RestauranteRepository repoRestaurant;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtUtil jwt;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -30,15 +30,15 @@ public class LoginController {
 
         Cliente cliente = repo.findByEmail(email);
         if (cliente != null && BCrypt.checkpw(senha, cliente.getSenha())) {
-            String accessToken = jwtUtil.generateAccessToken(cliente.getEmail());
-            String refreshToken = jwtUtil.generateRefreshToken(cliente.getId().toString());
+            String accessToken = jwt.generateAccessToken(cliente.getEmail());
+            String refreshToken = jwt.generateRefreshToken(cliente.getId().toString());
             return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, cliente.getNome(), "CLIENTE"));
         }
 
-        Restaurante restaurante = repoRestaurante.findByEmail(email);
+        Restaurante restaurante = repoRestaurant.findByEmail(email);
         if (restaurante != null && BCrypt.checkpw(senha, restaurante.getPassword())) {
-            String accessToken = jwtUtil.generateAccessToken(restaurante.getEmail());
-            String refreshToken = jwtUtil.generateRefreshToken(restaurante.getId().toString());
+            String accessToken = jwt.generateAccessToken(restaurante.getEmail());
+            String refreshToken = jwt.generateRefreshToken(restaurante.getId().toString());
             return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, restaurante.getName(), "RESTAURANTE"));
         }
 
