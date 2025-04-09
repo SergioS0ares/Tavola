@@ -36,12 +36,13 @@ public class LoginController {
         }
 
         Restaurante restaurante = repoRestaurant.findByEmail(email);
-        if (restaurante != null && BCrypt.checkpw(senha, restaurante.getPassword())) {
+        if (restaurante != null && BCrypt.checkpw(senha, restaurante.getSenha())) {
             String accessToken = jwt.generateAccessToken(restaurante.getEmail());
             String refreshToken = jwt.generateRefreshToken(restaurante.getId().toString());
-            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, restaurante.getName(), "RESTAURANTE"));
+            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, restaurante.getNome(), "RESTAURANTE"));
         }
 
         return ResponseEntity.status(401).body("Credenciais inválidas.");
     }
+
 }

@@ -1,5 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+import java.util.List;
+
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.Mesas;
 import TavolaSoftware.TavolaApp.tools.TipoUsusario;
@@ -13,7 +15,7 @@ public class RegistroRequest {
     private TipoUsusario tipo;
 
     // Só pra restaurant
-    private Mesas mesas;
+    private List<Mesas> mesas;
     private String horaFuncionamento;
 
     // Getters e Setters
@@ -32,8 +34,8 @@ public class RegistroRequest {
     public TipoUsusario getTipo() { return tipo; }
     public void setTipo(TipoUsusario tipo) { this.tipo = tipo; }
 
-    public Mesas getMesas() { return mesas; }
-    public void setMesas(Mesas mesas) { this.mesas = mesas; }
+    public List<Mesas> getMesas() { return mesas; }
+    public void setMesas(List<Mesas> mesas) { this.mesas = mesas; }
 
     public String getHoraFuncionamento() { return horaFuncionamento; }
     public void setHoraFuncionamento(String horaFuncionamento) { this.horaFuncionamento = horaFuncionamento; }

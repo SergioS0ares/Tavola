@@ -27,31 +27,40 @@ public class RegistroController {
     @Autowired
     private JwtUtil jwt;
 
-    @PostMapping ("/register")
+    @PostMapping("/register")
     public ResponseEntity<?> registrar(@RequestBody RegistroRequest request) {
         String senhaCriptografada = BCrypt.hashpw(request.getSenha(), BCrypt.gensalt());
 
         if (request.getTipo() == TipoUsusario.CLIENTE) {
-            Cliente novoCliente = new Cliente(request.getNome(), senhaCriptografada, request.getEmail(), request.getEndereco());
+            Cliente novoCliente = new Cliente();
+            novoCliente.setNome(request.getNome());
+            novoCliente.setEmail(request.getEmail());
+            novoCliente.setSenha(senhaCriptografada);
+            novoCliente.setEndereco(request.getEndereco());
+            novoCliente.setTipo(TipoUsusario.CLIENTE);
             repoClient.save(novoCliente);
+
             String accessToken = jwt.generateAccessToken(novoCliente.getEmail());
             String refreshToken = jwt.generateRefreshToken(novoCliente.getId().toString());
             return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, novoCliente.getNome(), "CLIENTE"));
 
         } else if (request.getTipo() == TipoUsusario.RESTAURANTE) {
             Restaurante novoRestaurante = new Restaurante();
-            novoRestaurante.setName(request.getNome());
+            novoRestaurante.setNome(request.getNome());
             novoRestaurante.setEmail(request.getEmail());
-            novoRestaurante.setPassword(senhaCriptografada);
-            novoRestaurante.setAdress(request.getEndereco());
+            novoRestaurante.setSenha(senhaCriptografada);
+            novoRestaurante.setEndereco(request.getEndereco());
             novoRestaurante.setTables(request.getMesas());
             novoRestaurante.setHour(request.getHoraFuncionamento());
+            novoRestaurante.setTipo(TipoUsusario.RESTAURANTE);
             repoRestaurante.save(novoRestaurante);
+
             String accessToken = jwt.generateAccessToken(novoRestaurante.getEmail());
             String refreshToken = jwt.generateRefreshToken(novoRestaurante.getId().toString());
-            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, novoRestaurante.getName(), "RESTAURANTE"));
+            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, novoRestaurante.getNome(), "RESTAURANTE"));
         }
 
         return ResponseEntity.badRequest().body("Tipo de usuário inválido.");
     }
+
 }

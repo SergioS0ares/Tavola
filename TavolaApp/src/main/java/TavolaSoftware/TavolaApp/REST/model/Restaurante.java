@@ -2,85 +2,35 @@ package TavolaSoftware.TavolaApp.REST.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.util.List;
-import java.util.UUID;
 
-import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.Mesas;
+import TavolaSoftware.TavolaApp.tools.Usuario;
 
 @Entity
 @Table(name = "establishment_table")
-public class Restaurante {
+public class Restaurante extends Usuario {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
-
-    @Column(name = "establishment_name", nullable = false)
-    private String name;
-    
-    @Column(name = "establishment_email", nullable = false)
-    private String email;
-    
-    @Column(name = "establishment_password", nullable = false)
-    private String password;
-
-    @Column(name = "establishment_adress", nullable = false)
-    private Endereco adress;
-
-    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    private List<Cardapio> menu;
-
-    @Column(name = "establishment_tables")
-    private Mesas tables;
+    @ElementCollection
+    private List<Mesas> tables;
 
     @Column(name = "establishment_hour")
     private String hour;
 
-    public UUID getId() {
-        return id;
-    }
+    @OneToMany(mappedBy = "establishment", cascade = CascadeType.ALL)
+    private List<Cardapio> menu;
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Endereco getAdress() {
-        return adress;
-    }
-
-    public void setAdress(Endereco adress) {
-        this.adress = adress;
-    }
-
-    public List<Cardapio> getMenu() {
-        return menu;
-    }
-
-    public void setMenu(List<Cardapio> menu) {
-        this.menu = menu;
-    }
-
-    public Mesas getTables() {
+    // Getters e Setters
+    public List<Mesas> getTables() {
         return tables;
     }
 
-    public void setTables(Mesas tables) {
+    public void setTables(List<Mesas> tables) {
         this.tables = tables;
     }
 
@@ -92,19 +42,11 @@ public class Restaurante {
         this.hour = hour;
     }
 
-	public String getPassword() {
-		return password;
-	}
-	
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	
-	public String getEmail() {
-		return email;
-	}
-	
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public List<Cardapio> getMenu() {
+        return menu;
+    }
+
+    public void setMenu(List<Cardapio> menu) {
+        this.menu = menu;
+    }
 }
