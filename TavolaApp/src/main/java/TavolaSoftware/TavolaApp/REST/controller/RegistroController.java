@@ -50,8 +50,8 @@ public class RegistroController {
             novoRestaurante.setEmail(request.getEmail());
             novoRestaurante.setSenha(senhaCriptografada);
             novoRestaurante.setEndereco(request.getEndereco());
-            novoRestaurante.setTables(request.getMesas());
-            novoRestaurante.setHour(request.getHoraFuncionamento());
+            novoRestaurante.setMesas(request.getMesas());
+            novoRestaurante.setHoraFuncionamento(request.getHoraFuncionamento());
             novoRestaurante.setTipo(TipoUsusario.RESTAURANTE);
             repoRestaurante.save(novoRestaurante);
 

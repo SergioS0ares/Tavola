@@ -5,33 +5,32 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class Endereco {
 
-	private String country;
-	private String state;
-	private String city;
-	private String district;
-	private String street;
-	private String number;
-	private String misc;
+	private String pais;
+	private String estado;
+	private String cidade;
+	private String bairro;
+	private String rua;
+	private String numero;
+	private String complemento;
 
-	
-	public String getCountry() { return country; }
-	public void setCountry(String country) { this.country = country; }
+	public String getPais() { return pais; }
+	public void setPais(String pais) { this.pais = pais; }
 
-	public String getState() { return state; }
-	public void setState(String state) { this.state = state; }
+	public String getEstado() { return estado; }
+	public void setEstado(String estado) { this.estado = estado; }
 
-	public String getCity() { return city; }
-	public void setCity(String city) { this.city = city; }
+	public String getCidade() { return cidade; }
+	public void setCidade(String cidade) { this.cidade = cidade; }
 
-	public String getDistrict() { return district; }
-	public void setDistrict(String district) { this.district = district; }
+	public String getBairro() { return bairro; }
+	public void setBairro(String bairro) { this.bairro = bairro; }
 
-	public String getStreet() { return street; }
-	public void setStreet(String street) { this.street = street; }
+	public String getRua() { return rua; }
+	public void setRua(String rua) { this.rua = rua; }
 
-	public String getNumber() { return number; }
-	public void setNumber(String number) { this.number = number; }
+	public String getNumero() { return numero; }
+	public void setNumero(String numero) { this.numero = numero; }
 
-	public String getMisc() { return misc; }
-	public void setMisc(String misc) { this.misc = misc; }
+	public String getComplemento() { return complemento; }
+	public void setComplemento(String complemento) { this.complemento = complemento; }
 }

@@ -5,36 +5,36 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class Mesas {
 
-	private String image;
-	private String description;
-	private String name;
-	private boolean avaible;
+	private String imagem;
+	private String descricao;
+	private String nome;
+	private boolean disponivel;
 
-	public boolean getViability() {
-		return avaible;
+	public boolean isDisponivel() {
+		return disponivel;
 	}
-	public void setViability(boolean bool) {
-		this.avaible = bool;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String text) {
-		this.description = text;
+	public void setDisponivel(boolean disponivel) {
+		this.disponivel = disponivel;
 	}
 
-	public String getImage() {
-		return image;
+	public String getDescricao() {
+		return descricao;
 	}
-	public void setImage(String image) {
-		this.image = image;
+	public void setDescricao(String descricao) {
+		this.descricao = descricao;
 	}
 
-	public String getName() {
-		return name;
+	public String getImagem() {
+		return imagem;
 	}
-	public void setName(String name) {
-		this.name = name;
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
 }

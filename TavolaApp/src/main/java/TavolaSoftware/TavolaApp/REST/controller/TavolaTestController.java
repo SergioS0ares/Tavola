@@ -16,15 +16,15 @@ public class TavolaTestController {
 	JwtUtil jwt;
 	
 	@GetMapping("/dev-token")
-	public ResponseEntity<String> gerarTokenDev() {
-	    // Substitua com um email válido de algum cliente ou restaurante já cadastrado
-	    String fakeEmail = "dev@tavola.com";
-	    String fakeId = UUID.randomUUID().toString(); // ou ID de verdade se quiser
+	public ResponseEntity<String> gerarTokenDesenvolvedor() {
+	    String emailFicticio = "dev@tavola.com";
+	    String idFicticio = UUID.randomUUID().toString();
 
-	    String accessToken = jwt.generateAccessToken(fakeEmail);
-	    String refreshToken = jwt.generateRefreshToken(fakeId);
+	    String accessToken = jwt.generateAccessToken(emailFicticio);
+	    String refreshToken = jwt.generateRefreshToken(idFicticio);
 
 	    return ResponseEntity.ok("AccessToken: \"" + accessToken + "\" RefreshToken: \"" + refreshToken);
 	}
+
 
 }

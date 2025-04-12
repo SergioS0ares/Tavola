@@ -20,67 +20,33 @@ public class Cardapio {
     private UUID id;
 
     @Column(name = "dish_name", nullable = false)
-    private String name;
+    private String nome;
 
     @Column(name = "dish_value", nullable = false)
-    private Double value;
+    private Double valor;
 
     @Column(name = "dish_image")
-    private String image;
+    private String imagem;
 
     @Column(name = "dish_description")
-    private String description;
-    
+    private String descricao;
+
     @Column(name = "dish_lactosefree")
-    private boolean lactose = false;
-    
+    private boolean semLactose = false;
+
     @Column(name = "dish_glutenfree")
-    private boolean gluten = false;
-    
+    private boolean semGluten = false;
+
     @Column(name = "dish_sugarfree")
-    private boolean sugar = false;
-    
+    private boolean semAcucar = false;
+
     @Column(name = "dish_lowcarb")
-    private boolean carb = false;
+    private boolean lowCarb = false;
 
     @ManyToOne
     @JoinColumn(name = "establishment_id", nullable = false)
-    private Restaurante establishment;
+    private Restaurante restaurante;
 
-    // Getters e Setters
-
-    public boolean getLactose() {
-        return lactose;
-    }
-    
-    public void setLactose(boolean bool) {
-        this.lactose = bool;
-    }
-    
-    public boolean getGluten() {
-        return gluten;
-    }
-    
-    public void setGluten(boolean bool) {
-        this.gluten = bool;
-    }
-    
-    public boolean getSugar() {
-        return sugar;
-    }
-    
-    public void setSugar(boolean bool) {
-        this.sugar = bool;
-    }
-    
-    public boolean getCarb() {
-        return carb;
-    }
-    
-    public void setCarb(boolean bool) {
-        this.carb = bool;
-    }
-    
     public UUID getId() {
         return id;
     }
@@ -90,42 +56,74 @@ public class Cardapio {
     }
 
     public String getNome() {
-        return name;
+        return nome;
     }
 
     public void setNome(String nome) {
-        this.name = nome;
+        this.nome = nome;
     }
 
     public Double getValor() {
-        return value;
+        return valor;
     }
 
     public void setValor(Double valor) {
-        this.value = valor;
+        this.valor = valor;
     }
 
-    public String getImage() {
-        return image;
+    public String getImagem() {
+        return imagem;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setImagem(String imagem) {
+        this.imagem = imagem;
     }
 
-    public String getDescription() {
-        return description;
+    public String getDescricao() {
+        return descricao;
     }
 
-    public void setDescription(String descricao) {
-        this.description = descricao;
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
-    public Restaurante getEstablishment() {
-        return establishment;
+    public boolean isSemLactose() {
+        return semLactose;
     }
 
-    public void setEstablishment(Restaurante establisment) {
-        this.establishment = establisment;
+    public void setSemLactose(boolean semLactose) {
+        this.semLactose = semLactose;
+    }
+
+    public boolean isSemGluten() {
+        return semGluten;
+    }
+
+    public void setSemGluten(boolean semGluten) {
+        this.semGluten = semGluten;
+    }
+
+    public boolean isSemAcucar() {
+        return semAcucar;
+    }
+
+    public void setSemAcucar(boolean semAcucar) {
+        this.semAcucar = semAcucar;
+    }
+
+    public boolean isLowCarb() {
+        return lowCarb;
+    }
+
+    public void setLowCarb(boolean lowCarb) {
+        this.lowCarb = lowCarb;
+    }
+
+    public Restaurante getRestaurante() {
+        return restaurante;
+    }
+
+    public void setRestaurante(Restaurante restaurante) {
+        this.restaurante = restaurante;
     }
 }

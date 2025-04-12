@@ -18,30 +18,31 @@ public class RestauranteController {
     private RestauranteService serv;
 
     @GetMapping
-    public ResponseEntity<List<Restaurante>> findAll() {
+    public ResponseEntity<List<Restaurante>> listarTodos() {
         return ResponseEntity.ok(serv.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Restaurante> findById(@PathVariable UUID id) {
+    public ResponseEntity<Restaurante> buscarPorId(@PathVariable UUID id) {
         Optional<Restaurante> restaurante = serv.findById(id);
         return restaurante.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Restaurante> save(@RequestBody Restaurante restaurante) {
+    public ResponseEntity<Restaurante> salvar(@RequestBody Restaurante restaurante) {
         return ResponseEntity.ok(serv.save(restaurante));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Restaurante> update(@PathVariable UUID id, @RequestBody Restaurante restaurante) {
-        Restaurante updated = serv.update(id, restaurante);
-        return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<Restaurante> atualizar(@PathVariable UUID id, @RequestBody Restaurante restaurante) {
+        Restaurante atualizado = serv.update(id, restaurante);
+        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
+    public ResponseEntity<Void> deletarPorId(@PathVariable UUID id) {
         serv.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
 }

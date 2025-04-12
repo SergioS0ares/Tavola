@@ -17,36 +17,35 @@ import TavolaSoftware.TavolaApp.tools.Usuario;
 public class Restaurante extends Usuario {
 
     @ElementCollection
-    private List<Mesas> tables;
+    private List<Mesas> mesas;
 
     @Column(name = "establishment_hour")
-    private String hour;
+    private String horaFuncionamento;
 
     @OneToMany(mappedBy = "establishment", cascade = CascadeType.ALL)
-    private List<Cardapio> menu;
+    private List<Cardapio> cardapio;
 
-    // Getters e Setters
-    public List<Mesas> getTables() {
-        return tables;
+    public List<Mesas> getMesas() {
+        return mesas;
     }
 
-    public void setTables(List<Mesas> tables) {
-        this.tables = tables;
+    public void setMesas(List<Mesas> mesas) {
+        this.mesas = mesas;
     }
 
-    public String getHour() {
-        return hour;
+    public String getHorarioFuncionamento() {
+        return horaFuncionamento;
     }
 
-    public void setHour(String hour) {
-        this.hour = hour;
+    public void setHoraFuncionamento(String horaFuncionamento) {
+        this.horaFuncionamento = horaFuncionamento;
     }
 
-    public List<Cardapio> getMenu() {
-        return menu;
+    public List<Cardapio> getCardapio() {
+        return cardapio;
     }
 
-    public void setMenu(List<Cardapio> menu) {
-        this.menu = menu;
+    public void setCardapio(List<Cardapio> cardapio) {
+        this.cardapio = cardapio;
     }
 }

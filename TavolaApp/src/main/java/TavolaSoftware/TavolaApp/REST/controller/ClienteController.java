@@ -18,27 +18,26 @@ public class ClienteController {
     private ClienteService serv;
 
     @PostMapping("/create")
-    public ResponseEntity<Cliente> createClient(@RequestBody Cliente cliente) {
-        Cliente novoCliente = serv.createClient(cliente);
+    public ResponseEntity<Cliente> criarCliente(@RequestBody Cliente cliente) {
+        Cliente novoCliente = serv.createCliente(cliente);
         return ResponseEntity.ok(novoCliente);
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<Cliente> findById(@PathVariable UUID id) {
+    public ResponseEntity<Cliente> buscarPorId(@PathVariable UUID id) {
         Optional<Cliente> cliente = serv.findById(id);
-        return cliente.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/getall")
-    public ResponseEntity<List<Cliente>> getAllClients() {
-        return ResponseEntity.ok(serv.getAllClients());
+    public ResponseEntity<List<Cliente>> listarTodos() {
+        return ResponseEntity.ok(serv.getAllClientes());
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Cliente> updateClient (@PathVariable UUID id, @RequestBody Cliente update) {
+    public ResponseEntity<Cliente> atualizar(@PathVariable UUID id, @RequestBody Cliente atualizacao) {
         try {
-            Cliente cliente = serv.updateClient(id, update);
+            Cliente cliente = serv.updateCliente(id, atualizacao);
             return ResponseEntity.ok(cliente);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -46,8 +45,9 @@ public class ClienteController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deletarClient (@PathVariable UUID id) {
-        serv.deletarClient(id);
+    public ResponseEntity<Void> deletarPorId(@PathVariable UUID id) {
+        serv.deletarCliente(id);
         return ResponseEntity.noContent().build();
     }
+
 }

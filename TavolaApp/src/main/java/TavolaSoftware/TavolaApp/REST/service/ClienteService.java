@@ -16,12 +16,12 @@ public class ClienteService {
     private ClienteRepository repo;
 
     // Criar um novo cliente
-    public Cliente createClient(Cliente client) {
+    public Cliente createCliente(Cliente client) {
         return repo.save(client);
     }
 
     // Buscar todos os clientes
-    public List<Cliente> getAllClients() {
+    public List<Cliente> getAllClientes() {
         return repo.findAll();
     }
     
@@ -31,7 +31,7 @@ public class ClienteService {
     }
 
     // Atualizar um cliente
-    public Cliente updateClient (UUID id, Cliente update) {
+    public Cliente updateCliente (UUID id, Cliente update) {
         return repo.findById(id)
                 .map(cliente -> {
                     cliente.setNome(update.getNome());
@@ -44,7 +44,7 @@ public class ClienteService {
     }
 
     // Deletar um cliente
-    public void deletarClient(UUID id) {
+    public void deletarCliente(UUID id) {
         repo.deleteById(id);
     }
 }
