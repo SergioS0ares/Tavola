@@ -22,7 +22,7 @@ public class Restaurante extends Usuario {
     @Column(name = "establishment_hour")
     private String horaFuncionamento;
 
-    @OneToMany(mappedBy = "establishment", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
 
     public List<Mesas> getMesas() {

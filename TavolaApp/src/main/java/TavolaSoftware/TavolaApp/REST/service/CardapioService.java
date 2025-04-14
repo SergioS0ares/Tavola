@@ -23,8 +23,8 @@ public class CardapioService {
         return repo.findById(id);
     }
 
-    public List<Cardapio> findByRestaurante(UUID restauranteId) {
-        return repo.findByRestaurante(restauranteId);
+    public List<Cardapio> findByRestauranteId(UUID restauranteId) {
+        return repo.findByRestauranteId(restauranteId);
     }
 
     public Cardapio save(Cardapio cardapio) {

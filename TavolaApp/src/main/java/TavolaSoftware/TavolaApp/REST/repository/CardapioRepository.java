@@ -10,5 +10,5 @@ import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 
 @Repository
 public interface CardapioRepository extends JpaRepository<Cardapio, UUID> {
-    List<Cardapio> findByRestaurante(UUID restauranteId);
+    List<Cardapio> findByRestauranteId(UUID restauranteId);
 }

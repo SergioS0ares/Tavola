@@ -23,29 +23,29 @@ public class CardapioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cardapio> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<Cardapio> findById(@PathVariable UUID id) {
         Optional<Cardapio> cardapio = serv.findById(id);
         return cardapio.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/restaurante/{restauranteId}")
-    public ResponseEntity<List<Cardapio>> buscarPorRestaurante(@PathVariable UUID restauranteId) {
-        return ResponseEntity.ok(serv.findByRestaurante(restauranteId));
+    public ResponseEntity<List<Cardapio>> findByRestauranteId(@PathVariable UUID restauranteId) {
+        return ResponseEntity.ok(serv.findByRestauranteId(restauranteId));
     }
 
     @PostMapping
-    public ResponseEntity<Cardapio> salvar(@RequestBody Cardapio cardapio) {
+    public ResponseEntity<Cardapio> save(@RequestBody Cardapio cardapio) {
         return ResponseEntity.ok(serv.save(cardapio));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cardapio> atualizar(@PathVariable UUID id, @RequestBody Cardapio cardapio) {
+    public ResponseEntity<Cardapio> update(@PathVariable UUID id, @RequestBody Cardapio cardapio) {
         Cardapio atualizado = serv.update(id, cardapio);
         return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarPorId(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
         serv.deleteById(id);
         return ResponseEntity.noContent().build();
     }
