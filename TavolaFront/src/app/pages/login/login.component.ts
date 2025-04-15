@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 
 interface LoginForm {
   email: FormControl;
-  password: FormControl;
+  senha: FormControl;
 }
 
 @Component({
@@ -48,7 +48,7 @@ export class LoginComponent {
         Validators.email,
         this.emailWithTLDValidator
       ]),
-      password: new FormControl('', [
+      senha: new FormControl('', [
         Validators.required,
         Validators.minLength(6),
         Validators.maxLength(20)
@@ -73,10 +73,10 @@ export class LoginComponent {
     }
 
     const email = this.loginForm.get('email')?.value;
-    const password = this.loginForm.get('password')?.value;
+    const senha = this.loginForm.get('senha')?.value;
 
-    if (email && password) {
-      this.loginService.login(email, password).subscribe({
+    if (email && senha) {
+      this.loginService.login(email, senha).subscribe({
         next: () => {
           this.toastService.success("Login feito com sucesso!");
           this.router.navigate(["user"]);

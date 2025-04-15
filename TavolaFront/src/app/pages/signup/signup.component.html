@@ -16,7 +16,7 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Nome Completo</mat-label>
         <span matPrefix><mat-icon class="input-icon">person</mat-icon></span>
-        <input matInput formControlName="name" type="text">
+        <input matInput formControlName="nome" type="text">
       </mat-form-field>
 
       <!-- E-mail -->
@@ -30,7 +30,7 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Senha</mat-label>
         <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
-        <input matInput formControlName="password" type="password">
+        <input matInput formControlName="senha" type="password">
       </mat-form-field>
 
       <!-- Confirmar senha -->
@@ -53,8 +53,9 @@
 <h2 class="form-title">Endereço</h2>
 
       <mat-form-field appearance="outline" class="full-width">
-       <mat-label>CEP</mat-label>
-       <input matInput formControlName="CEP*" type="text" (blur)="buscarCep()" maxlength="8">
+        <mat-label>CEP*</mat-label>
+        <input matInput formControlName="cep" type="text" (blur)="buscarCep()" maxlength="8">
+        <mat-error *ngIf="mensagemCepInvalido">{{ mensagemCepInvalido }}</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
