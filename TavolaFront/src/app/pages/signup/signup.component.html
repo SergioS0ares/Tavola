@@ -1,0 +1,92 @@
+<app-default-login-layout
+  title="Cadastre-se"
+  primaryBtnText="Cadastrar"
+  secondaryBtnText="Já possui uma conta? Entre na plataforma"
+  (submit)="submit()"
+  (navigate)="navigate()"
+  [disablePrimaryBtn]="!signupForm.valid">
+  <form [formGroup]="signupForm" class="signup-form-grid">
+
+    <!-- COLUNA ESQUERDA -->
+    <div class="form-column">
+
+      <h2 class="form-title">Informações da Conta</h2>
+
+      <!-- Nome -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome Completo</mat-label>
+        <span matPrefix><mat-icon class="input-icon">person</mat-icon></span>
+        <input matInput formControlName="name" type="text">
+      </mat-form-field>
+
+      <!-- E-mail -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>E-mail</mat-label>
+        <span matPrefix><mat-icon class="input-icon">email</mat-icon></span>
+        <input matInput formControlName="email" type="email">
+      </mat-form-field>
+
+      <!-- Senha -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+        <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
+        <input matInput formControlName="password" type="password">
+      </mat-form-field>
+
+      <!-- Confirmar senha -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Confirme sua senha</mat-label>
+        <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
+        <input matInput formControlName="passwordConfirm" type="password">
+      </mat-form-field>
+
+      <mat-radio-group formControlName="tipo" class="full-width">
+        <mat-radio-button value="CLIENTE">Cliente</mat-radio-button>
+        <mat-radio-button value="RESTAURANTE">Restaurante</mat-radio-button>
+      </mat-radio-group>
+
+    </div>
+
+    <!-- COLUNA DIREITA -->
+    <div class="form-column">
+
+<h2 class="form-title">Endereço</h2>
+
+      <mat-form-field appearance="outline" class="full-width">
+       <mat-label>CEP</mat-label>
+       <input matInput formControlName="CEP*" type="text" (blur)="buscarCep()" maxlength="8">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Estado</mat-label>
+        <input matInput formControlName="estado" type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Cidade</mat-label>
+        <input matInput formControlName="cidade" type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Bairro</mat-label>
+        <input matInput formControlName="bairro" type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Rua</mat-label>
+        <input matInput formControlName="rua" type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Número</mat-label>
+        <input matInput formControlName="numero" type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Complemento</mat-label>
+        <input matInput formControlName="complemento" type="text">
+      </mat-form-field>
+    </div>
+
+  </form>
+</app-default-login-layout>

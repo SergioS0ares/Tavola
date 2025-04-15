@@ -1,0 +1,61 @@
+@import "../../../styles/variables.scss";
+
+form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    span {
+        font-size: 14px;
+        text-decoration: underline;
+        color: $secondary-color;
+        text-align: end;
+    }
+}
+
+.input-icon {
+    margin-left: 8px;
+    margin-right: 8px;
+    width: 24px;
+    height: 24px;
+}
+
+.signup-form-grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.full-width {
+  width: 100%;
+  gap: 1px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1000px;
+  margin: auto;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  border-left: 4px solid $primary-color; // ou uma cor fixa como #8bc34a
+  padding-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
