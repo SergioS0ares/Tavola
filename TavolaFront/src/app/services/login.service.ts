@@ -1,29 +1,31 @@
-import {inject, Injectable} from "@angular/core";
-import {UserInterface} from "../models/user.interface";
-import {AuthService} from "./auth.service";
-import {Router} from "@angular/router";
-import {MenuService} from "./menu.service";
-import {MessageHelperService} from "./message-helper.service";
-import {RouterService} from "./router.service";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { LoginResponse } from '../types/login-response.type';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
-  providedIn: "root"
+  providedIn: 'root'
 })
 export class LoginService {
-  authService = inject(AuthService)
-  router = inject(Router)
-  menuService = inject(MenuService)
-  messageHelperService = inject(MessageHelperService)
-  routerService = inject(RouterService)
+  apiUrl: string = "http://localhost:8080/auth";
 
-  login(user: UserInterface) {
-    console.log(user)
-    localStorage.setItem("token", user.token)
-    this.authService.currentUser.set(user);
-    let nextUrl = this.routerService.previousUrl() ?? "/";
-    this.router.navigateByUrl(nextUrl).then();
-    this.menuService.setMenu()
-    this.messageHelperService.sendSuccessMessage("Conectado com sucesso!", "")
+  constructor(private httpClient: HttpClient) {}
+
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap((value) => {
+        sessionStorage.setItem("auth-token", value.token);
+        sessionStorage.setItem("username", value.name);
+      })
+    );
+  }
+
+  signup(data: any): Observable<LoginResponse> {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/register`, data).pipe(
+      tap((value) => {
+        sessionStorage.setItem("auth-token", value.token);
+        sessionStorage.setItem("username", value.name);
+      })
+    );
   }
 }
-
