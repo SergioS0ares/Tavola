@@ -11,8 +11,8 @@ export class LoginService {
 
   constructor(private httpClient: HttpClient) {}
 
-  login(email: string, password: string): Observable<LoginResponse> {
-    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+  login(email: string, senha: string): Observable<LoginResponse> {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, senha }).pipe(
       tap((value) => {
         sessionStorage.setItem("auth-token", value.token);
         sessionStorage.setItem("username", value.name);

@@ -33,14 +33,14 @@
             <span matPrefix>
                 <mat-icon class="input-icon">lock</mat-icon>
             </span>
-            <input matInput placeholder="Sua senha" formControlName="password" type="password">
-            <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+            <input matInput placeholder="Sua senha" formControlName="senha" type="password">
+            <mat-error *ngIf="loginForm.get('senha')?.hasError('required')">
                 Este campo é obrigatório
             </mat-error>
-            <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+            <mat-error *ngIf="loginForm.get('senha')?.hasError('minlength')">
                 A senha deve ter no mínimo 6 caracteres
             </mat-error>
-            <mat-error *ngIf="loginForm.get('password')?.hasError('maxlength')">
+            <mat-error *ngIf="loginForm.get('senha')?.hasError('maxlength')">
                 A senha deve ter no máximo 20 caracteres
             </mat-error>
         </mat-form-field>

@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './login.component';
 import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
-import { PrimaryInputComponent } from '../../components/primary-input/primary-input.component';
 import { Router } from '@angular/router';
 import { LoginService } from '../../services/login.service';
 import { ToastrService } from 'ngx-toastr';
@@ -23,11 +22,11 @@ describe('LoginComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        LoginComponent, 
+        LoginComponent,
         ReactiveFormsModule,
         DefaultLoginLayoutComponent,
-        PrimaryInputComponent,
-        HttpClientTestingModule 
+
+        HttpClientTestingModule
       ],
       providers: [
         { provide: Router, useValue: mockRouter },
@@ -68,19 +67,19 @@ describe('LoginComponent', () => {
     });
 
     it('o campo senha deve ser obrigatório', () => {
-      const password = component.loginForm.controls['password'];
+      const password = component.loginForm.controls['senha'];
       expect(password.valid).toBeFalsy();
       expect(password.errors?.['required']).toBeTruthy();
     });
 
     it('o campo senha deve ter no mínimo 6 caracteres', () => {
-      const password = component.loginForm.controls['password'];
+      const password = component.loginForm.controls['senha'];
       password.setValue('12345');
       expect(password.errors?.['minlength']).toBeTruthy();
     });
 
     it('o campo senha deve ter no máximo 20 caracteres', () => {
-      const password = component.loginForm.controls['password'];
+      const password = component.loginForm.controls['senha'];
       password.setValue('a'.repeat(21));
       expect(password.errors?.['maxlength']).toBeTruthy();
     });
