@@ -7,7 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "cliente")
+@Table(name = "client_table")
 public class Cliente extends Usuario {
 
     // Construtor padrão exigido pelo Hibernate
