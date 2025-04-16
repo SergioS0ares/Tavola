@@ -37,11 +37,11 @@
             <mat-error *ngIf="loginForm.get('senha')?.hasError('required')">
                 Este campo é obrigatório
             </mat-error>
-            <mat-error *ngIf="loginForm.get('senha')?.hasError('minlength')">
-                A senha deve ter no mínimo 6 caracteres
+            <mat-error *ngIf="loginForm.get('senha')?.hasError('minCaracteres')">
+              A senha deve ter no mínimo 8 caracteres.
             </mat-error>
-            <mat-error *ngIf="loginForm.get('senha')?.hasError('maxlength')">
-                A senha deve ter no máximo 20 caracteres
+            <mat-error *ngIf="loginForm.get('senha')?.hasError('semCaractereEspecial')">
+              A senha deve conter ao menos um caractere especial, como ! &#64; # $ %
             </mat-error>
         </mat-form-field>
 

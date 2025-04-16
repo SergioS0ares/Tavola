@@ -9,11 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
-
-interface LoginForm {
-  email: FormControl;
-  senha: FormControl;
-}
+import { ILoginForm } from '../../Interfaces/ILoginForm.interface';
 
 @Component({
   selector: 'app-login',
@@ -34,7 +30,7 @@ interface LoginForm {
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  loginForm: FormGroup<LoginForm>;
+  loginForm: FormGroup<ILoginForm>;
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
@@ -42,19 +38,33 @@ export class LoginComponent {
   private toastService = inject(ToastrService);
 
   constructor() {
-    this.loginForm = new FormGroup<LoginForm>({
-      email: new FormControl('', [
-        Validators.required,
-        Validators.email,
-        this.emailWithTLDValidator
-      ]),
-      senha: new FormControl('', [
-        Validators.required,
-        Validators.minLength(6),
-        Validators.maxLength(20)
-      ])
+    this.loginForm = new FormGroup<ILoginForm>({
+      email: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.email]
+      }),
+      senha: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, this.validadorSenhaForte]
+      })
     });
   }
+
+  validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
+    const valor = control.value;
+    if (!valor) return null;
+
+    const erros: ValidationErrors = {};
+
+    if (valor.length < 8) {
+      erros['minCaracteres'] = true;
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
+      erros['semCaractereEspecial'] = true;
+    }
+
+    return Object.keys(erros).length ? erros : null;
+  }
+
 
   emailWithTLDValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value as string;

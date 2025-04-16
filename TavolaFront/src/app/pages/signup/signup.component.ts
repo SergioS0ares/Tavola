@@ -14,22 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { UserComponent } from '../user/user.component';
-
-
-interface SignupForm {
-  nome: FormControl;
-  email: FormControl;
-  senha: FormControl;
-  passwordConfirm: FormControl;
-  tipo: FormControl;
-  cep: FormControl;
-  estado: FormControl;
-  cidade: FormControl;
-  bairro: FormControl;
-  rua: FormControl;
-  numero: FormControl;
-  complemento: FormControl;
-}
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
 
 @Component({
   selector: 'app-signup',
@@ -48,32 +34,66 @@ interface SignupForm {
     HttpClientModule,
     UserComponent
   ],
-  providers: [LoginService],
+  providers: [LoginService, provideNgxMask()],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
 export class SignUpComponent {
-  signupForm: FormGroup<SignupForm>;
+  signupForm: FormGroup<ISignupForm>;
   private router = inject(Router);
   private loginService = inject(LoginService);
   private toastService = inject(ToastrService);
   private http = inject(HttpClient);
 
   constructor() {
-    this.signupForm = new FormGroup<SignupForm>({
-      nome: new FormControl('', Validators.required),
-      email: new FormControl('', [Validators.required, Validators.email]),
-      senha: new FormControl('', Validators.required),
-      passwordConfirm: new FormControl('', Validators.required),
-      tipo: new FormControl('CLIENTE', Validators.required), // CLIENTE ou RESTAURANTE
-
-      cep: new FormControl('', Validators.required),
-      estado: new FormControl('', Validators.required),
-      cidade: new FormControl('', Validators.required),
-      bairro: new FormControl('', Validators.required),
-      rua: new FormControl('', Validators.required),
-      numero: new FormControl('', Validators.required),
-      complemento: new FormControl('')
+    this.signupForm = new FormGroup<ISignupForm>({
+      nome: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      email: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.email]
+      }),
+      senha: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, this.validadorSenhaForte]
+      }),
+      passwordConfirm: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      tipo: new FormControl<'CLIENTE' | 'RESTAURANTE'>('CLIENTE', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      cep: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      estado: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      cidade: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      bairro: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      rua: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      numero: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      }),
+      complemento: new FormControl<string>('', {
+        nonNullable: true
+      })
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -103,7 +123,7 @@ export class SignUpComponent {
   mensagemCepInvalido = '';
 
 buscarCep() {
-  const cep: string = this.signupForm.value.cep;
+  const cep: string = this.signupForm.value.cep ?? '';
 if (!cep || cep.length !== 8) return;
 
   this.http.get(`https://viacep.com.br/ws/${cep}/json/`).subscribe({
@@ -127,6 +147,20 @@ if (!cep || cep.length !== 8) return;
   });
 }
 
+validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
+  const valor = control.value;
+  if (!valor) return null;
+
+  const erros: ValidationErrors = {};
+
+  if (valor.length < 8) {
+    erros['minCaracteres'] = true;
+  } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
+    erros['semCaractereEspecial'] = true;
+  }
+
+  return Object.keys(erros).length ? erros : null;
+}
 
   submit() {
     if (this.signupForm.invalid) {

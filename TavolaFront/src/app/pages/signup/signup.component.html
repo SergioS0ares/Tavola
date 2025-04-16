@@ -13,32 +13,50 @@
       <h2 class="form-title">Informações da Conta</h2>
 
       <!-- Nome -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Nome Completo</mat-label>
-        <span matPrefix><mat-icon class="input-icon">person</mat-icon></span>
-        <input matInput formControlName="nome" type="text">
-      </mat-form-field>
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Nome Completo</mat-label>
+  <span matPrefix><mat-icon class="input-icon">person</mat-icon></span>
+  <input matInput formControlName="nome" type="text">
+  <mat-error *ngIf="signupForm.get('nome')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
-      <!-- E-mail -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>E-mail</mat-label>
-        <span matPrefix><mat-icon class="input-icon">email</mat-icon></span>
-        <input matInput formControlName="email" type="email">
-      </mat-form-field>
+<!-- E-mail -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>E-mail</mat-label>
+  <span matPrefix><mat-icon class="input-icon">email</mat-icon></span>
+  <input matInput formControlName="email" type="email">
+  <mat-error *ngIf="signupForm.get('email')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
-      <!-- Senha -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Senha</mat-label>
-        <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
-        <input matInput formControlName="senha" type="password">
-      </mat-form-field>
+<!-- Senha -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Senha</mat-label>
+  <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
+  <input matInput formControlName="senha" type="password">
+  <mat-error *ngIf="signupForm.get('senha')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+  <mat-error *ngIf="signupForm.get('senha')?.hasError('minCaracteres')">
+    A senha deve ter no mínimo 8 caracteres.
+  </mat-error>
+  <mat-error *ngIf="signupForm.get('senha')?.hasError('semCaractereEspecial')">
+    A senha deve ter caractere especial (!&#64;#).
+  </mat-error>
+</mat-form-field>
 
-      <!-- Confirmar senha -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Confirme sua senha</mat-label>
-        <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
-        <input matInput formControlName="passwordConfirm" type="password">
-      </mat-form-field>
+<!-- Confirmar senha -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Confirme sua senha</mat-label>
+  <span matPrefix><mat-icon class="input-icon">lock</mat-icon></span>
+  <input matInput formControlName="passwordConfirm" type="password">
+  <mat-error *ngIf="signupForm.get('passwordConfirm')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
       <mat-radio-group formControlName="tipo" class="full-width">
         <mat-radio-button value="CLIENTE">Cliente</mat-radio-button>
@@ -52,36 +70,59 @@
 
 <h2 class="form-title">Endereço</h2>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>CEP*</mat-label>
-        <input matInput formControlName="cep" type="text" (blur)="buscarCep()" maxlength="8">
-        <mat-error *ngIf="mensagemCepInvalido">{{ mensagemCepInvalido }}</mat-error>
-      </mat-form-field>
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>CEP*</mat-label>
+  <input matInput formControlName="cep" type="text" (blur)="buscarCep()" maxlength="9" mask="00000-000">
+  <mat-error *ngIf="signupForm.get('cep')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+  <mat-error *ngIf="mensagemCepInvalido">{{ mensagemCepInvalido }}</mat-error>
+</mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Estado</mat-label>
-        <input matInput formControlName="estado" type="text">
-      </mat-form-field>
+<!-- Estado -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Estado</mat-label>
+  <input matInput formControlName="estado" type="text">
+  <mat-error *ngIf="signupForm.get('estado')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Cidade</mat-label>
-        <input matInput formControlName="cidade" type="text">
-      </mat-form-field>
+<!-- Cidade -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Cidade</mat-label>
+  <input matInput formControlName="cidade" type="text">
+  <mat-error *ngIf="signupForm.get('cidade')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Bairro</mat-label>
-        <input matInput formControlName="bairro" type="text">
-      </mat-form-field>
+<!-- Bairro -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Bairro</mat-label>
+  <input matInput formControlName="bairro" type="text">
+  <mat-error *ngIf="signupForm.get('bairro')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Rua</mat-label>
-        <input matInput formControlName="rua" type="text">
-      </mat-form-field>
+<!-- Rua -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Rua</mat-label>
+  <input matInput formControlName="rua" type="text">
+  <mat-error *ngIf="signupForm.get('rua')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Número</mat-label>
-        <input matInput formControlName="numero" type="text">
-      </mat-form-field>
+<!-- Número -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Número</mat-label>
+  <input matInput formControlName="numero" type="text">
+  <mat-error *ngIf="signupForm.get('numero')?.hasError('required')">
+    Este campo é obrigatório.
+  </mat-error>
+</mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Complemento</mat-label>

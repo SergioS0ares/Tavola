@@ -22,11 +22,11 @@ describe('SignUpComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        SignUpComponent, 
+        SignUpComponent,
         ReactiveFormsModule,
         DefaultLoginLayoutComponent,
         PrimaryInputComponent,
-        HttpClientTestingModule 
+        HttpClientTestingModule
       ],
       providers: [
         { provide: Router, useValue: mockRouter },
