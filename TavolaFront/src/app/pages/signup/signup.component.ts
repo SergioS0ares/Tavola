@@ -13,8 +13,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { UserComponent } from '../user/user.component';
-import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { LayoutPrincipalComponent } from '../layout-principal/layout-principal.component';
+import { NgxMaskDirective} from 'ngx-mask';
 import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
 
 @Component({
@@ -32,9 +32,10 @@ import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
     MatSelectModule,
     MatRadioModule,
     HttpClientModule,
-    UserComponent
+    LayoutPrincipalComponent,
+    NgxMaskDirective
   ],
-  providers: [LoginService, provideNgxMask()],
+  providers: [LoginService],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
@@ -190,7 +191,8 @@ validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
     localStorage.setItem('token', res.token);
     localStorage.setItem('refreshToken', res.refreshToken);
     this.toastService.success("Cadastro realizado com sucesso!");
-    this.router.navigate(['user']);
+    this.router.navigate(['/layout', 'home']);
+
   },
   error: (err: any) => {
     const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";

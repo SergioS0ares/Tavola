@@ -52,18 +52,19 @@ export class LoginComponent {
 
   validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
     const valor = control.value;
-    if (!valor) return null;
-
+    if (!valor) return { required: true };
+  
     const erros: ValidationErrors = {};
-
+  
     if (valor.length < 8) {
       erros['minCaracteres'] = true;
     } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
       erros['semCaractereEspecial'] = true;
     }
-
+  
     return Object.keys(erros).length ? erros : null;
   }
+  
 
 
   emailWithTLDValidator(control: AbstractControl): ValidationErrors | null {
@@ -89,7 +90,7 @@ export class LoginComponent {
       this.loginService.login(email, senha).subscribe({
         next: () => {
           this.toastService.success("Login feito com sucesso!");
-          this.router.navigate(["user"]);
+          this.router.navigate(['home']);
         },
         error: (err) => {
           const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
