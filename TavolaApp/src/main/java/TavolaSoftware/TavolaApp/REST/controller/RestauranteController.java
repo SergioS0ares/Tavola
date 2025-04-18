@@ -2,7 +2,10 @@ package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
+import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,13 +31,37 @@ public class RestauranteController {
         return restaurante.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Restaurante> salvar(@RequestBody Restaurante restaurante) {
+    @PostMapping("/save")
+    public ResponseEntity<?> save(@RequestBody Restaurante restaurante) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+
+        handler.checkEmptyStrting("nome", restaurante.getNome());
+        handler.checkEmptyStrting("email", restaurante.getEmail());
+        handler.checkEmptyStrting("senha", restaurante.getSenha());
+        handler.checkEmptyObject("endereco", restaurante.getEndereco());
+        handler.checkEmptyStrting("horário de funcionamento", restaurante.getHorarioFuncionamento());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
         return ResponseEntity.ok(serv.save(restaurante));
     }
+    
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> atualizar(@PathVariable UUID id, @RequestBody Restaurante restaurante) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Restaurante> atualizar(@PathVariable UUID id, @RequestBody Restaurante restaurante) {
+        handler.checkEmptyStrting("nome", restaurante.getNome());
+        handler.checkEmptyStrting("email", restaurante.getEmail());
+        handler.checkEmptyStrting("senha", restaurante.getSenha());
+        handler.checkEmptyObject("endereco", restaurante.getEndereco());
+        handler.checkEmptyStrting("horário de funcionamento", restaurante.getHorarioFuncionamento());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
         Restaurante atualizado = serv.update(id, restaurante);
         return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
     }

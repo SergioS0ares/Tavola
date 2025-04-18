@@ -2,7 +2,9 @@ package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.service.CardapioService;
+import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,12 +36,34 @@ public class CardapioController {
     }
 
     @PostMapping
-    public ResponseEntity<Cardapio> save(@RequestBody Cardapio cardapio) {
+    public ResponseEntity<?> save(@RequestBody Cardapio cardapio) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+
+        handler.checkEmptyStrting("nome", cardapio.getNome());
+        handler.checkMinimmumNumber("valor", cardapio.getValor(), 0.0);
+        handler.checkEmptyStrting("descricao", cardapio.getDescricao());
+        handler.checkEmptyObject("restaurante", cardapio.getRestaurante());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
         return ResponseEntity.ok(serv.save(cardapio));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cardapio> update(@PathVariable UUID id, @RequestBody Cardapio cardapio) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Cardapio cardapio) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+
+        handler.checkEmptyStrting("nome", cardapio.getNome());
+        handler.checkMinimmumNumber("valor", cardapio.getValor(), 0.0);
+        handler.checkEmptyStrting("descricao", cardapio.getDescricao());
+        handler.checkEmptyObject("restaurante", cardapio.getRestaurante());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
         Cardapio atualizado = serv.update(id, cardapio);
         return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
     }
@@ -49,5 +73,4 @@ public class CardapioController {
         serv.deleteById(id);
         return ResponseEntity.noContent().build();
     }
-
 }

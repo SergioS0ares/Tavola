@@ -2,7 +2,9 @@ package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.service.ClienteService;
+import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +20,17 @@ public class ClienteController {
     private ClienteService serv;
 
     @PostMapping("/create")
-    public ResponseEntity<Cliente> criarCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<?> criarCliente(@RequestBody Cliente cliente) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+        handler.checkEmptyStrting("nome", cliente.getNome());
+        handler.checkEmptyStrting("email", cliente.getEmail());
+        handler.checkEmptyStrting("senha", cliente.getSenha());
+        handler.checkEmptyObject("endereco", cliente.getEndereco());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
         Cliente novoCliente = serv.createCliente(cliente);
         return ResponseEntity.ok(novoCliente);
     }
@@ -35,13 +47,29 @@ public class ClienteController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Cliente> atualizar(@PathVariable UUID id, @RequestBody Cliente atualizacao) {
-        try {
-            Cliente cliente = serv.updateCliente(id, atualizacao);
-            return ResponseEntity.ok(cliente);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> atualizar(@PathVariable UUID id, @RequestBody Cliente atualizacao) {
+        Optional<Cliente> clienteOptional = serv.findById(id);
+        if (clienteOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado.");
         }
+
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+        handler.checkEmptyStrting("nome", atualizacao.getNome());
+        handler.checkEmptyStrting("email", atualizacao.getEmail());
+        handler.checkEmptyStrting("senha", atualizacao.getSenha());
+        handler.checkEmptyObject("endereco", atualizacao.getEndereco());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
+        Cliente cliente = clienteOptional.get();
+        cliente.setNome(atualizacao.getNome());
+        cliente.setEmail(atualizacao.getEmail());
+        cliente.setSenha(atualizacao.getSenha());
+        cliente.setEndereco(atualizacao.getEndereco());
+
+        return ResponseEntity.ok(serv.createCliente(cliente)); // usa create pois é save
     }
 
     @DeleteMapping("/delete/{id}")
@@ -49,5 +77,4 @@ public class ClienteController {
         serv.deletarCliente(id);
         return ResponseEntity.noContent().build();
     }
-
 }
