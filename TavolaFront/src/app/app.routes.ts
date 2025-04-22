@@ -25,7 +25,7 @@ export const routes: Routes = [
     children: [
       { path: 'home', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent) },
       { path: 'meu-restaurante', loadComponent: () => import('./pages/meu-restaurante/meu-restaurante.component').then(m => m.MeuRestauranteComponent) },
-      { path: 'cardapio', loadComponent: () => import('./pages/cadastro-cardapio/cadastro-cardapio.component').then(m => m.CadastroCardapioComponent) },
+      { path: 'cadastro-cardapio', loadComponent: () => import('./pages/cadastro-cardapio/cadastro-cardapio.component').then(m => m.CadastroCardapioComponent) },
       { path: 'reserva', loadComponent: () => import('./pages/reservas/reservas.component').then(m => m.ReservasComponent) },
       { path: 'historico', loadComponent: () => import('./pages/historico-reservas/historico-reservas.component').then(m => m.HistoricoReservasComponent) },
       { path: '', redirectTo: 'home', pathMatch: 'full' }

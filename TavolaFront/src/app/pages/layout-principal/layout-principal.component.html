@@ -1,40 +1,53 @@
 <div class="layout-container">
+  <!-- Top Toolbar -->
+  <header class="toolbar">
+    <button class="menu-toggle" (click)="toggleSidebar()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span class="user-info">
+      <mat-icon>person</mat-icon>
+      {{ userName }}
+    </span>
+  </header>
 
-  <!-- Sidebar -->
-  <aside class="sidebar" [class.fechada]="!sidebarAberta">
-    <!-- Logo e botão para fechar -->
-    <div class="sidebar-header">
-      <img src="assets/logo-tavola.png" alt="Logo Tavola" class="logo" />
-      <button (click)="toggleSidebar()" class="close-button">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
+  <!-- Corpo: sidebar + conteúdo -->
+  <div class="main-wrapper">
+    <aside class="sidebar" [class.fechada]="!sidebarAberta">
+      <!-- Cabeçalho da sidebar -->
+      <div class="sidebar-header">
+        <img src="assets/logo-tavola.png" alt="Logo Tavola" class="logo" />
+        <!-- Aqui a setinha dinâmica -->
+        <button class="close-button" (click)="toggleSidebar()">
+          <mat-icon>
+            {{ sidebarAberta ? 'chevron_left' : 'chevron_right' }}
+          </mat-icon>
+        </button>
+      </div>
 
-    <!-- Itens de navegação -->
-    <nav class="menu">
-      <button routerLink="/home"><mat-icon>home</mat-icon> Início</button>
-      <button routerLink="/meu-restaurante"><mat-icon>restaurant</mat-icon> Meu Restaurante</button>
-      <button routerLink="/cardapio"><mat-icon>menu_book</mat-icon> Cadastro de Cardápio</button>
-      <button routerLink="/reserva"><mat-icon>event</mat-icon> Reservas</button>
-      <button routerLink="/historico"><mat-icon>history</mat-icon> Histórico</button>
-    </nav>
-  </aside>
+      <!-- Menu -->
+      <nav class="menu">
+        <button routerLink="home">
+          <mat-icon>home</mat-icon><span>Início</span>
+        </button>
+        <button routerLink="meu-restaurante">
+          <mat-icon>restaurant</mat-icon><span>Meu Restaurante</span>
+        </button>
+        <button routerLink="cadastro-cardapio">
+          <mat-icon>menu_book</mat-icon><span>Cadastro de Cardápio</span>
+        </button>
+        <button routerLink="reserva">
+          <mat-icon>event</mat-icon><span>Reservas</span>
+        </button>
+        <button routerLink="historico">
+          <mat-icon>history</mat-icon><span>Histórico</span>
+        </button>
+      </nav>
+    </aside>
 
-  <!-- Conteúdo principal -->
-  <main class="content">
-    <!-- Top Toolbar -->
-    <header class="toolbar">
-      <button class="menu-toggle" (click)="toggleSidebar()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="user-info">
-        <mat-icon>person</mat-icon> {{ userName }}
-      </span>
-    </header>
-
-    <!-- Roteador -->
-    <section class="router-container">
-      <router-outlet></router-outlet>
-    </section>
-  </main>
+    <main class="content">
+      <section class="router-container">
+        <router-outlet></router-outlet>
+      </section>
+    </main>
+  </div>
 </div>

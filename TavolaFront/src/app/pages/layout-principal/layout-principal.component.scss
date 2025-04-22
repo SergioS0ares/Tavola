@@ -1,107 +1,129 @@
 .layout-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
 }
 
-.spacer {
-  flex: 1 1 auto;
-}
-
+// toolbar no topo
 .toolbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 0 16px;
   height: 60px;
   background-color: #DA4A24;
   color: white;
+  z-index: 10;
 }
 
+// wrapper em flex-row para sidebar + content
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background-color: #ebe8e2;
+}
+
+// sidebar abaixo da toolbar e empurrando o conteúdo
 .sidebar {
+  margin: 16px;           // distancia do topo e das laterais
   width: 240px;
   background-color: #3B221B;
   color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  transition: width 0.3s ease, padding 0.3s ease;
+
+  &.fechada {
+    width: 70px;
+    padding: 16px 8px;
+
+    .sidebar-header {
+      justify-content: center;
+      .logo {
+        width: 30px;
+      }
+    }
+
+    .menu button {
+      justify-content: center;
+      span {
+        display: none;
+      }
+    }
+  }
 
   .sidebar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
 
     .logo {
       width: 50px;
       height: auto;
     }
 
-    button {
+    .close-button {
       background: none;
       border: none;
       color: white;
-      font-size: 18px;
+      font-size: 24px;
       cursor: pointer;
     }
   }
 
   .menu {
-    margin-top: 24px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 
     button {
-      background-color: #6B412A;
-      color: white;
-      border: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: 1px solid #F6BD38;
+      color: #F6BD38;
       padding: 10px;
-      text-align: left;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+
+      mat-icon {
+        font-size: 20px;
+      }
 
       &:hover {
-        background-color: #5C7028;
+        background-color: rgba(246, 189, 56, 0.1);
       }
     }
   }
 }
 
+// conteúdo ao lado da sidebar
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
 
-  .toolbar {
-    height: 60px;
-    background-color: #DA4A24;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 0 20px;
-    color: white;
-  }
-
   .router-container {
     flex: 1;
     padding: 24px;
-    background-color: #F6BD38;
+    background-color: #ebe8e2;
+    overflow-y: auto;
   }
 }
 
-.sidebar {
-  width: 250px;
-  transition: width 0.3s;
-  overflow: hidden;
-
-  &.fechada {
-    width: 0;
-  }
-}
-
+// botão hamburguer (reabre)
 .menu-toggle {
   background: transparent;
   border: none;
-  cursor: pointer;
   color: white;
+  cursor: pointer;
   font-size: 24px;
 }
-

@@ -190,6 +190,8 @@ validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
   next: (res) => {
     localStorage.setItem('token', res.token);
     localStorage.setItem('refreshToken', res.refreshToken);
+    localStorage.setItem('userName', res.name);
+    localStorage.setItem('tipoUsuario', res.tipoUsuario);
     this.toastService.success("Cadastro realizado com sucesso!");
     this.router.navigate(['/layout', 'home']);
 

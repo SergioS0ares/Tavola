@@ -88,7 +88,12 @@ export class LoginComponent {
 
     if (email && senha) {
       this.loginService.login(email, senha).subscribe({
-        next: () => {
+        next: (res) => {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('refreshToken', res.refreshToken);
+          localStorage.setItem('userName', res.name);
+          localStorage.setItem('tipoUsuario', res.tipoUsuario);
+        
           this.toastService.success("Login feito com sucesso!");
           this.router.navigate(['home']);
         },
