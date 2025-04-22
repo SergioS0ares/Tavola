@@ -1,7 +1,9 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.service.ClienteService;
+import TavolaSoftware.TavolaApp.REST.service.ReservaService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,16 @@ public class ClienteController {
     @Autowired
     private ClienteService serv;
 
+    @Autowired
+    private ReservaService reservaService;
+
+    
+    @GetMapping("/{id}/reservas")
+    public ResponseEntity<List<Reserva>> listarReservasCliente(@PathVariable UUID id) {
+        List<Reserva> reservas = reservaService.listarPorCliente(id);
+        return ResponseEntity.ok(reservas);
+    }
+    
     @PostMapping("/create")
     public ResponseEntity<?> criarCliente(@RequestBody Cliente cliente) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();

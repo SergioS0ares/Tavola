@@ -1,6 +1,8 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.service.ReservaService;
 import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 
@@ -19,6 +21,16 @@ public class RestauranteController {
 
     @Autowired
     private RestauranteService serv;
+
+    
+    @Autowired
+    private ReservaService reservaService;
+
+    @GetMapping("/{id}/reservas")
+    public ResponseEntity<List<Reserva>> listarReservasRestaurante(@PathVariable UUID id) {
+        List<Reserva> reservas = reservaService.listarPorRestaurante(id);
+        return ResponseEntity.ok(reservas);
+    }
 
     @GetMapping
     public ResponseEntity<List<Restaurante>> listarTodos() {
