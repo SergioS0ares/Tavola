@@ -1,1 +1,37 @@
-<p>cadastro-cardapio works!</p>
+<!-- topo: título e botão de adicionar -->
+<div class="top-bar">
+  <h2>Cadastro de Cardápio</h2>
+  <button mat-fab color="primary" (click)="adicionar()">
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
+
+<!-- grid de cards -->
+<div class="grid">
+  <mat-card *ngFor="let item of itens" class="card-item">
+    <img mat-card-image [src]="item.imagemBase64 || defaultImg" alt="{{item.nome}}" />
+
+    <mat-card-content>
+      <h3>{{ item.nome }}</h3>
+      <p class="preco">R$ {{ item.preco | number:'1.2-2' }}</p>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <!-- use sempre #menu="matMenu" dentro do *ngFor -->
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="editar(item)">
+          <mat-icon>edit</mat-icon>
+          <span>Editar</span>
+        </button>
+        <button mat-menu-item (click)="remover(item.id)">
+          <mat-icon>delete</mat-icon>
+          <span>Remover</span>
+        </button>
+      </mat-menu>
+    </mat-card-actions>
+  </mat-card>
+</div>
