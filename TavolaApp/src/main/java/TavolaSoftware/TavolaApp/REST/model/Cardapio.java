@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -8,8 +9,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import TavolaSoftware.TavolaApp.tools.Tags;
 
 @Entity
 @Table(name = "menu_establishment")
@@ -17,7 +22,11 @@ public class Cardapio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "dish_id")
     private UUID id;
+
+    @Column(name = "dish_category", nullable = false)
+    private String categoria;
 
     @Column(name = "dish_name", nullable = false)
     private String nome;
@@ -31,17 +40,13 @@ public class Cardapio {
     @Column(name = "dish_description")
     private String descricao;
 
-    @Column(name = "dish_lactosefree")
-    private boolean semLactose = false;
-
-    @Column(name = "dish_glutenfree")
-    private boolean semGluten = false;
-
-    @Column(name = "dish_sugarfree")
-    private boolean semAcucar = false;
-
-    @Column(name = "dish_lowcarb")
-    private boolean lowCarb = false;
+    @ManyToMany
+    @JoinTable(
+        name = "dish_tags",
+        joinColumns = @JoinColumn(name = "dish_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tags> tags;
 
     @ManyToOne
     @JoinColumn(name = "establishment_id", nullable = false)
@@ -87,36 +92,12 @@ public class Cardapio {
         this.descricao = descricao;
     }
 
-    public boolean isSemLactose() {
-        return semLactose;
+    public Set<Tags> getTags() {
+        return tags;
     }
 
-    public void setSemLactose(boolean semLactose) {
-        this.semLactose = semLactose;
-    }
-
-    public boolean isSemGluten() {
-        return semGluten;
-    }
-
-    public void setSemGluten(boolean semGluten) {
-        this.semGluten = semGluten;
-    }
-
-    public boolean isSemAcucar() {
-        return semAcucar;
-    }
-
-    public void setSemAcucar(boolean semAcucar) {
-        this.semAcucar = semAcucar;
-    }
-
-    public boolean isLowCarb() {
-        return lowCarb;
-    }
-
-    public void setLowCarb(boolean lowCarb) {
-        this.lowCarb = lowCarb;
+    public void setTags(Set<Tags> tags) {
+        this.tags = tags;
     }
 
     public Restaurante getRestaurante() {

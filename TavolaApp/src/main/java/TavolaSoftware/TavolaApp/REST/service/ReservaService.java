@@ -28,11 +28,11 @@ public class ReservaService {
     }
     
 
-    public Reserva saveReserva(Reserva reserva) {
+    public Reserva save(Reserva reserva) {
         return repo.save(reserva);
     }
 
-    public void deleteReserva(UUID id) {
+    public void delete(UUID id) {
         repo.deleteById(id);
     }
 }

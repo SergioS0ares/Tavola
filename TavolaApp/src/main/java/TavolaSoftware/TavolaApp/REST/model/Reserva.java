@@ -3,8 +3,6 @@ package TavolaSoftware.TavolaApp.REST.model;
 import java.util.Date;
 import java.util.UUID;
 
-import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.tools.Mesas;
 
 import jakarta.persistence.Column;
