@@ -14,8 +14,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-import TavolaSoftware.TavolaApp.tools.Tags;
-
 @Entity
 @Table(name = "menu_establishment")
 public class Cardapio {

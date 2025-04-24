@@ -47,7 +47,7 @@ public class ClienteController {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
 
-        Cliente novoCliente = serv.createCliente(cliente);
+        Cliente novoCliente = serv.save(cliente);
         return ResponseEntity.ok(novoCliente);
     }
 
@@ -59,7 +59,7 @@ public class ClienteController {
 
     @GetMapping("/getall")
     public ResponseEntity<List<Cliente>> listarTodos() {
-        return ResponseEntity.ok(serv.getAllClientes());
+        return ResponseEntity.ok(serv.findAll());
     }
 
     @PutMapping("/update/{id}")
@@ -85,12 +85,12 @@ public class ClienteController {
         cliente.setSenha(atualizacao.getSenha());
         cliente.setEndereco(atualizacao.getEndereco());
 
-        return ResponseEntity.ok(serv.createCliente(cliente)); // usa create pois é save
+        return ResponseEntity.ok(serv.save(cliente)); // usa create pois é save
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deletarPorId(@PathVariable UUID id) {
-        serv.deletarCliente(id);
+        serv.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
