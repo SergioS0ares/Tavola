@@ -1,0 +1,41 @@
+Pacote: REST.repository
+
+=== TagsRepository.java ===
+@Repository
+public interface TagsRepository extends JpaRepository<Tags, Long> {
+    // Repositório para operações relacionadas a tags
+    // ...
+}
+=== FIM TagsRepository.java ===
+
+=== ReservaRepository.java ===
+@Repository
+public interface ReservaRepository extends JpaRepository<Reserva, Long> {
+    // Repositório para operações relacionadas a reservas
+    // ...
+}
+=== FIM ReservaRepository.java ===
+
+=== RestauranteRepository.java ===
+@Repository
+public interface RestauranteRepository extends JpaRepository<Restaurante, Long> {
+    // Repositório para operações relacionadas a restaurantes
+    // ...
+}
+=== FIM RestauranteRepository.java ===
+
+=== ClienteRepository.java ===
+@Repository
+public interface ClienteRepository extends JpaRepository<Cliente, Long> {
+    // Repositório para operações relacionadas a clientes
+    // ...
+}
+=== FIM ClienteRepository.java ===
+
+=== CardapioRepository.java ===
+@Repository
+public interface CardapioRepository extends JpaRepository<Cardapio, Long> {
+    // Repositório para operações relacionadas a cardápios
+    // ...
+}
+=== FIM CardapioRepository.java === 

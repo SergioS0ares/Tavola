@@ -1,0 +1,41 @@
+Pacote: REST.service
+
+=== ReservaService.java ===
+@Service
+public class ReservaService {
+    // Serviço para operações relacionadas a reservas
+    // ...
+}
+=== FIM ReservaService.java ===
+
+=== ClienteService.java ===
+@Service
+public class ClienteService {
+    // Serviço para operações relacionadas a clientes
+    // ...
+}
+=== FIM ClienteService.java ===
+
+=== TagsService.java ===
+@Service
+public class TagsService {
+    // Serviço para operações relacionadas a tags
+    // ...
+}
+=== FIM TagsService.java ===
+
+=== CardapioService.java ===
+@Service
+public class CardapioService {
+    // Serviço para operações relacionadas a cardápios
+    // ...
+}
+=== FIM CardapioService.java ===
+
+=== RestauranteService.java ===
+@Service
+public class RestauranteService {
+    // Serviço para operações relacionadas a restaurantes
+    // ...
+}
+=== FIM RestauranteService.java === 

@@ -1,0 +1,17 @@
+Pacote: REST.security
+
+=== JwtUtil.java ===
+@Component
+public class JwtUtil {
+    // Utilitário para manipulação de tokens JWT
+    // ...
+}
+=== FIM JwtUtil.java ===
+
+=== JwtAuthenticationFilter.java ===
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    // Filtro de autenticação JWT
+    // ...
+}
+=== FIM JwtAuthenticationFilter.java === 

@@ -1,0 +1,46 @@
+Pacote: REST.model
+
+=== Cardapio.java ===
+@Entity
+@Table(name = "cardapio")
+public class Cardapio {
+    // Modelo para representar um cardápio
+    // ...
+}
+=== FIM Cardapio.java ===
+
+=== Tags.java ===
+@Entity
+@Table(name = "tags")
+public class Tags {
+    // Modelo para representar tags
+    // ...
+}
+=== FIM Tags.java ===
+
+=== Reserva.java ===
+@Entity
+@Table(name = "reserva")
+public class Reserva {
+    // Modelo para representar uma reserva
+    // ...
+}
+=== FIM Reserva.java ===
+
+=== Cliente.java ===
+@Entity
+@Table(name = "cliente")
+public class Cliente {
+    // Modelo para representar um cliente
+    // ...
+}
+=== FIM Cliente.java ===
+
+=== Restaurante.java ===
+@Entity
+@Table(name = "restaurante")
+public class Restaurante {
+    // Modelo para representar um restaurante
+    // ...
+}
+=== FIM Restaurante.java === 
