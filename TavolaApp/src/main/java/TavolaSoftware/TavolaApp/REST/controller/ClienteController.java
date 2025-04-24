@@ -24,10 +24,14 @@ public class ClienteController {
     @Autowired
     private ReservaService reservaService;
 
-    
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<List<Reserva>> listarReservasCliente(@PathVariable UUID id) {
-        List<Reserva> reservas = reservaService.listarPorCliente(id);
+    public ResponseEntity<List<Reserva>> listarReservasCliente(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "latest") String ordem,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "20") int tamanho) {
+        
+        List<Reserva> reservas = reservaService.findAllByClienteOrdered(id, ordem, pagina, tamanho);
         return ResponseEntity.ok(reservas);
     }
     

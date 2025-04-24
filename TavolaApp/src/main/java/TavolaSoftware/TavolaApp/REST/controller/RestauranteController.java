@@ -27,8 +27,13 @@ public class RestauranteController {
     private ReservaService reservaService;
 
     @GetMapping("/{id}/reservas")
-    public ResponseEntity<List<Reserva>> listarReservasRestaurante(@PathVariable UUID id) {
-        List<Reserva> reservas = reservaService.listarPorRestaurante(id);
+    public ResponseEntity<List<Reserva>> listarReservasRestaurante(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "latest") String ordem,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "20") int tamanho) {
+        
+        List<Reserva> reservas = reservaService.findAllByRestauranteOrdered(id, ordem, pagina, tamanho);
         return ResponseEntity.ok(reservas);
     }
 

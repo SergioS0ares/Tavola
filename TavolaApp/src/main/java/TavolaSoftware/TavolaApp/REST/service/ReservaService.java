@@ -3,6 +3,8 @@ package TavolaSoftware.TavolaApp.REST.service;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.repository.ReservaRepository;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,65 +17,16 @@ public class ReservaService {
     @Autowired
     private ReservaRepository repo;
 
-    public List<Reserva> findAllByClienteOrderByLatest(UUID clienteId) {
-        // tem que arrumar
+    public List<Reserva> findAllByClienteOrdered(UUID clienteId, String ordem, int pagina, int tamanho) {
+        Pageable pageable = PageRequest.of(pagina, tamanho);
+        return repo.findAllByClienteOrdered(clienteId, ordem, pageable);
     }
     
-    public List<Reserva> findAllByClienteOrderByNewest(UUID clienteId){
-    	// tem que arrumar
+    public List<Reserva> findAllByRestauranteOrdered(UUID restauranteId, String ordem, int pagina, int tamanho) {
+        Pageable pageable = PageRequest.of(pagina, tamanho);
+        return repo.findAllByRestauranteOrdered(restauranteId, ordem, pageable);
     }
     
-    public List<Reserva> findAllByClienteOrderByPlacesCrescent(UUID clienteId){
-    	// tem que arrumar
-    }
-
-    public List<Reserva> findAllByClienteOrderByPlacesDecrescent(UUID clientId){
-    	// tem que arrumar
-    }
-    
-    public List<Reserva> findAllByClienteOrderByMesaCrescent(UUID clienteId){
-    	// aqui você faz a ordem crescente alfabética usando o nome das mesas da reserva
-    }
-    
-    public List<Reserva> findAllByClienteOrderByMesaDecrescent(UUID clienteId){
-    	// aqui você faz a ordem decrescente alfabética
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByNameCrescent(UUID restauranteId){
-        // aqui você faz a ordem crescente alfabética usando o nome do restaurante
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByNameDecrescent(UUID restauranteId){
-    	// aqui você faz a ordem decrescente
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByNewest(UUID restauranteId){
-    	// tem q arrumar aqui
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByLatest(UUID restauranteId){
-    	// tem q arrumar aqui
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByPlacesCrescent(UUID restauranteId){
-    	// tem q arrumar aqui
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByPlacesDecrescent(UUID restauranteId){
-    	// tem q arrumar aqui
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByEnderecoCrescent(UUID resauranteId){
-    	// tem que arruma
-    }
-    
-    public List<Reserva> findAllByRestauranteOrderByEnderecoDecrescent(UUID restauranteId){
-    	// tem que arrumar
-    }
-    
-    public Reserva findByReservaId(UUID reservaId) {
-    	// tem que arrumar
-    }
 
     public Reserva saveReserva(Reserva reserva) {
         return repo.save(reserva);
