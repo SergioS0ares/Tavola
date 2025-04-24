@@ -1,50 +1,64 @@
 <!-- topo -->
 <div class="top-bar">
-  <h2>Cadastro de Cardápio</h2>
+  <div class="title-section">
+    <mat-icon class="menu-icon">restaurant_menu</mat-icon>
+    <h2>Cadastro de Cardápio</h2>
+  </div>
   <button
     mat-fab
     color="primary"
     class="fab-add"
     aria-label="Adicionar item"
+    matTooltip="Adicionar novo item ao cardápio"
     (click)="adicionar()">
     <mat-icon>add</mat-icon>
   </button>
 </div>
 
-<!-- grid de cards -->
-<div class="grid">
-  <mat-card *ngFor="let item of itens" class="card-item">
-    <div class="card-image">
-      <img mat-card-image [src]="item.imagemBase64 || defaultImg" alt="{{ item.nome }}" />
-      <div class="card-tags">
-        <span *ngFor="let tag of item.tags" class="tag">{{ tag }}</span>
-      </div>
+<!-- grid de cards agrupados por categoria -->
+<ng-container *ngFor="let categoria of categoriasComItens">
+  <div class="categoria-section" *ngIf="categoria.itens.length > 0">
+    <h3 class="categoria-titulo">{{ categoria.nome }}</h3>
+    <div class="grid">
+      <mat-card *ngFor="let item of categoria.itens" class="card-item" [class.indisponivel]="!item.disponivel">
+        <div class="card-image">
+          <img mat-card-image [src]="item.imagemBase64 || defaultImg" alt="{{ item.nome }}" />
+          <div class="card-tags">
+            <span *ngFor="let tag of item.tags" class="tag">{{ tag }}</span>
+          </div>
+          <div class="status-badges">
+            <span class="badge indisponivel" *ngIf="!item.disponivel">Indisponível</span>
+            <span class="badge novo" *ngIf="isNovoItem(item)">Novo</span>
+          </div>
+        </div>
+        <mat-card-content>
+          <div class="card-header">
+            <h3>{{ item.nome }}</h3>
+            <mat-slide-toggle
+              [checked]="item.disponivel"
+              (change)="toggleDisponibilidade(item)"
+              color="primary"
+              [matTooltip]="item.disponivel ? 'Item disponível' : 'Item indisponível'">
+              {{ item.disponivel ? 'Disponível' : 'Indisponível' }}
+            </mat-slide-toggle>
+          </div>
+          <p class="descricao" *ngIf="item.descricao">{{ item.descricao }}</p>
+          <div class="card-footer">
+            <p class="preco">R$ {{ item.preco | number:'1.2-2' }}</p>
+          </div>
+        </mat-card-content>
+        <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" matTooltip="Mais opções">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="editar(item)">
+            <mat-icon>edit</mat-icon><span>Editar</span>
+          </button>
+          <button mat-menu-item (click)="confirmarRemocao(item)">
+            <mat-icon>delete</mat-icon><span>Remover</span>
+          </button>
+        </mat-menu>
+      </mat-card>
     </div>
-    <mat-card-content>
-      <div class="card-header">
-        <h3>{{ item.nome }}</h3>
-        <mat-slide-toggle
-          [checked]="item.disponivel"
-          (change)="toggleDisponibilidade(item)"
-          color="primary">
-          {{ item.disponivel ? 'Disponível' : 'Indisponível' }}
-        </mat-slide-toggle>
-      </div>
-      <p class="descricao" *ngIf="item.descricao">{{ item.descricao }}</p>
-      <div class="card-footer">
-        <p class="preco">R$ {{ item.preco | number:'1.2-2' }}</p>
-      </div>
-    </mat-card-content>
-    <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu">
-      <mat-icon>more_vert</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="editar(item)">
-        <mat-icon>edit</mat-icon><span>Editar</span>
-      </button>
-      <button mat-menu-item (click)="confirmarRemocao(item)">
-        <mat-icon>delete</mat-icon><span>Remover</span>
-      </button>
-    </mat-menu>
-  </mat-card>
-</div>
+  </div>
+</ng-container>

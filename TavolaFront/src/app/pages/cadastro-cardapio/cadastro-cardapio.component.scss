@@ -10,10 +10,23 @@
   justify-content: space-between;
   padding: 16px 24px;
 
-  h2 {
-    color: #3B221B;
-    font-size: 24px;
-    margin: 0;
+  .title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .menu-icon {
+      color: #DA4A24;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    h2 {
+      color: #3B221B;
+      font-size: 24px;
+      margin: 0;
+    }
   }
 }
 
@@ -29,8 +42,6 @@
     background-color: darken(#F6BD38, 5%) !important;
   }
 }
-
-
 
 .grid {
   display: grid;
@@ -52,6 +63,11 @@
     box-shadow: 0 8px 16px rgba(0,0,0,0.15);
   }
 
+  &.indisponivel {
+    opacity: 0.8;
+    border: 1px solid rgba(218, 74, 36, 0.3);
+  }
+
   .card-image {
     position: relative;
     
@@ -60,6 +76,31 @@
       height: 180px;
       object-fit: cover;
       background-color: #5C7028;
+    }
+
+    .status-badges {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      gap: 8px;
+
+      .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+
+        &.indisponivel {
+          background: rgba(218, 74, 36, 0.9);
+          color: #FFF;
+        }
+
+        &.novo {
+          background: rgba(92, 112, 40, 0.9);
+          color: #FFF;
+        }
+      }
     }
 
     .card-tags {
@@ -108,16 +149,19 @@
       mat-slide-toggle {
         ::ng-deep {
           .mdc-switch {
+            --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
+            --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
+            --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
+            --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
+            --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
+            --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
             --mdc-switch-selected-track-color: #F6BD38;
             --mdc-switch-selected-handle-color: #DA4A24;
             --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
             --mdc-switch-unselected-handle-color: #3B221B;
-          }
-          .mdc-switch__ripple {
-            display: none;
-          }
-          .mdc-label {
-            color: #3B221B;
+            --mdc-switch-selected-focus-track-color: #F6BD38;
+            --mdc-switch-selected-hover-track-color: #F6BD38;
+            --mdc-switch-selected-pressed-track-color: #F6BD38;
           }
         }
       }
@@ -146,5 +190,17 @@
         color: #DA4A24;
       }
     }
+  }
+}
+
+.categoria-section {
+  margin: 2rem 0;
+
+  .categoria-titulo {
+    color: #3B221B;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    border-left: 4px solid #F6BD38;
   }
 }

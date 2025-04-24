@@ -45,6 +45,19 @@ export class DialogItemCardapioComponent {
   /** Preview da imagem selecionada */
   preview?: string;
 
+  /** Flag para mostrar campo de nova categoria */
+  showOutraCategoria = false;
+
+  /** Lista de categorias */
+  categorias = [
+    { id: '1', nome: 'Entradas' },
+    { id: '2', nome: 'Acompanhamento' },
+    { id: '3', nome: 'Pratos Principais' },
+    { id: '4', nome: 'Sobremesas' },
+    { id: '5', nome: 'Bebidas' },
+    { id: '6', nome: 'Outros' }
+  ];
+
   /** Formulário reativo */
   form = this.fb.group({
     nome:          ['', Validators.required],
@@ -52,6 +65,7 @@ export class DialogItemCardapioComponent {
     preco:         [0, [Validators.required, Validators.min(0.01)]],
     disponivel:    [true],
     categoriaId:   ['', Validators.required],
+    novaCategoria: [''],
     tempoPreparo:  [10],
     tags:          [[] as string[]],
     imagemBase64:  ['', Validators.required],
@@ -128,21 +142,39 @@ export class DialogItemCardapioComponent {
     }
   }
 
+  /** Manipula a mudança de categoria */
+  onCategoriaChange(event: any) {
+    const value = event.value;
+    this.showOutraCategoria = value === 'outros';
+    
+    if (this.showOutraCategoria) {
+      this.form.get('novaCategoria')?.setValidators(Validators.required);
+    } else {
+      this.form.get('novaCategoria')?.clearValidators();
+    }
+    this.form.get('novaCategoria')?.updateValueAndValidity();
+  }
+
   /** Salva criando ou atualizando via serviço */
   salvar() {
     if (this.form.invalid) return;
     
     const formValue = this.form.value;
+    const categoriaId = this.showOutraCategoria && formValue.novaCategoria ? 
+      this.criarNovaCategoria(formValue.novaCategoria) : 
+      formValue.categoriaId || undefined;
+
     const itemToSave: Omit<IItemCardapio, 'id'> = {
       nome: formValue.nome!,
       descricao: formValue.descricao || '',
       preco: formValue.preco!,
       disponivel: formValue.disponivel!,
-      categoriaId: formValue.categoriaId || undefined,
+      categoriaId,
       tempoPreparo: formValue.tempoPreparo || undefined,
       tags: formValue.tags || [],
       imagemBase64: formValue.imagemBase64 || undefined,
-      ordem: formValue.ordem || 0
+      ordem: formValue.ordem || 0,
+      dataCriacao: new Date().toISOString()
     };
 
     if (this.data.modo === 'criar') {
@@ -152,6 +184,16 @@ export class DialogItemCardapioComponent {
     }
     
     this.dialogRef.close(true);
+  }
+
+  /** Cria uma nova categoria e retorna seu ID */
+  private criarNovaCategoria(nome: string): string {
+    const novaCategoria = {
+      id: (this.categorias.length + 1).toString(),
+      nome
+    };
+    this.categorias.push(novaCategoria);
+    return novaCategoria.id;
   }
 
   /** Fecha o diálogo sem salvar */

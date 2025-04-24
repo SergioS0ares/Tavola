@@ -3,7 +3,7 @@ import {
   _RecycleViewRepeaterStrategy,
   _VIEW_REPEATER_STRATEGY,
   isDataSource
-} from "./chunk-4U5OMYXO.js";
+} from "./chunk-IRTNQ5TH.js";
 import {
   BidiModule,
   Directionality,
@@ -19,11 +19,11 @@ import {
   getRtlScrollAxisType,
   hasModifierKey,
   supportsScrollBehavior
-} from "./chunk-KGAMTXTF.js";
+} from "./chunk-ZIMGGYG7.js";
 import {
   DOCUMENT,
   Location
-} from "./chunk-H6534O6E.js";
+} from "./chunk-R2NEGSYF.js";
 import {
   ANIMATION_MODULE_TYPE,
   ApplicationRef,
@@ -78,7 +78,7 @@ import {
   ɵɵqueryRefresh,
   ɵɵstyleProp,
   ɵɵviewQuery
-} from "./chunk-BOK2NXWY.js";
+} from "./chunk-TXDFQC3K.js";
 import {
   Observable,
   Subject,
@@ -99,7 +99,7 @@ import {
   take,
   takeUntil,
   takeWhile
-} from "./chunk-SEWRL35V.js";
+} from "./chunk-OPLEGR3Y.js";
 import {
   __spreadProps,
   __spreadValues
@@ -4856,6 +4856,7 @@ var FullscreenOverlayContainer = _FullscreenOverlayContainer;
 })();
 
 export {
+  ScrollDispatcher,
   ViewportRuler,
   CdkScrollableModule,
   ComponentPortal,
@@ -4872,4 +4873,4 @@ export {
   CdkConnectedOverlay,
   OverlayModule
 };
-//# sourceMappingURL=chunk-XKKUPOPK.js.map
+//# sourceMappingURL=chunk-TFO6DEBB.js.map

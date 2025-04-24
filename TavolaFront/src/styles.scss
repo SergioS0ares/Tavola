@@ -63,6 +63,34 @@ $dark-theme: mat.define-dark-theme((
   }
 }
 
+// Estilo dos elementos no hover
+.mat-mdc-slide-toggle {
+  .mdc-switch {
+    &:hover {
+      .mdc-switch__track {
+        background-color: lighten(#F6BD38, 10%) !important;
+      }
+      .mdc-switch__handle {
+        background-color: lighten(#DA4A24, 10%) !important;
+      }
+    }
+  }
+}
+
+.mat-mdc-card {
+  &:hover {
+    background-color: rgba(246, 189, 56, 0.05) !important;
+    transition: background-color 0.3s ease;
+  }
+}
+
+.mat-mdc-button, .mat-mdc-raised-button, .mat-mdc-outlined-button {
+  &:hover {
+    opacity: 0.9;
+    background-color: rgba(246, 189, 56, 0.1) !important;
+  }
+}
+
 // Estilos globais para o diálogo do cardápio
 .dialog-cardapio {
   .mdc-dialog__surface {
@@ -215,26 +243,51 @@ $dark-theme: mat.define-dark-theme((
 }
 
 // Correção global para inputs e selects
-.mat-mdc-input-element,
-.mat-mdc-select-value-text {
-  color: #3B221B !important;
+.mat-mdc-form-field {
+  .mat-mdc-input-element,
+  .mat-mdc-select-value-text,
+  .mdc-floating-label,
+  .mat-mdc-select-arrow {
+    color: #3B221B !important;
+  }
+
+  .mdc-text-field--filled {
+    background-color: transparent;
+  }
+
+  &:hover {
+    .mdc-floating-label {
+      color: #3B221B !important;
+    }
+  }
+
+  &.mat-focused {
+    .mdc-floating-label {
+      color: #DA4A24 !important;
+    }
+  }
+
+  .mat-mdc-form-field-hint,
+  .mat-mdc-form-field-error {
+    color: rgba(59, 34, 27, 0.6) !important;
+  }
 }
 
-// Correção para o menu de seleção
-.mat-mdc-select-panel {
-  background-color: #FFF8EE !important;
-
-  .mat-mdc-option {
-    color: #3B221B !important;
-
-    &:hover:not(.mdc-list-item--disabled) {
-      background-color: rgba(246, 189, 56, 0.1) !important;
+// Estilo dos chips/tags
+.mat-mdc-chip {
+  &.mat-mdc-standard-chip {
+    background-color: rgba(246, 189, 56, 0.9) !important;
+    
+    .mdc-evolution-chip__text-label {
+      color: #3B221B !important;
     }
 
-    &.mat-mdc-option-active,
-    &.mat-mdc-option-selected {
-      background-color: rgba(246, 189, 56, 0.2) !important;
+    .mat-mdc-chip-remove {
       color: #3B221B !important;
+    }
+
+    &:hover {
+      background-color: rgba(246, 189, 56, 1) !important;
     }
   }
 }

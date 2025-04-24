@@ -1,7 +1,7 @@
 import {
   DOCUMENT,
   isPlatformBrowser
-} from "./chunk-H6534O6E.js";
+} from "./chunk-R2NEGSYF.js";
 import {
   ANIMATION_MODULE_TYPE,
   APP_ID,
@@ -62,7 +62,7 @@ import {
   ɵɵtext,
   ɵɵtextInterpolate1,
   ɵɵviewQuery
-} from "./chunk-BOK2NXWY.js";
+} from "./chunk-TXDFQC3K.js";
 import {
   BehaviorSubject,
   Observable,
@@ -80,7 +80,7 @@ import {
   take,
   takeUntil,
   tap
-} from "./chunk-SEWRL35V.js";
+} from "./chunk-OPLEGR3Y.js";
 import {
   __spreadProps,
   __spreadValues
@@ -5160,15 +5160,11 @@ var _MatInternalFormField = __MatInternalFormField;
 })();
 
 export {
-  Platform,
-  getSupportedInputTypes,
-  normalizePassiveListenerOptions,
-  RtlScrollAxisType,
-  supportsScrollBehavior,
-  getRtlScrollAxisType,
-  _getFocusedElementPierceShadowDom,
-  _getEventTarget,
-  _isTestEnvironment,
+  coerceBooleanProperty,
+  coerceNumberProperty,
+  coerceArray,
+  coerceCssPixelValue,
+  coerceElement,
   BACKSPACE,
   TAB,
   ENTER,
@@ -5181,14 +5177,19 @@ export {
   DELETE,
   A,
   hasModifierKey,
-  coerceBooleanProperty,
-  coerceNumberProperty,
-  coerceArray,
-  coerceCssPixelValue,
-  coerceElement,
+  Platform,
+  getSupportedInputTypes,
+  normalizePassiveListenerOptions,
+  RtlScrollAxisType,
+  supportsScrollBehavior,
+  getRtlScrollAxisType,
+  _getFocusedElementPierceShadowDom,
+  _getEventTarget,
+  _isTestEnvironment,
   ObserversModule,
   addAriaReferencedId,
   removeAriaReferencedId,
+  AriaDescriber,
   ActiveDescendantKeyManager,
   FocusKeyManager,
   InteractivityChecker,
@@ -5246,4 +5247,4 @@ export {
   MatRippleLoader,
   _MatInternalFormField
 };
-//# sourceMappingURL=chunk-KGAMTXTF.js.map
+//# sourceMappingURL=chunk-ZIMGGYG7.js.map

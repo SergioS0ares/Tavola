@@ -8,33 +8,6 @@
     font-size: 24px;
     margin: 0 0 24px 0;
   }
-
-  ::ng-deep {
-    // Força a cor do texto em todos os inputs
-    .mat-mdc-input-element {
-      color: #3B221B !important;
-    }
-
-    // Força a cor do texto no select
-    .mat-mdc-select-value-text {
-      color: #3B221B !important;
-    }
-
-    // Força a cor do texto no textarea
-    textarea.mat-mdc-input-element {
-      color: #3B221B !important;
-    }
-
-    // Força a cor do placeholder
-    ::placeholder {
-      color: rgba(59, 34, 27, 0.6) !important;
-    }
-
-    // Força a cor do label
-    .mat-mdc-form-field-label {
-      color: rgba(59, 34, 27, 0.6) !important;
-    }
-  }
 }
 
 .dialog-form {
@@ -110,6 +83,7 @@
       font-size: 14px;
     }
   }
+  
 
   .tags-section {
     .tags-label {
@@ -137,9 +111,11 @@
       --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
     }
 
-    // Estilo do select
-    .mat-mdc-select-arrow {
-      color: #3B221B;
+    // Força cores do texto
+    .mat-mdc-input-element,
+    .mat-mdc-select-value-text,
+    .mdc-floating-label {
+      color: #3B221B !important;
     }
 
     // Estilo dos chips
@@ -163,14 +139,29 @@
       .mat-mdc-chip-remove {
         color: #3B221B;
       }
+
+      &:hover {
+        background-color: darken(#F6BD38, 5%) !important;
+      }
     }
 
     // Estilo do toggle
     .mat-mdc-slide-toggle {
-      --mdc-switch-selected-track-color: #F6BD38;
-      --mdc-switch-selected-handle-color: #DA4A24;
-      --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
-      --mdc-switch-unselected-handle-color: #3B221B;
+      .mdc-switch {
+        --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
+        --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
+        --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
+        --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
+        --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
+        --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
+        --mdc-switch-selected-track-color: #F6BD38;
+        --mdc-switch-selected-handle-color: #DA4A24;
+        --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
+        --mdc-switch-unselected-handle-color: #3B221B;
+        --mdc-switch-selected-focus-track-color: #F6BD38;
+        --mdc-switch-selected-hover-track-color: #F6BD38;
+        --mdc-switch-selected-pressed-track-color: #F6BD38;
+      }
     }
   }
 }
