@@ -1,4 +1,3 @@
-
 @use '@angular/material' as mat;
 @include mat.core();
 @import 'ngx-toastr/toastr';
@@ -41,4 +40,202 @@ $dark-theme: mat.define-dark-theme((
 ));
 
 @include mat.all-component-themes($dark-theme);
+
+// Customização do Material Design
+.mat-mdc-select-panel, .mat-mdc-autocomplete-panel {
+  background-color: #b68949 !important;
+
+  .mat-mdc-option {
+    color: #3B221B !important;
+
+    &.mdc-list-item--selected,
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.2) !important;
+      
+      .mdc-list-item__primary-text {
+        color: #3B221B !important;
+      }
+    }
+
+    .mdc-list-item__primary-text {
+      color: #3B221B !important;
+    }
+  }
+}
+
+// Estilos globais para o diálogo do cardápio
+.dialog-cardapio {
+  .mdc-dialog__surface {
+    border-radius: 12px !important;
+    background-color: #FFF8EE !important;
+  }
+
+  .mdc-dialog__container {
+    backdrop-filter: blur(5px);
+  }
+
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-color: transparent;
+  }
+
+  // Estilo dos inputs outline
+  .mat-mdc-form-field-appearance-outline {
+    --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2);
+    --mdc-outlined-text-field-focus-outline-color: #DA4A24;
+    --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
+    --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6);
+    --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
+
+    .mat-mdc-form-field-flex {
+      background-color: transparent;
+    }
+
+    .mat-mdc-input-element,
+    .mat-mdc-select-value-text,
+    .mat-mdc-select-arrow,
+    .mdc-floating-label,
+    .mdc-floating-label--float-above {
+      color: #3B221B !important;
+    }
+
+    .mat-mdc-form-field-label {
+      color: rgba(59, 34, 27, 0.6) !important;
+
+      &.mdc-floating-label--float-above {
+        color: #3B221B !important;
+      }
+    }
+
+    &.mat-focused {
+      .mat-mdc-form-field-label {
+        color: #3B221B !important;
+      }
+
+      .mdc-text-field--focused {
+        .mdc-floating-label {
+          color: #3B221B !important;
+        }
+      }
+    }
+
+    // Corrige a cor do texto no hover e focus
+    .mat-mdc-text-field-wrapper:hover .mat-mdc-form-field-input-control,
+    .mat-mdc-text-field-wrapper:focus-within .mat-mdc-form-field-input-control {
+      color: #3B221B !important;
+    }
+
+    // Garante que o placeholder mantenha a cor
+    ::placeholder {
+      color: rgba(59, 34, 27, 0.6) !important;
+    }
+
+    textarea.mat-mdc-input-element {
+      color: #3B221B !important;
+    }
+
+    &:hover {
+      .mdc-floating-label,
+      .mdc-floating-label--float-above,
+      .mat-mdc-form-field-label {
+        color: #3B221B !important;
+      }
+    }
+  }
+
+  // Estilo do toggle
+  .mat-mdc-slide-toggle {
+    --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
+    --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
+    --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
+    --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-selected-track-color: #F6BD38;
+    --mdc-switch-selected-handle-color: #DA4A24;
+    --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-unselected-handle-color: #3B221B;
+    --mdc-switch-selected-focus-track-color: #F6BD38;
+    --mdc-switch-selected-hover-track-color: #F6BD38;
+    --mdc-switch-selected-pressed-track-color: #F6BD38;
+  }
+
+  .toggle-label {
+    color: #3B221B;
+  }
+
+  // Estilo dos chips
+  .mat-mdc-chip-option {
+    &.mdc-evolution-chip--selected,
+    &:hover {
+      background-color: #F6BD38 !important;
+      
+      .mdc-evolution-chip__text-label {
+        color: #3B221B !important;
+      }
+    }
+  }
+
+  .mat-mdc-chip-row {
+    background-color: #F6BD38 !important;
+    
+    .mdc-evolution-chip__text-label {
+      color: #3B221B !important;
+    }
+
+    .mat-mdc-chip-remove {
+      color: #3B221B;
+    }
+
+    &:hover {
+      background-color: darken(#F6BD38, 5%) !important;
+    }
+  }
+
+  // Estilo do input de chips
+  .mat-mdc-chip-input {
+    color: #3B221B !important;
+  }
+}
+
+// Customização global dos componentes Material
+.mat-mdc-menu-panel {
+  background-color: #FFF8EE !important;
+
+  .mat-mdc-menu-item {
+    color: #3B221B !important;
+
+    .mat-icon {
+      color: #DA4A24;
+    }
+
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.1);
+    }
+  }
+}
+
+// Correção global para inputs e selects
+.mat-mdc-input-element,
+.mat-mdc-select-value-text {
+  color: #3B221B !important;
+}
+
+// Correção para o menu de seleção
+.mat-mdc-select-panel {
+  background-color: #FFF8EE !important;
+
+  .mat-mdc-option {
+    color: #3B221B !important;
+
+    &:hover:not(.mdc-list-item--disabled) {
+      background-color: rgba(246, 189, 56, 0.1) !important;
+    }
+
+    &.mat-mdc-option-active,
+    &.mat-mdc-option-selected {
+      background-color: rgba(246, 189, 56, 0.2) !important;
+      color: #3B221B !important;
+    }
+  }
+}
 
