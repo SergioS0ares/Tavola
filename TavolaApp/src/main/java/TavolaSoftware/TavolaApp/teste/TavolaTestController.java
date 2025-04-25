@@ -1,4 +1,4 @@
-package TavolaSoftware.TavolaApp.REST.controller;
+package TavolaSoftware.TavolaApp.teste;
 
 import java.util.UUID;
 
