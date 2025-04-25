@@ -2,7 +2,7 @@ Pacote: REST.repository
 
 === TagsRepository.java ===
 @Repository
-public interface TagsRepository extends JpaRepository<Tags, Long> {
+public interface TagsRepository extends JpaRepository<Tags, UUID> {
     // Repositório para operações relacionadas a tags
     // ...
 }
@@ -10,7 +10,7 @@ public interface TagsRepository extends JpaRepository<Tags, Long> {
 
 === ReservaRepository.java ===
 @Repository
-public interface ReservaRepository extends JpaRepository<Reserva, Long> {
+public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
     // Repositório para operações relacionadas a reservas
     // ...
 }
@@ -18,7 +18,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
 === RestauranteRepository.java ===
 @Repository
-public interface RestauranteRepository extends JpaRepository<Restaurante, Long> {
+public interface RestauranteRepository extends JpaRepository<Restaurante, UUID> {
     // Repositório para operações relacionadas a restaurantes
     // ...
 }
@@ -26,7 +26,7 @@ public interface RestauranteRepository extends JpaRepository<Restaurante, Long> 
 
 === ClienteRepository.java ===
 @Repository
-public interface ClienteRepository extends JpaRepository<Cliente, Long> {
+public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
     // Repositório para operações relacionadas a clientes
     // ...
 }
@@ -34,7 +34,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
 === CardapioRepository.java ===
 @Repository
-public interface CardapioRepository extends JpaRepository<Cardapio, Long> {
+public interface CardapioRepository extends JpaRepository<Cardapio, UUID> {
     // Repositório para operações relacionadas a cardápios
     // ...
 }

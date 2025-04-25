@@ -8,7 +8,7 @@ import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
-import TavolaSoftware.TavolaApp.tools.TipoUsusario;
+import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +46,7 @@ public class RegistroController {
         }
 
         // Validações específicas de restaurante
-        if (request.getTipo() == TipoUsusario.RESTAURANTE) {
+        if (request.getTipo() == TipoUsuario.RESTAURANTE) {
             handler.checkEmptyList("mesas", request.getMesas());
             handler.checkEmptyStrting("horaFuncionamento", request.getHoraFuncionamento());
 
@@ -63,7 +63,7 @@ public class RegistroController {
 
         String senhaCriptografada = BCrypt.hashpw(request.getSenha(), BCrypt.gensalt());
 
-        if (request.getTipo() == TipoUsusario.CLIENTE) {
+        if (request.getTipo() == TipoUsuario.CLIENTE) {
             Cliente novoCliente = new Cliente(request.getNome(), senhaCriptografada, request.getEmail(), request.getEndereco());
             repoClient.save(novoCliente);
 
@@ -71,7 +71,7 @@ public class RegistroController {
             String refreshToken = jwt.generateRefreshToken(novoCliente.getId().toString());
             return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, novoCliente.getNome(), "CLIENTE"));
 
-        } else if (request.getTipo() == TipoUsusario.RESTAURANTE) {
+        } else if (request.getTipo() == TipoUsuario.RESTAURANTE) {
             Restaurante novoRestaurante = new Restaurante();
             novoRestaurante.setNome(request.getNome());
             novoRestaurante.setEmail(request.getEmail());
@@ -79,7 +79,7 @@ public class RegistroController {
             novoRestaurante.setEndereco(request.getEndereco());
             novoRestaurante.setMesas(request.getMesas());
             novoRestaurante.setHoraFuncionamento(request.getHoraFuncionamento());
-            novoRestaurante.setTipo(TipoUsusario.RESTAURANTE);
+            novoRestaurante.setTipo(TipoUsuario.RESTAURANTE);
             repoRestaurante.save(novoRestaurante);
 
             String accessToken = jwt.generateAccessToken(novoRestaurante.getEmail());

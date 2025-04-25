@@ -1,6 +1,6 @@
 package TavolaSoftware.TavolaApp.tools;
 
-public enum TipoUsusario {
+public enum TipoUsuario {
 
 	CLIENTE,
 	RESTAURANTE;
