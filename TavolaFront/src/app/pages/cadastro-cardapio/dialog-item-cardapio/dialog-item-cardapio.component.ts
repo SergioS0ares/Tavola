@@ -11,7 +11,12 @@ import {MatDialogModule, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/
 import { CardapioService } from '../../../services/cardapio.service';
 import { IItemCardapio } from '../../../Interfaces/Iitem-cardapio';
 import { MatIconModule } from '@angular/material/icon';
-import Swal from 'sweetalert2';;
+import Swal from 'sweetalert2';
+
+interface Categoria {
+  id: string;
+  nome: string;
+}
 
 export interface DialogData {
   modo: 'criar' | 'editar';
@@ -45,17 +50,13 @@ export class DialogItemCardapioComponent {
   /** Preview da imagem selecionada */
   preview?: string;
 
-  /** Flag para mostrar campo de nova categoria */
-  showOutraCategoria = false;
-
   /** Lista de categorias */
-  categorias = [
+  categorias: Categoria[] = [
     { id: '1', nome: 'Entradas' },
     { id: '2', nome: 'Acompanhamento' },
     { id: '3', nome: 'Pratos Principais' },
     { id: '4', nome: 'Sobremesas' },
-    { id: '5', nome: 'Bebidas' },
-    { id: '6', nome: 'Outros' }
+    { id: '5', nome: 'Bebidas' }
   ];
 
   /** Formulário reativo */
@@ -64,18 +65,19 @@ export class DialogItemCardapioComponent {
     descricao:     [''],
     preco:         [0, [Validators.required, Validators.min(0.01)]],
     disponivel:    [true],
-    categoriaId:   ['', Validators.required],
-    novaCategoria: [''],
+    categoriaInput: [null as unknown as Categoria, Validators.required],
     tempoPreparo:  [10],
     tags:          [[] as string[]],
     imagemBase64:  ['', Validators.required],
     ordem:         [0]
   });
 
-  ngOnInit() {
+  constructor() {
     if (this.data.modo === 'editar' && this.data.item) {
+      const categoria = this.categorias.find(c => c.id === this.data.item?.categoriaId);
       this.form.patchValue({
         ...this.data.item,
+        categoriaInput: categoria,
         tags: this.data.item.tags || []
       });
       this.preview = this.data.item.imagemBase64;
@@ -142,40 +144,37 @@ export class DialogItemCardapioComponent {
     }
   }
 
-  /** Manipula a mudança de categoria */
-  onCategoriaChange(event: any) {
-    const value = event.value;
-    this.showOutraCategoria = value === 'outros';
-    
-    if (this.showOutraCategoria) {
-      this.form.get('novaCategoria')?.setValidators(Validators.required);
-    } else {
-      this.form.get('novaCategoria')?.clearValidators();
-    }
-    this.form.get('novaCategoria')?.updateValueAndValidity();
+  /** Manipula a seleção de categoria */
+  onCategoriaSelected(event: any) {
+    const categoria = event.option.value;
+    this.form.patchValue({ categoriaInput: categoria });
   }
 
   /** Salva criando ou atualizando via serviço */
   salvar() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      console.log('Formulário inválido:', this.form.errors);
+      return;
+    }
     
     const formValue = this.form.value;
-    const categoriaId = this.showOutraCategoria && formValue.novaCategoria ? 
-      this.criarNovaCategoria(formValue.novaCategoria) : 
-      formValue.categoriaId || undefined;
+    const categoria = formValue.categoriaInput as Categoria;
+
+    console.log('Categoria selecionada:', categoria);
+    console.log('Form value:', formValue);
 
     const itemToSave: Omit<IItemCardapio, 'id'> = {
       nome: formValue.nome!,
       descricao: formValue.descricao || '',
       preco: formValue.preco!,
       disponivel: formValue.disponivel!,
-      categoriaId,
-      tempoPreparo: formValue.tempoPreparo || undefined,
+      categoriaId: categoria.id,
       tags: formValue.tags || [],
-      imagemBase64: formValue.imagemBase64 || undefined,
-      ordem: formValue.ordem || 0,
+      imagemBase64: formValue.imagemBase64!,
       dataCriacao: new Date().toISOString()
     };
+
+    console.log('Item a ser salvo:', itemToSave);
 
     if (this.data.modo === 'criar') {
       this.service.adicionarItem(itemToSave);
@@ -184,16 +183,6 @@ export class DialogItemCardapioComponent {
     }
     
     this.dialogRef.close(true);
-  }
-
-  /** Cria uma nova categoria e retorna seu ID */
-  private criarNovaCategoria(nome: string): string {
-    const novaCategoria = {
-      id: (this.categorias.length + 1).toString(),
-      nome
-    };
-    this.categorias.push(novaCategoria);
-    return novaCategoria.id;
   }
 
   /** Fecha o diálogo sem salvar */

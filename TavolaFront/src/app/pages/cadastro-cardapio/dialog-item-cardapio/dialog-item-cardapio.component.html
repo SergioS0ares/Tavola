@@ -6,32 +6,34 @@
   <form [formGroup]="form" class="dialog-form">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Categoria</mat-label>
-      <mat-select formControlName="categoriaId" (selectionChange)="onCategoriaChange($event)">
-        <mat-option value="">— selecione —</mat-option>
-        <mat-option *ngFor="let cat of categorias" [value]="cat.id">{{ cat.nome }}</mat-option>
-        <mat-option value="outros">Outra categoria...</mat-option>
+      <mat-select formControlName="categoriaInput">
+        <mat-option *ngFor="let categoria of categorias" [value]="categoria">
+          {{ categoria.nome }}
+        </mat-option>
       </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width" *ngIf="showOutraCategoria">
-      <mat-label>Nova categoria</mat-label>
-      <input matInput formControlName="novaCategoria" placeholder="Digite o nome da nova categoria" />
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nome do prato</mat-label>
-      <input matInput formControlName="nome" placeholder="Ex: Risotto de Funghi" />
+      <input matInput 
+             formControlName="nome" 
+             placeholder="Ex: Risotto de Funghi, Salmão Grelhado, etc." />
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Descrição</mat-label>
-      <textarea matInput formControlName="descricao" rows="3" 
-        placeholder="Ex: Risotto cremoso preparado com mix de cogumelos frescos e parmesão"></textarea>
+      <textarea matInput 
+                formControlName="descricao" 
+                rows="3" 
+                placeholder="Ex: Risotto cremoso preparado com mix de cogumelos frescos, finalizado com parmesão e azeite trufado"></textarea>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Preço (R$)</mat-label>
-      <input matInput type="number" formControlName="preco" placeholder="0.00" />
+      <input matInput 
+             type="number" 
+             formControlName="preco" 
+             placeholder="0.00" />
     </mat-form-field>
 
     <div class="upload-section">

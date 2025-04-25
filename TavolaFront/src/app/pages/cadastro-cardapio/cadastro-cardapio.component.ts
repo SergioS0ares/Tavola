@@ -42,8 +42,7 @@ export class CadastroCardapioComponent implements OnInit {
     { id: '2', nome: 'Acompanhamento' },
     { id: '3', nome: 'Pratos Principais' },
     { id: '4', nome: 'Sobremesas' },
-    { id: '5', nome: 'Bebidas' },
-    { id: '6', nome: 'Outros' }
+    { id: '5', nome: 'Bebidas' }
   ];
 
   categoriasComItens: ICategoriaComItens[] = [];

@@ -2,6 +2,8 @@
   background: #FFF8EE;
   padding: 24px;
   border-radius: 12px 12px 0 0;
+  max-height: 80vh;
+  overflow-y: auto;
 
   h2 {
     color: #3B221B;
@@ -163,6 +165,52 @@
         --mdc-switch-selected-pressed-track-color: #F6BD38;
       }
     }
+
+    .mat-mdc-autocomplete-panel {
+      background-color: #FFF8EE !important;
+      border: 1px solid rgba(246, 189, 56, 0.3);
+
+      .mat-mdc-option {
+        color: #3B221B !important;
+
+        &:hover {
+          background-color: rgba(246, 189, 56, 0.1) !important;
+        }
+
+        &.nova-categoria {
+          border-top: 1px solid rgba(246, 189, 56, 0.3);
+          
+          .mat-icon {
+            margin-right: 8px;
+            color: #DA4A24;
+          }
+        }
+      }
+    }
+
+    .mat-mdc-form-field-appearance-outline {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(59, 34, 27, 0.2) !important;
+      }
+
+      &:hover .mdc-notched-outline__leading,
+      &:hover .mdc-notched-outline__notch,
+      &:hover .mdc-notched-outline__trailing {
+        border-color: #F6BD38 !important;
+      }
+    }
+
+    .mat-mdc-option {
+      &.mdc-list-item--selected {
+        background-color: rgba(246, 189, 56, 0.1) !important;
+      }
+
+      &:hover {
+        background-color: rgba(246, 189, 56, 0.05) !important;
+      }
+    }
   }
 }
 
@@ -195,5 +243,11 @@
         background-color: rgba(218, 74, 36, 0.1);
       }
     }
+  }
+}
+
+:host {
+  .mat-mdc-form-field {
+    width: 100%;
   }
 }

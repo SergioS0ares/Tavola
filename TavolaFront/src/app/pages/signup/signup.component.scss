@@ -7,6 +7,34 @@ form {
     gap: 12px;
     margin-bottom: 12px;
 
+    ::ng-deep {
+        .mat-mdc-form-field {
+            .mat-mdc-input-element,
+            .mat-mdc-select-value-text,
+            .mdc-floating-label,
+            .mat-mdc-select-arrow {
+                color: white !important;
+            }
+
+            .mdc-text-field--outlined {
+                --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.6);
+                --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.3);
+                --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.5);
+                --mdc-outlined-text-field-focus-outline-color: $primary-color;
+            }
+        }
+
+        mat-error {
+            color: #D1495B !important;
+            font-weight: 500;
+            opacity: 1 !important;
+        }
+
+        .mat-mdc-form-field-error {
+            color: #D1495B !important;
+        }
+    }
+
     span {
         font-size: 14px;
         text-decoration: underline;
@@ -15,53 +43,48 @@ form {
     }
 }
 
-mat-error {
-  color: #D1495B; // vermelho queimado
-  font-weight: 500;
-}
-
-
 .input-icon {
     margin-left: 8px;
     margin-right: 8px;
     width: 24px;
     height: 24px;
+    color: white;
 }
 
 .signup-form-grid {
-  display: grid;
-  width: 100%;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
 }
 
 .form-column {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
 }
 
 .full-width {
-  width: 100%;
-  gap: 1px;
+    width: 100%;
+    gap: 1px;
 }
 
 .container {
-  width: 100%;
-  max-width: 1000px;
-  margin: auto;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
 }
 
 .form-title {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  border-left: 4px solid $primary-color; // ou uma cor fixa como #8bc34a
-  padding-left: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    border-left: 4px solid $primary-color;
+    padding-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

@@ -1,6 +1,6 @@
 :host {
   display: block;
-  background: #FFF8EE;
+  background: #ebe8e2;
   min-height: 100vh;
 }
 
@@ -51,10 +51,10 @@
 }
 
 .card-item {
-  background: #FFF8EE;
+  background: #FFF;
   border-radius: 16px;
   overflow: hidden;
-  transition: transform .2s, box-shadow .2s;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   border: 1px solid rgba(59, 34, 27, 0.1);
   position: relative;
 
@@ -203,4 +203,12 @@
     padding-left: 1rem;
     border-left: 4px solid #F6BD38;
   }
+}
+
+.container-rounded {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

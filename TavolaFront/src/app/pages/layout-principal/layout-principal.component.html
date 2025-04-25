@@ -4,10 +4,16 @@
     <button class="menu-toggle" (click)="toggleSidebar()">
       <mat-icon>menu</mat-icon>
     </button>
-    <span class="user-info">
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-info">
       <mat-icon>person</mat-icon>
       {{ userName }}
-    </span>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Sair</span>
+      </button>
+    </mat-menu>
   </header>
 
   <!-- Corpo: sidebar + conteúdo -->
