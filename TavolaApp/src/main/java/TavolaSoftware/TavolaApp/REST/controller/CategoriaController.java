@@ -1,0 +1,72 @@
+package TavolaSoftware.TavolaApp.REST.controller;
+
+import TavolaSoftware.TavolaApp.REST.model.Categoria;
+import TavolaSoftware.TavolaApp.REST.service.CategoriaService;
+import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/auth/categorias")
+public class CategoriaController {
+
+    @Autowired
+    private CategoriaService serv;
+
+    @GetMapping
+    public ResponseEntity<List<Categoria>> listarTodos() {
+        return ResponseEntity.ok(serv.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Categoria> buscarPorId(@PathVariable UUID id) {
+        Optional<Categoria> categoria = serv.findById(id);
+        return categoria.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/restaurante/{restauranteId}")
+    public ResponseEntity<List<Categoria>> buscarPorRestaurante(@PathVariable UUID restauranteId) {
+        return ResponseEntity.ok(serv.findByRestauranteId(restauranteId));
+    }
+
+    @PostMapping
+    public ResponseEntity<?> criar(@RequestBody Categoria categoria) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+
+        handler.checkEmptyStrting("nome", categoria.getNome());
+        handler.checkEmptyObject("restaurante", categoria.getRestaurante());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
+        return ResponseEntity.ok(serv.save(categoria));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizar(@PathVariable UUID id, @RequestBody Categoria categoria) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+
+        handler.checkEmptyStrting("nome", categoria.getNome());
+        handler.checkEmptyObject("restaurante", categoria.getRestaurante());
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
+        Categoria atualizado = serv.update(id, categoria);
+        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
+        serv.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+}

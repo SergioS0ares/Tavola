@@ -24,6 +24,7 @@ public class Tags {
     private String tag;
 
     @ManyToMany(mappedBy = "tags")
+    @Column(name = "tag_ref", nullable = false)
     private Set<Cardapio> cardapios;
 
     public Tags() {}

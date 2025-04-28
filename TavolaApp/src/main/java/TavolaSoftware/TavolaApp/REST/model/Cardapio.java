@@ -23,8 +23,10 @@ public class Cardapio {
     @Column(name = "dish_id")
     private UUID id;
 
-    @Column(name = "dish_category", nullable = false)
-    private String categoria;
+    @ManyToOne
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
+
 
     @Column(name = "dish_name", nullable = false)
     private String nome;
