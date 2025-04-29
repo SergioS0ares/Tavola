@@ -47,14 +47,6 @@ export class CadastroCardapioComponent implements OnInit {
 
   categoriasComItens: ICategoriaComItens[] = [];
 
-  // Considera um item como novo se foi adicionado nas últimas 24 horas
-  isNovoItem(item: IItemCardapio): boolean {
-    const itemDate = new Date(item.dataCriacao || '');
-    const now = new Date();
-    const diffHours = (now.getTime() - itemDate.getTime()) / (1000 * 60 * 60);
-    return diffHours <= 24;
-  }
-
   ngOnInit() {
     this.carregarItens();
     this.atualizarCategoriasComItens();

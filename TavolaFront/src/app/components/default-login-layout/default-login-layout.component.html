@@ -4,9 +4,11 @@
     </section>
     <section class="form-section">
         <img src="/assets/png/LogoTavolaSimples.png"/>
-       <h2>{{ title }}</h2>
-       <ng-content></ng-content>
-       <div class="btn-wrapper">
+        <h2>{{ title }}</h2>
+        <div class="form-content">
+            <ng-content></ng-content>
+        </div>
+        <div class="btn-wrapper">
             <button
                 class="btn-primary"
                 (click)="submit()"
@@ -14,13 +16,9 @@
             >
                 {{ primaryBtnText }}
             </button>
-            <div class="divider">
-                <div></div>
-                <span>or</span>
-                <div></div>
-            </div>
-            <button class="btn-secondary" (click)="navigate()">{{ secondaryBtnText }}</button>
-       </div>
+            <a class="navigation-link" (click)="navigate()">
+                {{ secondaryBtnText }}
+            </a>
+        </div>
     </section>
-
 </main>

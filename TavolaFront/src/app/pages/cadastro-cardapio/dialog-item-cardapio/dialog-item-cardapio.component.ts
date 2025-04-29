@@ -170,8 +170,7 @@ export class DialogItemCardapioComponent {
       disponivel: formValue.disponivel!,
       categoriaId: categoria.id,
       tags: formValue.tags || [],
-      imagemBase64: formValue.imagemBase64!,
-      dataCriacao: new Date().toISOString()
+      imagemBase64: formValue.imagemBase64!
     };
 
     console.log('Item a ser salvo:', itemToSave);

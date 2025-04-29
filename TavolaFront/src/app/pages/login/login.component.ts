@@ -31,6 +31,7 @@ import { ILoginForm } from '../../Interfaces/ILoginForm.interface';
 })
 export class LoginComponent {
   loginForm: FormGroup<ILoginForm>;
+  showForgotInfo = false;
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
@@ -112,6 +113,7 @@ export class LoginComponent {
   }
 
   forgotPassword(){
+    this.showForgotInfo = true;
     this.toastService.info("Funcionalidade de recuperação de senha ainda não implementada.");
   }
 }

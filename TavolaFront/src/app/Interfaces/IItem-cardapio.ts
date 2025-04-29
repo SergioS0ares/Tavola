@@ -9,5 +9,4 @@ export interface IItemCardapio {
   tempoPreparo?: number;     // minutos
   tags?: string[];           // ex: ["Vegano","Sem Glúten"]
   ordem?: number;            // posição no grid
-  dataCriacao?: string;      // data de criação do item
 }

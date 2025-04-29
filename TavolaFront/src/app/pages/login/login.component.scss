@@ -1,52 +1,164 @@
 @import "../../../styles/variables.scss";
 
-form {
+
+.login-form {
     width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 24px;
     margin-bottom: 34px;
+}
 
+.signup-tabs {
+    margin-top: -24px;
+    
     ::ng-deep {
-        .mat-mdc-form-field {
-            .mat-mdc-input-element,
-            .mat-mdc-select-value-text,
-            .mdc-floating-label,
-            .mat-mdc-select-arrow {
-                color: white !important;
+        .mat-mdc-tab-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+
+            .mat-mdc-tab {
+                color: rgba(255, 255, 255, 0.6);
+                min-height: 48px;
+                
+                &.mdc-tab--active {
+                    color: #F6BD38;
+                }
+
+                .mdc-tab-indicator__content--underline {
+                    border-color: #F6BD38;
+                }
+            }
+        }
+
+        .mat-mdc-tab-body-wrapper {
+            height: calc(100vh - 250px);
+            overflow-y: auto;
+
+            &::-webkit-scrollbar {
+                width: 8px;
             }
 
-            .mdc-text-field--outlined {
-                --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.6);
-                --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.3);
-                --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.5);
-                --mdc-outlined-text-field-focus-outline-color: $primary-color;
+            &::-webkit-scrollbar-track {
+                background: rgba(29, 87, 196, 0.1);
+                border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: rgba(18, 116, 31, 0.2);
+                border-radius: 4px;
+
+                &:hover {
+                    background: rgba(16, 211, 74, 0.3);
+                }
             }
         }
-
-        mat-error {
-            color: #D1495B !important;
-            font-size: 0.8rem;
-            opacity: 1 !important;
-        }
-
-        .mat-mdc-form-field-error {
-            color: #D1495B !important;
-        }
-    }
-
-    span {
-        font-size: 14px;
-        text-decoration: underline;
-        color: $secondary-color;
-        text-align: end;
     }
 }
 
-.largura-total {
-  width: 100%;
-  max-width: 500px;
-  align-self: center ;
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 0 16px;
+    max-width: 800px;
+    margin: 0 auto;
+
+    .form-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 16px;
+
+        .section-title {
+            color: #F6BD38;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid #F6BD38;
+            padding-left: 12px;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+
+            &.two-columns {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            &.full-width {
+                grid-column: 1 / -1;
+            }
+        }
+    }
+}
+
+::ng-deep {
+    .mat-mdc-form-field {
+        width: 100%;
+
+        .mat-mdc-input-element,
+        .mat-mdc-select-value-text,
+        .mdc-floating-label,
+        .mat-mdc-select-arrow {
+            color: white !important;
+            transition: color 0.2s;
+        }
+        .mat-mdc-input-element:hover,
+        .mat-mdc-input-element:focus {
+            color: white !important;
+        }
+
+        .mdc-text-field--outlined {
+            --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.6);
+            --mdc-outlined-text-field-outline-color: #4e2e22;
+            --mdc-outlined-text-field-hover-outline-color: #F6BD38;
+            --mdc-outlined-text-field-focus-outline-color: #F6BD38;
+        }
+
+        .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+            color: #F6BD38 !important;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+    }
+
+    .mat-mdc-checkbox {
+        --mdc-checkbox-selected-checkmark-color: #fff;
+        --mdc-checkbox-selected-focus-icon-color: #F6BD38;
+        --mdc-checkbox-selected-hover-icon-color: #F6BD38;
+        --mdc-checkbox-selected-icon-color: #F6BD38;
+        --mdc-checkbox-selected-pressed-icon-color: #F6BD38;
+        --mdc-checkbox-unselected-focus-icon-color: #D1495B;
+        --mdc-checkbox-unselected-hover-icon-color: #D1495B;
+        --mdc-checkbox-unselected-icon-color: #D1495B;
+        --mdc-checkbox-unselected-pressed-icon-color: #D1495B;
+        --mdc-checkbox-selected-focus-state-layer-color: #F6BD38;
+        --mdc-checkbox-selected-hover-state-layer-color: #F6BD38;
+        --mdc-checkbox-selected-pressed-state-layer-color: #F6BD38;
+    }
+
+    mat-error {
+        color: #D1495B !important;
+        font-size: 0.8rem;
+        opacity: 1 !important;
+    }
+
+    .mat-mdc-form-field-error {
+        color: #D1495B !important;
+    }
 }
 
 .input-icon {
@@ -62,12 +174,84 @@ form {
     margin-top: 10px;
 
     a {
-        color: $primary-color;
+        color: #F6BD38;
         text-decoration: none;
         cursor: pointer;
-
+        font-size: 14px;
+        transition: color 0.2s;
         &:hover {
+            color: #F6BD38;
             text-decoration: underline;
         }
+    }
+    .not-ready {
+        display: block;
+        color: #D1495B;
+        font-size: 13px;
+        margin-top: 4px;
+        text-align: right;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+.horarios-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .horario-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .dia-semana {
+            min-width: 120px;
+            color: white;
+        }
+
+        .horarios-inputs {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .signup-form {
+        padding: 0;
+
+        .form-section {
+            padding: 16px;
+
+            .form-row {
+                &.two-columns {
+                    grid-template-columns: 1fr;
+                }
+            }
+        }
+    }
+
+    .horarios-grid {
+        .horario-row {
+            flex-direction: column;
+            align-items: flex-start;
+
+            .dia-semana {
+                min-width: auto;
+            }
+
+            .horarios-inputs {
+                width: 100%;
+            }
+        }
+    }
+}
+
+@media (max-width: 600px) {
+    .login-form {
+        max-width: 100%;
+        padding: 0 8px;
     }
 }

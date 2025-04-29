@@ -3,131 +3,148 @@
 main {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   height: 100vh;
+  background-color: #3B221B;
+  overflow: hidden;
 
   section {
-    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  h2 {
-    color: white;
   }
 
   .main-section {
-    flex: 3;
-    gap: 8px;
-    flex-grow: 1;
-    background-color: #f6f6f6; // ou mantenha $gray-bg se for global
+    flex: 1;
+    background-color: #FFE135;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     img {
-      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center;
     }
   }
 
   .form-section {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 32px;
-    height: 100vh;
-    flex: 2;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    width: 40%;
-    background-color: #3B221B; // marrom escuro base
+    padding: 32px;
+    background-color: #3B221B;
+    position: relative;
+    max-height: 100vh;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #2a1812;
+      border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #4e2e22;
+      border-radius: 4px;
+      &:hover {
+        background: #D1495B;
+      }
+    }
 
     img {
-      display: block;
-      max-width: 60px;          // <— largura máxima do “pequeno”
-      width: 75%;                // <— opcional, escala responsiva
-      height: auto;              // <— mantém proporção
-      object-fit: contain;       // <— evita corte
-      border-radius: 8px;        // <— cantos arredondados (opcional)
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1); // sombra leve
+      align-self: center;
+      width: 60px;
+      height: auto;
+      margin-bottom: 24px;
     }
 
     h2 {
-      font-size: 20px;
-      font-weight: bold;
+      color: #F6BD38;
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .form-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 16px;
+      margin-bottom: 24px;
+      overflow: visible;
     }
 
     .btn-wrapper {
+      margin-top: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      width: 100%;
-      gap: 12px;
+      gap: 16px;
+      padding: 16px;
+      background-color: #3B221B;
 
-      .divider {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
+      button.btn-primary {
         width: 100%;
-
-        font-size: 14px;
-        color: #d6d6d6;
-        font-weight: 400;
-        text-transform: uppercase;
-
-        div {
-          flex-grow: 1;
-          height: 2px;
-          background-color: #d6d6d6;
-        }
-      }
-
-      button {
-        width: 100%;
+        padding: 12px;
         border-radius: 8px;
         font-size: 16px;
         font-weight: 500;
         border: none;
-        padding: 12px 24px;
         cursor: pointer;
-        transition: background-color 0.3s;
+        background-color: #F6BD38;
+        color: #3B221B;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: darken(#F6BD38, 5%);
+        }
 
         &:disabled {
-          opacity: 0.5;
+          background-color: rgba(246, 189, 56, 0.5);
+          cursor: not-allowed;
         }
+      }
 
-        &.btn-primary {
-          background-color: #F6BD38; // dourado quente
-          color: white;
-          box-shadow: 0px 8px 12px rgba(246, 189, 56, 0.2);
+      .navigation-link {
+        color: #F6BD38;
+        text-decoration: none;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
 
-          &:hover {
-            background-color: #DA4A24; // laranja queimado
-          }
-        }
-
-        &.btn-secondary {
-          border: 1px solid #F6BD38;
-          color: #F6BD38;
-          background-color: transparent;
-
-          &:hover {
-            background-color: rgba(246, 189, 56, 0.1);
-          }
+        &:hover {
+          color: lighten(#F6BD38, 10%);
+          text-decoration: underline;
         }
       }
     }
   }
 }
 
-// Estilização de mensagens de erro (adicional, pode ir no form global)
+@media (max-width: 1024px) {
+  main {
+    flex-direction: column;
+
+    .main-section {
+      display: none;
+    }
+
+    .form-section {
+      flex: 1;
+      width: 100%;
+      max-width: none;
+      padding: 24px 16px;
+    }
+  }
+}
+
+// Estilização de mensagens de erro
 mat-error {
-  color: #D1495B; // vermelho queimado
+  color: #D1495B;
   font-size: 0.8rem;
   font-weight: 500;
 }
