@@ -42,4 +42,9 @@ public class CardapioService {
         }
         return null;
     }
+    
+    public Optional<Cardapio> findByNomeAndRestauranteId(String nome, UUID restauranteId) {
+        return repo.findByNomeAndRestauranteId(nome, restauranteId);
+    }
+
 }

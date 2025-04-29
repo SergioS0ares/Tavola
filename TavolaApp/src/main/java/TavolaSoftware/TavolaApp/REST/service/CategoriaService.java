@@ -2,6 +2,7 @@ package TavolaSoftware.TavolaApp.REST.service;
 
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
 import TavolaSoftware.TavolaApp.REST.repository.CategoriaRepository;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,10 @@ public class CategoriaService {
         return repo.findByRestauranteId(restauranteId);
     }
 
+    public Optional<Categoria> findByNomeAndRestauranteId(String nome, UUID restauranteId) {
+        return repo.findByNomeAndRestauranteId(nome, restauranteId);
+    }
+
     public Categoria save(Categoria categoria) {
         return repo.save(categoria);
     }
@@ -41,5 +46,19 @@ public class CategoriaService {
 
     public void deleteById(UUID id) {
         repo.deleteById(id);
+    }
+
+    // NOVO: método especial para tratar String
+    public Categoria saveIfNotExists(String nomeCategoria, Restaurante restaurante) {
+        Optional<Categoria> categoriaExistente = repo.findByNomeAndRestauranteId(nomeCategoria, restaurante.getId());
+
+        if (categoriaExistente.isPresent()) {
+            return categoriaExistente.get();
+        }
+
+        Categoria novaCategoria = new Categoria();
+        novaCategoria.setNome(nomeCategoria);
+        novaCategoria.setRestaurante(restaurante);
+        return repo.save(novaCategoria);
     }
 }

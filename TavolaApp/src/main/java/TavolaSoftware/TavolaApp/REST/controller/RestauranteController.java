@@ -9,6 +9,7 @@ import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -81,6 +82,13 @@ public class RestauranteController {
 
         Restaurante atualizado = serv.update(id, restaurante);
         return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<UUID> getMeuId() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID idRestaurante = serv.getIdByEmail(email);
+        return ResponseEntity.ok(idRestaurante);
     }
 
     @DeleteMapping("/{id}")

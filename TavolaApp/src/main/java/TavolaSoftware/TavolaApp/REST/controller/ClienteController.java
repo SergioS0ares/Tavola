@@ -8,6 +8,7 @@ import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -86,6 +87,13 @@ public class ClienteController {
         cliente.setEndereco(atualizacao.getEndereco());
 
         return ResponseEntity.ok(serv.save(cliente)); // usa create pois é save
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<UUID> getMeuId() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID idCliente = serv.getIdByEmail(email);
+        return ResponseEntity.ok(idCliente);
     }
 
     @DeleteMapping("/delete/{id}")

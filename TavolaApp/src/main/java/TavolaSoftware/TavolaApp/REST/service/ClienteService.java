@@ -15,22 +15,18 @@ public class ClienteService {
     @Autowired
     private ClienteRepository repo;
 
-    // Criar um novo cliente
     public Cliente save(Cliente client) {
         return repo.save(client);
     }
 
-    // Buscar todos os clientes
     public List<Cliente> findAll() {
         return repo.findAll();
     }
     
-    // Buscar um cliente pelo ID
     public Optional<Cliente> findById(UUID id) {
         return repo.findById(id);
     }
 
-    // Atualizar um cliente
     public Cliente update(UUID id, Cliente update) {
         return repo.findById(id)
                 .map(cliente -> {
@@ -42,8 +38,15 @@ public class ClienteService {
                 })
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado!"));
     }
+    
+    public UUID getIdByEmail(String email) {
+        Cliente cliente = repo.findByEmail(email);
+        if (cliente == null) {
+            throw new RuntimeException("Cliente não encontrado para email: " + email);
+        }
+        return cliente.getId();
+    }
 
-    // Deletar um cliente
     public void delete(UUID id) {
         repo.deleteById(id);
     }

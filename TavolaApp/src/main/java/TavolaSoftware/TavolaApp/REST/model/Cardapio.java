@@ -27,14 +27,16 @@ public class Cardapio {
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
+    @Column(name = "dish_available")
+    private boolean disponivel;
 
     @Column(name = "dish_name", nullable = false)
     private String nome;
 
-    @Column(name = "dish_value", nullable = false)
-    private Double valor;
+    @Column(name = "dish_value")
+    private Double preco;
 
-    @Column(name = "dish_image")
+    @Column(name = "dish_image", nullable = false)
     private String imagem;
 
     @Column(name = "dish_description")
@@ -59,6 +61,14 @@ public class Cardapio {
     public void setId(UUID id) {
         this.id = id;
     }
+    
+    public Categoria getCategoria() {
+    	return categoria;
+    }
+    
+    public void setCategoria(Categoria categoria) {
+    	this.categoria = categoria;
+    }
 
     public String getNome() {
         return nome;
@@ -67,13 +77,13 @@ public class Cardapio {
     public void setNome(String nome) {
         this.nome = nome;
     }
-
-    public Double getValor() {
-        return valor;
+    
+    public double getPreco() {
+    	return preco;
     }
-
-    public void setValor(Double valor) {
-        this.valor = valor;
+    
+    public void setPreco(double preco) {
+    	this.preco = preco;
     }
 
     public String getImagem() {
@@ -106,5 +116,13 @@ public class Cardapio {
 
     public void setRestaurante(Restaurante restaurante) {
         this.restaurante = restaurante;
+    }
+    
+    public boolean getDisponivel() {
+    	return disponivel;
+    }
+    
+    public void setDisponivel(boolean disponivel) {
+    	this.disponivel = disponivel;
     }
 }
