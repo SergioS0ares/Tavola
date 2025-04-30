@@ -19,8 +19,11 @@ public class Restaurante extends Usuario {
     @ElementCollection
     private List<Mesas> mesas;
 
-    @Column(name = "establishment_hour")
+    @Column(name = "establishment_hour", nullable = false)
     private String horaFuncionamento;
+    
+    @Column(name = "establishment_foodtype", nullable = false)
+    private String tipoCozinha;
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;

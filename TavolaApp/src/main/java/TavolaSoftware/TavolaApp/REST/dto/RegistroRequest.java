@@ -4,7 +4,7 @@ import java.util.List;
 
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.Mesas;
-import TavolaSoftware.TavolaApp.tools.TipoUsusario;
+import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 
 public class RegistroRequest {
     // Comum entre Client e Restaurant
@@ -12,7 +12,7 @@ public class RegistroRequest {
     private String email;
     private String senha;
     private Endereco endereco;
-    private TipoUsusario tipo;
+    private TipoUsuario tipo;
 
     // Só pra restaurant
     private List<Mesas> mesas;
@@ -31,8 +31,8 @@ public class RegistroRequest {
     public Endereco getEndereco() { return endereco; }
     public void setEndereco(Endereco endereco) { this.endereco = endereco; }
 
-    public TipoUsusario getTipo() { return tipo; }
-    public void setTipo(TipoUsusario tipo) { this.tipo = tipo; }
+    public TipoUsuario getTipo() { return tipo; }
+    public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 
     public List<Mesas> getMesas() { return mesas; }
     public void setMesas(List<Mesas> mesas) { this.mesas = mesas; }

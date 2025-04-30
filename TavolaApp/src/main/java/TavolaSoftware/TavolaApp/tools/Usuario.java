@@ -29,7 +29,7 @@ public abstract class Usuario {
     private String senha;
 
     @Column(nullable = false)
-    private TipoUsusario tipo;
+    private TipoUsuario tipo;
 
     // Getters e Setters
     public UUID getId() { return id; }
@@ -47,6 +47,6 @@ public abstract class Usuario {
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
 
-    public TipoUsusario getTipo() { return tipo; }
-    public void setTipo(TipoUsusario tipo) { this.tipo = tipo; }
+    public TipoUsuario getTipo() { return tipo; }
+    public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 }

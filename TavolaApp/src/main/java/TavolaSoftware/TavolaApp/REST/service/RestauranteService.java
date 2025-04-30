@@ -26,6 +26,15 @@ public class RestauranteService {
     public Restaurante save(Restaurante restaurante) {
         return repo.save(restaurante);
     }
+    
+    public UUID getIdByEmail(String email) {
+        Restaurante restaurante = repo.findByEmail(email);
+        if (restaurante == null) {
+            throw new RuntimeException("Restaurante não encontrado para email: " + email);
+        }
+        return restaurante.getId();
+    }
+
 
     public void deleteById(UUID id) {
         repo.deleteById(id);
