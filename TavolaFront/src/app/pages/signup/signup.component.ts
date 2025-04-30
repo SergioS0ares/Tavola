@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormArray, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '../../services/login.service';
+import { LoginService } from '../../core/services/login.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -14,7 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { LayoutPrincipalComponent } from '../layout-principal/layout-principal.component';
 import { NgxMaskDirective} from 'ngx-mask';
 import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
@@ -35,7 +35,6 @@ import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
     MatRadioModule,
     MatTabsModule,
     MatCheckboxModule,
-    HttpClientModule,
     LayoutPrincipalComponent,
     NgxMaskDirective
   ],
@@ -275,7 +274,7 @@ export class SignUpComponent {
         localStorage.setItem('userName', res.name);
         localStorage.setItem('tipoUsuario', res.tipoUsuario);
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['/layout', 'home']);
+        this.router.navigate(['home']);
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
@@ -317,7 +316,7 @@ export class SignUpComponent {
         localStorage.setItem('userName', res.name);
         localStorage.setItem('tipoUsuario', res.tipoUsuario);
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['/layout', 'home']);
+        this.router.navigate(['reserva']);
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";

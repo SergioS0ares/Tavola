@@ -1,14 +1,14 @@
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Component, inject, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule , MatChipInputEvent} from '@angular/material/chips';
 import {MatDialogModule, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { CardapioService } from '../../../services/cardapio.service';
+import { CardapioService } from '../../../core/services/cardapio.service';
 import { IItemCardapio } from '../../../Interfaces/Iitem-cardapio';
 import { MatIconModule } from '@angular/material/icon';
 import Swal from 'sweetalert2';
@@ -42,7 +42,7 @@ export interface DialogData {
   styleUrls: ['./dialog-item-cardapio.component.scss']
 })
 export class DialogItemCardapioComponent {
-  private fb        = inject(FormBuilder);
+  private fb = inject(NonNullableFormBuilder);
   private service   = inject(CardapioService);
   private dialogRef = inject(MatDialogRef<DialogItemCardapioComponent>);
   public readonly data = inject<DialogData>(MAT_DIALOG_DATA);

@@ -1,8 +1,7 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/login.component';
-import { SignUpComponent } from './pages/signup/signup.component';
 import { LayoutPrincipalComponent } from './pages/layout-principal/layout-principal.component';
-import { AuthGuard } from './services/auth-guard.service';
+import { AuthGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -23,11 +22,11 @@ export const routes: Routes = [
     component: LayoutPrincipalComponent,
     canActivate: [AuthGuard],
     children: [
-      { path: 'home', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent) },
-      { path: 'meu-restaurante', loadComponent: () => import('./pages/meu-restaurante/meu-restaurante.component').then(m => m.MeuRestauranteComponent) },
-      { path: 'cadastro-cardapio', loadComponent: () => import('./pages/cadastro-cardapio/cadastro-cardapio.component').then(m => m.CadastroCardapioComponent) },
-      { path: 'reserva', loadComponent: () => import('./pages/reservas/reservas.component').then(m => m.ReservasComponent) },
-      { path: 'historico', loadComponent: () => import('./pages/historico-reservas/historico-reservas.component').then(m => m.HistoricoReservasComponent) },
+      { path: 'home', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+      { path: 'meu-restaurante', loadComponent: () => import('./pages/meu-restaurante/meu-restaurante.component').then(m => m.MeuRestauranteComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
+      { path: 'cadastro-cardapio', loadComponent: () => import('./pages/cadastro-cardapio/cadastro-cardapio.component').then(m => m.CadastroCardapioComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
+      { path: 'reserva', loadComponent: () => import('./pages/reservas/reservas.component').then(m => m.ReservasComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
+      { path: 'historico', loadComponent: () => import('./pages/historico-reservas/historico-reservas.component').then(m => m.HistoricoReservasComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
       { path: '', redirectTo: 'home', pathMatch: 'full' }
     ]
   },

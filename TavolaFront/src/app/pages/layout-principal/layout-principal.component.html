@@ -1,59 +1,66 @@
 <div class="layout-container">
   <!-- Top Toolbar -->
-  <header class="toolbar">
+  <div class="toolbar">
     <button class="menu-toggle" (click)="toggleSidebar()">
       <mat-icon>menu</mat-icon>
     </button>
-    <button mat-button [matMenuTriggerFor]="userMenu" class="user-info">
+    <div class="user-info" [matMenuTriggerFor]="menu">
+      <span>{{ userName }}</span>
       <mat-icon>person</mat-icon>
-      {{ userName }}
-    </button>
-    <mat-menu #userMenu="matMenu">
+    </div>
+    <mat-menu #menu="matMenu">
       <button mat-menu-item (click)="logout()">
-        <mat-icon>exit_to_app</mat-icon>
+        <mat-icon>logout</mat-icon>
         <span>Sair</span>
       </button>
     </mat-menu>
-  </header>
+  </div>
 
-  <!-- Corpo: sidebar + conteúdo -->
+  <!-- Main Content -->
   <div class="main-wrapper">
-    <aside class="sidebar" [class.fechada]="!sidebarAberta">
-      <!-- Cabeçalho da sidebar -->
+    <!-- Sidebar -->
+    <div class="sidebar" [class.fechada]="!sidebarAberta" (click)="handleSidebarClick()">
       <div class="sidebar-header">
         <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo" />
-        <!-- Aqui a setinha dinâmica -->
-        <button class="close-button" (click)="toggleSidebar()">
-          <mat-icon>
-            {{ sidebarAberta ? 'chevron_left' : 'chevron_right' }}
-          </mat-icon>
-        </button>
       </div>
 
       <!-- Menu -->
-      <nav class="menu">
-        <button routerLink="home">
-          <mat-icon>home</mat-icon><span>Início</span>
-        </button>
-        <button routerLink="meu-restaurante">
-          <mat-icon>restaurant</mat-icon><span>Meu Restaurante</span>
-        </button>
-        <button routerLink="cadastro-cardapio">
-          <mat-icon>menu_book</mat-icon><span>Cadastro de Cardápio</span>
-        </button>
-        <button routerLink="reserva">
-          <mat-icon>event</mat-icon><span>Reservas</span>
-        </button>
-        <button routerLink="historico">
-          <mat-icon>history</mat-icon><span>Histórico</span>
-        </button>
-      </nav>
-    </aside>
+      <div class="menu">
+        <!-- Cliente Menu Items -->
+        <ng-container *ngIf="isCliente">
+          <button routerLink="/home" routerLinkActive="active">
+            <mat-icon>home</mat-icon>
+            <span>Início</span>
+          </button>
+          <button routerLink="/historico" routerLinkActive="active">
+            <mat-icon>history</mat-icon>
+            <span>Histórico</span>
+          </button>
+        </ng-container>
 
-    <main class="content">
-      <section class="router-container">
+        <!-- Restaurante Menu Items -->
+        <ng-container *ngIf="isRestaurante">
+          <button routerLink="/reserva" routerLinkActive="active">
+            <mat-icon>event</mat-icon>
+            <span>Reservas</span>
+          </button>
+          <button routerLink="/meu-restaurante" routerLinkActive="active">
+            <mat-icon>restaurant</mat-icon>
+            <span>Meu Restaurante</span>
+          </button>
+          <button routerLink="/cadastro-cardapio" routerLinkActive="active">
+            <mat-icon>menu_book</mat-icon>
+            <span>Cadastro de Cardápio</span>
+          </button>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="router-container">
         <router-outlet></router-outlet>
-      </section>
-    </main>
+      </div>
+    </div>
   </div>
 </div>

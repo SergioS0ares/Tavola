@@ -248,7 +248,7 @@ $dark-theme: mat.m2-define-dark-theme((
   .mat-mdc-select-value-text,
   .mdc-floating-label,
   .mat-mdc-select-arrow {
-    color: #3B221B !important;
+    color: white !important;
   }
 
   .mdc-text-field--filled {
@@ -257,19 +257,30 @@ $dark-theme: mat.m2-define-dark-theme((
 
   &:hover {
     .mdc-floating-label {
-      color: #3B221B !important;
+      color: #F6BD38 !important;
     }
   }
 
   &.mat-focused {
     .mdc-floating-label {
-      color: #DA4A24 !important;
+      color: #F6BD38 !important;
     }
   }
 
   .mat-mdc-form-field-hint,
   .mat-mdc-form-field-error {
     color: rgba(59, 34, 27, 0.6) !important;
+  }
+
+  // Removendo o hover marrom dos inputs
+  .mat-mdc-input-element:hover,
+  .mat-mdc-input-element:focus {
+    color: white !important;
+  }
+
+  .mdc-text-field--outlined {
+    --mdc-outlined-text-field-hover-outline-color: #F6BD38;
+    --mdc-outlined-text-field-focus-outline-color: #F6BD38;
   }
 }
 

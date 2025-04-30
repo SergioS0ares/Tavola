@@ -4,9 +4,10 @@ import { SignUpComponent } from './signup.component';
 import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
 import { PrimaryInputComponent } from '../../components/primary-input/primary-input.component';
 import { Router } from '@angular/router';
-import { LoginService } from '../../services/login.service';
+import { LoginService } from '../../core/services/login.service';
 import { ToastrService } from 'ngx-toastr';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SignUpComponent', () => {
   let component: SignUpComponent;
@@ -21,19 +22,18 @@ describe('SignUpComponent', () => {
     mockToastrService = jasmine.createSpyObj('ToastrService', ['success', 'error']);
 
     await TestBed.configureTestingModule({
-      imports: [
-        SignUpComponent,
+    imports: [SignUpComponent,
         ReactiveFormsModule,
         DefaultLoginLayoutComponent,
-        PrimaryInputComponent,
-        HttpClientTestingModule
-      ],
-      providers: [
+        PrimaryInputComponent],
+    providers: [
         { provide: Router, useValue: mockRouter },
         { provide: LoginService, useValue: mockLoginService },
-        { provide: ToastrService, useValue: mockToastrService }
-      ],
-    }).compileComponents();
+        { provide: ToastrService, useValue: mockToastrService },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
   });
 
   beforeEach(() => {

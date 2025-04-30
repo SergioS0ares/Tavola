@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '../../services/login.service';
+import { LoginService } from '../../core/services/login.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -96,7 +96,12 @@ export class LoginComponent {
           localStorage.setItem('tipoUsuario', res.tipoUsuario);
         
           this.toastService.success("Login feito com sucesso!");
-          this.router.navigate(['home']);
+          // Redireciona com base no tipo de usuário
+          if (res.tipoUsuario === 'RESTAURANTE') {
+            this.router.navigate(['reserva']);
+          } else {
+            this.router.navigate(['home']);
+          }
         },
         error: (err) => {
           const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
