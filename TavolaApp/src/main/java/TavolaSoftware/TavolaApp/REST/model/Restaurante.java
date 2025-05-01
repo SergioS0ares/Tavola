@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 
 import java.util.List;
 
+import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 import TavolaSoftware.TavolaApp.tools.Mesas;
 import TavolaSoftware.TavolaApp.tools.Usuario;
 
@@ -19,8 +20,8 @@ public class Restaurante extends Usuario {
     @ElementCollection
     private List<Mesas> mesas;
 
-    @Column(name = "establishment_hour", nullable = false)
-    private String horaFuncionamento;
+    @ElementCollection
+    private List<HorarioFuncionamento> horariosFuncionamento;
     
     @Column(name = "establishment_foodtype", nullable = false)
     private String tipoCozinha;
@@ -36,12 +37,12 @@ public class Restaurante extends Usuario {
         this.mesas = mesas;
     }
 
-    public String getHorarioFuncionamento() {
-        return horaFuncionamento;
+    public List<HorarioFuncionamento> getHorarioFuncionamento() {
+        return horariosFuncionamento;
     }
 
-    public void setHoraFuncionamento(String horaFuncionamento) {
-        this.horaFuncionamento = horaFuncionamento;
+    public void setHoraFuncionamento(List<HorarioFuncionamento> horaFuncionamento) {
+        this.horariosFuncionamento = horaFuncionamento;
     }
 
     public List<Cardapio> getCardapio() {

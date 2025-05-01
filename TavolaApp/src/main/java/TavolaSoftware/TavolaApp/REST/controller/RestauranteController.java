@@ -57,7 +57,7 @@ public class RestauranteController {
         handler.checkEmptyStrting("email", restaurante.getEmail());
         handler.checkEmptyStrting("senha", restaurante.getSenha());
         handler.checkEmptyObject("endereco", restaurante.getEndereco());
-        handler.checkEmptyStrting("horário de funcionamento", restaurante.getHorarioFuncionamento());
+        handler.checkEmptyList("horário de funcionamento", restaurante.getHorarioFuncionamento());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -74,7 +74,7 @@ public class RestauranteController {
         handler.checkEmptyStrting("email", restaurante.getEmail());
         handler.checkEmptyStrting("senha", restaurante.getSenha());
         handler.checkEmptyObject("endereco", restaurante.getEndereco());
-        handler.checkEmptyStrting("horário de funcionamento", restaurante.getHorarioFuncionamento());
+        handler.checkEmptyList("horário de funcionamento", restaurante.getHorarioFuncionamento());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);

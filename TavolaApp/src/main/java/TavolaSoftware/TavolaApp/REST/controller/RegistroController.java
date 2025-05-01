@@ -48,7 +48,7 @@ public class RegistroController {
         // Validações específicas de restaurante
         if (request.getTipo() == TipoUsuario.RESTAURANTE) {
             handler.checkEmptyList("mesas", request.getMesas());
-            handler.checkEmptyStrting("horaFuncionamento", request.getHoraFuncionamento());
+            handler.checkEmptyList("horaFuncionamento", request.getHoraFuncionamento());
 
             // Verifica se já existe restaurante com mesmo nome
             boolean nomeRepetido = repoRestaurante.findAll().stream()
