@@ -4,11 +4,25 @@
     <button class="menu-toggle" (click)="toggleSidebar()">
       <mat-icon>menu</mat-icon>
     </button>
-    <div class="user-info" [matMenuTriggerFor]="menu">
-      <span>{{ userName }}</span>
-      <mat-icon>person</mat-icon>
+    
+    <div class="user-menu" [matMenuTriggerFor]="menu">
+      <div class="user-info">
+        <div class="avatar">
+          <img [src]="userAvatar" alt="Avatar do usuário">
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-type">{{ userType }}</span>
+        </div>
+      </div>
+      <mat-icon>keyboard_arrow_down</mat-icon>
     </div>
-    <mat-menu #menu="matMenu">
+
+    <mat-menu #menu="matMenu" class="user-dropdown">
+      <button mat-menu-item routerLink="/configuracoes">
+        <mat-icon>settings</mat-icon>
+        <span>Configurações</span>
+      </button>
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sair</span>
@@ -19,7 +33,7 @@
   <!-- Main Content -->
   <div class="main-wrapper">
     <!-- Sidebar -->
-    <div class="sidebar" [class.fechada]="!sidebarAberta" (click)="handleSidebarClick()">
+    <div class="sidebar" [class.fechada]="!sidebarAberta" (click)="handleSidebarClick($event)">
       <div class="sidebar-header">
         <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo" />
       </div>
@@ -53,6 +67,12 @@
             <span>Cadastro de Cardápio</span>
           </button>
         </ng-container>
+
+        <!-- Common Menu Items -->
+        <button routerLink="/configuracoes" routerLinkActive="active">
+          <mat-icon>settings</mat-icon>
+          <span>Configurações</span>
+        </button>
       </div>
     </div>
 
@@ -64,3 +84,5 @@
     </div>
   </div>
 </div>
+
+

@@ -1,26 +1,26 @@
-import {
-  SharedResizeObserver
-} from "./chunk-HLBOSKHQ.js";
-import "./chunk-LIAAM4UQ.js";
+import "./chunk-INWQP2PC.js";
 import {
   CdkPortal,
   CdkPortalOutlet,
   TemplatePortal
-} from "./chunk-2W6CDM54.js";
+} from "./chunk-JYT6NO2M.js";
+import {
+  SharedResizeObserver
+} from "./chunk-R6RQND67.js";
 import {
   CdkScrollable,
   ViewportRuler
-} from "./chunk-H2IRNFPV.js";
-import "./chunk-WR3D4GVF.js";
+} from "./chunk-3BH2VF23.js";
+import "./chunk-3PTEMNQO.js";
 import {
   MAT_RIPPLE_GLOBAL_OPTIONS,
   MatRipple,
   _StructuralStylesLoader
-} from "./chunk-XYFWJBAV.js";
-import "./chunk-7YQUSP6F.js";
-import "./chunk-OSWLVLQR.js";
-import "./chunk-3JBPAHK7.js";
-import "./chunk-3EBDM35N.js";
+} from "./chunk-WARDAC7B.js";
+import "./chunk-5MXAVF3Q.js";
+import "./chunk-SBB7ZL3K.js";
+import "./chunk-ILE2A5TA.js";
+import "./chunk-4XALSHBV.js";
 import {
   CdkMonitorFocus,
   CdkObserveContent,
@@ -31,19 +31,19 @@ import {
   SPACE,
   _IdGenerator,
   hasModifierKey
-} from "./chunk-EE3MX2FA.js";
+} from "./chunk-V622B3MX.js";
 import {
   _CdkPrivateStyleLoader,
   _bindEventWithOptions
-} from "./chunk-MMOLWFGZ.js";
+} from "./chunk-Z6PHSKUK.js";
 import {
   Directionality
-} from "./chunk-XZMV5LIM.js";
+} from "./chunk-I32IMC6P.js";
 import {
   Platform
-} from "./chunk-WFMTSD2R.js";
-import "./chunk-MQHRWCD5.js";
-import "./chunk-ERXHM5KA.js";
+} from "./chunk-4DA7S3TY.js";
+import "./chunk-BVSN65JQ.js";
+import "./chunk-DTN746RI.js";
 import {
   ANIMATION_MODULE_TYPE,
   ChangeDetectionStrategy,
@@ -110,7 +110,7 @@ import {
   ɵɵtext,
   ɵɵtextInterpolate,
   ɵɵviewQuery
-} from "./chunk-YNVF6TFW.js";
+} from "./chunk-FEOT6BCQ.js";
 import {
   BehaviorSubject,
   EMPTY,
@@ -126,10 +126,10 @@ import {
   switchMap,
   takeUntil,
   timer
-} from "./chunk-YG73TWR3.js";
+} from "./chunk-TYA5IJOH.js";
 import "./chunk-WDMUDEB6.js";
 
-// ../node_modules/@angular/material/fesm2022/tabs.mjs
+// ../../../node_modules/@angular/material/fesm2022/tabs.mjs
 var _c0 = ["*"];
 function MatTab_ng_template_0_Template(rf, ctx) {
   if (rf & 1) {

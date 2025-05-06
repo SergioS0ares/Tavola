@@ -25,6 +25,15 @@ export class LayoutPrincipalComponent {
     return this.auth.perfil?.nome || 'Usuário';
   }
 
+  get userType(): string {
+    return this.auth.perfil?.tipo === 'RESTAURANTE' ? 'Restaurante' : 'Cliente';
+  }
+
+  get userAvatar(): string {
+    // Por enquanto retorna o avatar padrão
+    return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+  }
+
   get isCliente(): boolean {
     return this.auth.hasRole('CLIENTE');
   }
@@ -33,14 +42,18 @@ export class LayoutPrincipalComponent {
     return this.auth.hasRole('RESTAURANTE');
   }
 
-  toggleSidebar() {
-    this.sidebarAberta = !this.sidebarAberta;
-  }
-
-  handleSidebarClick() {
+  handleSidebarClick(event: MouseEvent) {
+    // Só abre a sidebar se clicar diretamente nela, não nos botões
+    if ((event.target as HTMLElement).closest('button')) {
+      return;
+    }
     if (!this.sidebarAberta) {
       this.sidebarAberta = true;
     }
+  }
+
+  toggleSidebar() {
+    this.sidebarAberta = !this.sidebarAberta;
   }
 
   logout() {

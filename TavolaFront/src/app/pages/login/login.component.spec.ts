@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LoginComponent } from './login.component';
-import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
+import { DefaultLoginLayoutComponent } from '../default-login-layout/default-login-layout.component';
 import { Router } from '@angular/router';
 import { LoginService } from '../../core/services/login.service';
 import { ToastrService } from 'ngx-toastr';

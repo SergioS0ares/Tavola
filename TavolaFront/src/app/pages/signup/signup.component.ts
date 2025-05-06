@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
+import { DefaultLoginLayoutComponent } from '../default-login-layout/default-login-layout.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormArray, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginService } from '../../core/services/login.service';
