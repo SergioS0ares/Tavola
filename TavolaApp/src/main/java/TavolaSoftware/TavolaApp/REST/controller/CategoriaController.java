@@ -1,11 +1,14 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.CategoriaService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +22,9 @@ public class CategoriaController {
     @Autowired
     private CategoriaService serv;
 
+    @Autowired
+    private RestauranteService restauranteService;
+
     @GetMapping
     public ResponseEntity<List<Categoria>> listarTodos() {
         return ResponseEntity.ok(serv.findAll());
@@ -30,9 +36,11 @@ public class CategoriaController {
         return categoria.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/restaurante/{restauranteId}")
-    public ResponseEntity<List<Categoria>> buscarPorRestaurante(@PathVariable UUID restauranteId) {
-        return ResponseEntity.ok(serv.findByRestauranteId(restauranteId));
+    @GetMapping("/restaurante")
+    public ResponseEntity<List<Categoria>> buscarPorRestaurante() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+        return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
     }
 
     @PostMapping
@@ -40,11 +48,14 @@ public class CategoriaController {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkEmptyStrting("nome", categoria.getNome());
-        handler.checkEmptyObject("restaurante", categoria.getRestaurante());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
+
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+        categoria.setRestaurante(restaurante);
 
         return ResponseEntity.ok(serv.save(categoria));
     }
@@ -54,11 +65,14 @@ public class CategoriaController {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkEmptyStrting("nome", categoria.getNome());
-        handler.checkEmptyObject("restaurante", categoria.getRestaurante());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
+
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+        categoria.setRestaurante(restaurante);
 
         Categoria atualizado = serv.update(id, categoria);
         return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();

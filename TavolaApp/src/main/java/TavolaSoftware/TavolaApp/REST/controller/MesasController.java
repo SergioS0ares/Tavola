@@ -34,8 +34,11 @@ public class MesasController {
         Restaurante restaurante = getRestauranteAutenticado();
         Optional<Mesas> mesa = mesasService.buscarPorIndice(restaurante, index);
 
-        return mesa.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.badRequest().body("Índice inválido para o conjunto de mesas."));
+        if (mesa.isPresent()) {
+            return ResponseEntity.ok(mesa.get());
+        } else {
+            return ResponseEntity.badRequest().body("Índice inválido para o conjunto de mesas.");
+        }
     }
 
     @GetMapping("/{nome}")

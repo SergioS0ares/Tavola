@@ -32,25 +32,21 @@ public class RegistroController {
     public ResponseEntity<?> registrar(@RequestBody RegistroRequest request) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
-        // Validação comum
         handler.checkEmptyStrting("nome", request.getNome());
         handler.checkEmptyStrting("email", request.getEmail());
         handler.checkEmptyStrting("senha", request.getSenha());
         handler.checkEmptyObject("endereco", request.getEndereco());
         handler.checkEmptyObject("tipo", request.getTipo());
 
-        // Verificação de email já existente (para ambos)
         if (repoClient.findByEmail(request.getEmail()) != null || 
             repoRestaurante.findByEmail(request.getEmail()) != null) {
             handler.checkCondition("O e-mail informado já está em uso.", true);
         }
 
-        // Validações específicas de restaurante
         if (request.getTipo() == TipoUsuario.RESTAURANTE) {
             handler.checkEmptyList("mesas", request.getMesas());
             handler.checkEmptyList("horaFuncionamento", request.getHoraFuncionamento());
 
-            // Verifica se já existe restaurante com mesmo nome
             boolean nomeRepetido = repoRestaurante.findAll().stream()
                     .anyMatch(r -> r.getNome().equalsIgnoreCase(request.getNome()));
 
@@ -69,7 +65,11 @@ public class RegistroController {
 
             String accessToken = jwt.generateAccessToken(novoCliente.getEmail());
             String refreshToken = jwt.generateRefreshToken(novoCliente.getId().toString());
-            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, novoCliente.getNome(), "CLIENTE"));
+            return ResponseEntity.ok(new LoginResponse(
+                    accessToken, refreshToken,
+                    novoCliente.getNome(), "CLIENTE",
+                    novoCliente.getId(), novoCliente.getEmail()
+            ));
 
         } else if (request.getTipo() == TipoUsuario.RESTAURANTE) {
             Restaurante novoRestaurante = new Restaurante();
@@ -84,7 +84,11 @@ public class RegistroController {
 
             String accessToken = jwt.generateAccessToken(novoRestaurante.getEmail());
             String refreshToken = jwt.generateRefreshToken(novoRestaurante.getId().toString());
-            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, novoRestaurante.getNome(), "RESTAURANTE"));
+            return ResponseEntity.ok(new LoginResponse(
+                    accessToken, refreshToken,
+                    novoRestaurante.getNome(), "RESTAURANTE",
+                    novoRestaurante.getId(), novoRestaurante.getEmail()
+            ));
         }
 
         return ResponseEntity.badRequest().body("Tipo de usuário inválido.");

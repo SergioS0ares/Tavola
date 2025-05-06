@@ -26,25 +26,33 @@ public class RestauranteService {
     public Restaurante save(Restaurante restaurante) {
         return repo.save(restaurante);
     }
-    
-    public UUID getIdByEmail(String email) {
-        Restaurante restaurante = repo.findByEmail(email);
-        if (restaurante == null) {
-            throw new RuntimeException("Restaurante não encontrado para email: " + email);
-        }
-        return restaurante.getId();
-    }
-
 
     public void deleteById(UUID id) {
         repo.deleteById(id);
     }
 
-    public Restaurante update(UUID id, Restaurante restaurante) {
-        if (repo.existsById(id)) {
-            restaurante.setId(id);
-            return repo.save(restaurante);
+    public Restaurante getByEmail(String email) {
+        Restaurante restaurante = repo.findByEmail(email);
+        if (restaurante == null) {
+            throw new RuntimeException("Restaurante não encontrado para o e-mail: " + email);
         }
-        return null;
+        return restaurante;
+    }
+
+    public Restaurante updatePreservandoDados(Restaurante existente, Restaurante atualizacao) {
+        existente.setNome(atualizacao.getNome());
+        existente.setEmail(atualizacao.getEmail());
+        existente.setSenha(atualizacao.getSenha());
+        existente.setEndereco(atualizacao.getEndereco());
+
+        if (atualizacao.getHorarioFuncionamento() != null) {
+            existente.setHoraFuncionamento(atualizacao.getHorarioFuncionamento());
+        }
+
+        if (atualizacao.getMesas() != null) {
+            existente.setMesas(atualizacao.getMesas());
+        }
+
+        return repo.save(existente);
     }
 }

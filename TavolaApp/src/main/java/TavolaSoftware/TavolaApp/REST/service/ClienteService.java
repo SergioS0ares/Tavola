@@ -22,29 +22,42 @@ public class ClienteService {
     public List<Cliente> findAll() {
         return repo.findAll();
     }
-    
+
     public Optional<Cliente> findById(UUID id) {
         return repo.findById(id);
     }
 
-    public Cliente update(UUID id, Cliente update) {
-        return repo.findById(id)
-                .map(cliente -> {
-                    cliente.setNome(update.getNome());
-                    cliente.setEmail(update.getEmail());
-                    cliente.setSenha(update.getSenha());
-                    cliente.setEndereco(update.getEndereco());
-                    return repo.save(cliente);
-                })
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado!"));
+    public Optional<Cliente> findByEmail(String email) {
+        return Optional.ofNullable(repo.findByEmail(email));
     }
-    
+
     public UUID getIdByEmail(String email) {
         Cliente cliente = repo.findByEmail(email);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado para email: " + email);
         }
         return cliente.getId();
+    }
+
+    public Cliente updateByEmail(String email, Cliente atualizacao) {
+        Cliente cliente = repo.findByEmail(email);
+        if (cliente == null) {
+            throw new RuntimeException("Cliente não encontrado!");
+        }
+
+        cliente.setNome(atualizacao.getNome());
+        cliente.setEmail(atualizacao.getEmail());
+        cliente.setSenha(atualizacao.getSenha());
+        cliente.setEndereco(atualizacao.getEndereco());
+
+        return repo.save(cliente);
+    }
+
+    public void deleteByEmail(String email) {
+        Cliente cliente = repo.findByEmail(email);
+        if (cliente != null) {
+            repo.delete(cliente);
+        }
     }
 
     public void delete(UUID id) {
