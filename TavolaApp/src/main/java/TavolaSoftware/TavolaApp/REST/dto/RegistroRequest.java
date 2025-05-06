@@ -3,6 +3,7 @@ package TavolaSoftware.TavolaApp.REST.dto;
 import java.util.List;
 
 import TavolaSoftware.TavolaApp.tools.Endereco;
+import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 import TavolaSoftware.TavolaApp.tools.Mesas;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 
@@ -16,7 +17,7 @@ public class RegistroRequest {
 
     // Só pra restaurant
     private List<Mesas> mesas;
-    private String horaFuncionamento;
+    private List<HorarioFuncionamento> horaFuncionamento;
 
     // Getters e Setters
     public String getNome() { return nome; }
@@ -37,6 +38,6 @@ public class RegistroRequest {
     public List<Mesas> getMesas() { return mesas; }
     public void setMesas(List<Mesas> mesas) { this.mesas = mesas; }
 
-    public String getHoraFuncionamento() { return horaFuncionamento; }
-    public void setHoraFuncionamento(String horaFuncionamento) { this.horaFuncionamento = horaFuncionamento; }
+    public List<HorarioFuncionamento> getHoraFuncionamento() { return horaFuncionamento; }
+    public void setHoraFuncionamento(List<HorarioFuncionamento> horaFuncionamento) { this.horaFuncionamento = horaFuncionamento; }
 }

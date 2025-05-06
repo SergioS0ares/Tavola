@@ -2,14 +2,17 @@ package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Tags;
 import TavolaSoftware.TavolaApp.REST.service.CardapioService;
 import TavolaSoftware.TavolaApp.REST.service.CategoriaService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import TavolaSoftware.TavolaApp.REST.service.TagsService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,47 +25,53 @@ import java.util.stream.Collectors;
 @RequestMapping("/auth/cardapios")
 public class CardapioController {
 
-	@Autowired
-	private CardapioService serv;
+    @Autowired
+    private CardapioService serv;
 
-	@Autowired
-	private CategoriaService categoriaServ;
+    @Autowired
+    private CategoriaService categoriaServ;
 
-	@Autowired
-	private TagsService tagsServ;
+    @Autowired
+    private TagsService tagsServ;
 
-	@PostMapping("/save")
-	public ResponseEntity<?> save(@RequestBody Cardapio cardapio) {
-	    ResponseExceptionHandler handler = new ResponseExceptionHandler();
+    @Autowired
+    private RestauranteService restauranteService;
 
-	    handler.checkEmptyStrting("nome", cardapio.getNome());
-	    handler.checkMinimmumNumber("valor", cardapio.getPreco(), 0.0);
-	    handler.checkEmptyStrting("descricao", cardapio.getDescricao());
-	    handler.checkEmptyObject("restaurante", cardapio.getRestaurante());
+    @PostMapping("/save")
+    public ResponseEntity<?> save(@RequestBody Cardapio cardapio) {
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
-	    if (handler.errors()) {
-	        return handler.generateResponse(HttpStatus.BAD_REQUEST);
-	    }
+        handler.checkEmptyStrting("nome", cardapio.getNome());
+        handler.checkMinimmumNumber("valor", cardapio.getPreco(), 0.0);
+        handler.checkEmptyStrting("descricao", cardapio.getDescricao());
 
-	    if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
-	        Categoria categoria = categoriaServ.saveIfNotExists(
-	            cardapio.getCategoria().getNome(), 
-	            cardapio.getRestaurante()
-	        );
-	        cardapio.setCategoria(categoria);
-	    }
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
 
-	    if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
-	        Set<String> nomesTags = cardapio.getTags().stream()
-	            .map(Tags::getTag)
-	            .collect(Collectors.toSet());
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+        cardapio.setRestaurante(restaurante);
 
-	        Set<Tags> tags = tagsServ.saveAll(nomesTags);
-	        cardapio.setTags(tags);
-	    }
+        if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
+            Categoria categoria = categoriaServ.saveIfNotExists(
+                cardapio.getCategoria().getNome(), 
+                restaurante
+            );
+            cardapio.setCategoria(categoria);
+        }
 
-	    return ResponseEntity.ok(serv.save(cardapio));
-	}
+        if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
+            Set<String> nomesTags = cardapio.getTags().stream()
+                .map(Tags::getTag)
+                .collect(Collectors.toSet());
+
+            Set<Tags> tags = tagsServ.saveAll(nomesTags);
+            cardapio.setTags(tags);
+        }
+
+        return ResponseEntity.ok(serv.save(cardapio));
+    }
 
     @GetMapping
     public ResponseEntity<List<Cardapio>> listarTodos() {
@@ -75,9 +84,11 @@ public class CardapioController {
         return cardapio.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/restaurante/{restauranteId}")
-    public ResponseEntity<List<Cardapio>> findByRestauranteId(@PathVariable UUID restauranteId) {
-        return ResponseEntity.ok(serv.findByRestauranteId(restauranteId));
+    @GetMapping("/restaurante")
+    public ResponseEntity<List<Cardapio>> findByRestauranteAutenticado() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+        return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
     }
 
     @PutMapping("/update/{id}")
@@ -87,10 +98,30 @@ public class CardapioController {
         handler.checkEmptyStrting("nome", cardapio.getNome());
         handler.checkMinimmumNumber("valor", cardapio.getPreco(), 0.0);
         handler.checkEmptyStrting("descricao", cardapio.getDescricao());
-        handler.checkEmptyObject("restaurante", cardapio.getRestaurante());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+        cardapio.setRestaurante(restaurante);
+
+        if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
+            Categoria categoria = categoriaServ.saveIfNotExists(
+                cardapio.getCategoria().getNome(), 
+                restaurante
+            );
+            cardapio.setCategoria(categoria);
+        }
+
+        if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
+            Set<String> nomesTags = cardapio.getTags().stream()
+                .map(Tags::getTag)
+                .collect(Collectors.toSet());
+
+            Set<Tags> tags = tagsServ.saveAll(nomesTags);
+            cardapio.setTags(tags);
         }
 
         Cardapio atualizado = serv.update(id, cardapio);

@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -23,18 +22,18 @@ public class RestauranteController {
     @Autowired
     private RestauranteService serv;
 
-    
     @Autowired
     private ReservaService reservaService;
 
-    @GetMapping("/{id}/reservas")
+    @GetMapping("/reservas")
     public ResponseEntity<List<Reserva>> listarReservasRestaurante(
-            @PathVariable UUID id,
             @RequestParam(defaultValue = "latest") String ordem,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
-        
-        List<Reserva> reservas = reservaService.findAllByRestauranteOrdered(id, ordem, pagina, tamanho);
+
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = serv.getByEmail(email);
+        List<Reserva> reservas = reservaService.findAllByRestauranteOrdered(restaurante.getId(), ordem, pagina, tamanho);
         return ResponseEntity.ok(reservas);
     }
 
@@ -45,8 +44,9 @@ public class RestauranteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Restaurante> buscarPorId(@PathVariable UUID id) {
-        Optional<Restaurante> restaurante = serv.findById(id);
-        return restaurante.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return serv.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/save")
@@ -57,7 +57,7 @@ public class RestauranteController {
         handler.checkEmptyStrting("email", restaurante.getEmail());
         handler.checkEmptyStrting("senha", restaurante.getSenha());
         handler.checkEmptyObject("endereco", restaurante.getEndereco());
-        handler.checkEmptyStrting("horário de funcionamento", restaurante.getHorarioFuncionamento());
+        handler.checkEmptyList("horário de funcionamento", restaurante.getHorarioFuncionamento());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -65,36 +65,33 @@ public class RestauranteController {
 
         return ResponseEntity.ok(serv.save(restaurante));
     }
-    
-    @PutMapping("/update/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable UUID id, @RequestBody Restaurante restaurante) {
+
+    @PutMapping("/update")
+    public ResponseEntity<?> atualizar(@RequestBody Restaurante atualizacao) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
-        handler.checkEmptyStrting("nome", restaurante.getNome());
-        handler.checkEmptyStrting("email", restaurante.getEmail());
-        handler.checkEmptyStrting("senha", restaurante.getSenha());
-        handler.checkEmptyObject("endereco", restaurante.getEndereco());
-        handler.checkEmptyStrting("horário de funcionamento", restaurante.getHorarioFuncionamento());
+        handler.checkEmptyStrting("nome", atualizacao.getNome());
+        handler.checkEmptyStrting("email", atualizacao.getEmail());
+        handler.checkEmptyStrting("senha", atualizacao.getSenha());
+        handler.checkEmptyObject("endereco", atualizacao.getEndereco());
+        handler.checkEmptyList("horário de funcionamento", atualizacao.getHorarioFuncionamento());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
 
-        Restaurante atualizado = serv.update(id, restaurante);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
-    }
-    
-    @GetMapping("/me")
-    public ResponseEntity<UUID> getMeuId() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UUID idRestaurante = serv.getIdByEmail(email);
-        return ResponseEntity.ok(idRestaurante);
+        Restaurante existente = serv.getByEmail(email);
+        Restaurante atualizado = serv.updatePreservandoDados(existente, atualizacao);
+
+        return ResponseEntity.ok(atualizado);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarPorId(@PathVariable UUID id) {
-        serv.deleteById(id);
+    @DeleteMapping
+    public ResponseEntity<Void> deletarRestauranteAutenticado() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = serv.getByEmail(email);
+        serv.deleteById(restaurante.getId());
         return ResponseEntity.noContent().build();
     }
-
-}
+} 

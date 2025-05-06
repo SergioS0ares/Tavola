@@ -25,17 +25,18 @@ public class ClienteController {
     @Autowired
     private ReservaService reservaService;
 
-    @GetMapping("/{id}/reservas")
+    @GetMapping("/reservas")
     public ResponseEntity<List<Reserva>> listarReservasCliente(
-            @PathVariable UUID id,
             @RequestParam(defaultValue = "latest") String ordem,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
-        
+
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID id = serv.getIdByEmail(email);
         List<Reserva> reservas = reservaService.findAllByClienteOrdered(id, ordem, pagina, tamanho);
         return ResponseEntity.ok(reservas);
     }
-    
+
     @PostMapping("/create")
     public ResponseEntity<?> criarCliente(@RequestBody Cliente cliente) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -52,9 +53,10 @@ public class ClienteController {
         return ResponseEntity.ok(novoCliente);
     }
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<Cliente> buscarPorId(@PathVariable UUID id) {
-        Optional<Cliente> cliente = serv.findById(id);
+    @GetMapping("/get")
+    public ResponseEntity<Cliente> buscarPorEmail() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<Cliente> cliente = serv.findByEmail(email);
         return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -63,13 +65,8 @@ public class ClienteController {
         return ResponseEntity.ok(serv.findAll());
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable UUID id, @RequestBody Cliente atualizacao) {
-        Optional<Cliente> clienteOptional = serv.findById(id);
-        if (clienteOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado.");
-        }
-
+    @PutMapping("/update")
+    public ResponseEntity<?> atualizar(@RequestBody Cliente atualizacao) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
         handler.checkEmptyStrting("nome", atualizacao.getNome());
         handler.checkEmptyStrting("email", atualizacao.getEmail());
@@ -80,25 +77,17 @@ public class ClienteController {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
 
-        Cliente cliente = clienteOptional.get();
-        cliente.setNome(atualizacao.getNome());
-        cliente.setEmail(atualizacao.getEmail());
-        cliente.setSenha(atualizacao.getSenha());
-        cliente.setEndereco(atualizacao.getEndereco());
-
-        return ResponseEntity.ok(serv.save(cliente)); // usa create pois é save
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Cliente atualizado = serv.updateByEmail(email, atualizacao);
+        return ResponseEntity.ok(atualizado);
     }
     
-    @GetMapping("/me")
-    public ResponseEntity<UUID> getMeuId() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UUID idCliente = serv.getIdByEmail(email);
-        return ResponseEntity.ok(idCliente);
-    }
+    
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deletarPorId(@PathVariable UUID id) {
-        serv.delete(id);
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deletar() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        serv.deleteByEmail(email);
         return ResponseEntity.noContent().build();
     }
 }
