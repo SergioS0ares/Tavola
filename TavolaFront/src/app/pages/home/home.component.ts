@@ -1,25 +1,34 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { Observable, startWith, map } from 'rxjs';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatAutocompleteModule
+  ],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
-  cidade = 'Paris';
-  query = '';
+export class HomeComponent implements OnInit {
+  // Substitui cidade:string e query:string por FormControls:
+  cityCtrl  = new FormControl('Paris');
+  queryCtrl = new FormControl('');
 
-  // Dropdown controls
-  showCityDropdown = false;
-  showQueryDropdown = false;
-
-  // Sugestões de cidades
-  citySuggestions = [
+  // Listas originais
+  allCities  = [
     'Paris, França',
     'Lisboa, Portugal',
     'Barcelona, Espanha',
@@ -27,10 +36,7 @@ export class HomeComponent {
     'Madri, Espanha',
     'Florença, Itália'
   ];
-  filteredCitySuggestions = [...this.citySuggestions];
-
-  // Sugestões de busca
-  querySuggestions = [
+  allQueries = [
     'Ver todos os restaurantes',
     'Top 100 Paris',
     'Melhor avaliado',
@@ -39,34 +45,82 @@ export class HomeComponent {
     'Japonês'
   ];
 
-  onCityInput(event: any) {
-    const value = event.target.value.toLowerCase();
-    this.filteredCitySuggestions = this.citySuggestions.filter(city => city.toLowerCase().includes(value));
+  // Observables filtrados
+  filteredCities$!: Observable<string[]>;
+  filteredQueries$!: Observable<string[]>;
+
+  restaurants = [
+    {
+      nome: 'L\'Osteria Paris Chatelet',
+      tipo: 'Italiano',
+      avaliacao: 9.2,
+      imagem: 'assets/mock/osteria.jpg'
+    },
+    {
+      nome: 'Café Terry',
+      tipo: 'Francês',
+      avaliacao: 8.8,
+      imagem: 'assets/mock/terry.jpg'
+    },
+    {
+      nome: 'Les Rupins',
+      tipo: 'Francês',
+      avaliacao: 9.3,
+      imagem: 'assets/mock/rupins.jpg'
+    },
+    {
+      nome: 'L\'Imperatif',
+      tipo: 'Francês',
+      avaliacao: 8.8,
+      imagem: 'assets/mock/imperatif.jpg'
+    }
+  ];
+
+  // Para autocomplete e dropdown
+  showCityDropdown = false;
+  showQueryDropdown = false;
+  cidade = 'Paris';
+  query = '';
+  filteredCitySuggestions = this.allCities;
+  querySuggestions = this.allQueries;
+
+  ngOnInit() {
+    this.filteredCities$ = this.cityCtrl.valueChanges.pipe(
+      startWith(this.cityCtrl.value ?? ''),
+      map(val => this._filter(val ?? '', this.allCities))
+    );
+    this.filteredQueries$ = this.queryCtrl.valueChanges.pipe(
+      startWith(''),
+      map(val => this._filter(val ?? '', this.allQueries))
+    );
   }
 
-  onCityBlur(event: FocusEvent) {
-    // Timeout para permitir clique no dropdown
-    setTimeout(() => { this.showCityDropdown = false; }, 120);
-  }
-
-  selectCity(city: string) {
-    this.cidade = city;
-    this.showCityDropdown = false;
-    this.filteredCitySuggestions = [...this.citySuggestions];
-  }
-
-  selectQuery(query: string) {
-    this.query = query;
-    this.showQueryDropdown = false;
+  private _filter(val: string, list: string[]) {
+    const filter = val.toLowerCase();
+    return list.filter(item =>
+      item.toLowerCase().includes(filter)
+    );
   }
 
   onSearch() {
-    // Aqui você pode emitir o evento ou filtrar os restaurantes
-    console.log('Buscar:', this.cidade, this.query);
+    console.log('Buscar:', this.cityCtrl.value, this.queryCtrl.value);
   }
 
-  closeDropdowns() {
-    this.showCityDropdown = false;
+  public _displayFn(option: string) {
+    return option || '';
+  }
+
+  onCityInput(event: any) {
+    const value = event.target.value.toLowerCase();
+    this.filteredCitySuggestions = this.allCities.filter(city => city.toLowerCase().includes(value));
+  }
+
+  onCityBlur(event: FocusEvent) {
+    setTimeout(() => { this.showCityDropdown = false; }, 120);
+  }
+
+  selectQuery(q: string) {
+    this.query = q;
     this.showQueryDropdown = false;
   }
 }
