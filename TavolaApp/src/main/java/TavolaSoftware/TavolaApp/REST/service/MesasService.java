@@ -23,17 +23,17 @@ public class MesasService {
         return restaurante;
     }
 
-    public List<Mesas> listarTodas(Restaurante restaurante) {
+    public List<Mesas> findAll(Restaurante restaurante) {
         return restaurante.getMesas();
     }
 
-    public Optional<Mesas> buscarPorNome(Restaurante restaurante, String nome) {
+    public Optional<Mesas> findByName(Restaurante restaurante, String nome) {
         return restaurante.getMesas().stream()
                 .filter(m -> m.getNome().equalsIgnoreCase(nome))
                 .findFirst();
     }
 
-    public Optional<Mesas> buscarPorIndice(Restaurante restaurante, int index) {
+    public Optional<Mesas> findByIndex(Restaurante restaurante, int index) {
         List<Mesas> mesas = restaurante.getMesas();
         if (index < 0 || index >= mesas.size()) {
             return Optional.empty();
@@ -41,7 +41,7 @@ public class MesasService {
         return Optional.of(mesas.get(index));
     }
 
-    public void atualizarMesas(Restaurante restaurante, List<Mesas> novasMesas) {
+    public void update(Restaurante restaurante, List<Mesas> novasMesas) {
         restaurante.setMesas(novasMesas);
         restauranteRepository.save(restaurante);
     }

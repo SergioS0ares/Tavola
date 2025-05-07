@@ -37,7 +37,7 @@ public class RegistroController {
     private JwtUtil jwt;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registrar(@RequestBody RegistroRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkEmptyStrting("nome", request.getNome());

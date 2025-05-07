@@ -26,7 +26,7 @@ public class RestauranteController {
     private ReservaService reservaService;
 
     @GetMapping("/reservas")
-    public ResponseEntity<List<Reserva>> listarReservasRestaurante(
+    public ResponseEntity<List<Reserva>> findAllByRestaurante(
             @RequestParam(defaultValue = "latest") String ordem,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
@@ -38,12 +38,12 @@ public class RestauranteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Restaurante>> listarTodos() {
+    public ResponseEntity<List<Restaurante>> findAll() {
         return ResponseEntity.ok(serv.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Restaurante> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<Restaurante> findById(@PathVariable UUID id) {
         return serv.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -67,7 +67,7 @@ public class RestauranteController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> atualizar(@RequestBody Restaurante atualizacao) {
+    public ResponseEntity<?> update(@RequestBody Restaurante atualizacao) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkEmptyStrting("nome", atualizacao.getUsuario().getNome());
@@ -82,13 +82,13 @@ public class RestauranteController {
 
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Restaurante existente = serv.getByEmail(email);
-        Restaurante atualizado = serv.updatePreservandoDados(existente, atualizacao);
+        Restaurante atualizado = serv.update(existente, atualizacao);
 
         return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deletarRestauranteAutenticado() {
+    public ResponseEntity<Void> deleteSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Restaurante restaurante = serv.getByEmail(email);
         serv.deleteById(restaurante.getId());

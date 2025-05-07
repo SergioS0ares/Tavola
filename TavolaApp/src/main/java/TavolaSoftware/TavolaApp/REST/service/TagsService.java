@@ -65,7 +65,7 @@ public class TagsService {
     }
 
     @Transactional
-    public Tags atualizarTag(UUID id, String novoNome) {
+    public Tags update(UUID id, String novoNome) {
         Tags tag = findById(id);
         
         if (tagsRepository.existsByTag(novoNome) && !tag.getTag().equals(novoNome)) {

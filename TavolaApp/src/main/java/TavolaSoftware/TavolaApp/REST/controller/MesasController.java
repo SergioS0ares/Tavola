@@ -18,21 +18,21 @@ public class MesasController {
     @Autowired
     private MesasService mesasService;
 
-    private Restaurante getRestauranteAutenticado() {
+    private Restaurante getSelfRestaurante() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return mesasService.getRestauranteByEmail(email);
     }
 
     @GetMapping
-    public ResponseEntity<List<Mesas>> listarTodas() {
-        Restaurante restaurante = getRestauranteAutenticado();
-        return ResponseEntity.ok(mesasService.listarTodas(restaurante));
+    public ResponseEntity<List<Mesas>> findAll() {
+        Restaurante restaurante = getSelfRestaurante();
+        return ResponseEntity.ok(mesasService.findAll(restaurante));
     }
 
     @GetMapping("/id/{index}")
-    public ResponseEntity<?> buscarPorIndice(@PathVariable int index) {
-        Restaurante restaurante = getRestauranteAutenticado();
-        Optional<Mesas> mesa = mesasService.buscarPorIndice(restaurante, index);
+    public ResponseEntity<?> findSelfByIndex(@PathVariable int index) {
+        Restaurante restaurante = getSelfRestaurante();
+        Optional<Mesas> mesa = mesasService.findByIndex(restaurante, index);
 
         if (mesa.isPresent()) {
             return ResponseEntity.ok(mesa.get());
@@ -42,9 +42,9 @@ public class MesasController {
     }
 
     @GetMapping("/{nome}")
-    public ResponseEntity<?> buscarPorNome(@PathVariable String nome) {
-        Restaurante restaurante = getRestauranteAutenticado();
-        Optional<Mesas> mesa = mesasService.buscarPorNome(restaurante, nome);
+    public ResponseEntity<?> findByName(@PathVariable String nome) {
+        Restaurante restaurante = getSelfRestaurante();
+        Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);
 
         return mesa.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -52,8 +52,8 @@ public class MesasController {
 
     @PutMapping
     public ResponseEntity<?> atualizarMesas(@RequestBody List<Mesas> novasMesas) {
-        Restaurante restaurante = getRestauranteAutenticado();
-        mesasService.atualizarMesas(restaurante, novasMesas);
+        Restaurante restaurante = getSelfRestaurante();
+        mesasService.update(restaurante, novasMesas);
         return ResponseEntity.ok("Mesas atualizadas com sucesso.");
     }
 } 

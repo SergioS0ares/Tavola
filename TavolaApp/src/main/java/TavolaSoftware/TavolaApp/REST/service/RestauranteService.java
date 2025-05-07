@@ -46,7 +46,7 @@ public class RestauranteService {
             .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
     }
 
-    public Restaurante updatePreservandoDados(Restaurante existente, Restaurante atualizacao) {
+    public Restaurante update(Restaurante existente, Restaurante atualizacao) {
         existente.getUsuario().setNome(atualizacao.getUsuario().getNome());
         existente.getUsuario().setEmail(atualizacao.getUsuario().getEmail());
         existente.getUsuario().setSenha(atualizacao.getUsuario().getSenha());
