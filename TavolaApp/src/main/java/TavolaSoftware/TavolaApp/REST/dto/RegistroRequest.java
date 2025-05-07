@@ -18,8 +18,12 @@ public class RegistroRequest {
     // Só pra restaurant
     private List<Mesas> mesas;
     private List<HorarioFuncionamento> horaFuncionamento;
+    private Integer quantidadeMesas;
 
     // Getters e Setters
+    public Integer getQuantidadeMesas() { return quantidadeMesas; }
+    public void setQuantidadeMesas(Integer quantidadeMesas) { this.quantidadeMesas = quantidadeMesas; }
+    
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
 
