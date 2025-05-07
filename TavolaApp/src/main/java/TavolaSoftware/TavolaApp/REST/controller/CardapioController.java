@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.CardapioResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
@@ -12,6 +13,7 @@ import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,13 +72,22 @@ public class CardapioController {
             cardapio.setTags(tags);
         }
 
-        return ResponseEntity.ok(serv.save(cardapio));
+        Cardapio salvo = serv.save(cardapio);
+        return ResponseEntity.ok(new CardapioResponse(salvo));
     }
 
     @GetMapping
-    public ResponseEntity<List<Cardapio>> listarTodos() {
+    public ResponseEntity<List<Cardapio>> findAll() {
         return ResponseEntity.ok(serv.findAll());
     }
+    
+    @GetMapping("/disponiveis")
+    public ResponseEntity<List<Cardapio>> findAllDisponiveis(Authentication authentication) {
+        Restaurante restaurante = restauranteService.getByEmail(authentication.getName());
+        List<Cardapio> cardapios = serv.findAllByDisponivel(restaurante.getId());
+        return ResponseEntity.ok(cardapios);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Cardapio> findById(@PathVariable UUID id) {
@@ -85,9 +96,9 @@ public class CardapioController {
     }
 
     @GetMapping("/restaurante")
-    public ResponseEntity<List<Cardapio>> findByRestauranteAutenticado() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+    public ResponseEntity<List<Cardapio>> findSelfByRestaurante() {
+    	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    	Restaurante restaurante = restauranteService.getByEmail(email);
         return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
     }
 

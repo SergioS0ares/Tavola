@@ -26,25 +26,25 @@ public class CategoriaController {
     private RestauranteService restauranteService;
 
     @GetMapping
-    public ResponseEntity<List<Categoria>> listarTodos() {
+    public ResponseEntity<List<Categoria>> findAll() {
         return ResponseEntity.ok(serv.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Categoria> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<Categoria> findById(@PathVariable UUID id) {
         Optional<Categoria> categoria = serv.findById(id);
         return categoria.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/restaurante")
-    public ResponseEntity<List<Categoria>> buscarPorRestaurante() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+    public ResponseEntity<List<Categoria>> findByRestaurante() {
+    	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    	Restaurante restaurante = restauranteService.getByEmail(email);
         return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
     }
 
     @PostMapping
-    public ResponseEntity<?> criar(@RequestBody Categoria categoria) {
+    public ResponseEntity<?> save(@RequestBody Categoria categoria) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkEmptyStrting("nome", categoria.getNome());
@@ -61,7 +61,7 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable UUID id, @RequestBody Categoria categoria) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Categoria categoria) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkEmptyStrting("nome", categoria.getNome());
@@ -79,7 +79,7 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         serv.deleteById(id);
         return ResponseEntity.noContent().build();
     }

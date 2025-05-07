@@ -50,7 +50,7 @@ public class CategoriaService {
 
     // NOVO: método especial para tratar String
     public Categoria saveIfNotExists(String nomeCategoria, Restaurante restaurante) {
-        Optional<Categoria> categoriaExistente = repo.findByNomeAndRestauranteId(nomeCategoria, restaurante.getId());
+        Optional<Categoria> categoriaExistente = repo.findByNomeAndRestauranteId(nomeCategoria, restaurante.getUsuario().getId());
 
         if (categoriaExistente.isPresent()) {
             return categoriaExistente.get();

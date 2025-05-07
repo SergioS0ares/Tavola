@@ -14,7 +14,6 @@ import TavolaSoftware.TavolaApp.REST.model.Reserva;
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
 
-    // CLIENTE buscando RESTAURANTES onde ele reservou
     @Query("""
         SELECT r FROM Reserva r
         WHERE r.cliente.id = :clienteId
@@ -32,7 +31,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
         Pageable pageable
     );
 
-    // RESTAURANTE buscando CLIENTES que reservaram
     @Query("""
         SELECT r FROM Reserva r
         WHERE r.restaurante.id = :restauranteId
@@ -41,8 +39,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
             CASE WHEN :ordem = 'newest' THEN r.data END ASC,
             CASE WHEN :ordem = 'placescrescent' THEN r.pessoas END ASC,
             CASE WHEN :ordem = 'placesdecrescent' THEN r.pessoas END DESC,
-            CASE WHEN :ordem = 'clientcrescent' THEN r.cliente.nome END ASC,
-            CASE WHEN :ordem = 'clientdecrescent' THEN r.cliente.nome END DESC
+            CASE WHEN :ordem = 'clientcrescent' THEN r.cliente.usuario.nome END ASC,
+            CASE WHEN :ordem = 'clientdecrescent' THEN r.cliente.usuario.nome END DESC
     """)
     List<Reserva> findAllByRestauranteOrdered(
         @Param("restauranteId") UUID restauranteId,

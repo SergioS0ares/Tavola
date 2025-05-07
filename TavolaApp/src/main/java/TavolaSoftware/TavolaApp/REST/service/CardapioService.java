@@ -30,6 +30,11 @@ public class CardapioService {
     public Cardapio save(Cardapio cardapio) {
         return repo.save(cardapio);
     }
+    
+    public List<Cardapio> findAllByDisponivel(UUID restauranteId) {
+        return repo.findAllDisponiveisByRestaurante(restauranteId);
+    }
+
 
     public void deleteById(UUID id) {
         repo.deleteById(id);

@@ -23,27 +23,27 @@ public class ClienteController {
     private ClienteService serv;
 
     @Autowired
-    private ReservaService reservaService;
+    private ReservaService servReserva;
 
     @GetMapping("/reservas")
-    public ResponseEntity<List<Reserva>> listarReservasCliente(
+    public ResponseEntity<List<Reserva>> findAllByClient(
             @RequestParam(defaultValue = "latest") String ordem,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
 
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UUID id = serv.getIdByEmail(email);
-        List<Reserva> reservas = reservaService.findAllByClienteOrdered(id, ordem, pagina, tamanho);
+        List<Reserva> reservas = servReserva.findAllByClienteOrdered(id, ordem, pagina, tamanho);
         return ResponseEntity.ok(reservas);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<?> criarCliente(@RequestBody Cliente cliente) {
+    @PostMapping("/save")
+    public ResponseEntity<?> save(@RequestBody Cliente cliente) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome", cliente.getNome());
-        handler.checkEmptyStrting("email", cliente.getEmail());
-        handler.checkEmptyStrting("senha", cliente.getSenha());
-        handler.checkEmptyObject("endereco", cliente.getEndereco());
+        handler.checkEmptyStrting("nome", cliente.getUsuario().getNome());
+        handler.checkEmptyStrting("email", cliente.getUsuario().getEmail());
+        handler.checkEmptyStrting("senha", cliente.getUsuario().getSenha());
+        handler.checkEmptyObject("endereco", cliente.getUsuario().getEndereco());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -54,24 +54,24 @@ public class ClienteController {
     }
 
     @GetMapping("/get")
-    public ResponseEntity<Cliente> buscarPorEmail() {
+    public ResponseEntity<Cliente> findSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<Cliente> cliente = serv.findByEmail(email);
         return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/getall")
-    public ResponseEntity<List<Cliente>> listarTodos() {
+    public ResponseEntity<List<Cliente>> findAll() {
         return ResponseEntity.ok(serv.findAll());
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> atualizar(@RequestBody Cliente atualizacao) {
+    public ResponseEntity<?> update(@RequestBody Cliente atualizacao) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome", atualizacao.getNome());
-        handler.checkEmptyStrting("email", atualizacao.getEmail());
-        handler.checkEmptyStrting("senha", atualizacao.getSenha());
-        handler.checkEmptyObject("endereco", atualizacao.getEndereco());
+        handler.checkEmptyStrting("nome", atualizacao.getUsuario().getNome());
+        handler.checkEmptyStrting("email", atualizacao.getUsuario().getEmail());
+        handler.checkEmptyStrting("senha", atualizacao.getUsuario().getSenha());
+        handler.checkEmptyObject("endereco", atualizacao.getUsuario().getEndereco());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -85,7 +85,7 @@ public class ClienteController {
     
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deletar() {
+    public ResponseEntity<Void> delete() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         serv.deleteByEmail(email);
         return ResponseEntity.noContent().build();

@@ -27,7 +27,6 @@ public class ReservaService {
         return repo.findAllByRestauranteOrdered(restauranteId, ordem, pageable);
     }
     
-
     public Reserva save(Reserva reserva) {
         return repo.save(reserva);
     }
