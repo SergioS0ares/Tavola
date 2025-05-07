@@ -36,8 +36,8 @@ public class Cardapio {
     @Column(name = "dish_value")
     private Double preco;
 
-    @Column(name = "dish_image", nullable = false)
-    private String imagem;
+    @Column(name = "dish_image")
+    private String imagem = "";
 
     @Column(name = "dish_description")
     private String descricao;
@@ -52,7 +52,7 @@ public class Cardapio {
 
     @ManyToOne
     @JoinColumn(name = "establishment_id", nullable = false)
-    private Restaurante restaurante;
+    private Restaurante restaurante;	 
 
     public UUID getId() {
         return id;

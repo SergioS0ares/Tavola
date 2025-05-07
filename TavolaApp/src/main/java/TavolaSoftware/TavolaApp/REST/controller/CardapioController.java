@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.CardapioResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
@@ -70,7 +71,8 @@ public class CardapioController {
             cardapio.setTags(tags);
         }
 
-        return ResponseEntity.ok(serv.save(cardapio));
+        Cardapio salvo = serv.save(cardapio);
+        return ResponseEntity.ok(new CardapioResponse(salvo));
     }
 
     @GetMapping
