@@ -1,0 +1,222 @@
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+// toolbar no topo
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  height: 60px;
+  background-color: #DA4A24;
+  color: white;
+  z-index: 10;
+
+  .menu-toggle {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    mat-icon {
+      font-size: 24px;
+    }
+  }
+
+  .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid #F6BD38;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        
+        .user-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: white;
+        }
+
+        .user-type {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.8);
+        }
+      }
+    }
+
+    mat-icon {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+// wrapper em flex-row para sidebar + content
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background-color: #ebe8e2;
+}
+
+// sidebar abaixo da toolbar e empurrando o conteúdo
+.sidebar {
+  margin: 16px;           // distancia do topo e das laterais
+  width: 240px;
+  background-color: #3B221B;
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &.fechada {
+    width: 70px;
+    padding: 16px 8px;
+
+    .sidebar-header {
+      justify-content: center;
+      .logo {
+        width: 30px;
+      }
+    }
+
+    .menu button {
+      justify-content: center;
+      span {
+        display: none;
+      }
+    }
+  }
+
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .logo {
+      width: 50px;
+      height: auto;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: 1px solid #F6BD38;
+      color: #F6BD38;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      width: 100%;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 20px;
+      }
+
+      &:hover {
+        background-color: rgba(246, 189, 56, 0.1);
+      }
+
+      &.active {
+        background-color: #F6BD38;
+        color: #3B221B;
+      }
+    }
+  }
+}
+
+// conteúdo ao lado da sidebar
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .router-container {
+    flex: 1;
+    padding: 24px;
+    background-color: #ebe8e2;
+    overflow-y: auto;
+  }
+}
+
+// botão hamburguer (reabre)
+.menu-toggle {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+::ng-deep {
+  .user-dropdown {
+    margin-top: 8px;
+    
+    .mat-mdc-menu-content {
+      padding: 0;
+    }
+
+    .mat-mdc-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      
+      mat-icon {
+        margin: 0;
+      }
+    }
+  }
+}
+

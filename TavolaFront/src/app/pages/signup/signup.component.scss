@@ -1,61 +1,220 @@
 @import "../../../styles/variables.scss";
 
-form {
+:host {
+    display: block;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 12px;
-
-    span {
-        font-size: 14px;
-        text-decoration: underline;
-        color: $secondary-color;
-        text-align: end;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #3B221B;
+    
+    // Estilo do scroll externo
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: #2a1812;
+        border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: #4e2e22;
+        border-radius: 4px;
+        
+        &:hover {
+            background: #D1495B;
+        }
     }
 }
 
-.input-icon {
-    margin-left: 8px;
-    margin-right: 8px;
-    width: 24px;
-    height: 24px;
+.signup-tabs {
+    margin-top: -24px;
+    padding-bottom: 80px;
+    
+    ::ng-deep {
+        .mat-mdc-tab-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            position: sticky;
+            top: 0;
+            background: transparent;
+            z-index: 1;
+
+            .mat-mdc-tab {
+                color: rgba(255, 255, 255, 0.6);
+                min-height: 48px;
+                .mdc-tab__text-label {
+                    transition: color 0.2s;
+                }
+                &.mdc-tab--active .mdc-tab__text-label {
+                    color: #D1495B !important;
+                }
+                .mdc-tab-indicator__content--underline {
+                    border-color: #D1495B;
+                }
+            }
+        }
+
+        // Remove scroll interno
+        .mat-mdc-tab-body-wrapper {
+            height: auto;
+            overflow: visible;
+        }
+    }
 }
 
-.signup-form-grid {
-  display: grid;
-  width: 100%;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 0 16px;
+    max-width: 800px;
+    margin: 0 auto;
+
+    .form-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 16px;
+
+        .section-title {
+            color: #F6BD38;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid #F6BD38;
+            padding-left: 12px;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+
+            &.two-columns {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            &.full-width {
+                grid-column: 1 / -1;
+            }
+        }
+    }
 }
 
-.form-column {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+::ng-deep {
+    .mat-mdc-form-field {
+        width: 100%;
+
+        .mat-mdc-input-element,
+        .mat-mdc-select-value-text,
+        .mdc-floating-label,
+        .mat-mdc-select-arrow {
+            color: white !important;
+        }
+
+        // Remove o hover marrom
+        .mat-mdc-input-element:hover,
+        .mat-mdc-input-element:focus {
+            color: white !important;
+        }
+
+        .mdc-text-field--outlined {
+            --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.6);
+            --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.3);
+            --mdc-outlined-text-field-hover-outline-color: #F6BD38;
+            --mdc-outlined-text-field-focus-outline-color: #F6BD38;
+        }
+
+        .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+            color: #F6BD38 !important;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+    }
+
+    .mat-mdc-checkbox {
+        --mdc-checkbox-selected-checkmark-color: #fff;
+        --mdc-checkbox-selected-focus-icon-color: #F6BD38;
+        --mdc-checkbox-selected-hover-icon-color: #F6BD38;
+        --mdc-checkbox-selected-icon-color: #F6BD38;
+        --mdc-checkbox-selected-pressed-icon-color: #F6BD38;
+        --mdc-checkbox-unselected-focus-icon-color: #D1495B;
+        --mdc-checkbox-unselected-hover-icon-color: #D1495B;
+        --mdc-checkbox-unselected-icon-color: #D1495B;
+        --mdc-checkbox-unselected-pressed-icon-color: #D1495B;
+    }
 }
 
-.full-width {
-  width: 100%;
-  gap: 1px;
+.horarios-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .horario-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .dia-semana {
+            min-width: 120px;
+            color: white;
+        }
+
+        .horarios-inputs {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+        }
+    }
 }
 
-.container {
-  width: 100%;
-  max-width: 1000px;
-  margin: auto;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
+mat-error {
+    color: #D1495B !important;
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 1 !important;
 }
 
-.form-title {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  border-left: 4px solid $primary-color; // ou uma cor fixa como #8bc34a
-  padding-left: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.mat-mdc-form-field-error {
+    color: #D1495B !important;
+}
+
+@media (max-width: 768px) {
+    .signup-form {
+        padding: 0;
+
+        .form-section {
+            padding: 16px;
+
+            .form-row {
+                &.two-columns {
+                    grid-template-columns: 1fr;
+                }
+            }
+        }
+    }
+
+    .horarios-grid {
+        .horario-row {
+            flex-direction: column;
+            align-items: flex-start;
+
+            .dia-semana {
+                min-width: auto;
+            }
+
+            .horarios-inputs {
+                width: 100%;
+            }
+        }
+    }
 }

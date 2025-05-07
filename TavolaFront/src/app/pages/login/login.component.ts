@@ -1,19 +1,15 @@
 import { Component, inject } from '@angular/core';
-import { DefaultLoginLayoutComponent } from '../../components/default-login-layout/default-login-layout.component';
+import { DefaultLoginLayoutComponent } from '../default-login-layout/default-login-layout.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '../../services/login.service';
+import { LoginService } from '../../core/services/login.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
-
-interface LoginForm {
-  email: FormControl;
-  senha: FormControl;
-}
+import { ILoginForm } from '../../Interfaces/ILoginForm.interface';
 
 @Component({
   selector: 'app-login',
@@ -34,7 +30,8 @@ interface LoginForm {
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  loginForm: FormGroup<LoginForm>;
+  loginForm: FormGroup<ILoginForm>;
+  showForgotInfo = false;
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
@@ -42,19 +39,34 @@ export class LoginComponent {
   private toastService = inject(ToastrService);
 
   constructor() {
-    this.loginForm = new FormGroup<LoginForm>({
-      email: new FormControl('', [
-        Validators.required,
-        Validators.email,
-        this.emailWithTLDValidator
-      ]),
-      senha: new FormControl('', [
-        Validators.required,
-        Validators.minLength(6),
-        Validators.maxLength(20)
-      ])
+    this.loginForm = new FormGroup<ILoginForm>({
+      email: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.email]
+      }),
+      senha: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, this.validadorSenhaForte]
+      })
     });
   }
+
+  validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
+    const valor = control.value;
+    if (!valor) return { required: true };
+  
+    const erros: ValidationErrors = {};
+  
+    if (valor.length < 8) {
+      erros['minCaracteres'] = true;
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
+      erros['semCaractereEspecial'] = true;
+    }
+  
+    return Object.keys(erros).length ? erros : null;
+  }
+  
+
 
   emailWithTLDValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value as string;
@@ -77,9 +89,19 @@ export class LoginComponent {
 
     if (email && senha) {
       this.loginService.login(email, senha).subscribe({
-        next: () => {
+        next: (res) => {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('refreshToken', res.refreshToken);
+          localStorage.setItem('userName', res.name);
+          localStorage.setItem('tipoUsuario', res.tipoUsuario);
+        
           this.toastService.success("Login feito com sucesso!");
-          this.router.navigate(["user"]);
+          // Redireciona com base no tipo de usuário
+          if (res.tipoUsuario === 'RESTAURANTE') {
+            this.router.navigate(['reserva']);
+          } else {
+            this.router.navigate(['home']);
+          }
         },
         error: (err) => {
           const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
@@ -96,6 +118,7 @@ export class LoginComponent {
   }
 
   forgotPassword(){
+    this.showForgotInfo = true;
     this.toastService.info("Funcionalidade de recuperação de senha ainda não implementada.");
   }
 }

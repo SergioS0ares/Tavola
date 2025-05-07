@@ -1,0 +1,41 @@
+<div class="configuracoes-container">
+  <mat-card class="profile-section">
+    <mat-card-header>
+      <div class="avatar-container">
+        <img [src]="'assets/png/avatar-padrao-tavola-cordeirinho.png'" alt="Avatar do usuário">
+        <button mat-mini-fab color="primary" class="change-photo">
+          <mat-icon>photo_camera</mat-icon>
+        </button>
+      </div>
+      <mat-card-title>{{ userName }}</mat-card-title>
+      <mat-card-subtitle>{{ userType }}</mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <mat-card class="info-section">
+    <mat-card-header>
+      <mat-card-title>Informações da Conta</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Formulário de informações será adicionado aqui -->
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="address-section">
+    <mat-card-header>
+      <mat-card-title>Endereço</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Formulário de endereço será adicionado aqui -->
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card *ngIf="isRestaurante" class="restaurant-section">
+    <mat-card-header>
+      <mat-card-title>Dados do Restaurante</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Formulário do restaurante será adicionado aqui -->
+    </mat-card-content>
+  </mat-card>
+</div>

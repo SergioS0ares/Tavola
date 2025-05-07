@@ -1,0 +1,46 @@
+<div class="banner" (click)="closeDropdowns()">
+  <div class="banner-content">
+    <div class="banner-row">
+      <div class="banner-left">
+        <h1>Descubra e reserve o melhor restaurante</h1>
+        <form class="search-bar" (ngSubmit)="onSearch()" autocomplete="off">
+          <div class="input-group" tabindex="-1">
+            <div class="custom-field location"
+                 tabindex="0"
+                 (focusin)="showCityDropdown = true; showQueryDropdown = false"
+                 (focusout)="onCityBlur($event)">
+              <mat-icon class="icon brown">location_on</mat-icon>
+              <input type="text" placeholder="Cidade" [(ngModel)]="cidade" name="cidade" required (focus)="showCityDropdown = true; showQueryDropdown = false" class="brown-text city-input" (input)="onCityInput($event)">
+            </div>
+            <div class="custom-field query"
+                 tabindex="0"
+                 (focusin)="showQueryDropdown = true; showCityDropdown = false"
+                 (focusout)="showQueryDropdown = false">
+              <mat-icon class="icon brown">search</mat-icon>
+              <input type="text" placeholder="Cozinha, nome do restaurante..." [(ngModel)]="query" name="query" (focus)="showQueryDropdown = true; showCityDropdown = false" style="font-style: italic; font-size: 0.98rem;" class="brown-text long-query">
+              <div class="dropdown" *ngIf="showQueryDropdown">
+                <div class="dropdown-item brown-text" *ngFor="let suggestion of querySuggestions" (mousedown)="selectQuery(suggestion)">{{suggestion}}</div>
+              </div>
+            </div>
+            <button class="search-btn" type="submit">PROCURAR</button>
+          </div>
+        </form>
+      </div>
+      <div class="banner-right">
+        <img src="assets/png/Pizza.png" alt="Pizza" class="pizza-img" />
+      </div>
+    </div>
+    <div class="city-dropdown-absolute" *ngIf="showCityDropdown">
+      <div class="dropdown city-dropdown">
+        <input class="dropdown-city-search" type="text" placeholder="Digite a cidade..." [(ngModel)]="cidade" (input)="onCityInput($event)" autofocus>
+        <div class="dropdown-item brown-text highlight" (mousedown)="selectCity('Perto de mim')">
+          <mat-icon class="icon brown">send</mat-icon> Perto de mim
+        </div>
+        <div class="dropdown-title">Sugestões</div>
+        <div class="dropdown-item brown-text" *ngFor="let city of filteredCitySuggestions" (mousedown)="selectCity(city)">
+          <mat-icon class="icon brown">location_on</mat-icon> {{city}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
