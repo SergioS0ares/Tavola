@@ -22,9 +22,9 @@ public class Restaurante extends Usuario {
 
     @ElementCollection
     private List<HorarioFuncionamento> horariosFuncionamento;
-    
+
     @Column(name = "establishment_foodtype", nullable = false)
-    private String tipoCozinha;
+    private String tipoCozinha = "Outro"; // Valor padrão para evitar erro de migração
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
@@ -51,5 +51,13 @@ public class Restaurante extends Usuario {
 
     public void setCardapio(List<Cardapio> cardapio) {
         this.cardapio = cardapio;
+    }
+
+    public String getTipoCozinha() {
+        return tipoCozinha;
+    }
+
+    public void setTipoCozinha(String tipoCozinha) {
+        this.tipoCozinha = tipoCozinha;
     }
 }
