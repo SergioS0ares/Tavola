@@ -88,8 +88,8 @@ public class CardapioController {
 
     @GetMapping("/restaurante")
     public ResponseEntity<List<Cardapio>> findByRestauranteAutenticado() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+    	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    	Restaurante restaurante = restauranteService.getByEmail(email);
         return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
     }
 

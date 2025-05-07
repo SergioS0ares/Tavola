@@ -4,8 +4,10 @@ import TavolaSoftware.TavolaApp.REST.dto.RegistroRequest;
 import TavolaSoftware.TavolaApp.REST.dto.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.Mesas;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
@@ -21,6 +23,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/auth")
 public class RegistroController {
+	
+	@Autowired
+	private UsuarioRepository repo;
 
     @Autowired
     private ClienteRepository repoClient;
@@ -41,15 +46,42 @@ public class RegistroController {
         handler.checkEmptyObject("endereco", request.getEndereco());
         handler.checkEmptyObject("tipo", request.getTipo());
 
-        if (repoClient.findByEmail(request.getEmail()) != null ||
-            repoRestaurante.findByEmail(request.getEmail()) != null) {
+        if (repo.findByEmail(request.getEmail()) != null) {
             handler.checkCondition("O e-mail informado já está em uso.", true);
+        }
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
 
         String senhaCriptografada = BCrypt.hashpw(request.getSenha(), BCrypt.gensalt());
 
-        if (request.getTipo() == TipoUsuario.RESTAURANTE) {
-            handler.checkEmptyList("horaFuncionamento", request.getHoraFuncionamento());
+        Usuario usuario = new Usuario();
+        usuario.setNome(request.getNome());
+        usuario.setEmail(request.getEmail());
+        usuario.setSenha(senhaCriptografada);
+        usuario.setEndereco(request.getEndereco());
+        usuario.setTipo(request.getTipo());
+
+        usuario = repo.save(usuario);
+
+        if (usuario.getTipo() == TipoUsuario.CLIENTE) {
+            Cliente cliente = new Cliente();
+            cliente.setUsuario(usuario);
+            repoClient.save(cliente);
+
+            String accessToken = jwt.generateAccessToken(usuario.getEmail());
+            String refreshToken = jwt.generateRefreshToken(usuario.getId().toString());
+
+            return ResponseEntity.ok(new LoginResponse(
+                    accessToken, refreshToken,
+                    usuario.getNome(), "CLIENTE",
+                    usuario.getId(), usuario.getEmail()
+            ));
+
+        } else {
+            Restaurante restaurante = new Restaurante();
+            restaurante.setUsuario(usuario);
 
             List<Mesas> mesas = request.getMesas();
             if ((mesas == null || mesas.isEmpty()) && request.getQuantidadeMesas() != null) {
@@ -63,48 +95,19 @@ public class RegistroController {
                 mesas = List.of(padrao);
             }
 
-            boolean nomeRepetido = repoRestaurante.findAll().stream()
-                    .anyMatch(r -> r.getNome().equalsIgnoreCase(request.getNome()));
-            handler.checkCondition("Já existe um restaurante com esse nome.", nomeRepetido);
+            restaurante.setMesas(mesas);
+            restaurante.setHoraFuncionamento(request.getHoraFuncionamento());
+            repoRestaurante.save(restaurante);
 
-            if (handler.errors()) {
-                return handler.generateResponse(HttpStatus.BAD_REQUEST);
-            }
+            String accessToken = jwt.generateAccessToken(usuario.getEmail());
+            String refreshToken = jwt.generateRefreshToken(usuario.getId().toString());
 
-            Restaurante novoRestaurante = new Restaurante();
-            novoRestaurante.setNome(request.getNome());
-            novoRestaurante.setEmail(request.getEmail());
-            novoRestaurante.setSenha(senhaCriptografada);
-            novoRestaurante.setEndereco(request.getEndereco());
-            novoRestaurante.setMesas(mesas);
-            novoRestaurante.setHoraFuncionamento(request.getHoraFuncionamento());
-            novoRestaurante.setTipo(TipoUsuario.RESTAURANTE);
-            repoRestaurante.save(novoRestaurante);
-
-            String accessToken = jwt.generateAccessToken(novoRestaurante.getEmail());
-            String refreshToken = jwt.generateRefreshToken(novoRestaurante.getId().toString());
             return ResponseEntity.ok(new LoginResponse(
                     accessToken, refreshToken,
-                    novoRestaurante.getNome(), "RESTAURANTE",
-                    novoRestaurante.getId(), novoRestaurante.getEmail()
-            ));
-
-        } else if (request.getTipo() == TipoUsuario.CLIENTE) {
-            Cliente novoCliente = new Cliente(
-                    request.getNome(), senhaCriptografada,
-                    request.getEmail(), request.getEndereco()
-            );
-            repoClient.save(novoCliente);
-
-            String accessToken = jwt.generateAccessToken(novoCliente.getEmail());
-            String refreshToken = jwt.generateRefreshToken(novoCliente.getId().toString());
-            return ResponseEntity.ok(new LoginResponse(
-                    accessToken, refreshToken,
-                    novoCliente.getNome(), "CLIENTE",
-                    novoCliente.getId(), novoCliente.getEmail()
+                    usuario.getNome(), "RESTAURANTE",
+                    usuario.getId(), usuario.getEmail()
             ));
         }
-
-        return ResponseEntity.badRequest().body("Tipo de usuário inválido.");
     }
 }
+

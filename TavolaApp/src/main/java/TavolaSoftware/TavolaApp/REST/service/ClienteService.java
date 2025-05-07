@@ -28,11 +28,11 @@ public class ClienteService {
     }
 
     public Optional<Cliente> findByEmail(String email) {
-        return Optional.ofNullable(repo.findByEmail(email));
+        return Optional.ofNullable(repo.findByUsuarioEmail(email));
     }
 
     public UUID getIdByEmail(String email) {
-        Cliente cliente = repo.findByEmail(email);
+        Cliente cliente = repo.findByUsuarioEmail(email);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado para email: " + email);
         }
@@ -40,21 +40,21 @@ public class ClienteService {
     }
 
     public Cliente updateByEmail(String email, Cliente atualizacao) {
-        Cliente cliente = repo.findByEmail(email);
+        Cliente cliente = repo.findByUsuarioEmail(email);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado!");
         }
 
-        cliente.setNome(atualizacao.getNome());
-        cliente.setEmail(atualizacao.getEmail());
-        cliente.setSenha(atualizacao.getSenha());
-        cliente.setEndereco(atualizacao.getEndereco());
+        cliente.getUsuario().setNome(atualizacao.getUsuario().getNome());
+        cliente.getUsuario().setEmail(atualizacao.getUsuario().getEmail());
+        cliente.getUsuario().setSenha(atualizacao.getUsuario().getSenha());
+        cliente.getUsuario().setEndereco(atualizacao.getUsuario().getEndereco());
 
         return repo.save(cliente);
     }
 
     public void deleteByEmail(String email) {
-        Cliente cliente = repo.findByEmail(email);
+        Cliente cliente = repo.findByUsuarioEmail(email);
         if (cliente != null) {
             repo.delete(cliente);
         }

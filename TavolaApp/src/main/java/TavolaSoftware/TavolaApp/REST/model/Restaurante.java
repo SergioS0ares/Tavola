@@ -4,18 +4,30 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.util.List;
+import java.util.UUID;
 
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 import TavolaSoftware.TavolaApp.tools.Mesas;
-import TavolaSoftware.TavolaApp.tools.Usuario;
 
 @Entity
 @Table(name = "establishment_table")
-public class Restaurante extends Usuario {
+public class Restaurante {
+
+    @Id
+    private UUID id;
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @ElementCollection
     private List<Mesas> mesas;
@@ -23,12 +35,36 @@ public class Restaurante extends Usuario {
     @ElementCollection
     private List<HorarioFuncionamento> horariosFuncionamento;
 
-    @Column(name = "establishment_foodtype", nullable = false)
-    private String tipoCozinha = "Outro"; // Valor padrão para evitar erro de migração
+    @Column(nullable = false)
+    private String tipoCozinha = "Outro";
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
 
+    // métodos de restaurante para retornar informações de usuario
+    
+    public String getEmail() { return usuario.getEmail(); }
+    
+    public String getNome() { return usuario.getNome(); }
+    
+    // fim dos métodos de usuario
+
+	public UUID getId() {
+		return id;
+	}
+	
+	public void setID(UUID id) {
+		this.id = id;
+	}
+    
+    public Usuario getUsuario() {
+    	return usuario;
+    }
+    
+    public void setUsuario(Usuario usuario) {
+    	this.usuario = usuario;
+    }
+    
     public List<Mesas> getMesas() {
         return mesas;
     }

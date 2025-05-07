@@ -16,7 +16,7 @@ public class MesasService {
     private RestauranteRepository restauranteRepository;
 
     public Restaurante getRestauranteByEmail(String email) {
-        Restaurante restaurante = restauranteRepository.findByEmail(email);
+        Restaurante restaurante = restauranteRepository.findByUsuarioEmail(email);
         if (restaurante == null) {
             throw new RuntimeException("Restaurante não encontrado para o e-mail informado: " + email);
         }

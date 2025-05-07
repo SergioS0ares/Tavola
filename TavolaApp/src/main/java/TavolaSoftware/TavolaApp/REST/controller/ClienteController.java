@@ -40,10 +40,10 @@ public class ClienteController {
     @PostMapping("/create")
     public ResponseEntity<?> criarCliente(@RequestBody Cliente cliente) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome", cliente.getNome());
-        handler.checkEmptyStrting("email", cliente.getEmail());
-        handler.checkEmptyStrting("senha", cliente.getSenha());
-        handler.checkEmptyObject("endereco", cliente.getEndereco());
+        handler.checkEmptyStrting("nome", cliente.getUsuario().getNome());
+        handler.checkEmptyStrting("email", cliente.getUsuario().getEmail());
+        handler.checkEmptyStrting("senha", cliente.getUsuario().getSenha());
+        handler.checkEmptyObject("endereco", cliente.getUsuario().getEndereco());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -68,10 +68,10 @@ public class ClienteController {
     @PutMapping("/update")
     public ResponseEntity<?> atualizar(@RequestBody Cliente atualizacao) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome", atualizacao.getNome());
-        handler.checkEmptyStrting("email", atualizacao.getEmail());
-        handler.checkEmptyStrting("senha", atualizacao.getSenha());
-        handler.checkEmptyObject("endereco", atualizacao.getEndereco());
+        handler.checkEmptyStrting("nome", atualizacao.getUsuario().getNome());
+        handler.checkEmptyStrting("email", atualizacao.getUsuario().getEmail());
+        handler.checkEmptyStrting("senha", atualizacao.getUsuario().getSenha());
+        handler.checkEmptyObject("endereco", atualizacao.getUsuario().getEndereco());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);

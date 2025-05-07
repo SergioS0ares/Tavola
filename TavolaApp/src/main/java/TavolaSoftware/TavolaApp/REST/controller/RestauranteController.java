@@ -53,10 +53,10 @@ public class RestauranteController {
     public ResponseEntity<?> save(@RequestBody Restaurante restaurante) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
-        handler.checkEmptyStrting("nome", restaurante.getNome());
-        handler.checkEmptyStrting("email", restaurante.getEmail());
-        handler.checkEmptyStrting("senha", restaurante.getSenha());
-        handler.checkEmptyObject("endereco", restaurante.getEndereco());
+        handler.checkEmptyStrting("nome", restaurante.getUsuario().getNome());
+        handler.checkEmptyStrting("email", restaurante.getUsuario().getEmail());
+        handler.checkEmptyStrting("senha", restaurante.getUsuario().getSenha());
+        handler.checkEmptyObject("endereco", restaurante.getUsuario().getEndereco());
         handler.checkEmptyList("horário de funcionamento", restaurante.getHorarioFuncionamento());
 
         if (handler.errors()) {
@@ -70,10 +70,10 @@ public class RestauranteController {
     public ResponseEntity<?> atualizar(@RequestBody Restaurante atualizacao) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
-        handler.checkEmptyStrting("nome", atualizacao.getNome());
-        handler.checkEmptyStrting("email", atualizacao.getEmail());
-        handler.checkEmptyStrting("senha", atualizacao.getSenha());
-        handler.checkEmptyObject("endereco", atualizacao.getEndereco());
+        handler.checkEmptyStrting("nome", atualizacao.getUsuario().getNome());
+        handler.checkEmptyStrting("email", atualizacao.getUsuario().getEmail());
+        handler.checkEmptyStrting("senha", atualizacao.getUsuario().getSenha());
+        handler.checkEmptyObject("endereco", atualizacao.getUsuario().getEndereco());
         handler.checkEmptyList("horário de funcionamento", atualizacao.getHorarioFuncionamento());
 
         if (handler.errors()) {

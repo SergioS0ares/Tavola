@@ -38,8 +38,8 @@ public class CategoriaController {
 
     @GetMapping("/restaurante")
     public ResponseEntity<List<Categoria>> buscarPorRestaurante() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+    	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    	Restaurante restaurante = restauranteService.getByEmail(email);
         return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
     }
 

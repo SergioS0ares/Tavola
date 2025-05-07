@@ -1,7 +1,10 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +17,9 @@ public class RestauranteService {
 
     @Autowired
     private RestauranteRepository repo;
+    
+    @Autowired
+    private UsuarioRepository repoUser;
 
     public List<Restaurante> findAll() {
         return repo.findAll();
@@ -30,20 +36,21 @@ public class RestauranteService {
     public void deleteById(UUID id) {
         repo.deleteById(id);
     }
-
+    
     public Restaurante getByEmail(String email) {
-        Restaurante restaurante = repo.findByEmail(email);
-        if (restaurante == null) {
-            throw new RuntimeException("Restaurante não encontrado para o e-mail: " + email);
+        Usuario usuario = repoUser.findByEmail(email);
+        if (usuario == null) {
+            throw new RuntimeException("Usuário não encontrado: " + email);
         }
-        return restaurante;
+        return repo.findByUsuario(usuario)
+            .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
     }
 
     public Restaurante updatePreservandoDados(Restaurante existente, Restaurante atualizacao) {
-        existente.setNome(atualizacao.getNome());
-        existente.setEmail(atualizacao.getEmail());
-        existente.setSenha(atualizacao.getSenha());
-        existente.setEndereco(atualizacao.getEndereco());
+        existente.getUsuario().setNome(atualizacao.getUsuario().getNome());
+        existente.getUsuario().setEmail(atualizacao.getUsuario().getEmail());
+        existente.getUsuario().setSenha(atualizacao.getUsuario().getSenha());
+        existente.getUsuario().setEndereco(atualizacao.getUsuario().getEndereco());
 
         if (atualizacao.getHorarioFuncionamento() != null) {
             existente.setHoraFuncionamento(atualizacao.getHorarioFuncionamento());
