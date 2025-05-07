@@ -70,71 +70,48 @@
   height: 56px;
   margin-top: 0;
   justify-content: space-between;
+  position: sticky;
+  top: 24px;
+  z-index: 50;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  background: #fff;
+  margin-bottom: 24px;
+  gap: 8px;
 }
 
 .custom-field {
   flex: 1 1 0;
   min-width: 120px;
   max-width: 220px;
-  position: relative;
+  margin-right: 8px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
   display: flex;
   align-items: center;
-  padding: 0 18px;
-  background: #fff;
-  border-right: 1px solid #eee;
-  cursor: pointer;
-  z-index: 2;
-  border-radius: 16px 0 0 16px;
+  border-radius: 0;
   height: 100%;
 }
 .custom-field:last-child {
-  border-right: none;
-  border-radius: 0 16px 16px 0;
+  margin-right: 0;
 }
-.custom-field input,
-.mat-mdc-input-element,
-.mat-mdc-form-field-input-control {
-  color: #3B221B !important;
-  background: transparent !important;
-  font-style: italic;
+
+.mat-form-field {
+  width: 100%;
+  background: none;
 }
-.custom-field input:focus,
-.mat-mdc-input-element:focus,
-.mat-mdc-form-field-input-control:focus {
-  color: #3B221B !important;
-  background: #f6f6f6 !important;
+
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  color: #eee;
 }
-.custom-field input::placeholder,
-.mat-mdc-input-element::placeholder,
-.mat-mdc-form-field-input-control::placeholder {
-  color: #3B221B !important;
-  opacity: 0.7;
-  font-style: italic;
-}
-.custom-field input:-webkit-autofill,
-.custom-field input:-webkit-autofill:focus,
-.mat-mdc-input-element:-webkit-autofill,
-.mat-mdc-form-field-input-control:-webkit-autofill {
-  -webkit-text-fill-color: #3B221B !important;
-  box-shadow: 0 0 0 1000px #fff inset !important;
-  background: #fff !important;
-}
-.custom-field input::selection,
-.mat-mdc-input-element::selection,
-.mat-mdc-form-field-input-control::selection {
-  background: #f6bd38;
-  color: #3B221B;
-}
-.city-input {
+
+.city-input, .long-query {
   min-width: 120px;
-  max-width: 160px;
+  max-width: 220px;
+  font-style: italic;
 }
-.long-query {
-  flex: 2 1 0;
-  min-width: 220px;
-  max-width: 340px;
-  font-size: 1.05rem !important;
-}
+
 .icon {
   font-size: 1.3rem;
   color: #3B221B;
@@ -285,8 +262,15 @@
   .banner-content { max-width: 98vw; }
   .banner-row { flex-direction: column; align-items: center; }
   .banner-left { align-items: center; margin-left: 0; margin-right: 0; max-width: 100%; }
-  .input-group { flex-direction: column; box-shadow: none; max-width: 98vw; border-radius: 15px; width: 98vw; height: auto; }
-  .custom-field, .search-btn { width: 100%; border-radius: 0; margin: 0; height: 54px; }
+  .input-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .custom-field {
+    min-width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+  }
   .search-btn { margin-top: 8px; height: 48px; }
   .pizza-img { max-width: 180px; }
   .banner h1 { font-size: 1.5rem; text-align: center; margin-right: 0; }

@@ -3,46 +3,25 @@
       <div class="banner-row">
         <div class="banner-left">
           <h1>Descubra e reserve o melhor restaurante</h1>
-          <form class="search-bar" (ngSubmit)="onSearch()">
-            <div class="input-group">
-  
+          <form class="search-bar" (ngSubmit)="onSearch()" autocomplete="off">
+            <div class="input-group" id="searchBarHome">
               <!-- Campo Cidade com Autocomplete -->
-              <mat-form-field appearance="outline" class="location">
-                <mat-icon matPrefix class="brown">location_on</mat-icon>
-                <input
-                  matInput
-                  placeholder="Cidade"
-                  [formControl]="cityCtrl"
-                  [matAutocomplete]="autoCity">
-                <mat-autocomplete
-                  #autoCity="matAutocomplete"
-                  [displayWith]="_displayFn">
-                  <mat-option *ngFor="let city of filteredCities$ | async" [value]="city">
-                    {{ city }}
-                  </mat-option>
-                </mat-autocomplete>
+              <mat-form-field appearance="outline" class="custom-field location">
+                <mat-icon matPrefix class="icon brown">location_on</mat-icon>
+                <input matInput placeholder="Cidade" [(ngModel)]="cidade" name="cidade" required (focus)="showCityDropdown = true; showQueryDropdown = false" class="brown-text city-input" (input)="onCityInput($event)">
               </mat-form-field>
   
               <!-- Campo Cozinha/Restaurante com Autocomplete -->
-              <mat-form-field appearance="outline" class="query">
-                <mat-icon matPrefix class="brown">search</mat-icon>
-                <input
-                  matInput
-                  placeholder="Cozinha, nome do restaurante..."
-                  [formControl]="queryCtrl"
-                  [matAutocomplete]="autoQuery"
-                  style="font-style: italic; font-size: 0.98rem;">
-                <mat-autocomplete
-                  #autoQuery="matAutocomplete"
-                  [displayWith]="_displayFn">
-                  <mat-option *ngFor="let q of filteredQueries$ | async" [value]="q">
-                    {{ q }}
-                  </mat-option>
-                </mat-autocomplete>
+              <mat-form-field appearance="outline" class="custom-field query">
+                <mat-icon matPrefix class="icon brown">search</mat-icon>
+                <input matInput placeholder="Cozinha, nome do restaurante..." [(ngModel)]="query" name="query" (focus)="showQueryDropdown = true; showCityDropdown = false" style="font-style: italic; font-size: 0.98rem;" class="brown-text long-query">
+                <div class="dropdown" *ngIf="showQueryDropdown">
+                  <div class="dropdown-item brown-text" *ngFor="let suggestion of querySuggestions" (mousedown)="selectQuery(suggestion)">{{suggestion}}</div>
+                </div>
               </mat-form-field>
   
               <!-- Botão de busca -->
-              <button class="search-btn" mat-raised-button color="accent" type="submit">
+              <button class="search-btn" type="submit">
                 PROCURAR
               </button>
   
@@ -51,6 +30,36 @@
         </div>
         <div class="banner-right">
           <img src="assets/png/Pizza.png" alt="Pizza" class="pizza-img" />
+        </div>
+      </div>
+      <div class="city-dropdown-absolute" *ngIf="showCityDropdown">
+        <div class="dropdown city-dropdown">
+          <input class="dropdown-city-search" type="text" placeholder="Digite a cidade..." [(ngModel)]="cidade" (input)="onCityInput($event)" autofocus>
+          <div class="dropdown-item brown-text highlight" (mousedown)="selectCity('Perto de mim')">
+            <mat-icon class="icon brown">send</mat-icon> Perto de mim
+          </div>
+          <div class="dropdown-title">Sugestões</div>
+          <div class="dropdown-item brown-text" *ngFor="let city of filteredCitySuggestions" (mousedown)="selectCity(city)">
+            <mat-icon class="icon brown">location_on</mat-icon> {{city}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Grid de restaurantes -->
+  <div class="restaurants-section">
+    <h2>Restaurantes populares em Paris</h2>
+    <div class="restaurants-grid">
+      <div class="restaurant-card" *ngFor="let r of restaurants">
+        <img [src]="r.imagem" [alt]="r.nome" class="restaurant-img" />
+        <div class="restaurant-info">
+          <div class="restaurant-type">{{ r.tipo }}</div>
+          <div class="restaurant-name">{{ r.nome }}</div>
+          <div class="restaurant-rating">
+            <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r.avaliacao)}">star</mat-icon>
+            <span class="rate-number">{{ r.avaliacao }}</span>
+          </div>
         </div>
       </div>
     </div>

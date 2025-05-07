@@ -53,26 +53,32 @@ export class HomeComponent implements OnInit {
     {
       nome: 'L\'Osteria Paris Chatelet',
       tipo: 'Italiano',
-      avaliacao: 9.2,
-      imagem: 'assets/mock/osteria.jpg'
+      avaliacao: 4.8,
+      imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
       nome: 'Café Terry',
       tipo: 'Francês',
-      avaliacao: 8.8,
-      imagem: 'assets/mock/terry.jpg'
+      avaliacao: 4.5,
+      imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
       nome: 'Les Rupins',
       tipo: 'Francês',
-      avaliacao: 9.3,
-      imagem: 'assets/mock/rupins.jpg'
+      avaliacao: 3.8,
+      imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
       nome: 'L\'Imperatif',
       tipo: 'Francês',
-      avaliacao: 8.8,
-      imagem: 'assets/mock/imperatif.jpg'
+      avaliacao: 2.2,
+      imagem: 'assets/jpg/restauranteOsso.jpg'
+    },
+    {
+      nome: 'L\'Imperatif',
+      tipo: 'Francês',
+      avaliacao: 2.2,
+      imagem: 'assets/jpg/restauranteOsso.jpg'
     }
   ];
 
@@ -122,5 +128,14 @@ export class HomeComponent implements OnInit {
   selectQuery(q: string) {
     this.query = q;
     this.showQueryDropdown = false;
+  }
+
+  public getStarCount(avaliacao: number): number {
+    return Math.round(avaliacao / 2);
+  }
+
+  public selectCity(city: string) {
+    this.cidade = city;
+    this.showCityDropdown = false;
   }
 }
