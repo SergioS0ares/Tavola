@@ -37,4 +37,11 @@ export class ConfiguracoesComponent {
   get userType(): string {
     return this.auth.perfil?.tipo || '';
   }
+
+  get userAvatar(): string {
+    if (this.auth.perfil?.tipo === 'RESTAURANTE') {
+      return 'assets/png/avatar-padrao-restaurante-tavola.png';
+    }
+    return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+  }
 }

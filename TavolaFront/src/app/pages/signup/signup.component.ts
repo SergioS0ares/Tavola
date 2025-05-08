@@ -298,16 +298,21 @@ export class SignUpComponent {
       } : null)
       .filter((h: any) => h !== null);
     const payload = {
-      nomeCompleto: form.nomeCompleto,
+      nome: form.nomeCompleto,
       email: form.email,
       senha: form.senha,
-      endereco: form.endereco,
       tipo: 'RESTAURANTE',
       tipoCozinha: form.tipoCozinha,
       quantidadeMesas: form.quantidadeMesas,
-      horariosFuncionamento,
-      telefone: form.telefone,
-      descricao: form.descricao
+      endereco: {
+        pais: 'Brasil',
+        estado: form.endereco.estado,
+        cidade: form.endereco.cidade,
+        bairro: form.endereco.bairro,
+        rua: form.endereco.rua,
+        numero: form.endereco.numero
+      },
+      horarioFuncionamento: horariosFuncionamento
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {

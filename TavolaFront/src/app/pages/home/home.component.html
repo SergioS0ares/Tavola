@@ -1,32 +1,25 @@
-<div class="banner">
+<div class="banner" #banner>
     <div class="banner-content">
       <div class="banner-row">
         <div class="banner-left">
           <h1>Descubra e reserve o melhor restaurante</h1>
-          <form class="search-bar" (ngSubmit)="onSearch()" autocomplete="off">
-            <div class="input-group" id="searchBarHome">
-              <!-- Campo Cidade com Autocomplete -->
-              <mat-form-field appearance="outline" class="custom-field location">
-                <mat-icon matPrefix class="icon brown">location_on</mat-icon>
-                <input matInput placeholder="Cidade" [(ngModel)]="cidade" name="cidade" required (focus)="showCityDropdown = true; showQueryDropdown = false" class="brown-text city-input" (input)="onCityInput($event)">
-              </mat-form-field>
-  
-              <!-- Campo Cozinha/Restaurante com Autocomplete -->
-              <mat-form-field appearance="outline" class="custom-field query">
-                <mat-icon matPrefix class="icon brown">search</mat-icon>
-                <input matInput placeholder="Cozinha, nome do restaurante..." [(ngModel)]="query" name="query" (focus)="showQueryDropdown = true; showCityDropdown = false" style="font-style: italic; font-size: 0.98rem;" class="brown-text long-query">
-                <div class="dropdown" *ngIf="showQueryDropdown">
-                  <div class="dropdown-item brown-text" *ngFor="let suggestion of querySuggestions" (mousedown)="selectQuery(suggestion)">{{suggestion}}</div>
-                </div>
-              </mat-form-field>
-  
-              <!-- Botão de busca -->
-              <button class="search-btn" type="submit">
-                PROCURAR
-              </button>
-  
-            </div>
-          </form>
+          <app-search-bar
+            *ngIf="!stickySearch"
+            #searchBarHome
+            [cidade]="cidade"
+            [query]="query"
+            [citySuggestions]="filteredCitySuggestions"
+            [querySuggestions]="querySuggestions"
+            [showCityDropdown]="showCityDropdown"
+            [showQueryDropdown]="showQueryDropdown"
+            (cidadeChange)="cidade = $event"
+            (queryChange)="query = $event"
+            (search)="onSearch()"
+            (cityInput)="onCityInput($event)"
+            (selectCity)="selectCity($event)"
+            (selectQuery)="selectQuery($event)"
+            (cityBlur)="onCityBlur($event)"
+          ></app-search-bar>
         </div>
         <div class="banner-right">
           <img src="assets/png/Pizza.png" alt="Pizza" class="pizza-img" />

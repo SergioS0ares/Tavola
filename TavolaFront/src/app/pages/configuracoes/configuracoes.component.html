@@ -2,7 +2,7 @@
   <mat-card class="profile-section">
     <mat-card-header>
       <div class="avatar-container">
-        <img [src]="'assets/png/avatar-padrao-tavola-cordeirinho.png'" alt="Avatar do usuário">
+        <img [src]="userAvatar" alt="Avatar do usuário">
         <button mat-mini-fab color="primary" class="change-photo">
           <mat-icon>photo_camera</mat-icon>
         </button>
@@ -17,7 +17,10 @@
       <mat-card-title>Informações da Conta</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <!-- Formulário de informações será adicionado aqui -->
+      <div>Email: macrobsons&#64;email.com</div>
+      <div>Telefone: (11) 99999-9999</div>
+      <button class="edit-btn">Editar</button>
+      <button class="save-btn">Salvar</button>
     </mat-card-content>
   </mat-card>
 
@@ -26,7 +29,11 @@
       <mat-card-title>Endereço</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <!-- Formulário de endereço será adicionado aqui -->
+      <div>Rua: Av. Central, 100</div>
+      <div>Bairro: Centro</div>
+      <div>Cidade: Campinas - SP</div>
+      <button class="edit-btn">Editar</button>
+      <button class="save-btn">Salvar</button>
     </mat-card-content>
   </mat-card>
 
@@ -35,7 +42,11 @@
       <mat-card-title>Dados do Restaurante</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <!-- Formulário do restaurante será adicionado aqui -->
+      <div>Nome Fantasia: Mac Robsons</div>
+      <div>Cozinha: Italiana</div>
+      <div>Mesas: 14</div>
+      <button class="edit-btn">Editar</button>
+      <button class="save-btn">Salvar</button>
     </mat-card-content>
   </mat-card>
 </div>

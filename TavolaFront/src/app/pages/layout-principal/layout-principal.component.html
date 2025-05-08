@@ -5,6 +5,24 @@
       <mat-icon>menu</mat-icon>
     </button>
     
+    <app-search-bar
+      *ngIf="showStickySearchBar"
+      [cidade]="cidade"
+      [query]="query"
+      [citySuggestions]="citySuggestions"
+      [querySuggestions]="querySuggestions"
+      [showCityDropdown]="showCityDropdown"
+      [showQueryDropdown]="showQueryDropdown"
+      (cidadeChange)="cidade = $event"
+      (queryChange)="query = $event"
+      (search)="onSearch()"
+      (cityInput)="onCityInput($event)"
+      (selectCity)="selectCity($event)"
+      (selectQuery)="selectQuery($event)"
+      (cityBlur)="onCityBlur($event)"
+      class="toolbar-search-bar"
+    ></app-search-bar>
+
     <div class="user-menu" [matMenuTriggerFor]="menu">
       <div class="user-info">
         <div class="avatar">

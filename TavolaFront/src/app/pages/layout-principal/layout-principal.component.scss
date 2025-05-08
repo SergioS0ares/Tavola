@@ -220,3 +220,43 @@
   }
 }
 
+.toolbar-search-bar {
+  flex: 1;
+  max-width: 700px;
+  margin: 0 32px;
+  align-self: center;
+  z-index: 20;
+  transition: margin-left 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+
+.sidebar-fechada {
+  margin-left: 0 !important;
+}
+
+@media (min-width: 900px) {
+  .toolbar-search-bar {
+    margin-left: 80px;
+  }
+  .sidebar-fechada.toolbar-search-bar {
+    margin-left: 0;
+  }
+}
+
+.toolbar-search-bar {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+:host ::ng-deep .toolbar-search-bar.ng-animating {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+@media (max-width: 900px) {
+  .toolbar-search-bar {
+    max-width: 98vw;
+    margin: 0 8px;
+  }
+}
+

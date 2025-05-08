@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +6,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable, startWith, map } from 'rxjs';
+import { SearchBarComponent } from './search-bar/search-bar.component';
+import { StickySearchService } from '../../core/services/sticky-search.service';
 
 @Component({
   selector: 'app-home',
@@ -17,12 +19,13 @@ import { Observable, startWith, map } from 'rxjs';
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    SearchBarComponent
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit {
   // Substitui cidade:string e query:string por FormControls:
   cityCtrl  = new FormControl('Paris');
   queryCtrl = new FormControl('');
@@ -90,6 +93,13 @@ export class HomeComponent implements OnInit {
   filteredCitySuggestions = this.allCities;
   querySuggestions = this.allQueries;
 
+  @ViewChild('searchBarHome', { static: false }) searchBarHome!: ElementRef;
+  @ViewChild('banner', { static: false }) bannerRef!: ElementRef;
+  @ViewChild('searchSentinel', { static: false }) searchSentinel!: ElementRef;
+  stickySearch = false;
+
+  constructor(private stickyService: StickySearchService) {}
+
   ngOnInit() {
     this.filteredCities$ = this.cityCtrl.valueChanges.pipe(
       startWith(this.cityCtrl.value ?? ''),
@@ -99,6 +109,47 @@ export class HomeComponent implements OnInit {
       startWith(''),
       map(val => this._filter(val ?? '', this.allQueries))
     );
+    // Sticky inteligente
+    setTimeout(() => this.initStickyObserver(), 0);
+  }
+
+  ngAfterViewInit() {
+    if (this.searchBarHome) {
+      const observer = new IntersectionObserver(entries => {
+        const entry = entries[0];
+        this.stickySearch = !entry.isIntersecting;
+        this.stickyService.setSticky(this.stickySearch);
+      }, { threshold: 0 });
+      observer.observe(this.searchBarHome.nativeElement);
+    }
+    if (this.bannerRef) {
+      const observer = new IntersectionObserver(entries => {
+        const entry = entries[0];
+        this.stickySearch = !entry.isIntersecting;
+        this.stickyService.setSticky(this.stickySearch);
+      }, { threshold: 0.1 });
+      observer.observe(this.bannerRef.nativeElement);
+    }
+    if (this.searchSentinel) {
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          this.stickySearch = !entry.isIntersecting;
+          this.stickyService.setSticky(this.stickySearch);
+        },
+        { threshold: [0] }
+      );
+      obs.observe(this.searchSentinel.nativeElement);
+    }
+  }
+
+  initStickyObserver() {
+    const searchBar = document.getElementById('searchBarHome');
+    if (!searchBar) return;
+    const observer = new IntersectionObserver(entries => {
+      this.stickySearch = !entries[0].isIntersecting;
+      this.stickyService.setSticky(this.stickySearch);
+    }, { threshold: 0.99 });
+    observer.observe(searchBar);
   }
 
   private _filter(val: string, list: string[]) {
