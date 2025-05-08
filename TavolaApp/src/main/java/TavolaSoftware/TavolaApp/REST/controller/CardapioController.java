@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -76,6 +77,44 @@ public class CardapioController {
         return ResponseEntity.ok(new CardapioResponse(salvo));
     }
 
+    @PostMapping("/save/multi")
+    public ResponseEntity<?> saveMultiple(@RequestBody List<Cardapio> cardapios) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        List<CardapioResponse> salvos = new ArrayList<>();
+        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+
+        for (Cardapio cardapio : cardapios) {
+            handler.checkEmptyStrting("nome", cardapio.getNome());
+            handler.checkMinimmumNumber("valor", cardapio.getPreco(), 0.0);
+            handler.checkEmptyStrting("descricao", cardapio.getDescricao());
+
+            cardapio.setRestaurante(restaurante);
+
+            if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
+                Categoria categoria = categoriaServ.saveIfNotExists(cardapio.getCategoria().getNome(), restaurante);
+                cardapio.setCategoria(categoria);
+            }
+
+            if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
+                Set<String> nomesTags = cardapio.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
+                Set<Tags> tags = tagsServ.saveAll(nomesTags);
+                cardapio.setTags(tags);
+            }
+
+            Cardapio salvo = serv.save(cardapio);
+            salvos.add(new CardapioResponse(salvo));
+        }
+
+        if (handler.errors()) {
+            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        }
+
+        return ResponseEntity.ok(salvos);
+    }
+
+    
     @GetMapping
     public ResponseEntity<List<Cardapio>> findAll() {
         return ResponseEntity.ok(serv.findAll());

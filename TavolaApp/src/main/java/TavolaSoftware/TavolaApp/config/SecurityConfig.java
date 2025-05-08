@@ -23,6 +23,7 @@ public class SecurityConfig {
 	        .csrf(csrf -> csrf.disable())
 	        .authorizeHttpRequests(auth -> auth
 	            .requestMatchers(
+	            	"/auth/refresh",
 	                "/auth/login",
 	                "/auth/register",
 	                "/test/dev-token",

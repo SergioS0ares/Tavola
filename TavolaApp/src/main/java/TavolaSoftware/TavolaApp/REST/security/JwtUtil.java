@@ -39,9 +39,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String sessionId) {
+    public String generateRefreshToken(String email) {
         return Jwts.builder()
-                .setId(sessionId)
+                .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
@@ -49,6 +49,7 @@ public class JwtUtil {
     }
 
     public Claims parseToken(String token) {
+        System.out.println("Tentando validar token...");
         return Jwts.parserBuilder()
                 .setSigningKey(publicKey)
                 .build()
