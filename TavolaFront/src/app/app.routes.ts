@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LayoutPrincipalComponent } from './pages/layout-principal/layout-principal.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { AgendamentoReservasRestauranteComponent } from './pages/home/agendamento-reservas-restaurante/agendamento-reservas-restaurante.component';
 
 export const routes: Routes = [
   {
@@ -22,7 +23,13 @@ export const routes: Routes = [
     component: LayoutPrincipalComponent,
     canActivate: [AuthGuard],
     children: [
-      { path: 'home', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+      {
+        path: 'home',
+        children: [
+          { path: '', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
+          { path: 'agendamento-reservas-restaurante/:id', component: AgendamentoReservasRestauranteComponent }
+        ]
+      },
       { path: 'meu-restaurante', loadComponent: () => import('./pages/meu-restaurante/meu-restaurante.component').then(m => m.MeuRestauranteComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
       { path: 'cadastro-cardapio', loadComponent: () => import('./pages/cadastro-cardapio/cadastro-cardapio.component').then(m => m.CadastroCardapioComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
       { path: 'reserva', loadComponent: () => import('./pages/reservas/reservas.component').then(m => m.ReservasComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },

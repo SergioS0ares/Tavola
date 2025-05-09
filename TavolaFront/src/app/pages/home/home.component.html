@@ -3,23 +3,30 @@
       <div class="banner-row">
         <div class="banner-left">
           <h1>Descubra e reserve o melhor restaurante</h1>
-          <app-search-bar
-            *ngIf="!stickySearch"
-            #searchBarHome
-            [cidade]="cidade"
-            [query]="query"
-            [citySuggestions]="filteredCitySuggestions"
-            [querySuggestions]="querySuggestions"
-            [showCityDropdown]="showCityDropdown"
-            [showQueryDropdown]="showQueryDropdown"
-            (cidadeChange)="cidade = $event"
-            (queryChange)="query = $event"
-            (search)="onSearch()"
-            (cityInput)="onCityInput($event)"
-            (selectCity)="selectCity($event)"
-            (selectQuery)="selectQuery($event)"
-            (cityBlur)="onCityBlur($event)"
-          ></app-search-bar>
+          <div #searchSentinel></div>
+          <div class="search-wrapper">
+            <app-search-bar
+              *ngIf="!stickySearch"
+              #searchBarHome
+              [cidade]="cidade"
+              [query]="query"
+              [citySuggestions]="filteredCitySuggestions"
+              [querySuggestions]="querySuggestions"
+              [showCityDropdown]="showCityDropdown"
+              [showQueryDropdown]="showQueryDropdown"
+              [cityCtrl]="cityCtrl"
+              [queryCtrl]="queryCtrl"
+              [filteredCities$]="filteredCities$"
+              [filteredQueries$]="filteredQueries$"
+              (cidadeChange)="cidade = $event"
+              (queryChange)="query = $event"
+              (search)="onSearch()"
+              (cityInput)="onCityInput($event)"
+              (selectCity)="selectCity($event)"
+              (selectQuery)="selectQuery($event)"
+              (cityBlur)="onCityBlur($event)"
+            ></app-search-bar>
+          </div>
         </div>
         <div class="banner-right">
           <img src="assets/png/Pizza.png" alt="Pizza" class="pizza-img" />
@@ -44,7 +51,7 @@
   <div class="restaurants-section">
     <h2>Restaurantes populares em Paris</h2>
     <div class="restaurants-grid">
-      <div class="restaurant-card" *ngFor="let r of restaurants">
+      <div class="restaurant-card" *ngFor="let r of restaurants" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
         <img [src]="r.imagem" [alt]="r.nome" class="restaurant-img" />
         <div class="restaurant-info">
           <div class="restaurant-type">{{ r.tipo }}</div>

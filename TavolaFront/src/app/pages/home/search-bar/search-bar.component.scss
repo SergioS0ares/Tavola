@@ -101,6 +101,10 @@
   color: #eee;
 }
 
+.mat-mdc-form-field .mat-mdc-input-element, .mat-mdc-form-field .mat-input-element, .mat-form-field .mat-input-element {
+  color: #3B221B !important;
+}
+
 input, .mat-input-element, .mat-form-field-input {
   color: #3B221B !important;
   background: transparent !important;
@@ -299,27 +303,6 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 32px;
 }
-.restaurant-card {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  transition: box-shadow 0.2s, transform 0.2s;
-  cursor: pointer;
-  &:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.13);
-    transform: translateY(-2px) scale(1.01);
-  }
-}
-.restaurant-img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 18px 18px 0 0;
-}
 .restaurant-info {
   padding: 18px 18px 14px 18px;
   display: flex;
@@ -343,10 +326,6 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
   align-items: center;
   gap: 4px;
 }
-.star {
-  font-size: 1.1rem;
-  color: #e0e0e0;
-}
 .star.filled {
   color: #F6BD38;
 }
@@ -359,5 +338,20 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
 @media (max-width: 900px) {
   .restaurants-section { padding: 0 8px; }
   .restaurants-grid { gap: 18px; }
+}
+
+.mat-icon {
+  color: #3B221B !important;
+  margin-right: 8px;
+}
+.mat-autocomplete-panel {
+  color: #3B221B !important;
+  .mat-option {
+    color: #3B221B !important;
+    .mat-icon {
+      color: #3B221B !important;
+      margin-right: 8px;
+    }
+  }
 }
   

@@ -8,6 +8,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { StickySearchService } from '../../core/services/sticky-search.service';
 import { SearchBarComponent } from '../home/search-bar/search-bar.component';
+import { FormControl } from '@angular/forms';
+import { Observable, of, startWith, map } from 'rxjs';
 
 @Component({
   selector: 'app-layout-principal',
@@ -26,6 +28,10 @@ export class LayoutPrincipalComponent {
   querySuggestions: string[] = [];
   showCityDropdown = false;
   showQueryDropdown = false;
+  cityCtrl: FormControl = new FormControl('');
+  queryCtrl: FormControl = new FormControl('');
+  filteredCities$: Observable<string[]> = of([]);
+  filteredQueries$: Observable<string[]> = of([]);
 
   private router = inject(Router);
   private auth = inject(AuthService);
@@ -44,6 +50,15 @@ export class LayoutPrincipalComponent {
         if (!isHome) this.showStickySearchBar = false;
       }
     });
+    // Inicializar autocomplete igual ao Home
+    this.filteredCities$ = this.cityCtrl.valueChanges.pipe(
+      startWith(this.cityCtrl.value ?? ''),
+      map(val => this._filter(val ?? '', this.citySuggestions))
+    );
+    this.filteredQueries$ = this.queryCtrl.valueChanges.pipe(
+      startWith(''),
+      map(val => this._filter(val ?? '', this.querySuggestions))
+    );
   }
 
   get userName(): string {
@@ -102,5 +117,12 @@ export class LayoutPrincipalComponent {
       'toolbar-search-bar': true,
       'sidebar-fechada': !this.sidebarAberta
     };
+  }
+
+  private _filter(val: string, list: string[]) {
+    const filter = val.toLowerCase();
+    return list.filter(item =>
+      item.toLowerCase().includes(filter)
+    );
   }
 }

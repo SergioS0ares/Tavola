@@ -1,15 +1,30 @@
 import { Component, EventEmitter, Input, Output, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { Observable, of } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatIconModule, FormsModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, FormsModule, ReactiveFormsModule, MatAutocompleteModule],
   templateUrl: './search-bar.component.html',
-  styleUrls: ['./search-bar.component.scss']
+  styleUrls: ['./search-bar.component.scss'],
+  animations: [
+    trigger('searchBarAnim', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-24px)' }),
+        animate('250ms cubic-bezier(.4,0,.2,1)', style({ opacity: 1, transform: 'none' }))
+      ]),
+      transition(':leave', [
+        animate('200ms cubic-bezier(.4,0,.2,1)', style({ opacity: 0, transform: 'translateY(-24px)' }))
+      ])
+    ])
+  ]
 })
 export class SearchBarComponent {
   @Input() cidade: string = '';
@@ -18,6 +33,10 @@ export class SearchBarComponent {
   @Input() querySuggestions: string[] = [];
   @Input() showCityDropdown = false;
   @Input() showQueryDropdown = false;
+  @Input() cityCtrl: FormControl = new FormControl('');
+  @Input() queryCtrl: FormControl = new FormControl('');
+  @Input() filteredCities$: Observable<string[]> = of([]);
+  @Input() filteredQueries$: Observable<string[]> = of([]);
   @Output() cidadeChange = new EventEmitter<string>();
   @Output() queryChange = new EventEmitter<string>();
   @Output() search = new EventEmitter<void>();

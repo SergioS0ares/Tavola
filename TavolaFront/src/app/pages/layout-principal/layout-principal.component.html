@@ -7,12 +7,17 @@
     
     <app-search-bar
       *ngIf="showStickySearchBar"
+      [@searchBarAnim]
       [cidade]="cidade"
       [query]="query"
       [citySuggestions]="citySuggestions"
       [querySuggestions]="querySuggestions"
       [showCityDropdown]="showCityDropdown"
       [showQueryDropdown]="showQueryDropdown"
+      [cityCtrl]="cityCtrl"
+      [queryCtrl]="queryCtrl"
+      [filteredCities$]="filteredCities$"
+      [filteredQueries$]="filteredQueries$"
       (cidadeChange)="cidade = $event"
       (queryChange)="query = $event"
       (search)="onSearch()"

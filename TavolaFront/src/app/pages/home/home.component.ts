@@ -8,6 +8,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable, startWith, map } from 'rxjs';
 import { SearchBarComponent } from './search-bar/search-bar.component';
 import { StickySearchService } from '../../core/services/sticky-search.service';
+import { RouterModule } from '@angular/router';  
 
 @Component({
   selector: 'app-home',
@@ -20,7 +21,8 @@ import { StickySearchService } from '../../core/services/sticky-search.service';
     MatInputModule,
     MatFormFieldModule,
     MatAutocompleteModule,
-    SearchBarComponent
+    SearchBarComponent,
+    RouterModule
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
@@ -54,30 +56,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   restaurants = [
     {
+      id: '1',
       nome: 'L\'Osteria Paris Chatelet',
       tipo: 'Italiano',
-      avaliacao: 4.8,
+      avaliacao: 8.0,
       imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
+      id: '2',
       nome: 'Café Terry',
       tipo: 'Francês',
-      avaliacao: 4.5,
+      avaliacao: 5.0,
       imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
+      id: '3',
       nome: 'Les Rupins',
       tipo: 'Francês',
       avaliacao: 3.8,
       imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
+      id: '4',
       nome: 'L\'Imperatif',
       tipo: 'Francês',
       avaliacao: 2.2,
       imagem: 'assets/jpg/restauranteOsso.jpg'
     },
     {
+      id: '5',
       nome: 'L\'Imperatif',
       tipo: 'Francês',
       avaliacao: 2.2,
@@ -114,22 +121,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    if (this.searchBarHome) {
-      const observer = new IntersectionObserver(entries => {
-        const entry = entries[0];
-        this.stickySearch = !entry.isIntersecting;
-        this.stickyService.setSticky(this.stickySearch);
-      }, { threshold: 0 });
-      observer.observe(this.searchBarHome.nativeElement);
-    }
-    if (this.bannerRef) {
-      const observer = new IntersectionObserver(entries => {
-        const entry = entries[0];
-        this.stickySearch = !entry.isIntersecting;
-        this.stickyService.setSticky(this.stickySearch);
-      }, { threshold: 0.1 });
-      observer.observe(this.bannerRef.nativeElement);
-    }
     if (this.searchSentinel) {
       const obs = new IntersectionObserver(
         ([entry]) => {
