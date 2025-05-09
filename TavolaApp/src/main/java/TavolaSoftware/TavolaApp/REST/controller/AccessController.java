@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -71,7 +73,7 @@ public class AccessController {
             cliente.setUsuario(usuario);
             repoClient.save(cliente);
             String accessToken = jwt.generateAccessToken(usuario.getEmail());
-            String refreshToken = jwt.generateRefreshToken(usuario.getId().toString());
+            String refreshToken = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
             return ResponseEntity.ok(new LoginResponse(
                     accessToken, refreshToken,
                     usuario.getNome(), "CLIENTE",
@@ -96,7 +98,7 @@ public class AccessController {
             restaurante.setHoraFuncionamento(request.getHoraFuncionamento());
             repoRestaurante.save(restaurante);
             String accessToken = jwt.generateAccessToken(usuario.getEmail());
-            String refreshToken = jwt.generateRefreshToken(usuario.getId().toString());
+            String refreshToken = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
 
             return ResponseEntity.ok(new LoginResponse(
                     accessToken, refreshToken,
@@ -114,7 +116,7 @@ public class AccessController {
         Cliente cliente = repoClient.findByUsuarioEmail(email);
         if (cliente != null && BCrypt.checkpw(senha, cliente.getUsuario().getSenha())) {
             String accessToken = jwt.generateAccessToken(cliente.getUsuario().getEmail());
-            String refreshToken = jwt.generateRefreshToken(cliente.getId().toString());
+            String refreshToken = jwt.generateRefreshToken(cliente.getId(), cliente.getUsuario().getEmail());
             return ResponseEntity.ok(new LoginResponse(
                 accessToken, refreshToken,
                 cliente.getUsuario().getNome(), "CLIENTE",
@@ -124,7 +126,7 @@ public class AccessController {
         Restaurante restaurante = repoRestaurante.findByUsuarioEmail(email);
         if (restaurante != null && BCrypt.checkpw(senha, restaurante.getUsuario().getSenha())) {
             String accessToken = jwt.generateAccessToken(restaurante.getEmail());
-            String refreshToken = jwt.generateRefreshToken(restaurante.getId().toString());
+            String refreshToken = jwt.generateRefreshToken(restaurante.getId(), restaurante.getEmail());
             return ResponseEntity.ok(new LoginResponse(
                 accessToken, refreshToken,
                 restaurante.getNome(), "RESTAURANTE",
@@ -133,16 +135,40 @@ public class AccessController {
         }
         return ResponseEntity.status(401).body("Credenciais inválidas.");
     }
-    
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody String refreshToken) {
-        try {
-            Claims claims = jwt.parseToken(refreshToken);
-            String email = claims.getSubject();
-            System.out.println("Email extraído do token: " + email);
 
-            Cliente cliente = repoClient.findByUsuarioEmail(email);
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+        try {
+            System.out.println("\n>>> ENTROU no refresh\n");
+
+            String refreshToken = null;
+
+            // Pega o cookie "refreshToken"
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    System.out.println("🍪 Cookie recebido: " + cookie.getName() + " = " + cookie.getValue());
+                    if (cookie.getName().equals("refreshToken")) {
+                        refreshToken = cookie.getValue();
+                    }
+                }
+            }
+
+            if (refreshToken == null) {
+                System.out.println("❌ Cookie 'refreshToken' não encontrado.");
+                return ResponseEntity.status(401).body("Refresh token não encontrado no cookie.");
+            }
+
+            Claims claims = jwt.parseToken(refreshToken);
+
+            String email = claims.getSubject(); // continua útil pro response
+            String id = claims.get("id", String.class);
+
+            System.out.println("✅ Email do token: " + email);
+            System.out.println("🆔 ID do token: " + id);
+
+            Cliente cliente = repoClient.findById(UUID.fromString(id)).orElse(null);
             if (cliente != null) {
+                System.out.println("✅ Cliente encontrado: " + cliente.getUsuario().getNome());
                 String novoAccessToken = jwt.generateAccessToken(cliente.getUsuario().getEmail());
                 return ResponseEntity.ok(new LoginResponse(
                         novoAccessToken, refreshToken,
@@ -151,8 +177,9 @@ public class AccessController {
                 ));
             }
 
-            Restaurante restaurante = repoRestaurante.findByUsuarioEmail(email);
+            Restaurante restaurante = repoRestaurante.findById(UUID.fromString(id)).orElse(null);
             if (restaurante != null) {
+                System.out.println("✅ Restaurante encontrado: " + restaurante.getNome());
                 String novoAccessToken = jwt.generateAccessToken(restaurante.getEmail());
                 return ResponseEntity.ok(new LoginResponse(
                         novoAccessToken, refreshToken,
@@ -161,10 +188,16 @@ public class AccessController {
                 ));
             }
 
+            System.out.println("⚠️ Nenhum cliente ou restaurante encontrado com o ID do token.");
             return ResponseEntity.status(404).body("Usuário não encontrado.");
         } catch (Exception e) {
+            System.out.println("❌ Erro ao processar refresh token:");
             e.printStackTrace();
             return ResponseEntity.status(401).body("Refresh token inválido ou expirado.");
+        } finally {
+            System.out.println("<<< SAINDO do refresh\n");
         }
     }
+
+
 }

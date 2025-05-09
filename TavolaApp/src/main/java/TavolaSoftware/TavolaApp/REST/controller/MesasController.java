@@ -44,7 +44,7 @@ public class MesasController {
     @GetMapping("/{nome}")
     public ResponseEntity<?> findByName(@PathVariable String nome) {
         Restaurante restaurante = getSelfRestaurante();
-        Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);
+        Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);	
 
         return mesa.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

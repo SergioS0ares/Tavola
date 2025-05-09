@@ -15,6 +15,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -39,14 +40,16 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String email) {
+    public String generateRefreshToken(UUID id, String email) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(email) // para buscar o usuário
+                .claim("id", id.toString()) // se quiser ID também
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
+
 
     public Claims parseToken(String token) {
         System.out.println("Tentando validar token...");
