@@ -35,13 +35,16 @@ public class Restaurante {
     @ElementCollection
     private List<HorarioFuncionamento> horariosFuncionamento;
 
-    @Column(nullable = false)
+    @Column(name = "establishment_service")
     private String tipoCozinha = "Outro";
+    
+    @Column(name = "establishment_images")
+    private String imagens;
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
 
-    // métodos de restaurante para retornar informações de usuario
+    // métodos de restaurante para retornar informações de usuario - coisa de register...
     
     public String getEmail() { return usuario.getEmail(); }
     
