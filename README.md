@@ -101,10 +101,10 @@ npm test       # testes unitários
 * `POST /auth/login` — login, retorna accessToken e define refreshToken em cookie
 * `POST /auth/register` — registro de usuário
 * `POST /auth/refresh` — renova accessToken usando cookie
-* `GET /auth/cardapios` — lista todos os cardápios
+* `POST /auth/uploads` — sobe uma imagen de um usuário para o repositório do servidor
 * `POST /auth/cardapios/save` — cadastra novo cardápio
-* `PUT /auth/cardapios/update/{id}` — atualiza cardápio
-* `DELETE /auth/cardapios/{id}` — exclui cardápio
+* `GET /auth/mesas` — exibe todas os espaços de mesas salvos no banco de dados
+* `GET /auth/restaurantes` — exibe todos os restaurantes cadastrados
 
 ## Estrutura de Pastas
 
