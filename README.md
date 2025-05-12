@@ -1,6 +1,6 @@
-# Projeto Tavola (Frontend Angular)
+# Projeto Tavola
 
-Este repositório contém a aplicação **Tavola** desenvolvida com **Angular 19**, responsável pela interface web de gerenciamento de cardápios e autenticação.
+Sistema completo de gerenciamento de cardápios, dividido entre frontend em **Angular 19** e backend em **Spring Boot (Java 21)**.
 
 ---
 
@@ -8,156 +8,121 @@ Este repositório contém a aplicação **Tavola** desenvolvida com **Angular 19
 
 1. [Introdução](#introducao)
 2. [Tecnologias e Ferramentas](#tecnologias-e-ferramentas)
-3. [Bibliotecas Principais](#bibliotecas-principais)
-4. [Scripts NPM](#scripts-npm)
-5. [Configuração do Projeto](#configuracao-do-projeto)
-6. [Executando Localmente](#executando-localmente)
-7. [Build de Produção](#build-de-producao)
-8. [Servindo com Nginx](#servindo-com-nginx)
-9. [Estrutura de Pastas](#estrutura-de-pastas)
-10. [Contribuições](#contribuicoes)
-11. [Licença](#licenca)
+
+   * [Frontend](#frontend)
+   * [Backend](#backend)
+3. [Instalação e Execução](#instalacao-e-execucao)
+
+   * [Frontend](#frontend-1)
+   * [Backend](#backend-1)
+4. [Scripts (Frontend)](#scripts-frontend)
+5. [Endpoints Principais (Backend)](#endpoints-principais-backend)
+6. [Estrutura de Pastas](#estrutura-de-pastas)
+7. [Contribuições](#contribuicoes)
+8. [Licença](#licenca)
 
 ---
 
 ## Introdução
 
-Este README descreve as principais informações para instalação, configuração e deploy do frontend da aplicação Tavola, construído em Angular 19.
+O **Projeto Tavola** oferece uma solução full‑stack para gerenciar cardápios de restaurantes. O frontend responsivo em Angular fornece uma interface moderna, enquanto o backend em Spring Boot expõe APIs REST seguras, com autenticação JWT e persistência em PostgreSQL.
 
 ## Tecnologias e Ferramentas
 
-* **Angular 19** (CLI, Core, Common, Forms, Router)
-* **TypeScript 5.5**
-* **SCSS** para estilo de componentes
-* **RxJS** para programação reativa
-* **Angular Material** & **CDK** para componentes e layout
-* **Ng Zorro Antd** (componentes Ant Design)
-* **ngx-mask** para máscaras de entrada
-* **ngx-toastr** e **SweetAlert2** para notificações e alertas
-* **Zone.js** (change detection)
-* **Jasmine + Karma** para testes unitários
-* **Nginx** para servir build de produção
+### Frontend
 
-## Bibliotecas Principais
+* **Angular 19**
+* **TypeScript 5.5**
+* **SCSS**
+* **RxJS**
+* **Angular Material** & **CDK**
+* **ng-zorro-antd**
+* **ngx-mask**
+* **ngx-toastr** & **SweetAlert2**
+* **Jasmine + Karma**
 
-| Pacote                               | Utilidade                                  |
-| ------------------------------------ | ------------------------------------------ |
-| `@angular/material` & `@angular/cdk` | Componentes UI (botões, diálogos, tabelas) |
-| `ng-zorro-antd`                      | Componentes avançados (grid, formulário)   |
-| `@sweetalert2/ngx-sweetalert2`       | Alertas bonitos e modais                   |
-| `ngx-mask`                           | Máscaras (telefone, CEP, datas)            |
-| `ngx-toastr`                         | Toasts de notificação                      |
-| `rxjs`                               | Operadores reativos                        |
-| `zone.js`                            | Angular change-detection                   |
-| `typescript`                         | Tipagem estática                           |
-| `jasmine`, `karma`                   | Testes unitários                           |
+### Backend
 
-## Scripts NPM
+* **Java 21**
+* **Spring Boot 3.3.8**
+* **Spring Security (JWT)**
+* **Spring Data JPA**
+* **PostgreSQL** (driver JDBC)
+* **JJWT (io.jsonwebtoken 0.11.5)**
+* **springdoc-openapi** (Swagger UI)
+* **Maven Wrapper**
 
-No `package.json` estão definidos os seguintes comandos:
+## Instalação e Execução
 
-```bash
-# inicia servidor de desenvolvimento (via npm start)
-npm start      # -> ng serve
+### Frontend
 
-# ou diretamente com Angular CLI:
-ng serve       # roda a aplicação em dev
+1. Clone este repositório e entre na pasta do frontend:
 
-# compila para produção em dist/login-page
-npm run build  
+   ```bash
+   git clone <url-do-repo>
+   cd tavola-frontend
+   ```
+2. Instale as dependências:
 
-# compila em modo watch (rebuild automático)
-npm run watch  
+   ```bash
+   npm install
+   ```
+3. Rode em modo de desenvolvimento:
 
-# executa testes unitários
-npm test       
-```
+   ```bash
+   npm start      # ou ng serve
+   ```
+4. Acesse a aplicação em `http://localhost:4200/`.
 
-## Configuração do Projeto
+### Backend
 
-* **Entry point**: `src/main.ts`
-* **Arquivo de configuração**: `angular.json` (build, serve, test)
-* **TypeScript**:
+1. Entre na pasta do backend:
 
-  * `tsconfig.json` define target ES2022, strict mode e libs (`dom`, `ES2022`)
-  * `tsconfig.app.json` para build de aplicação
-  * `tsconfig.spec.json` para testes
+   ```bash
+   cd TavolaApp
+   ```
+2. Inicie via Maven Wrapper:
 
-## Executando Localmente
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+3. A API ficará disponível em `http://localhost:8080/`.
 
-Clone este repositório e acesse a pasta do frontend:
-
-```bash
-git clone <url-do-repo>
-cd tavola-frontend
-```
-
-Instale dependências:
+## Scripts (Frontend)
 
 ```bash
-npm install
+npm start      # ng serve em dev
+npm run build  # build de produção em dist/login-page
+npm run watch  # build contínuo
+npm test       # testes unitários
 ```
 
-Inicie em modo dev:
+## Endpoints Principais (Backend)
 
-```bash
-npm start
-```
-
-Acesse `http://localhost:4200/`.
-
-## Build de Produção
-
-Para gerar a versão otimizada:
-
-```bash
-npm run build
-```
-
-Os arquivos finais serão gerados em `dist/login-page/`.
-
-## Servindo com Nginx
-
-Use a configuração abaixo (arquivo `nginx.conf`) para servir o build estático:
-
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-    root /usr/share/nginx/html;
-    index index.html;
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-Basta copiar todo o conteúdo de `dist/login-page/` para `/usr/share/nginx/html/` no container ou servidor e reiniciar o Nginx.
+* `POST /auth/login` — login, retorna accessToken e define refreshToken em cookie
+* `POST /auth/register` — registro de usuário
+* `POST /auth/refresh` — renova accessToken usando cookie
+* `GET /auth/cardapios` — lista todos os cardápios
+* `POST /auth/cardapios/save` — cadastra novo cardápio
+* `PUT /auth/cardapios/update/{id}` — atualiza cardápio
+* `DELETE /auth/cardapios/{id}` — exclui cardápio
 
 ## Estrutura de Pastas
 
-```bash
-/
-├── src/
-│   ├── app/            # Módulos, componentes, serviços, guards e interceptors
-│   ├── assets/         # Imagens, fontes e ícones
-│   ├── environments/   # Configurações de dev e prod
-│   ├── styles.scss     # Estilos globais
-│   └── main.ts         # Bootstrap da aplicação
-├── angular.json        # Config CLI e build
-├── package.json        # Dependências e scripts
-├── tsconfig*.json      # Configurações TS
-└── nginx.conf          # Exemplo de servidor de produção
 ```
-
-git checkout -b feature/nome-da-feature
-
+/            # raiz do projeto
+├── tavola-frontend/   # código Angular
+│   ├── src/
+│   ├── angular.json
+│   ├── package.json
+│   └── tsconfig*.json
+├── TavolaApp/         # código Spring Boot
+│   ├── src/
+│   ├── pom.xml
+│   └── mvnw*          # Maven Wrapper
+└── nginx.conf         # configuração de produção
 ```
-3. Implemente e teste localmente.
-4. Abra um pull request descrevendo sua mudança.
 
 ## Licença
 
-Este projeto está sob a licença MIT.
-
-```
+Distribuído sob a licença **MIT**.
