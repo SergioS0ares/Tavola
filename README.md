@@ -11,7 +11,7 @@ Sistema completo de gerenciamento de cardápios, dividido entre frontend em **An
 
    * [Frontend](#frontend)
    * [Backend](#backend)
-3. [Instalação e Execução](#instalacao-e-execucao)
+3. [Instalação e Execução](#Instalação-e-Execução)
 
    * [Frontend](#frontend-1)
    * [Backend](#backend-1)
