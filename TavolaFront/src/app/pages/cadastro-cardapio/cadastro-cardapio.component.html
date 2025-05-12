@@ -23,7 +23,7 @@
       <div class="grid">
         <mat-card *ngFor="let item of categoria.itens" class="card-item" [class.indisponivel]="!item.disponivel">
           <div class="card-image">
-            <img mat-card-image [src]="item.imagemBase64 || defaultImg" alt="{{ item.nome }}" />
+            <img mat-card-image [src]="item.imagem || defaultImg" alt="{{ item.nome }}" />
             <div class="card-tags">
               <span *ngFor="let tag of item.tags" class="tag">{{ tag }}</span>
             </div>

@@ -1,39 +1,40 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { IItemCardapio } from '../../Interfaces/Iitem-cardapio';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { IItemCardapio } from '../../Interfaces/IItem-cardapio';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CardapioService {
-  private mock: IItemCardapio[] = [
-    { id: '1', nome: 'Risotto de Funghi', preco: 42.5, disponivel: true },
-    { id: '2', nome: 'Salada Caesar',    preco: 28.0, disponivel: true },
-  ];
-  private itens$$ = new BehaviorSubject<IItemCardapio[]>(this.mock);
+  private apiUrl = `${environment.apiUrl}/auth/cardapios`;
+
+  constructor(private http: HttpClient) {}
 
   listarItens(): Observable<IItemCardapio[]> {
-    return this.itens$$.asObservable();
+    return this.http.get<IItemCardapio[]>(`${this.apiUrl}/restaurante`);
   }
 
-  adicionarItem(item: Omit<IItemCardapio,'id'>): void {
-    const novo = { ...item, id: this.gerarId() };
-    this.itens$$.next([...this.itens$$.value, novo]);
+  listarDisponiveis(): Observable<IItemCardapio[]> {
+    return this.http.get<IItemCardapio[]>(`${this.apiUrl}/disponiveis`);
   }
 
-  atualizarItem(item: IItemCardapio): void {
-    const lista = this.itens$$.value.map(i => i.id === item.id ? item : i);
-    this.itens$$.next(lista);
+  buscarPorId(id: string): Observable<IItemCardapio> {
+    return this.http.get<IItemCardapio>(`${this.apiUrl}/${id}`);
   }
 
-  removerItem(id: string): void {
-    this.itens$$.next(this.itens$$.value.filter(i => i.id !== id));
+  adicionarItem(item: Omit<IItemCardapio, 'id'>): Observable<IItemCardapio> {
+    return this.http.post<IItemCardapio>(`${this.apiUrl}/save`, item);
   }
 
-  enviarListaParaBackend(lista: IItemCardapio[]): Observable<{success: boolean}> {
-    console.log('Enviando pro servidor:', lista);
-    return of({ success: true });
+  adicionarMultiplosItens(itens: Omit<IItemCardapio, 'id'>[]): Observable<IItemCardapio[]> {
+    return this.http.post<IItemCardapio[]>(`${this.apiUrl}/save/multi`, itens);
   }
 
-  private gerarId(): string {
-    return Math.random().toString(36).slice(2, 9);
+  atualizarItem(id: string, item: IItemCardapio): Observable<IItemCardapio> {
+    return this.http.put<IItemCardapio>(`${this.apiUrl}/update/${id}`, item);
+  }
+
+  removerItem(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

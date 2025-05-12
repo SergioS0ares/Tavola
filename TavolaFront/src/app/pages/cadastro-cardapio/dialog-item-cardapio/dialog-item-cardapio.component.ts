@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule , MatChipInputEvent} from '@angular/material/chips';
 import {MatDialogModule, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { CardapioService } from '../../../core/services/cardapio.service';
-import { IItemCardapio } from '../../../Interfaces/Iitem-cardapio';
+import { IItemCardapio } from '../../../Interfaces/IItem-cardapio';
 import { MatIconModule } from '@angular/material/icon';
 import Swal from 'sweetalert2';
 

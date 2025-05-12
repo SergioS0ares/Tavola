@@ -20,8 +20,8 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
-    private static final long ACCESS_TOKEN_EXPIRATION = 10 * 60 * 1000; // 10 min
-    private static final long REFRESH_TOKEN_EXPIRATION = 24 * 60 * 60 * 1000; // 1 dia
+	private static final long ACCESS_TOKEN_EXPIRATION  = 30 * 1000;   // 30 segundos
+	private static final long REFRESH_TOKEN_EXPIRATION = 2 * 60 * 1000; // 2 minutos
 
     private final PrivateKey privateKey;
     private final PublicKey publicKey;

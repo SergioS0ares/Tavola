@@ -8,7 +8,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CardapioService } from '../../core/services/cardapio.service';
-import { IItemCardapio } from '../../Interfaces/Iitem-cardapio';
+import { IItemCardapio } from '../../Interfaces/IItem-cardapio';
 import { ICategoriaComItens } from '../../Interfaces/ICategoriaComItens.interface';
 import { DialogItemCardapioComponent } from './dialog-item-cardapio/dialog-item-cardapio.component';
 import Swal from 'sweetalert2';

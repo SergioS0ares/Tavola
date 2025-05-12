@@ -13,20 +13,24 @@ export class LoginService {
   constructor(private httpClient: HttpClient, private auth: AuthService) {}
 
   login(email: string, senha: string): Observable<LoginResponse> {
-    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, senha }).pipe(
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, senha }, { withCredentials: true }).pipe(
       tap((value) => {
-        this.auth.setTokens(value.token, value.refreshToken);
+        this.auth.setToken(value.token);
         this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.name });
       })
     );
   }
 
   signup(data: any): Observable<LoginResponse> {
-    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/register`, data).pipe(
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/register`, data, { withCredentials: true }).pipe(
       tap((value) => {
-        this.auth.setTokens(value.token, value.refreshToken);
+        this.auth.setToken(value.token);
         this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.name });
       })
     );
+  }
+
+  refreshToken(): Observable<{ token: string }> {
+    return this.httpClient.post<{ token: string }>(`${this.apiUrl}/refresh`, {}, { withCredentials: true });
   }
 }

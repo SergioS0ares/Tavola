@@ -1,4 +1,4 @@
-import { IItemCardapio } from "./Iitem-cardapio";
+import { IItemCardapio } from "./IItem-cardapio";
 
 export interface ICategoriaComItens {
     id: string;

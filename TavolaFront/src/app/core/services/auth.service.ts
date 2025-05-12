@@ -8,27 +8,27 @@ export interface Perfil {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _perfil: Perfil | null = null;
+  private _token: string | null = null;
 
-  setTokens(token: string, refresh: string) {
-    localStorage.setItem('token', token);
-    localStorage.setItem('refreshToken', refresh);
+  setToken(token: string) {
+    this._token = token;
+  }
+
+  getToken(): string | null {
+    return this._token;
+  }
+
+  clearToken() {
+    this._token = null;
+    this._perfil = null;
   }
 
   setPerfil(perfil: Perfil) {
     this._perfil = perfil;
-    localStorage.setItem('tipoUsuario', perfil.tipo);
-    localStorage.setItem('userName', perfil.nome);
   }
 
   get perfil(): Perfil | null {
-    if (this._perfil) return this._perfil;
-    const tipo = localStorage.getItem('tipoUsuario') as Perfil['tipo'];
-    const nome = localStorage.getItem('userName') || '';
-    if (tipo && nome) {
-      this._perfil = { tipo, nome };
-      return this._perfil;
-    }
-    return null;
+    return this._perfil;
   }
 
   hasRole(role: 'CLIENTE' | 'RESTAURANTE'): boolean {
