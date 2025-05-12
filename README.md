@@ -18,8 +18,7 @@ Sistema completo de gerenciamento de cardápios, dividido entre frontend em **An
 4. [Scripts (Frontend)](#scripts-frontend)
 5. [Endpoints Principais (Backend)](#endpoints-principais-backend)
 6. [Estrutura de Pastas](#estrutura-de-pastas)
-7. [Contribuições](#contribuicoes)
-8. [Licença](#licenca)
+7. [Licença](#licenca)
 
 ---
 
