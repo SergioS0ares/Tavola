@@ -6,7 +6,7 @@ Sistema completo de gerenciamento de cardápios, dividido entre frontend em **An
 
 ## 📋 Sumário
 
-1. [Introdução](#introducao)
+1. [Introdução](#Introdução)
 2. [Tecnologias e Ferramentas](#tecnologias-e-ferramentas)
 
    * [Frontend](#frontend)
