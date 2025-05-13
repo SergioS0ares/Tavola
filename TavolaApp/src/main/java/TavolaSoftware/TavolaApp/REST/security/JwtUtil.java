@@ -20,8 +20,8 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
-	private static final long ACCESS_TOKEN_EXPIRATION  = 30 * 1000;   // 30 segundos
-	private static final long REFRESH_TOKEN_EXPIRATION = 2 * 60 * 1000; // 2 minutos
+    private static final long ACCESS_TOKEN_EXPIRATION = 10 * 60 * 1000; // 10 min
+    private static final long REFRESH_TOKEN_EXPIRATION = 30 * 60 * 60 * 1000; // 30 horas
 
     private final PrivateKey privateKey;
     private final PublicKey publicKey;
@@ -42,8 +42,8 @@ public class JwtUtil {
 
     public String generateRefreshToken(UUID id, String email) {
         return Jwts.builder()
-                .setSubject(email) // para buscar o usuário
-                .claim("id", id.toString()) // se quiser ID também
+                .setSubject(email)
+                .claim("id", id.toString()) 
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
