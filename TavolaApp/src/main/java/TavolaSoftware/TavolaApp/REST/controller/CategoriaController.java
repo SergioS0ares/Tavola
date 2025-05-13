@@ -37,7 +37,7 @@ public class CategoriaController {
     }
 
     @GetMapping("/restaurante")
-    public ResponseEntity<List<Categoria>> findByRestaurante() {
+    public ResponseEntity<List<Categoria>> findSelfByRestaurante() {
     	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     	Restaurante restaurante = restauranteService.getByEmail(email);
         return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
