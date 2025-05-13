@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -35,8 +36,9 @@ public class Cardapio {
 
     @Column(name = "dish_value")
     private Double preco;
-
-    @Column(name = "dish_image")
+    
+    @Lob
+    @Column(name = "dish_image", columnDefinition = "TEXT")
     private String imagem = "";
 
     @Column(name = "dish_description")

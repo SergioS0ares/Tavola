@@ -9,31 +9,47 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import TavolaSoftware.TavolaApp.REST.security.JwtAuthenticationFilter;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
-	@Autowired
-	private JwtAuthenticationFilter jwtFilter;
+    @Autowired
+    private JwtAuthenticationFilter jwtFilter;
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-	    http
-	        .csrf(csrf -> csrf.disable())
-	        .authorizeHttpRequests(auth -> auth
-	            .requestMatchers(
-	            		"/auth/refresh",
-	            		"/auth/login",
-	            		"/auth/register",
-	            		"/v3/api-docs/**",
-	            		"/swagger-ui/**",
-	            		"/swagger-ui.html"
-	            		).permitAll().anyRequest().authenticated()
-	        )
-	        .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-	        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            // 1️⃣ Ativa o CORS usando as regras do CorsConfig
+            .cors().and()
 
-	    return http.build();
-	}
+            // 2️⃣ Desativa CSRF (REST stateless)
+            .csrf(csrf -> csrf.disable())
+
+            // 3️⃣ Define quem pode acessar sem autenticação
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/auth/refresh",
+                    "/auth/login",
+                    "/auth/register",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+
+            // 4️⃣ Stateless session
+            .sessionManagement(sess ->
+                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            // 5️⃣ Insere o filtro JWT antes do filtro padrão de Spring
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+        ;
+
+        return http.build();
+    }
 }

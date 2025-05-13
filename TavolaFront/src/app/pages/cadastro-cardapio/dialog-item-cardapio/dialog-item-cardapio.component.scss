@@ -1,9 +1,10 @@
 .dialog-content {
   background: #FFFFFF;
-  padding: 24px;
+  padding: 20px;
   border-radius: 12px 12px 0 0;
   max-height: 80vh;
   overflow-y: auto;
+  min-width: 500px;
 
   h2 {
     color: #3B221B;
@@ -16,201 +17,251 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
 
-  .full-width {
-    width: 100%;
+.full-width {
+  width: 100%;
+}
+
+.example-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+
+  .upload-button {
+    align-self: flex-start;
   }
 
-  .upload-section {
-    .upload-label {
-      display: block;
-      color: #3B221B;
-      margin-bottom: 8px;
-      font-size: 14px;
+  .preview-image {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+}
 
-      .required {
-        color: #DA4A24;
-      }
-    }
+mat-dialog-actions {
+  padding: 16px 0 0;
+  margin: 0;
+}
 
-    .upload-content {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin: 8px 0;
-      padding: 8px;
-      border: 1px dashed rgba(59, 34, 27, 0.2);
-      border-radius: 8px;
-      transition: all 0.3s ease;
+.upload-section {
+  .upload-label {
+    display: block;
+    color: #3B221B;
+    margin-bottom: 8px;
+    font-size: 14px;
 
-      &.has-error {
-        border-color: #DA4A24;
-        background-color: rgba(218, 74, 36, 0.05);
-      }
-
-      button {
-        background-color: #F6BD38;
-        color: #3B221B;
-        border: none;
-        
-        &:hover {
-          background-color: darken(#F6BD38, 5%);
-        }
-      }
-
-      .preview-img {
-        width: 64px;
-        height: 64px;
-        object-fit: cover;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        background-color: #5C7028;
-      }
-
-      mat-error {
-        color: #DA4A24;
-        font-size: 12px;
-      }
+    .required {
+      color: #DA4A24;
     }
   }
 
-  .toggle-row {
+  .upload-content {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     margin: 8px 0;
+    padding: 8px;
+    border: 1px dashed rgba(59, 34, 27, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s ease;
 
-    .toggle-label {
+    &.has-error {
+      border-color: #DA4A24;
+      background-color: rgba(218, 74, 36, 0.05);
+    }
+
+    button {
+      background-color: #F6BD38;
       color: #3B221B;
-      font-size: 14px;
-    }
-  }
-  
-
-  .tags-section {
-    .tags-label {
-      display: block;
-      color: #3B221B;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .example-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-  }
-
-  ::ng-deep {
-    // Estilo dos inputs outline
-    .mdc-text-field--outlined {
-      --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2);
-      --mdc-outlined-text-field-focus-outline-color: #DA4A24;
-      --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
-      --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6);
-      --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
-    }
-
-    // Força cores do texto
-    .mat-mdc-input-element,
-    .mat-mdc-select-value-text,
-    .mdc-floating-label {
-      color: #3B221B !important;
-    }
-
-    // Estilo dos chips
-    .mat-mdc-chip-option {
-      &.mdc-evolution-chip--selected {
-        background-color: #F6BD38 !important;
-        
-        .mdc-evolution-chip__text-label {
-          color: #3B221B !important;
-        }
+      border: none;
+      
+      &:hover {
+        background-color: darken(#F6BD38, 5%);
       }
     }
 
-    .mat-mdc-chip-row {
+    .preview-img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      background-color: #5C7028;
+    }
+
+    mat-error {
+      color: #DA4A24;
+      font-size: 12px;
+    }
+  }
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+
+  .toggle-label {
+    color: #3B221B;
+    font-size: 14px;
+  }
+}
+
+.tags-section {
+  .tags-label {
+    display: block;
+    color: #3B221B;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+}
+
+::ng-deep {
+  // Estilo dos inputs outline
+  .mdc-text-field--outlined {
+    --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2);
+    --mdc-outlined-text-field-focus-outline-color: #DA4A24;
+    --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
+    --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6);
+    --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
+  }
+
+  // Força cores do texto
+  .mat-mdc-input-element,
+  .mat-mdc-select-value-text,
+  .mdc-floating-label {
+    color: #3B221B !important;
+  }
+
+  // Estilo dos chips
+  .mat-mdc-chip-option {
+    &.mdc-evolution-chip--selected {
       background-color: #F6BD38 !important;
       
       .mdc-evolution-chip__text-label {
         color: #3B221B !important;
       }
+    }
+  }
 
-      .mat-mdc-chip-remove {
-        color: #3B221B;
-      }
-
-      &:hover {
-        background-color: darken(#F6BD38, 5%) !important;
-      }
+  .mat-mdc-chip-row {
+    background-color: #F6BD38 !important;
+    
+    .mdc-evolution-chip__text-label {
+      color: #3B221B !important;
     }
 
-    // Estilo do toggle
-    .mat-mdc-slide-toggle {
-      .mdc-switch {
-        --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
-        --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
-        --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
-        --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
-        --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
-        --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
-        --mdc-switch-selected-track-color: #F6BD38;
-        --mdc-switch-selected-handle-color: #DA4A24;
-        --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
-        --mdc-switch-unselected-handle-color: #3B221B;
-        --mdc-switch-selected-focus-track-color: #F6BD38;
-        --mdc-switch-selected-hover-track-color: #F6BD38;
-        --mdc-switch-selected-pressed-track-color: #F6BD38;
-      }
+    .mat-mdc-chip-remove {
+      color: #3B221B;
     }
 
-    .mat-mdc-autocomplete-panel {
-      background-color: #FFFFFF !important;
-      border: 1px solid rgba(246, 189, 56, 0.3);
-
-      .mat-mdc-option {
-        color: #3B221B !important;
-
-        &:hover {
-          background-color: rgba(246, 189, 56, 0.1) !important;
-        }
-
-        &.nova-categoria {
-          border-top: 1px solid rgba(246, 189, 56, 0.3);
-          
-          .mat-icon {
-            margin-right: 8px;
-            color: #DA4A24;
-          }
-        }
-      }
+    &:hover {
+      background-color: darken(#F6BD38, 5%) !important;
     }
+  }
 
-    .mat-mdc-form-field-appearance-outline {
-      .mdc-notched-outline__leading,
-      .mdc-notched-outline__notch,
-      .mdc-notched-outline__trailing {
-        border-color: rgba(59, 34, 27, 0.2) !important;
-      }
-
-      &:hover .mdc-notched-outline__leading,
-      &:hover .mdc-notched-outline__notch,
-      &:hover .mdc-notched-outline__trailing {
-        border-color: #F6BD38 !important;
-      }
+  // Estilo do toggle
+  .mat-mdc-slide-toggle {
+    .mdc-switch {
+      --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
+      --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
+      --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
+      --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
+      --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
+      --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
+      --mdc-switch-selected-track-color: #F6BD38;
+      --mdc-switch-selected-handle-color: #DA4A24;
+      --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
+      --mdc-switch-unselected-handle-color: #3B221B;
+      --mdc-switch-selected-focus-track-color: #F6BD38;
+      --mdc-switch-selected-hover-track-color: #F6BD38;
+      --mdc-switch-selected-pressed-track-color: #F6BD38;
     }
+  }
+
+  .mat-mdc-autocomplete-panel {
+    background-color: #FFFFFF !important;
+    border: 1px solid rgba(246, 189, 56, 0.3);
 
     .mat-mdc-option {
-      &.mdc-list-item--selected {
+      color: #3B221B !important;
+
+      &:hover {
         background-color: rgba(246, 189, 56, 0.1) !important;
       }
 
-      &:hover {
-        background-color: rgba(246, 189, 56, 0.05) !important;
+      &.nova-categoria {
+        border-top: 1px solid rgba(246, 189, 56, 0.3);
+        
+        .mat-icon {
+          margin-right: 8px;
+          color: #DA4A24;
+        }
       }
     }
+  }
+
+  .mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(59, 34, 27, 0.2) !important;
+    }
+
+    &:hover .mdc-notched-outline__leading,
+    &:hover .mdc-notched-outline__notch,
+    &:hover .mdc-notched-outline__trailing {
+      border-color: #F6BD38 !important;
+    }
+  }
+
+  .mat-mdc-option {
+    &.mdc-list-item--selected {
+      background-color: rgba(246, 189, 56, 0.1) !important;
+    }
+
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.05) !important;
+    }
+  }
+
+  // Força cor do texto, placeholder e hover dos inputs
+  .mat-mdc-input-element,
+  .mat-mdc-select-value-text,
+  .mdc-floating-label,
+  .mat-mdc-form-field-label,
+  .mat-mdc-form-field-infix::placeholder {
+    color: #3B221B !important;
+    opacity: 1 !important;
+  }
+
+  .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+  .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+  .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+    border-color: #3B221B !important;
+  }
+
+  .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+  .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+  .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+    border-color: #3B221B !important;
+  }
+
+  .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__leading,
+  .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__notch,
+  .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__trailing {
+    border-color: #3B221B !important;
   }
 }
 

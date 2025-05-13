@@ -49,20 +49,26 @@ export class CadastroCardapioComponent implements OnInit {
 
   ngOnInit() {
     this.carregarItens();
-    this.atualizarCategoriasComItens();
   }
 
   private carregarItens() {
-    this.service.listarItens().subscribe(itens => {
-      this.itens = itens;
-      this.atualizarCategoriasComItens();
+    this.service.listarItens().subscribe({
+      next: (itens) => {
+        this.itens = itens;
+        this.atualizarCategoriasComItens();
+      },
+      error: (erro) => {
+        console.warn('Nenhum item carregado ou erro no backend:', erro);
+        this.itens = [];
+        this.atualizarCategoriasComItens();
+      }
     });
   }
 
   private atualizarCategoriasComItens() {
     this.categoriasComItens = this.categorias.map(cat => ({
       ...cat,
-      itens: this.itens.filter(item => item.categoriaId === cat.id)
+      itens: this.itens.filter(item => item.categoria.nome === cat.nome)
     }));
   }
 
@@ -71,7 +77,6 @@ export class CadastroCardapioComponent implements OnInit {
     this.atualizarCategoriasComItens();
   }
 
-  // dispara o diálogo para criar
   adicionar() {
     const dialogRef = this.dialog.open(DialogItemCardapioComponent, {
       width: '600px',
@@ -85,7 +90,6 @@ export class CadastroCardapioComponent implements OnInit {
     });
   }
 
-  // dispara o diálogo para editar
   editar(item: IItemCardapio) {
     const dialogRef = this.dialog.open(DialogItemCardapioComponent, {
       width: '600px',
@@ -100,12 +104,36 @@ export class CadastroCardapioComponent implements OnInit {
   }
 
   toggleDisponibilidade(item: IItemCardapio) {
+    if (!item.id) return;
+    
     const itemAtualizado = { ...item, disponivel: !item.disponivel };
-    this.service.atualizarItem(itemAtualizado);
-    this.carregarItens();
+    this.service.atualizarItem(item.id, itemAtualizado).subscribe({
+      next: () => {
+        this.carregarItens();
+      },
+      error: (erro) => {
+        console.error('Erro ao atualizar disponibilidade:', erro);
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Não foi possível atualizar a disponibilidade do item.',
+          icon: 'error',
+          confirmButtonColor: '#F6BD38'
+        });
+      }
+    });
   }
 
   confirmarRemocao(item: IItemCardapio) {
+    if (!item.id) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Item inválido para remoção.',
+        icon: 'error',
+        confirmButtonColor: '#F6BD38'
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Tem certeza?',
       text: `Deseja remover "${item.nome}" do cardápio?`,
@@ -117,13 +145,25 @@ export class CadastroCardapioComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.service.removerItem(item.id);
-        this.carregarItens();
-        Swal.fire({
-          title: 'Removido!',
-          text: 'Item removido com sucesso.',
-          icon: 'success',
-          confirmButtonColor: '#F6BD38'
+        this.service.removerItem(item.id!).subscribe({
+          next: () => {
+            this.carregarItens();
+            Swal.fire({
+              title: 'Removido!',
+              text: 'Item removido com sucesso.',
+              icon: 'success',
+              confirmButtonColor: '#F6BD38'
+            });
+          },
+          error: (erro) => {
+            console.error('Erro ao remover item:', erro);
+            Swal.fire({
+              title: 'Erro!',
+              text: 'Não foi possível remover o item.',
+              icon: 'error',
+              confirmButtonColor: '#F6BD38'
+            });
+          }
         });
       }
     });
