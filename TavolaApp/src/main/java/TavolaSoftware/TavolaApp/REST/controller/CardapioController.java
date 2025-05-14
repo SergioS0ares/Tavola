@@ -17,11 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -38,7 +34,7 @@ public class CardapioController {
     private TagsService tagsServ;
 
     @Autowired
-    private RestauranteService restauranteService;
+    private RestauranteService restauranteServ;
 
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody Cardapio cardapio) {
@@ -53,22 +49,16 @@ public class CardapioController {
         }
 
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+        Restaurante restaurante = restauranteServ.getByEmail(email);
         cardapio.setRestaurante(restaurante);
 
         if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
-            Categoria categoria = categoriaServ.saveIfNotExists(
-                cardapio.getCategoria().getNome(), 
-                restaurante
-            );
+            Categoria categoria = categoriaServ.saveIfNotExists(cardapio.getCategoria().getNome(), restaurante);
             cardapio.setCategoria(categoria);
         }
 
         if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
-            Set<String> nomesTags = cardapio.getTags().stream()
-                .map(Tags::getTag)
-                .collect(Collectors.toSet());
-
+            Set<String> nomesTags = cardapio.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
             Set<Tags> tags = tagsServ.saveAll(nomesTags);
             cardapio.setTags(tags);
         }
@@ -80,7 +70,7 @@ public class CardapioController {
     @PostMapping("/save/multi")
     public ResponseEntity<?> saveMultiple(@RequestBody List<Cardapio> cardapios) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+        Restaurante restaurante = restauranteServ.getByEmail(email);
 
         List<CardapioResponse> salvos = new ArrayList<>();
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -114,31 +104,42 @@ public class CardapioController {
         return ResponseEntity.ok(salvos);
     }
 
-    
-    @GetMapping
-    public ResponseEntity<List<Cardapio>> findAll() {
-        return ResponseEntity.ok(serv.findAll());
-    }
-    
-    @GetMapping("/disponiveis")
-    public ResponseEntity<List<Cardapio>> findAllDisponiveis(Authentication authentication) {
-        Restaurante restaurante = restauranteService.getByEmail(authentication.getName());
-        List<Cardapio> cardapios = serv.findAllByDisponivel(restaurante.getId());
-        return ResponseEntity.ok(cardapios);
+    @GetMapping 
+    public ResponseEntity<List<CardapioResponse>> findAllSelf() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteServ.getByEmail(email);
+        List<Cardapio> cardapios = serv.findByRestauranteId(restaurante.getId());
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/disponiveis") 
+    public ResponseEntity<List<CardapioResponse>> findAllSelfByDisponivel(Authentication authentication) {
+        Restaurante restaurante = restauranteServ.getByEmail(authentication.getName());
+        List<Cardapio> cardapios = serv.findAllByDisponivel(restaurante.getId());
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cardapio> findById(@PathVariable UUID id) {
+    public ResponseEntity<CardapioResponse> findById(@PathVariable UUID id) {
         Optional<Cardapio> cardapio = serv.findById(id);
-        return cardapio.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return cardapio.map(c -> ResponseEntity.ok(new CardapioResponse(c)))
+                       .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/restaurante")
-    public ResponseEntity<List<Cardapio>> findSelfByRestaurante() {
-    	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    	Restaurante restaurante = restauranteService.getByEmail(email);
-        return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
+    @GetMapping("/restaurante/{restauranteId}") 
+    public ResponseEntity<List<CardapioResponse>> findAllByRestaurante(@PathVariable UUID restauranteId) {
+        List<Cardapio> cardapios = serv.findByRestauranteId(restauranteId);
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/disponiveis/{restauranteId}")
+    public ResponseEntity<List<CardapioResponse>> findAllByDisponivel(@PathVariable UUID restauranteId) {
+        List<Cardapio> cardapios = serv.findAllByDisponivel(restauranteId);
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/update/{id}")
@@ -154,28 +155,22 @@ public class CardapioController {
         }
 
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteService.getByEmail(email);
+        Restaurante restaurante = restauranteServ.getByEmail(email);
         cardapio.setRestaurante(restaurante);
 
         if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
-            Categoria categoria = categoriaServ.saveIfNotExists(
-                cardapio.getCategoria().getNome(), 
-                restaurante
-            );
+            Categoria categoria = categoriaServ.saveIfNotExists(cardapio.getCategoria().getNome(), restaurante);
             cardapio.setCategoria(categoria);
         }
 
         if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
-            Set<String> nomesTags = cardapio.getTags().stream()
-                .map(Tags::getTag)
-                .collect(Collectors.toSet());
-
+            Set<String> nomesTags = cardapio.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
             Set<Tags> tags = tagsServ.saveAll(nomesTags);
             cardapio.setTags(tags);
         }
 
         Cardapio atualizado = serv.update(id, cardapio);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+        return (atualizado != null) ? ResponseEntity.ok(new CardapioResponse(atualizado)) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
