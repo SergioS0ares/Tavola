@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.MesaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.MesasService;
 import TavolaSoftware.TavolaApp.tools.Mesas;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth/mesas")
@@ -24,9 +26,19 @@ public class MesasController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Mesas>> findAll() {
+    public ResponseEntity<List<MesaResponse>> findAll() {
         Restaurante restaurante = getSelfRestaurante();
-        return ResponseEntity.ok(mesasService.findAll(restaurante));
+        List<MesaResponse> resposta = mesasService.findAll(restaurante).stream()
+                .map(mesa -> new MesaResponse(
+                        mesa.getNome(),
+                        mesa.getDescricao(),
+                        mesa.getImagem(),
+                        mesa.getQuantidadeTotal(),
+                        mesa.getQuantidadeDisponivel()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resposta);
     }
 
     @GetMapping("/id/{index}")
@@ -35,7 +47,15 @@ public class MesasController {
         Optional<Mesas> mesa = mesasService.findByIndex(restaurante, index);
 
         if (mesa.isPresent()) {
-            return ResponseEntity.ok(mesa.get());
+            Mesas m = mesa.get();
+            MesaResponse dto = new MesaResponse(
+                    m.getNome(),
+                    m.getDescricao(),
+                    m.getImagem(),
+                    m.getQuantidadeTotal(),
+                    m.getQuantidadeDisponivel()
+            );
+            return ResponseEntity.ok(dto);
         } else {
             return ResponseEntity.badRequest().body("Índice inválido para o conjunto de mesas.");
         }
@@ -44,9 +64,15 @@ public class MesasController {
     @GetMapping("/{nome}")
     public ResponseEntity<?> findByName(@PathVariable String nome) {
         Restaurante restaurante = getSelfRestaurante();
-        Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);	
+        Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);
 
-        return mesa.map(ResponseEntity::ok)
+        return mesa.map(m -> ResponseEntity.ok(new MesaResponse(
+                    m.getNome(),
+                    m.getDescricao(),
+                    m.getImagem(),
+                    m.getQuantidadeTotal(),
+                    m.getQuantidadeDisponivel()
+                )))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -56,4 +82,4 @@ public class MesasController {
         mesasService.update(restaurante, novasMesas);
         return ResponseEntity.ok("Mesas atualizadas com sucesso.");
     }
-} 
+}

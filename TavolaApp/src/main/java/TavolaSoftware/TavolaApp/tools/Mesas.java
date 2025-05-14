@@ -1,5 +1,7 @@
 package TavolaSoftware.TavolaApp.tools;
 
+import java.util.UUID;
+
 import jakarta.persistence.Embeddable;
 
 @Embeddable
