@@ -1,4 +1,7 @@
 import {
+  Breakpoints
+} from "./chunk-SW2FAAQS.js";
+import {
   MAT_OPTGROUP,
   MAT_OPTION_PARENT_COMPONENT,
   MatOptgroup,
@@ -7,59 +10,64 @@ import {
   MatOptionSelectionChange,
   _countGroupLabelsBeforeOption,
   _getOptionScrollPosition
-} from "./chunk-HF6HC6MH.js";
+} from "./chunk-5ZJP66A7.js";
+import "./chunk-OIBNGD5S.js";
 import {
   Overlay,
   OverlayConfig,
   OverlayModule
-} from "./chunk-3IBLAX6A.js";
-import "./chunk-OIBNGD5S.js";
+} from "./chunk-SJC2WX4P.js";
 import {
   TemplatePortal
-} from "./chunk-PFXCJC4P.js";
-import "./chunk-RWGTEAFR.js";
-import "./chunk-HZUQBC4D.js";
+} from "./chunk-2ET3CX5M.js";
 import {
   NG_VALUE_ACCESSOR
-} from "./chunk-ZBO76BG4.js";
+} from "./chunk-2ZAX7M67.js";
 import {
   MAT_FORM_FIELD
-} from "./chunk-DBE5A6S7.js";
-import "./chunk-CWCL4AHO.js";
-import "./chunk-NPBRYFWS.js";
-import "./chunk-OHWI2S6G.js";
-import "./chunk-SVVIGFXE.js";
+} from "./chunk-RNXT6UMW.js";
+import "./chunk-JHVY26RY.js";
 import {
   CdkScrollableModule,
   ViewportRuler
-} from "./chunk-IU7YF3DL.js";
-import "./chunk-BOJE7LW3.js";
-import "./chunk-IJ3KGSPX.js";
+} from "./chunk-F7O6RJ7B.js";
+import "./chunk-EJC5EH6D.js";
+import "./chunk-MILTKEW5.js";
+import "./chunk-WDB3TXR4.js";
+import "./chunk-MP5B2SRU.js";
+import "./chunk-OHWI2S6G.js";
+import "./chunk-SVVIGFXE.js";
 import {
   ActiveDescendantKeyManager,
-  BreakpointObserver,
+  MatCommonModule,
+  addAriaReferencedId,
+  removeAriaReferencedId
+} from "./chunk-TU6D4UV3.js";
+import {
   DOWN_ARROW,
   ENTER,
   ESCAPE,
-  MatCommonModule,
   TAB,
   UP_ARROW,
   _IdGenerator,
+  hasModifierKey
+} from "./chunk-6GGZJJTF.js";
+import {
+  BreakpointObserver,
   _getEventTarget,
-  _getFocusedElementPierceShadowDom,
-  addAriaReferencedId,
-  hasModifierKey,
-  removeAriaReferencedId
-} from "./chunk-KQNN74GI.js";
-import "./chunk-4H776UHM.js";
+  _getFocusedElementPierceShadowDom
+} from "./chunk-CRPPFTPF.js";
+import "./chunk-IJ3KGSPX.js";
 import {
   Directionality
-} from "./chunk-RCCCQ3EQ.js";
+} from "./chunk-SLO47O37.js";
+import "./chunk-E2JSMR2W.js";
+import "./chunk-B5GAWAR3.js";
 import {
   Platform
-} from "./chunk-B2OSLI6U.js";
-import "./chunk-DVNY7QH5.js";
-import "./chunk-72RHBKVH.js";
+} from "./chunk-6SZLWKUH.js";
+import "./chunk-GAMILAFO.js";
+import "./chunk-O3MZQZIU.js";
 import {
   ANIMATION_MODULE_TYPE,
   ChangeDetectionStrategy,
@@ -106,12 +114,12 @@ import {
   ɵɵqueryRefresh,
   ɵɵtemplate,
   ɵɵviewQuery
-} from "./chunk-YHSKCJEL.js";
+} from "./chunk-CR2THLZV.js";
 import {
   defer,
   merge
-} from "./chunk-WCYHURJF.js";
-import "./chunk-AUREPRPG.js";
+} from "./chunk-QCX4XGGK.js";
+import "./chunk-3LZ7TQJT.js";
 import {
   Observable,
   Subject,
@@ -124,41 +132,8 @@ import {
   switchMap,
   take,
   tap
-} from "./chunk-3TXA6K3X.js";
+} from "./chunk-3SRVZXQZ.js";
 import "./chunk-WDMUDEB6.js";
-
-// node_modules/@angular/cdk/fesm2022/layout.mjs
-var LayoutModule = class _LayoutModule {
-  static ɵfac = function LayoutModule_Factory(__ngFactoryType__) {
-    return new (__ngFactoryType__ || _LayoutModule)();
-  };
-  static ɵmod = ɵɵdefineNgModule({
-    type: _LayoutModule
-  });
-  static ɵinj = ɵɵdefineInjector({});
-};
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(LayoutModule, [{
-    type: NgModule,
-    args: [{}]
-  }], null, null);
-})();
-var Breakpoints = {
-  XSmall: "(max-width: 599.98px)",
-  Small: "(min-width: 600px) and (max-width: 959.98px)",
-  Medium: "(min-width: 960px) and (max-width: 1279.98px)",
-  Large: "(min-width: 1280px) and (max-width: 1919.98px)",
-  XLarge: "(min-width: 1920px)",
-  Handset: "(max-width: 599.98px) and (orientation: portrait), (max-width: 959.98px) and (orientation: landscape)",
-  Tablet: "(min-width: 600px) and (max-width: 839.98px) and (orientation: portrait), (min-width: 960px) and (max-width: 1279.98px) and (orientation: landscape)",
-  Web: "(min-width: 840px) and (orientation: portrait), (min-width: 1280px) and (orientation: landscape)",
-  HandsetPortrait: "(max-width: 599.98px) and (orientation: portrait)",
-  TabletPortrait: "(min-width: 600px) and (max-width: 839.98px) and (orientation: portrait)",
-  WebPortrait: "(min-width: 840px) and (orientation: portrait)",
-  HandsetLandscape: "(max-width: 959.98px) and (orientation: landscape)",
-  TabletLandscape: "(min-width: 960px) and (max-width: 1279.98px) and (orientation: landscape)",
-  WebLandscape: "(min-width: 1280px) and (orientation: landscape)"
-};
 
 // node_modules/@angular/material/fesm2022/autocomplete.mjs
 var _c0 = ["panel"];

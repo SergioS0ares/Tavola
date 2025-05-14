@@ -2,6 +2,7 @@
 @include mat.elevation-classes();
 @include mat.app-background();
 @import 'ngx-toastr/toastr';
+@import 'ng-zorro-antd/ng-zorro-antd.min.css';
 
 :root {
     --mdc-outlined-text-field-focus-outline-color: #32CD32 !important; 
@@ -302,5 +303,33 @@ $dark-theme: mat.m2-define-dark-theme((
       background-color: rgba(246, 189, 56, 1) !important;
     }
   }
+}
+
+// Força cor marrom nos inputs, labels, placeholder e hover globalmente
+.mat-mdc-input-element,
+.mat-mdc-select-value-text,
+.mdc-floating-label,
+.mat-mdc-form-field-label,
+.mat-mdc-form-field-infix::placeholder {
+  color: #3B221B !important;
+  opacity: 1 !important;
+}
+
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: #3B221B !important;
+}
+
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+  border-color: #3B221B !important;
+}
+
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__trailing {
+  border-color: #3B221B !important;
 }
 

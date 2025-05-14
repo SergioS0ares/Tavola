@@ -31,8 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (
         	    path.equals("/auth/login") ||
         	    path.equals("/auth/register") ||
-        	    path.equals("/auth/refresh") ||    // <--- ESTA LINHA É ESSENCIAL
-        	    path.equals("/test/dev-token")
+        	    path.equals("/auth/refresh") // <--- ESTA LINHA É ESSENCIAL
         	) {
         	    filterChain.doFilter(request, response);
         	    System.out.println("Filtro ignorado para path: " + path);

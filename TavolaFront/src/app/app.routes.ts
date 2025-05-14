@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
-import { LayoutPrincipalComponent } from './pages/layout-principal/layout-principal.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
-import { AgendamentoReservasRestauranteComponent } from './pages/home/agendamento-reservas-restaurante/agendamento-reservas-restaurante.component';
 
 export const routes: Routes = [
   {
@@ -20,14 +18,14 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: LayoutPrincipalComponent,
+    loadComponent: () => import('./pages/layout-principal/layout-principal.component').then(m => m.LayoutPrincipalComponent),
     canActivate: [AuthGuard],
     children: [
       {
         path: 'home',
         children: [
           { path: '', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
-          { path: 'agendamento-reservas-restaurante/:id', component: AgendamentoReservasRestauranteComponent }
+          { path: 'agendamento-reservas-restaurante/:id', loadComponent: () => import('./pages/home/agendamento-reservas-restaurante/agendamento-reservas-restaurante.component').then(m => m.AgendamentoReservasRestauranteComponent) }
         ]
       },
       { path: 'meu-restaurante', loadComponent: () => import('./pages/meu-restaurante/meu-restaurante.component').then(m => m.MeuRestauranteComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },

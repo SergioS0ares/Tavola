@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { LoginResponse } from '../../types/login-response.type';
 import { Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
+import { RefreshResponse } from '../../types/refresh-token.type';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +31,18 @@ export class LoginService {
     );
   }
 
-  refreshToken(): Observable<{ token: string }> {
-    return this.httpClient.post<{ token: string }>(`${this.apiUrl}/refresh`, {}, { withCredentials: true });
+  refreshToken(): Observable<LoginResponse> {
+    console.log('[LoginService] calling /auth/refresh');
+    return this.httpClient
+      .post<LoginResponse>(`${this.apiUrl}/refresh`, {}, { withCredentials: true })
+      .pipe(
+        tap(res => {
+          console.log('[LoginService] refresh response received:', res);
+          // atualiza token na AuthService
+          this.auth.setToken(res.token);
+          // se precisar atualizar perfil:
+          this.auth.setPerfil({ tipo: res.tipoUsuario, nome: res.name });
+        })
+      );
   }
 }

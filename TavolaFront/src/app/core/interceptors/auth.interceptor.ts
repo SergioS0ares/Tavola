@@ -7,8 +7,8 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { catchError, switchMap, filter, take } from 'rxjs/operators';
+import { Observable, BehaviorSubject, EMPTY, throwError } from 'rxjs';
+import { catchError, switchMap, filter, take, finalize } from 'rxjs/operators';
 
 import { AuthService } from '../services/auth.service';
 import { LoginService } from '../services/login.service';
@@ -25,19 +25,31 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // 1️⃣ Clone inicial: anexa Authorization (se existir) + envia cookies
     const token = this.auth.getToken();
     const authReq = request.clone({
       setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-      withCredentials: true   // ← obrigatório para enviar o cookie HttpOnly de refresh
+      withCredentials: true
     });
 
     return next.handle(authReq).pipe(
       catchError(err => {
-        if (err instanceof HttpErrorResponse && err.status === 401) {
-          // detectou expiração ou falta de token → tenta refresh
+        if (!(err instanceof HttpErrorResponse)) {
+          return throwError(() => err);
+        }
+
+        // 1) se vier 401 no próprio /auth/refresh → logout e redirect imediato
+        if (err.status === 401 && request.url.endsWith('/auth/refresh')) {
+          this.auth.clearToken();
+          this.router.navigate(['/login']);
+          return EMPTY;
+        }
+
+        // 2) se vier 401 em qualquer outra → tenta renovar com refresh
+        if (err.status === 401) {
           return this.handle401Error(authReq, next);
         }
+
+        // outros erros (403, 500...) → propagar
         return throwError(() => err);
       })
     );
@@ -51,40 +63,38 @@ export class AuthInterceptor implements HttpInterceptor {
       this.isRefreshing = true;
       this.refreshTokenSubject.next(null);
 
-      // chama o endpoint de refresh (lembre-se de usar withCredentials lá também)
       return this.loginService.refreshToken().pipe(
         switchMap(res => {
-          this.isRefreshing = false;
           this.auth.setToken(res.token);
           this.refreshTokenSubject.next(res.token);
-
-          // 2️⃣ Refaça a requisição original com novo token + envio de cookies
-          const retryReq = request.clone({
+          const retry = request.clone({
             setHeaders: { Authorization: `Bearer ${res.token}` },
             withCredentials: true
           });
-          return next.handle(retryReq);
+          return next.handle(retry);
         }),
-        catchError(refreshErr => {
-          // se o refresh falhar, limpa estado e joga para login
-          this.isRefreshing = false;
+        catchError(_ => {
+          // refresh estourou → limpa tudo e manda pra login
           this.auth.clearToken();
           this.router.navigate(['/login']);
-          return throwError(() => refreshErr);
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.isRefreshing = false;
         })
       );
     }
 
-    // se já estiver fazendo refresh, aguarda o novo token
+    // se já estiver fazendo refresh, aguarda um token válido sair
     return this.refreshTokenSubject.pipe(
       filter(t => t != null),
       take(1),
-      switchMap(token => {
-        const retryReq = request.clone({
-          setHeaders: { Authorization: `Bearer ${token!}` },
+      switchMap(tkn => {
+        const retry = request.clone({
+          setHeaders: { Authorization: `Bearer ${tkn!}` },
           withCredentials: true
         });
-        return next.handle(retryReq);
+        return next.handle(retry);
       })
     );
   }

@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { ILoginForm } from '../../Interfaces/ILoginForm.interface';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -37,6 +38,7 @@ export class LoginComponent {
   private router = inject(Router);
   private loginService = inject(LoginService);
   private toastService = inject(ToastrService);
+  private authService = inject(AuthService);
 
   constructor() {
     this.loginForm = new FormGroup<ILoginForm>({
@@ -91,10 +93,9 @@ export class LoginComponent {
       this.loginService.login(email, senha).subscribe({
         next: (res) => {
           localStorage.setItem('token', res.token);
-          localStorage.setItem('refreshToken', res.refreshToken);
           localStorage.setItem('userName', res.name);
           localStorage.setItem('tipoUsuario', res.tipoUsuario);
-        
+          this.authService.setToken(res.token);
           this.toastService.success("Login feito com sucesso!");
           // Redireciona com base no tipo de usuário
           if (res.tipoUsuario === 'RESTAURANTE') {

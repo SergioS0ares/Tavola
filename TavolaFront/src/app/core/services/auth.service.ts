@@ -8,8 +8,14 @@ export interface Perfil {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _perfil: Perfil | null = null;
+  private readonly TOKEN_KEY = 'accessToken';
   private _token: string | null = null;
 
+  constructor() {
+    // ao instanciar, já puxa o que está salvo
+    this._token = localStorage.getItem(this.TOKEN_KEY);
+    console.log('[AuthService] token inicial:', this._token);
+  }
   setToken(token: string) {
     this._token = token;
   }

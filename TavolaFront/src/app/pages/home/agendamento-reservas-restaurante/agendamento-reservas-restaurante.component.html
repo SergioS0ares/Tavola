@@ -1,3 +1,66 @@
-<p>agendamento-reservas-restaurante works!</p>
+<div class="container-rounded">
+  <nav class="breadcrumb">
+    <mat-icon>home</mat-icon>
+    <span>Início</span>
+    <span>›</span>
+    <span>{{ restaurante.nome }}</span>
+  </nav>
+  <h2>{{ restaurante.nome }}</h2>
+  <div class="info">
+    <span>{{ restaurante.endereco }}</span>
+    <span>{{ restaurante.tipo }}</span>
+    <span>{{ restaurante.preco }}</span>
+    <span>{{ restaurante.avaliacao }}</span>
+  </div>
+ <!-- agendamento-reservas-restaurante.component.html -->
 
-<nav>Início › {{restaurante.nome}}</nav>
+<div class="container-rounded">
+    <nav class="breadcrumb">
+      <mat-icon>home</mat-icon>
+      <span>Início</span>
+      <span>›</span>
+      <span>{{ restaurante.nome }}</span>
+    </nav>
+  
+    <h2>{{ restaurante.nome }}</h2>
+    <div class="info">
+      <span>{{ restaurante.endereco }}</span>
+      <span>{{ restaurante.tipo }}</span>
+      <span>{{ restaurante.preco }}</span>
+      <span>{{ restaurante.avaliacao }}</span>
+    </div>
+  
+    <nz-image-group>
+        <nz-row [nzGutter]="16">
+          <!-- imagem principal -->
+          <nz-col nzSpan="12">
+            <img
+              nz-image
+              nzSrc="assets/jpg/Comida.jpg"
+              width="400px"
+              height="300px"
+              alt="Principal"
+            />
+          </nz-col>
+    
+          <!-- miniaturas -->
+          <nz-col nzSpan="12">
+            <nz-row [nzGutter]="8">
+              <nz-col nzSpan="12" *ngFor="let img of outrasImagens">
+                <img
+                  nz-image
+                  [nzSrc]="img"
+                  width="180px"
+                  height="140px"
+                  alt="Foto"
+                />
+              </nz-col>
+            </nz-row>
+    
+            <div class="overlay">
+              See other {{ totalPhotos }} photos
+            </div>
+          </nz-col>
+        </nz-row>
+      </nz-image-group>
+    </div>
