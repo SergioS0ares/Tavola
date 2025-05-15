@@ -28,17 +28,10 @@ public class MesasController {
     @GetMapping
     public ResponseEntity<List<MesaResponse>> findAll() {
         Restaurante restaurante = getSelfRestaurante();
-        List<MesaResponse> resposta = mesasService.findAll(restaurante).stream()
-                .map(mesa -> new MesaResponse(
-                        mesa.getNome(),
-                        mesa.getDescricao(),
-                        mesa.getImagem(),
-                        mesa.getQuantidadeTotal(),
-                        mesa.getQuantidadeDisponivel()
-                ))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(resposta);
+        List<MesaResponse> mesas = restaurante.getMesas().stream()
+            .map(MesaResponse::new)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(mesas);
     }
 
     @GetMapping("/id/{index}")
@@ -47,15 +40,7 @@ public class MesasController {
         Optional<Mesas> mesa = mesasService.findByIndex(restaurante, index);
 
         if (mesa.isPresent()) {
-            Mesas m = mesa.get();
-            MesaResponse dto = new MesaResponse(
-                    m.getNome(),
-                    m.getDescricao(),
-                    m.getImagem(),
-                    m.getQuantidadeTotal(),
-                    m.getQuantidadeDisponivel()
-            );
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(new MesaResponse(mesa.get()));
         } else {
             return ResponseEntity.badRequest().body("Índice inválido para o conjunto de mesas.");
         }
@@ -66,13 +51,7 @@ public class MesasController {
         Restaurante restaurante = getSelfRestaurante();
         Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);
 
-        return mesa.map(m -> ResponseEntity.ok(new MesaResponse(
-                    m.getNome(),
-                    m.getDescricao(),
-                    m.getImagem(),
-                    m.getQuantidadeTotal(),
-                    m.getQuantidadeDisponivel()
-                )))
+        return mesa.map(m -> ResponseEntity.ok(new MesaResponse(m)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

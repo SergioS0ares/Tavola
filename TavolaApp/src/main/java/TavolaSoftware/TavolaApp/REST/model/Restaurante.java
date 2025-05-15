@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import java.util.List;
 import java.util.UUID;
 
+import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 import TavolaSoftware.TavolaApp.tools.Mesas;
 
@@ -50,6 +51,12 @@ public class Restaurante {
     
     public String getNome() { return usuario.getNome(); }
     
+	public void setEndereco(Endereco endereco) { usuario.setEndereco(endereco); }
+
+	public void setNome(String nome) { usuario.setNome(nome); }
+
+	public Endereco getEndereco() { return usuario.getEndereco(); }
+    
     // fim dos métodos de usuario
 
 	public UUID getId() {
@@ -76,7 +83,7 @@ public class Restaurante {
         this.mesas = mesas;
     }
 
-    public List<HorarioFuncionamento> getHorarioFuncionamento() {
+    public List<HorarioFuncionamento> getHoraFuncionamento() {
         return horariosFuncionamento;
     }
 
@@ -99,4 +106,5 @@ public class Restaurante {
     public void setTipoCozinha(String tipoCozinha) {
         this.tipoCozinha = tipoCozinha;
     }
+
 }

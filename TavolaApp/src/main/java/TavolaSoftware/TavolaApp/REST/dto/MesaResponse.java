@@ -1,20 +1,23 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+import TavolaSoftware.TavolaApp.tools.Mesas;
+import java.util.List;
+
 public class MesaResponse {
     private String nome;
     private String descricao;
-    private String imagem;
-    private int totalMesas;
-    private int mesasDisponiveis;
+    private List<String> imagem;
+    private int quantidadeTotal;
+    private int quantidadeDisponivel;
 
     public MesaResponse() {}
 
-    public MesaResponse(String nome, String descricao, String imagem, int totalMesas, int mesasDisponiveis) {
-        this.nome = nome;
-        this.descricao = descricao;
-        this.imagem = imagem;
-        this.totalMesas = totalMesas;
-        this.mesasDisponiveis = mesasDisponiveis;
+    public MesaResponse(Mesas mesa) {
+        this.nome = mesa.getNome();
+        this.descricao = mesa.getDescricao();
+        this.imagem = mesa.getImagem();
+        this.quantidadeTotal = mesa.getQuantidadeTotal();
+        this.quantidadeDisponivel = mesa.getQuantidadeDisponivel();
     }
 
     public String getNome() {
@@ -33,27 +36,27 @@ public class MesaResponse {
         this.descricao = descricao;
     }
 
-    public String getImagem() {
+    public List<String> getImagem() {
         return imagem;
     }
 
-    public void setImagem(String imagem) {
+    public void setImagem(List<String> imagem) {
         this.imagem = imagem;
     }
 
-    public int getTotalMesas() {
-        return totalMesas;
+    public int getQuantidadeTotal() {
+        return quantidadeTotal;
     }
 
-    public void setTotalMesas(int totalMesas) {
-        this.totalMesas = totalMesas;
+    public void setQuantidadeTotal(int quantidadeTotal) {
+        this.quantidadeTotal = quantidadeTotal;
     }
 
-    public int getMesasDisponiveis() {
-        return mesasDisponiveis;
+    public int getQuantidadeDisponivel() {
+        return quantidadeDisponivel;
     }
 
-    public void setMesasDisponiveis(int mesasDisponiveis) {
-        this.mesasDisponiveis = mesasDisponiveis;
+    public void setQuantidadeDisponivel(int quantidadeDisponivel) {
+        this.quantidadeDisponivel = quantidadeDisponivel;
     }
 }

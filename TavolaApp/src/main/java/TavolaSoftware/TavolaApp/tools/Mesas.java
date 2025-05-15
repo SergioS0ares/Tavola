@@ -1,12 +1,12 @@
 package TavolaSoftware.TavolaApp.tools;
 
-import java.util.UUID;
+import java.util.List;
 
 import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class Mesas {
-    private String imagem; // base64
+    private List<String> imagem; // base64
     private String nome; // Ex: "Principal"
     private String descricao; // visível para cliente
     private int quantidadeTotal;
@@ -29,10 +29,10 @@ public class Mesas {
 		this.descricao = descricao;
 	}
 
-	public String getImagem() {
+	public List<String> getImagem() {
 		return imagem;
 	}
-	public void setImagem(String imagem) {
+	public void setImagem(List<String> imagem) {
 		this.imagem = imagem;
 	}
 

@@ -57,7 +57,7 @@ public class RestauranteController {
         handler.checkEmptyStrting("email", restaurante.getUsuario().getEmail());
         handler.checkEmptyStrting("senha", restaurante.getUsuario().getSenha());
         handler.checkEmptyObject("endereco", restaurante.getUsuario().getEndereco());
-        handler.checkEmptyList("horário de funcionamento", restaurante.getHorarioFuncionamento());
+        handler.checkEmptyList("horário de funcionamento", restaurante.getHoraFuncionamento());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -74,7 +74,7 @@ public class RestauranteController {
         handler.checkEmptyStrting("email", atualizacao.getUsuario().getEmail());
         handler.checkEmptyStrting("senha", atualizacao.getUsuario().getSenha());
         handler.checkEmptyObject("endereco", atualizacao.getUsuario().getEndereco());
-        handler.checkEmptyList("horário de funcionamento", atualizacao.getHorarioFuncionamento());
+        handler.checkEmptyList("horário de funcionamento", atualizacao.getHoraFuncionamento());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
@@ -82,7 +82,7 @@ public class RestauranteController {
 
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Restaurante existente = serv.getByEmail(email);
-        Restaurante atualizado = serv.update(existente, atualizacao);
+        Restaurante atualizado = serv.update(existente.getId(), atualizacao);
 
         return ResponseEntity.ok(atualizado);
     }

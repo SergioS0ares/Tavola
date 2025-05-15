@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/auth")
@@ -88,7 +89,7 @@ public class AccessController {
                 Mesas padrao = new Mesas();
                 padrao.setNome("Principal");
                 padrao.setDescricao("Área principal do restaurante");
-                padrao.setImagem("");
+                padrao.setImagem(new ArrayList<>());
                 padrao.setQuantidadeTotal(request.getQuantidadeMesas());
                 padrao.setQuantidadeDisponivel(request.getQuantidadeMesas());
                 padrao.setDisponivel(1);
