@@ -77,7 +77,7 @@ public class MesasController {
     }
 
     @PutMapping
-    public ResponseEntity<?> atualizarMesas(@RequestBody List<Mesas> novasMesas) {
+    public ResponseEntity<?> update(@RequestBody List<Mesas> novasMesas) {
         Restaurante restaurante = getSelfRestaurante();
         mesasService.update(restaurante, novasMesas);
         return ResponseEntity.ok("Mesas atualizadas com sucesso.");
