@@ -153,24 +153,22 @@
       background: transparent;
       border: 1px solid #F6BD38;
       color: #F6BD38;
-      padding: 10px;
+      padding: 12px 16px;
       border-radius: 10px;
       cursor: pointer;
       font-weight: 500;
       width: 100%;
       transition: all 0.2s ease;
+      box-sizing: border-box;
 
       mat-icon {
         font-size: 20px;
       }
 
-      &:hover {
-        background-color: rgba(246, 189, 56, 0.1);
-      }
-
-      &.active {
+      &:hover, &.active {
         background-color: #F6BD38;
         color: #3B221B;
+        border: 1px solid #F6BD38;
       }
     }
   }

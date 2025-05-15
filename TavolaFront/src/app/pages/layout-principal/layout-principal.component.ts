@@ -10,6 +10,7 @@ import { StickySearchService } from '../../core/services/sticky-search.service';
 import { SearchBarComponent } from '../home/search-bar/search-bar.component';
 import { FormControl } from '@angular/forms';
 import { Observable, of, startWith, map } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-layout-principal',
@@ -17,7 +18,18 @@ import { Observable, of, startWith, map } from 'rxjs';
   imports: [RouterOutlet, RouterModule, MatIconModule, MatButtonModule, MatMenuModule, CommonModule, SearchBarComponent],
   
   templateUrl: './layout-principal.component.html',
-  styleUrls: ['./layout-principal.component.scss']
+  styleUrls: ['./layout-principal.component.scss'],
+  animations: [
+    trigger('searchBarAnim', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-30px)' }),
+        animate('300ms', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+      transition(':leave', [
+        animate('300ms', style({ opacity: 0, transform: 'translateY(-30px)' })),
+      ]),
+    ])
+  ]
 })
 export class LayoutPrincipalComponent {
   sidebarAberta = true;
