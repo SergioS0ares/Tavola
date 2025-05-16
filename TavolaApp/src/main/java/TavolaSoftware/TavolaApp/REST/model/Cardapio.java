@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -30,15 +31,16 @@ public class Cardapio {
     @Column(name = "dish_available")
     private boolean disponivel;
 
-    @Column(name = "dish_name", nullable = false)
+    @Column(name = "dish_name", nullable = false, length = 500)
     private String nome;
 
     @Column(name = "dish_value")
     private Double preco;
 
-    @Column(name = "dish_image")
-    private String imagem = "";
+    @Column(name = "dish_image", length = 1000)
+    private String imagem;
 
+    @Lob
     @Column(name = "dish_description")
     private String descricao;
 

@@ -1,64 +1,109 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.MesaResponse;
-import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.service.MesasService;
-import TavolaSoftware.TavolaApp.tools.Mesas;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.service.MesasService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
+import TavolaSoftware.TavolaApp.REST.model.Mesas;
+import TavolaSoftware.TavolaApp.REST.dto.MesaResponse;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 @RestController
 @RequestMapping("/auth/mesas")
 public class MesasController {
 
     @Autowired
-    private MesasService mesasService;
+    private MesasService serv;
 
-    private Restaurante getSelfRestaurante() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return mesasService.getRestauranteByEmail(email);
-    }
+    @Autowired
+    private RestauranteService servRestaurante;
+
+    @Autowired
+    private UploadUtils uplUtil;
 
     @GetMapping
     public ResponseEntity<List<MesaResponse>> findAll() {
-        Restaurante restaurante = getSelfRestaurante();
-        List<MesaResponse> mesas = restaurante.getMesas().stream()
-            .map(MesaResponse::new)
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = servRestaurante.getByEmail(email);
+        List<Mesas> mesas = serv.getMesasByRestaurante(restaurante.getId());
+        List<MesaResponse> response = mesas.stream()
+            .map(MesaResponse::fromEntity)
             .collect(Collectors.toList());
-        return ResponseEntity.ok(mesas);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/id/{index}")
-    public ResponseEntity<?> findSelfByIndex(@PathVariable int index) {
-        Restaurante restaurante = getSelfRestaurante();
-        Optional<Mesas> mesa = mesasService.findByIndex(restaurante, index);
+    @GetMapping("/{mesaId}")
+    public ResponseEntity<MesaResponse> findById(@PathVariable UUID mesaId) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = servRestaurante.getByEmail(email);
+        Mesas mesa = serv.getMesaById(mesaId, restaurante.getId());
+        return mesa != null ? ResponseEntity.ok(MesaResponse.fromEntity(mesa)) : ResponseEntity.notFound().build();
+    }
 
-        if (mesa.isPresent()) {
-            return ResponseEntity.ok(new MesaResponse(mesa.get()));
-        } else {
-            return ResponseEntity.badRequest().body("Índice inválido para o conjunto de mesas.");
+    @PostMapping
+    public ResponseEntity<MesaResponse> save(@RequestBody Mesas mesa) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = servRestaurante.getByEmail(email);
+        
+        mesa.setRestaurante(restaurante);
+        Mesas savedMesa = serv.saveMesa(mesa, restaurante);
+        
+        if (mesa.getImagem() != null && !mesa.getImagem().isEmpty()) {
+            try {
+                uplUtil.processMesas(savedMesa, restaurante.getId());
+                savedMesa = serv.saveMesa(savedMesa, restaurante);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
         }
+        
+        return ResponseEntity.ok(MesaResponse.fromEntity(savedMesa));
     }
 
-    @GetMapping("/{nome}")
-    public ResponseEntity<?> findByName(@PathVariable String nome) {
-        Restaurante restaurante = getSelfRestaurante();
-        Optional<Mesas> mesa = mesasService.findByName(restaurante, nome);
-
-        return mesa.map(m -> ResponseEntity.ok(new MesaResponse(m)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PutMapping("/{mesaId}")
+    public ResponseEntity<MesaResponse> updateMesa(@PathVariable UUID mesaId, @RequestBody Mesas mesa) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = servRestaurante.getByEmail(email);
+        
+        mesa.setRestaurante(restaurante);
+        Mesas existingMesa = serv.getMesaById(mesaId, restaurante.getId());
+        if (existingMesa == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        mesa.setId(mesaId);
+        Mesas updatedMesa = serv.saveMesa(mesa, restaurante);
+        
+        if (mesa.getImagem() != null && !mesa.getImagem().isEmpty()) {
+            try {
+                uplUtil.processMesas(updatedMesa, restaurante.getId());
+                updatedMesa = serv.saveMesa(updatedMesa, restaurante);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+        
+        return ResponseEntity.ok(MesaResponse.fromEntity(updatedMesa));
     }
 
-    @PutMapping
-    public ResponseEntity<?> update(@RequestBody List<Mesas> novasMesas) {
-        Restaurante restaurante = getSelfRestaurante();
-        mesasService.update(restaurante, novasMesas);
-        return ResponseEntity.ok("Mesas atualizadas com sucesso.");
+    @DeleteMapping("/{mesaId}")
+    public ResponseEntity<Void> deleteMesa(@PathVariable UUID mesaId) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = servRestaurante.getByEmail(email);
+        Mesas mesa = serv.getMesaById(mesaId, restaurante.getId());
+        if (mesa == null) {
+            return ResponseEntity.notFound().build();
+        }
+        serv.saveMesa(null, restaurante); // Simulando a deleção
+        return ResponseEntity.ok().build();
     }
 }

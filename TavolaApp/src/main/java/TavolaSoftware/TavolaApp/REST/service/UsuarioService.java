@@ -44,4 +44,11 @@ public class UsuarioService {
     public boolean isCliente(String email) {
         return clienteRepo.findByUsuarioEmail(email) != null;
     }
+
+    public Usuario updateUsuario(Usuario usuario) {
+        if (usuario == null || usuario.getId() == null) {
+            throw new RuntimeException("Usuário inválido para atualização");
+        }
+        return usuarioRepo.save(usuario);
+    }
 } 

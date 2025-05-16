@@ -3,10 +3,7 @@ package TavolaSoftware.TavolaApp.REST.model;
 import java.util.Date;
 import java.util.UUID;
 
-import TavolaSoftware.TavolaApp.tools.Mesas;
-
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,9 +31,9 @@ public class Reserva {
     @Column(name = "reserve_establishment", nullable = false)
     private Date data;
     
-    @Embedded
+    @ManyToOne
+    @JoinColumn(name = "mesa_id", nullable = false)
     private Mesas mesa;
-
 
     @Column(name = "reserve_places", nullable = false)
     private int pessoas;

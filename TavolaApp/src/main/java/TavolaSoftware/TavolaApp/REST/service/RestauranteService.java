@@ -4,7 +4,7 @@ import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
-import TavolaSoftware.TavolaApp.tools.Mesas;
+import TavolaSoftware.TavolaApp.REST.model.Mesas;
 import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class RestauranteService {
 
         if (atualizado.getMesas() != null && !atualizado.getMesas().isEmpty()) {
             existente.setMesas(atualizado.getMesas());
-            uplUtil.processarImagensMesas(atualizado.getMesas(), existente.getId());
+            uplUtil.processImageFromMesas(atualizado.getMesas(), existente.getId());
         }
 
         return repo.save(existente);

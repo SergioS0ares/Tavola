@@ -38,7 +38,7 @@ public class CardapioService {
         if (uplUtil.isBase64Image(cardapio.getImagem())) {
             String pasta = "upl/cardapios/" + cardapio.getRestaurante().getId();
             try {
-                String nomeArquivo = uplUtil.salvarImagemBase64(cardapio.getImagem(), pasta, "jpg");
+                String nomeArquivo = uplUtil.processBase64(cardapio.getImagem(), pasta, "jpg");
                 cardapio.setImagem("/upl/cardapios/" + cardapio.getRestaurante().getId() + "/" + nomeArquivo);
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao salvar imagem de cardápio", e);
@@ -54,30 +54,49 @@ public class CardapioService {
     public void deleteById(UUID id) {
         Optional<Cardapio> cardapio = repo.findById(id);
         if (cardapio.isPresent()) {
-            String img = uplUtil.extrairNomeArquivoDaURL(cardapio.get().getImagem());
+            String img = uplUtil.findNameByURL(cardapio.get().getImagem());
             String pasta = "upl/cardapios/" + cardapio.get().getRestaurante().getId();
-            uplUtil.removerImagensOrfas(pasta, Set.of()); // apaga tudo se a imagem for única
+            uplUtil.removeOrfans(pasta, Set.of()); // apaga tudo se a imagem for única
         }
         repo.deleteById(id);
     }
 
     public Cardapio update(UUID id, Cardapio cardapioAtualizado) {
-        Optional<Cardapio> existenteOpt = repo.findById(id);
-        if (existenteOpt.isEmpty()) return null;
+        Cardapio cardapioExistente = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Cardápio não encontrado"));
 
-        Cardapio existente = existenteOpt.get();
-        String imagemAntiga = uplUtil.extrairNomeArquivoDaURL(existente.getImagem());
-        String imagemNova = uplUtil.extrairNomeArquivoDaURL(cardapioAtualizado.getImagem());
-
-        cardapioAtualizado.setId(id);
-        Cardapio salvo = repo.save(cardapioAtualizado);
-
-        if (imagemAntiga != null && !imagemAntiga.equals(imagemNova)) {
-            String pasta = "upl/cardapios/" + existente.getRestaurante().getId();
-            uplUtil.removerImagensOrfas(pasta, Set.of(imagemNova));
+        // Atualiza apenas os campos que foram enviados
+        if (cardapioAtualizado.getNome() != null && !cardapioAtualizado.getNome().trim().isEmpty()) {
+            cardapioExistente.setNome(cardapioAtualizado.getNome());
         }
 
-        return salvo;
+        if (cardapioAtualizado.getDescricao() != null) {
+            cardapioExistente.setDescricao(cardapioAtualizado.getDescricao());
+        }
+
+        if (cardapioAtualizado.getPreco() != 0.0) {
+            cardapioExistente.setPreco(cardapioAtualizado.getPreco());
+        }
+
+        if (cardapioAtualizado.getDisponivel() != false) {
+            cardapioExistente.setDisponivel(cardapioAtualizado.getDisponivel());
+        }
+
+        // Processa imagem se houver
+        if (cardapioAtualizado.getImagem() != null && !cardapioAtualizado.getImagem().trim().isEmpty()) {
+            try {
+                uplUtil.processCardapioImagem(cardapioAtualizado.getImagem(), 
+                    cardapioExistente.getRestaurante().getId(), 
+                    cardapioExistente.getId());
+                cardapioExistente.setImagem("/upl/cardapios/" + 
+                    cardapioExistente.getRestaurante().getId() + "/" + 
+                    cardapioExistente.getId() + "/prato.jpg");
+            } catch (IOException e) {
+                throw new RuntimeException("Erro ao processar imagem do cardápio", e);
+            }
+        }
+
+        return repo.save(cardapioExistente);
     }
 
     public Optional<Cardapio> findByNomeAndRestauranteId(String nome, UUID restauranteId) {

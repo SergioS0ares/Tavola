@@ -10,10 +10,11 @@ import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
-import TavolaSoftware.TavolaApp.tools.Mesas;
+import TavolaSoftware.TavolaApp.REST.model.Mesas;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import io.jsonwebtoken.Claims;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.ArrayList;
@@ -42,6 +44,9 @@ public class AccessController {
 
     @Autowired
     private JwtUtil jwt;
+
+    @Autowired
+    private UploadUtils uplUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
@@ -95,9 +100,12 @@ public class AccessController {
                 padrao.setDisponivel(1);
                 mesas = List.of(padrao);
             }
-            restaurante.setMesas(mesas);
+            if (mesas != null && !mesas.isEmpty()) {
+            	mesas.forEach(restaurante::addMesa);
+            	}
             restaurante.setHoraFuncionamento(request.getHoraFuncionamento());
-            repoRestaurante.save(restaurante);
+            restaurante = repoRestaurante.save(restaurante);
+
             String accessToken = jwt.generateAccessToken(usuario.getEmail());
             String refreshToken = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
 
