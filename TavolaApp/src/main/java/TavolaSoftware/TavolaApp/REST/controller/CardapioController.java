@@ -162,58 +162,81 @@ public class CardapioController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Cardapio cardapio) {
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> update(
+        @PathVariable UUID id,
+        @RequestBody Cardapio cardapio
+    ) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
-
-        handler.checkEmptyStrting("nome", cardapio.getNome());
-        handler.checkMinimmumNumber("valor", cardapio.getPreco(), 0.0);
+        handler.checkEmptyStrting("nome",      cardapio.getNome());
+        handler.checkMinimmumNumber("valor",  cardapio.getPreco(), 0.0);
         handler.checkEmptyStrting("descricao", cardapio.getDescricao());
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
 
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = (String) SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+                            .getPrincipal();
         Restaurante restaurante = restauranteServ.getByEmail(email);
 
-        Optional<Cardapio> cardapioExistente = serv.findById(id);
-        if (cardapioExistente.isEmpty()) {
+        Optional<Cardapio> opt = serv.findById(id);
+        if (opt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        Cardapio atual = opt.get();
 
-        Cardapio cardapioAtualizado = cardapioExistente.get();
-        cardapioAtualizado.setNome(cardapio.getNome());
-        cardapioAtualizado.setPreco(cardapio.getPreco());
-        cardapioAtualizado.setDescricao(cardapio.getDescricao());
-        cardapioAtualizado.setDisponivel(cardapio.getDisponivel());
+        // atualiza campos
+        atual.setNome(cardapio.getNome());
+        atual.setPreco(cardapio.getPreco());
+        atual.setDescricao(cardapio.getDescricao());
+        atual.setDisponivel(cardapio.getDisponivel());
 
-        if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
-            Categoria categoria = categoriaServ.saveIfNotExists(cardapio.getCategoria().getNome(), restaurante);
-            cardapioAtualizado.setCategoria(categoria);
+        // categoria
+        if (cardapio.getCategoria() != null 
+            && cardapio.getCategoria().getNome() != null) {
+          Categoria cat =
+            categoriaServ.saveIfNotExists(
+              cardapio.getCategoria().getNome(),
+              restaurante
+            );
+          atual.setCategoria(cat);
         }
 
+        // tags
         if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
-            Set<String> nomesTags = cardapio.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
-            Set<Tags> tags = tagsServ.saveAll(nomesTags);
-            cardapioAtualizado.setTags(tags);
+          Set<String> nomes = cardapio.getTags().stream()
+                                      .map(Tags::getTag)
+                                      .collect(Collectors.toSet());
+          Set<Tags> tags = tagsServ.saveAll(nomes);
+          atual.setTags(tags);
         }
 
-        Cardapio salvo = serv.save(cardapioAtualizado);
+        // salva metadados primeiro
+        Cardapio salvo = serv.save(atual);
 
-        // Processa imagem do cardápio se houver
-        if (cardapio.getImagem() != null && !cardapio.getImagem().isEmpty()) {
-            try {
-                // Verifica se a imagem é um caminho de arquivo
-                if (!cardapio.getImagem().startsWith("/upl/")) {
-                    uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), salvo.getId());
-                    salvo = serv.save(salvo);
-                }
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
+        String img = cardapio.getImagem();
+        // só processa se vier um data-uri completo
+        if (img != null && img.startsWith("data:image/")) {
+          try {
+            // PASSA O DATA-URI INTEIRO COM CABEÇALHO
+            uplUtil.processCardapioImagem(
+              img,
+              restaurante.getId(),
+              salvo.getId()
+            );
+            // recarrega pra pegar o novo path
+            salvo = serv.findById(salvo.getId()).get();
+          }
+          catch (IOException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Falha ao processar imagem: " + e.getMessage());
+          }
         }
-
+        // se vier qualquer outra string (o path antigo ou null), não faz nada
         return ResponseEntity.ok(new CardapioResponse(salvo));
     }
 
