@@ -4,6 +4,8 @@ import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.REST.model.Mesas;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class RestauranteService {
     
     @Autowired
     private UsuarioRepository repoUser;
+    
+    @Autowired
+    private UploadUtils uplUtil;
 
     public List<Restaurante> findAll() {
         return repo.findAll();
@@ -46,20 +51,20 @@ public class RestauranteService {
             .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
     }
 
-    public Restaurante update(Restaurante existente, Restaurante atualizacao) {
-        existente.getUsuario().setNome(atualizacao.getUsuario().getNome());
-        existente.getUsuario().setEmail(atualizacao.getUsuario().getEmail());
-        existente.getUsuario().setSenha(atualizacao.getUsuario().getSenha());
-        existente.getUsuario().setEndereco(atualizacao.getUsuario().getEndereco());
+    public Restaurante update(UUID id, Restaurante atualizado) {
+        Restaurante existente = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Restaurante não encontrado."));
 
-        if (atualizacao.getHorarioFuncionamento() != null) {
-            existente.setHoraFuncionamento(atualizacao.getHorarioFuncionamento());
-        }
+        existente.setNome(atualizado.getNome());
+        existente.setEndereco(atualizado.getEndereco());
+        existente.setHoraFuncionamento(atualizado.getHoraFuncionamento());
 
-        if (atualizacao.getMesas() != null) {
-            existente.setMesas(atualizacao.getMesas());
+        if (atualizado.getMesas() != null && !atualizado.getMesas().isEmpty()) {
+            existente.setMesas(atualizado.getMesas());
+            uplUtil.processImageFromMesas(atualizado.getMesas(), existente.getId());
         }
 
         return repo.save(existente);
     }
+
 }

@@ -2,9 +2,9 @@ package TavolaSoftware.TavolaApp.REST.dto;
 
 import java.util.List;
 
+import TavolaSoftware.TavolaApp.REST.model.Mesas;
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
-import TavolaSoftware.TavolaApp.tools.Mesas;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 
 public class RegistroRequest {

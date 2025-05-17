@@ -20,7 +20,7 @@ public class Tags {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "tag_name", nullable = false, unique = true)
+    @Column(name = "tag_name", nullable = false, unique = true, length = 100)
     private String tag;
 
     @ManyToMany(mappedBy = "tags")

@@ -6,16 +6,18 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
-import TavolaSoftware.TavolaApp.tools.Mesas;
 
 @Entity
 @Table(name = "establishment_table")
@@ -29,8 +31,10 @@ public class Restaurante {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @ElementCollection
-    private List<Mesas> mesas;
+    @OneToMany(mappedBy = "restaurante",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<Mesas> mesas = new ArrayList<>();
 
     @ElementCollection
     private List<HorarioFuncionamento> horariosFuncionamento;
@@ -38,11 +42,13 @@ public class Restaurante {
     @Column(name = "establishment_service")
     private String tipoCozinha = "Outro";
     
-    @Column(name = "establishment_images")
-    private String imagens;
+    @Column(name = "establishment_images", length = 1000)
+    private List<String> imagens;
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
+
+    private UUID idImagem;
 
     // métodos de restaurante para retornar informações de usuario - coisa de register...
     
@@ -50,7 +56,26 @@ public class Restaurante {
     
     public String getNome() { return usuario.getNome(); }
     
+	public void setEndereco(Endereco endereco) { usuario.setEndereco(endereco); }
+
+	public void setNome(String nome) { usuario.setNome(nome); }
+
+	public Endereco getEndereco() { return usuario.getEndereco(); }
+    
     // fim dos métodos de usuario
+
+    public UUID getIdImagem(){
+        return idImagem;
+    }
+
+    public void setIdImagem(UUID id){
+        this.idImagem = id;
+    }
+	
+	public void addMesa(Mesas mesa) {
+        mesas.add(mesa);
+        mesa.setRestaurante(this);
+    }
 
 	public UUID getId() {
 		return id;
@@ -68,15 +93,15 @@ public class Restaurante {
     	this.usuario = usuario;
     }
     
-    public List<Mesas> getMesas() {
-        return mesas;
-    }
-
-    public void setMesas(List<Mesas> mesas) {
+    public List<Mesas> getMesas() { return mesas; }
+    
+    
+    public void setMesas(List<Mesas> mesas) { 
         this.mesas = mesas;
+        mesas.forEach(m -> m.setRestaurante(this));
     }
 
-    public List<HorarioFuncionamento> getHorarioFuncionamento() {
+    public List<HorarioFuncionamento> getHoraFuncionamento() {
         return horariosFuncionamento;
     }
 
@@ -99,4 +124,13 @@ public class Restaurante {
     public void setTipoCozinha(String tipoCozinha) {
         this.tipoCozinha = tipoCozinha;
     }
+
+	public List<String> getImagem() {
+		return imagens;
+	}
+	
+	public void setImagem(List<String> imagens) {
+		this.imagens = imagens;
+	}
+	
 }

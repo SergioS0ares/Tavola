@@ -31,16 +31,16 @@ public class Cardapio {
     @Column(name = "dish_available")
     private boolean disponivel;
 
-    @Column(name = "dish_name", nullable = false)
+    @Column(name = "dish_name", nullable = false, length = 500)
     private String nome;
 
     @Column(name = "dish_value")
     private Double preco;
-    
-    @Lob
-    @Column(name = "dish_image", columnDefinition = "TEXT")
-    private String imagem = "";
 
+    @Column(name = "dish_image", length = 1000)
+    private String imagem;
+
+    @Lob
     @Column(name = "dish_description")
     private String descricao;
 

@@ -5,12 +5,14 @@ import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.service.ClienteService;
 import TavolaSoftware.TavolaApp.REST.service.ReservaService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +26,9 @@ public class ClienteController {
 
     @Autowired
     private ReservaService servReserva;
+
+    @Autowired
+    private UploadUtils uplUtil;
 
     @GetMapping("/reservas")
     public ResponseEntity<List<Reserva>> findAllByClient(
@@ -67,19 +72,57 @@ public class ClienteController {
 
     @PutMapping("/update")
     public ResponseEntity<?> update(@RequestBody Cliente atualizacao) {
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome", atualizacao.getUsuario().getNome());
-        handler.checkEmptyStrting("email", atualizacao.getUsuario().getEmail());
-        handler.checkEmptyStrting("senha", atualizacao.getUsuario().getSenha());
-        handler.checkEmptyObject("endereco", atualizacao.getUsuario().getEndereco());
+        try {
+            String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Cliente clienteExistente = serv.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+            // Atualiza apenas os campos que foram enviados
+            if (atualizacao.getUsuario() != null) {
+                if (atualizacao.getUsuario().getNome() != null && !atualizacao.getUsuario().getNome().trim().isEmpty()) {
+                    clienteExistente.getUsuario().setNome(atualizacao.getUsuario().getNome());
+                }
+
+                if (atualizacao.getUsuario().getEmail() != null && !atualizacao.getUsuario().getEmail().trim().isEmpty()) {
+                    clienteExistente.getUsuario().setEmail(atualizacao.getUsuario().getEmail());
+                }
+
+                if (atualizacao.getUsuario().getSenha() != null && !atualizacao.getUsuario().getSenha().trim().isEmpty()) {
+                    clienteExistente.getUsuario().setSenha(atualizacao.getUsuario().getSenha());
+                }
+
+                if (atualizacao.getUsuario().getEndereco() != null) {
+                    clienteExistente.getUsuario().setEndereco(atualizacao.getUsuario().getEndereco());
+                }
+
+                // Processa imagem de perfil se houver
+                if (atualizacao.getUsuario().getImagem() != null && !atualizacao.getUsuario().getImagem().isEmpty()) {
+                    try {
+                        uplUtil.processUsuarioImagem(atualizacao.getUsuario().getImagem(), clienteExistente.getUsuario().getId(), "perfil");
+                        clienteExistente.getUsuario().setImagem("/upl/usuarios/" + clienteExistente.getUsuario().getId() + "/perfil.jpg");
+                    } catch (IOException e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Erro ao processar imagem de perfil: " + e.getMessage());
+                    }
+                }
+
+                // Processa imagem de background se houver
+                if (atualizacao.getUsuario().getImagemBackground() != null && !atualizacao.getUsuario().getImagemBackground().isEmpty()) {
+                    try {
+                        uplUtil.processUsuarioImagem(atualizacao.getUsuario().getImagemBackground(), clienteExistente.getUsuario().getId(), "background");
+                        clienteExistente.getUsuario().setImagemBackground("/upl/usuarios/" + clienteExistente.getUsuario().getId() + "/background.jpg");
+                    } catch (IOException e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Erro ao processar imagem de background: " + e.getMessage());
+                    }
+                }
+            }
+
+            Cliente atualizado = serv.save(clienteExistente);
+            return ResponseEntity.ok(atualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao atualizar cliente: " + e.getMessage());
         }
-
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Cliente atualizado = serv.updateByEmail(email, atualizacao);
-        return ResponseEntity.ok(atualizado);
     }
     
     

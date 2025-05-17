@@ -16,7 +16,7 @@ public class TavolaAppApplication {
 
 			JwtUtil jwt = new JwtUtil();
 
-			String email = "julio@email.com";
+			String email = "test.delete_me@email.com";
 			String token = jwt.generateAccessToken(email);
 
 			System.out.println("✅ Token gerado com sucesso:");

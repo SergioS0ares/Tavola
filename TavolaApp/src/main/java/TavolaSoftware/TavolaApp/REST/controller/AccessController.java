@@ -10,25 +10,24 @@ import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
-import TavolaSoftware.TavolaApp.tools.Mesas;
+import TavolaSoftware.TavolaApp.REST.model.Mesas;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import io.jsonwebtoken.Claims;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
-import java.time.Duration;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/auth")
@@ -45,6 +44,9 @@ public class AccessController {
 
     @Autowired
     private JwtUtil jwt;
+
+    @Autowired
+    private UploadUtils uplUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
@@ -92,15 +94,18 @@ public class AccessController {
                 Mesas padrao = new Mesas();
                 padrao.setNome("Principal");
                 padrao.setDescricao("Área principal do restaurante");
-                padrao.setImagem("");
+                padrao.setImagem(new ArrayList<>());
                 padrao.setQuantidadeTotal(request.getQuantidadeMesas());
                 padrao.setQuantidadeDisponivel(request.getQuantidadeMesas());
                 padrao.setDisponivel(1);
                 mesas = List.of(padrao);
             }
-            restaurante.setMesas(mesas);
+            if (mesas != null && !mesas.isEmpty()) {
+            	mesas.forEach(restaurante::addMesa);
+            	}
             restaurante.setHoraFuncionamento(request.getHoraFuncionamento());
-            repoRestaurante.save(restaurante);
+            restaurante = repoRestaurante.save(restaurante);
+
             String accessToken = jwt.generateAccessToken(usuario.getEmail());
             String refreshToken = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
 
@@ -113,72 +118,32 @@ public class AccessController {
     }
     
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest loginRequest,
-            HttpServletResponse servletResponse
-    ) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
         String senha = loginRequest.getSenha();
 
-        // Verifica se é Cliente
         Cliente cliente = repoClient.findByUsuarioEmail(email);
         if (cliente != null && BCrypt.checkpw(senha, cliente.getUsuario().getSenha())) {
-            String accessToken  = jwt.generateAccessToken(cliente.getUsuario().getEmail());
+            String accessToken = jwt.generateAccessToken(cliente.getUsuario().getEmail());
             String refreshToken = jwt.generateRefreshToken(cliente.getId(), cliente.getUsuario().getEmail());
-
-            // Cria cookie HttpOnly para o refreshToken
-            ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(false)          // usar true em produção com HTTPS
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Lax")
-                .build();
-            servletResponse.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
-            LoginResponse body = new LoginResponse(
-                accessToken,
-                null,                   // refreshToken já está no cookie
-                cliente.getUsuario().getNome(),
-                "CLIENTE",
-                cliente.getId(),
-                cliente.getUsuario().getEmail()
-            );
-            return ResponseEntity.ok(body);
+            return ResponseEntity.ok(new LoginResponse(
+                accessToken, refreshToken,
+                cliente.getUsuario().getNome(), "CLIENTE",
+                cliente.getId(), cliente.getUsuario().getEmail()
+            ));
         }
-
-        // Verifica se é Restaurante
         Restaurante restaurante = repoRestaurante.findByUsuarioEmail(email);
         if (restaurante != null && BCrypt.checkpw(senha, restaurante.getUsuario().getSenha())) {
-            String accessToken  = jwt.generateAccessToken(restaurante.getEmail());
+            String accessToken = jwt.generateAccessToken(restaurante.getEmail());
             String refreshToken = jwt.generateRefreshToken(restaurante.getId(), restaurante.getEmail());
-
-            // Cria cookie HttpOnly para o refreshToken
-            ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Lax")
-                .build();
-            servletResponse.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
-            LoginResponse body = new LoginResponse(
-                accessToken,
-                null,
-                restaurante.getNome(),
-                "RESTAURANTE",
-                restaurante.getId(),
-                restaurante.getEmail()
-            );
-            return ResponseEntity.ok(body);
+            return ResponseEntity.ok(new LoginResponse(
+                accessToken, refreshToken,
+                restaurante.getNome(), "RESTAURANTE",
+                restaurante.getId(), restaurante.getEmail()
+            ));
         }
-
-        // Credenciais inválidas
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(new LoginResponse("", "", "", "", null, email));
+        return ResponseEntity.status(401).body("Credenciais inválidas.");
     }
-
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
