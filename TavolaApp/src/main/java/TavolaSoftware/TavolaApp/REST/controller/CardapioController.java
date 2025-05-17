@@ -72,8 +72,11 @@ public class CardapioController {
         // Processa imagem do cardápio se houver
         if (cardapio.getImagem() != null && !cardapio.getImagem().isEmpty()) {
             try {
-                uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), salvo.getId());
-                salvo = serv.save(salvo);
+                // Verifica se a imagem é um caminho de arquivo
+                if (!cardapio.getImagem().startsWith("/upl/")) {
+                    uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), salvo.getId());
+                    salvo = serv.save(salvo);
+                }
             } catch (IOException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
@@ -200,8 +203,11 @@ public class CardapioController {
         // Processa imagem do cardápio se houver
         if (cardapio.getImagem() != null && !cardapio.getImagem().isEmpty()) {
             try {
-                uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), salvo.getId());
-                salvo = serv.save(salvo);
+                // Verifica se a imagem é um caminho de arquivo
+                if (!cardapio.getImagem().startsWith("/upl/")) {
+                    uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), salvo.getId());
+                    salvo = serv.save(salvo);
+                }
             } catch (IOException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
