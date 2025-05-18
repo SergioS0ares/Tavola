@@ -16,6 +16,8 @@
     </button>
   </div>
 
+  <span *ngIf="mensagemSucesso" class="mensagem-sucesso">{{ mensagemSucesso }}</span>
+
   <!-- grid de cards agrupados por categoria -->
   <ng-container *ngFor="let categoria of categoriasComItens">
     <div class="categoria-section" *ngIf="categoria.itens.length > 0">
@@ -25,7 +27,9 @@
           <div class="card-image">
             <img mat-card-image [src]="item.imagem || defaultImg" alt="{{ item.nome }}" />
             <div class="card-tags">
-              <span *ngFor="let tag of item.tags" class="tag">{{ tag }}</span>
+              <span *ngFor="let tag of item.tags" class="tag">
+                {{ tag.tag || tag }}
+              </span>
             </div>
             <div class="status-badges">
               <span class="badge indisponivel" *ngIf="!item.disponivel">Indisponível</span>

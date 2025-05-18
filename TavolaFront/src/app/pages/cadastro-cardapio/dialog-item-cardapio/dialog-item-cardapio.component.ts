@@ -153,9 +153,7 @@ export class DialogItemCardapioComponent {
 
   /** Salva criando ou atualizando via serviço */
   salvar() {
-    if (this.form.invalid) {
-      return;
-    }
+    if (this.form.invalid) return;
     const formValue = this.form.value;
     const categoria = formValue.categoriaInput as Categoria;
 
@@ -173,7 +171,7 @@ export class DialogItemCardapioComponent {
       this.service.adicionarItem(itemToSave).subscribe({
         next: (res) => {
           if (res && res.id) {
-            this.dialogRef.close(true);
+            this.dialogRef.close(res);
           }
         },
         error: () => {
@@ -187,8 +185,8 @@ export class DialogItemCardapioComponent {
       });
     } else if (this.data.item?.id) {
       this.service.atualizarItem(this.data.item.id, itemToSave).subscribe({
-        next: () => {
-          this.dialogRef.close(true);
+        next: (res) => {
+          this.dialogRef.close(res);
         },
         error: () => {
           Swal.fire({

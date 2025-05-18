@@ -58,7 +58,7 @@ public class CardapioResponse {
     	return imagem;
     }
     
-    public boolean getDesponivel() {
+    public boolean getDisponivel() {
     	return disponivel;
     }
     

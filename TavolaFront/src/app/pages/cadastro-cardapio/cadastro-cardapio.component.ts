@@ -12,6 +12,8 @@ import { IItemCardapio } from '../../Interfaces/IItem-cardapio';
 import { ICategoriaComItens } from '../../Interfaces/ICategoriaComItens.interface';
 import { DialogItemCardapioComponent } from './dialog-item-cardapio/dialog-item-cardapio.component';
 import Swal from 'sweetalert2';
+import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-cadastro-cardapio',
@@ -33,6 +35,7 @@ import Swal from 'sweetalert2';
 export class CadastroCardapioComponent implements OnInit {
   private service = inject(CardapioService);
   private dialog  = inject(MatDialog);
+  private toastr = inject(ToastrService);
 
   itens: IItemCardapio[] = [];
   defaultImg = 'assets/png/placeholder.png';
@@ -47,6 +50,8 @@ export class CadastroCardapioComponent implements OnInit {
 
   categoriasComItens: ICategoriaComItens[] = [];
 
+  mensagemSucesso = '';
+
   ngOnInit() {
     this.carregarItens();
   }
@@ -54,7 +59,18 @@ export class CadastroCardapioComponent implements OnInit {
   private carregarItens() {
     this.service.listarItens().subscribe({
       next: (itens) => {
-        this.itens = itens;
+        this.itens = itens.map(item => ({
+          ...item,
+          categoria: typeof item.categoria === 'string'
+            ? { nome: item.categoria }
+            : item.categoria,
+          tags: (item.tags || []).map((t: any) =>
+            typeof t === 'string' ? { tag: t } : t
+          ),
+          imagem: item.imagem && !item.imagem.startsWith('http')
+            ? `${environment.apiUrl}${item.imagem}`
+            : item.imagem
+        }));
         this.atualizarCategoriasComItens();
       },
       error: (erro) => {
@@ -68,7 +84,7 @@ export class CadastroCardapioComponent implements OnInit {
   private atualizarCategoriasComItens() {
     this.categoriasComItens = this.categorias.map(cat => ({
       ...cat,
-      itens: this.itens.filter(item => item.categoria.nome === cat.nome)
+      itens: this.itens.filter(item => item.categoria && item.categoria.nome === cat.nome)
     }));
   }
 
@@ -85,7 +101,18 @@ export class CadastroCardapioComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.carregarItens();
+        const novoItem = {
+          ...result,
+          categoria: typeof result.categoria === 'string'
+            ? { nome: result.categoria }
+            : result.categoria,
+          tags: (result.tags || []).map((t: any) =>
+            typeof t === 'string' ? { tag: t } : t
+          )
+        };
+        this.itens.push(novoItem);
+        this.atualizarCategoriasComItens();
+        this.toastr.success('Item adicionado com sucesso!');
       }
     });
   }
@@ -105,20 +132,14 @@ export class CadastroCardapioComponent implements OnInit {
 
   toggleDisponibilidade(item: IItemCardapio) {
     if (!item.id) return;
-    
     const itemAtualizado = { ...item, disponivel: !item.disponivel };
     this.service.atualizarItem(item.id, itemAtualizado).subscribe({
       next: () => {
         this.carregarItens();
+        this.toastr.success('Disponibilidade atualizada!');
       },
-      error: (erro) => {
-        console.error('Erro ao atualizar disponibilidade:', erro);
-        Swal.fire({
-          title: 'Erro!',
-          text: 'Não foi possível atualizar a disponibilidade do item.',
-          icon: 'error',
-          confirmButtonColor: '#F6BD38'
-        });
+      error: () => {
+        this.toastr.error('Não foi possível atualizar a disponibilidade.');
       }
     });
   }

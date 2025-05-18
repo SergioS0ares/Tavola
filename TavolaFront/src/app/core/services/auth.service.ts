@@ -8,7 +8,7 @@ export interface Perfil {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _perfil: Perfil | null = null;
-  private readonly TOKEN_KEY = 'accessToken';
+  private readonly TOKEN_KEY = 'token';
   private _token: string | null = null;
 
   constructor() {
@@ -18,15 +18,17 @@ export class AuthService {
   }
   setToken(token: string) {
     this._token = token;
+    localStorage.setItem(this.TOKEN_KEY, token);
   }
 
   getToken(): string | null {
-    return this._token;
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   clearToken() {
     this._token = null;
     this._perfil = null;
+    localStorage.removeItem(this.TOKEN_KEY);
   }
 
   setPerfil(perfil: Perfil) {
