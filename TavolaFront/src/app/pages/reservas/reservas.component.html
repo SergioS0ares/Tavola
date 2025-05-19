@@ -1,49 +1,345 @@
 <div class="reservas-container">
-  <!-- Título e Tabs -->
-  <mat-card class="main-card">
-    <mat-tab-group>
-      <mat-tab label="Reservations">
-        <div class="reservations-section">
-          <mat-list>
-            <mat-list-item *ngFor="let reserva of reservas" (click)="selecionarReserva(reserva)">
-              <div mat-line>{{ reserva.nome }}</div>
-              <div mat-line>
-                <span>{{ reserva.pessoas }} pessoas</span> · 
-                <span>{{ reserva.mesas }}</span> · 
-                <span>{{ reserva.horario }}</span>
-              </div>
-            </mat-list-item>
-          </mat-list>
-        </div>
-      </mat-tab>
-      <mat-tab label="Waitlist">
-        <p>Waitlist aqui...</p>
-      </mat-tab>
-      <mat-tab label="Servers">
-        <p>Servers aqui...</p>
-      </mat-tab>
-    </mat-tab-group>
-  </mat-card>
+  <!-- Cabeçalho -->
+  <div class="reservas-header">
+    <div class="restaurante-info">
+      <h2>Bem-vindo ao <span class="restaurante-nome">Demo Restaurant</span></h2>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="data-picker">
+        <input matInput [matDatepicker]="picker" [value]="dataAtual">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+      <button mat-stroked-button>
+        <mat-icon>block</mat-icon>
+        Bloqueio
+      </button>
+      <button mat-icon-button>
+        <mat-icon>print</mat-icon>
+      </button>
+    </div>
+  </div>
 
-  <!-- Detalhes da Reserva Selecionada -->
-  <mat-card class="details-card" *ngIf="reservaSelecionada">
-    <mat-card-title>Reservations Details</mat-card-title>
-    <mat-card-content>
-      <div class="details-row">
-        <img [src]="reservaSelecionada.foto" alt="Foto" class="reserva-foto" />
-        <div>
-          <div><strong>{{ reservaSelecionada.nome }}</strong></div>
-          <div>{{ reservaSelecionada.email }}</div>
-          <div>{{ reservaSelecionada.telefone }}</div>
+  <!-- Conteúdo Principal -->
+  <div class="reservas-content">
+    <!-- Painel Lateral de Reservas -->
+    <div class="reservas-sidebar" [class.hidden]="mostrarDetalhes">
+      <!-- Abas -->
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span class="tab-label">Reservas</span>
+            <span class="tab-badge">{{ reservas.length }}</span>
+          </ng-template>
+          
+          <!-- Barra de Pesquisa -->
+          <div class="search-bar">
+            <mat-form-field appearance="outline">
+              <input matInput placeholder="Buscar aqui" [(ngModel)]="pesquisa">
+              <button mat-icon-button matSuffix>
+                <mat-icon>search</mat-icon>
+              </button>
+            </mat-form-field>
+            <button mat-icon-button>
+              <mat-icon>filter_list</mat-icon>
+            </button>
+          </div>
+          
+          <!-- Lista de Reservas -->
+          <div class="reservas-list">
+            <!-- Almoço -->
+            <div class="periodo-section">
+              <h3>Almoço</h3>
+              <div class="reserva-cards">
+                <mat-card *ngFor="let reserva of reservasAlmoco" class="reserva-card" (click)="selecionarReserva(reserva.id)">
+                  <div class="reserva-info">
+                    <div class="cliente-info">
+                      <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
+                      <div class="reserva-detalhes">
+                        <span class="pessoas-info">
+                          <mat-icon>person</mat-icon>
+                          {{ reserva.pessoas }} Pessoa(s)
+                        </span>
+                        <span class="mesa-info">
+                          <mat-icon>table_restaurant</mat-icon>
+                          {{ reserva.mesa }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="reserva-acoes">
+                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada'}" matTooltip="Status">
+                        <mat-icon>check_circle</mat-icon>
+                      </button>
+                      <div class="horario">
+                        {{ reserva.horario }}
+                      </div>
+                    </div>
+                  </div>
+                </mat-card>
+                <div *ngIf="reservasAlmoco.length === 0" class="sem-reservas">
+                  <nz-empty nzDescription="Sem reservas para o almoço"></nz-empty>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Jantar -->
+            <div class="periodo-section">
+              <h3>Jantar</h3>
+              <div class="reserva-cards">
+                <mat-card *ngFor="let reserva of reservasJantar" class="reserva-card" (click)="selecionarReserva(reserva.id)">
+                  <div class="reserva-info">
+                    <div class="cliente-info">
+                      <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
+                      <div class="reserva-detalhes">
+                        <span class="pessoas-info">
+                          <mat-icon>person</mat-icon>
+                          {{ reserva.pessoas }} Pessoa(s)
+                        </span>
+                        <span class="mesa-info">
+                          <mat-icon>table_restaurant</mat-icon>
+                          {{ reserva.mesa }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="reserva-acoes">
+                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada'}" matTooltip="Status">
+                        <mat-icon>check_circle</mat-icon>
+                      </button>
+                      <div class="horario">
+                        {{ reserva.horario }}
+                      </div>
+                    </div>
+                  </div>
+                </mat-card>
+                <div *ngIf="reservasJantar.length === 0" class="sem-reservas">
+                  <nz-empty nzDescription="Sem reservas para o jantar"></nz-empty>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span class="tab-label">Lista de Espera</span>
+          </ng-template>
+          <div class="tab-content">
+            <nz-empty nzDescription="Lista de espera vazia"></nz-empty>
+          </div>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span class="tab-label">Garçons</span>
+          </ng-template>
+          <div class="tab-content">
+            <nz-empty nzDescription="Nenhum garçom disponível"></nz-empty>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+    
+    <!-- Detalhes da Reserva (Drawer) -->
+    <nz-drawer
+      [nzVisible]="mostrarDetalhes"
+      [nzWidth]="600"
+      [nzClosable]="false"
+      [nzMaskClosable]="true"
+      (nzOnClose)="fecharDetalhes()"
+      nzPlacement="right"
+    >
+      <ng-container *nzDrawerContent>
+        <div class="reserva-detalhes-container" *ngIf="reservaSelecionadaId">
+          <div class="detalhes-header">
+            <button mat-icon-button (click)="fecharDetalhes()">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Voltar</span>
+            </button>
+            <h2>Detalhes da Reserva</h2>
+            <button mat-icon-button color="warn">
+              <mat-icon>delete</mat-icon>
+              <span>Excluir</span>
+            </button>
+          </div>
+          
+          <ng-container *ngIf="getReservaPorId(reservaSelecionadaId) as reserva">
+            <ng-container *ngIf="getClientePorId(reserva.clienteId) as cliente">
+              <!-- Informações do Cliente -->
+              <div class="cliente-detalhes">
+                <div class="cliente-header">
+                  <nz-avatar [nzSize]="64" [nzSrc]="cliente.avatar"></nz-avatar>
+                  <div class="cliente-info-principal">
+                    <h3>{{ cliente.nome }}</h3>
+                    <div class="cliente-contato">
+                      <div class="contato-item">
+                        <mat-icon>email</mat-icon>
+                        <span>{{ cliente.email }}</span>
+                      </div>
+                      <div class="contato-item">
+                        <mat-icon>phone</mat-icon>
+                        <span>{{ cliente.telefone }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cliente-id">
+                    <span>ID: #56481654</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Estatísticas -->
+              <div class="estatisticas">
+                <h3>Informações</h3>
+                <div class="estatisticas-grid">
+                  <div class="estatistica-item">
+                    <div class="estatistica-valor">{{ cliente.historico.proximas.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-label">Próximas</div>
+                  </div>
+                  <div class="estatistica-item">
+                    <div class="estatistica-valor">{{ cliente.historico.negadas.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-label">Negadas</div>
+                  </div>
+                  <div class="estatistica-item">
+                    <div class="estatistica-valor">{{ cliente.historico.canceladas.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-label">Canceladas</div>
+                  </div>
+                  <div class="estatistica-item">
+                    <div class="estatistica-valor">{{ cliente.historico.naoCompareceu.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-label">Não Compareceu</div>
+                  </div>
+                  <div class="estatistica-item">
+                    <div class="estatistica-valor">{{ cliente.historico.gastoMedio.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-label">Gasto/Pessoa</div>
+                  </div>
+                  <div class="estatistica-item">
+                    <div class="estatistica-valor">{{ cliente.historico.gastoTotal.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-label">Gasto Total</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Abas de Detalhes -->
+              <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="detalhes-tabs">
+                <mat-tab label="Detalhes">
+                  <div class="detalhes-content">
+                    <!-- Detalhes Pessoais -->
+                    <div class="secao-detalhes">
+                      <div class="secao-header">
+                        <h4>Detalhes pessoais</h4>
+                        <button mat-icon-button color="primary">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                      </div>
+                      
+                      <!-- Informações da Reserva -->
+                      <div class="info-grid">
+                        <div class="info-row">
+                          <div class="info-label">Preferência</div>
+                          <div class="info-valor">{{ reserva.desconto }}</div>
+                        </div>
+                        <div class="info-row">
+                          <div class="info-label">Oferta</div>
+                          <div class="info-valor">{{ reserva.oferta }}</div>
+                        </div>
+                        <div class="info-row">
+                          <div class="info-label">Status</div>
+                          <div class="info-valor">
+                            <nz-tag [nzColor]="'green'">Confirmada</nz-tag>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="info-grid">
+                        <div class="info-row">
+                          <div class="info-label">Data</div>
+                          <div class="info-valor">
+                            <div class="data-com-icone">
+                              <span>{{ formatarData(reserva.data) }}</span>
+                              <mat-icon>calendar_today</mat-icon>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="info-row">
+                          <div class="info-label">Horário</div>
+                          <div class="info-valor">
+                            <div class="data-com-icone">
+                              <span>{{ reserva.horario }}</span>
+                              <mat-icon>access_time</mat-icon>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="info-row">
+                          <div class="info-label">Pessoas</div>
+                          <div class="info-valor">{{ reserva.pessoas }}</div>
+                        </div>
+                      </div>
+                      
+                      <div class="info-grid">
+                        <div class="info-row">
+                          <div class="info-label">Duração</div>
+                          <div class="info-valor">
+                            <div class="data-com-icone">
+                              <span>{{ reserva.duracao }}</span>
+                              <mat-icon>access_time</mat-icon>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="info-row">
+                          <div class="info-label">Mesa</div>
+                          <div class="info-valor">{{ reserva.mesa }}</div>
+                        </div>
+                      </div>
+                      
+                      <!-- Comentários e Notas -->
+                      <div class="comentarios-notas">
+                        <div class="comentarios">
+                          <h5>Comentários</h5>
+                          <p>{{ reserva.comentarios }}</p>
+                        </div>
+                        <div class="notas">
+                          <h5>Notas</h5>
+                          <p>{{ reserva.notas }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </mat-tab>
+                <mat-tab label="Mensagens">
+                  <div class="tab-content">
+                    <nz-empty nzDescription="Nenhuma mensagem disponível"></nz-empty>
+                  </div>
+                </mat-tab>
+                <mat-tab label="Pagamento">
+                  <div class="tab-content">
+                    <nz-empty nzDescription="Nenhum pagamento registrado"></nz-empty>
+                  </div>
+                </mat-tab>
+                <mat-tab label="PDV">
+                  <div class="tab-content">
+                    <nz-empty nzDescription="Nenhuma informação de PDV disponível"></nz-empty>
+                  </div>
+                </mat-tab>
+              </mat-tab-group>
+            </ng-container>
+          </ng-container>
+        </div>
+      </ng-container>
+    </nz-drawer>
+    
+    <!-- Visualização de Mesas -->
+    <div class="mesas-container" [class.reduzido]="mostrarDetalhes">
+      <!-- Abas de Áreas -->
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarArea($event.tab.textLabel)">
+        <mat-tab *ngFor="let area of areas" [label]="area"></mat-tab>
+      </mat-tab-group>
+      
+      <!-- Grid de Mesas -->
+      <div class="mesas-grid">
+        <div *ngFor="let mesa of getMesasPorArea(areaAtiva)" 
+             class="mesa" 
+             [ngClass]="{'mesa-circular': mesa.tipo === 'circular', 'mesa-vip': mesa.vip, 'mesa-ocupada': mesa.ocupada}"
+             (click)="selecionarMesa(mesa)">
+          <div class="mesa-numero">{{ mesa.numero }}</div>
         </div>
       </div>
-      <mat-divider></mat-divider>
-      <div class="details-info">
-        <div>Persons: {{ reservaSelecionada.pessoas }}</div>
-        <div>Table: {{ reservaSelecionada.mesas }}</div>
-        <div>Time: {{ reservaSelecionada.horario }}</div>
-        <div>Status: {{ reservaSelecionada.status }}</div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>
