@@ -51,11 +51,11 @@ import {
   NzConfigService
 } from "./chunk-OQEB3FQA.js";
 import {
-  warn
-} from "./chunk-4OXNTDIN.js";
-import {
   DomSanitizer
 } from "./chunk-ODPRINZA.js";
+import {
+  warn
+} from "./chunk-4OXNTDIN.js";
 import {
   HttpBackend,
   HttpClient
@@ -1661,4 +1661,4 @@ export {
   provideNzIconsPatch,
   NzIconModule
 };
-//# sourceMappingURL=chunk-OPPET6GO.js.map
+//# sourceMappingURL=chunk-FCYFHWGQ.js.map

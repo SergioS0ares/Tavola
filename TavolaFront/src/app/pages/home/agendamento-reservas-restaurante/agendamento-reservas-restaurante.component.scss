@@ -1,20 +1,23 @@
 // Variáveis
-$primary-color: #d84315; // Cor laranja do seu app
-$text-color: #333;
+$primary-color: #F6BD38; // Amarelo
+$accent-color: #DA4A24; // Laranja
+$text-color: #3B221B; // Marrom escuro
 $light-gray: #f5f5f5;
 $medium-gray: #e0e0e0;
 $dark-gray: #757575;
 $white: #fff;
-$border-radius: 8px; // Aumentei para bordas mais arredondadas
+$border-radius: 16px; // Bordas mais arredondadas
 
-// Container principal (mantido do seu código original)
+// Container principal
 .container-rounded {
-  background: #fff;
+  background: $white;
   border-radius: 24px;
-  padding: 32px;
-  margin: 32px auto;
-  max-width: 1100px;
+  padding: 24px;
+  margin: 24px auto;
+  max-width: 1200px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  color: $text-color;
+  position: relative;
 }
 
 // Breadcrumb
@@ -23,16 +26,17 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
   
   ::ng-deep .ant-breadcrumb-link {
     a {
-      color: $primary-color;
+      color: $text-color;
       text-decoration: none;
       
       &:hover {
-        text-decoration: underline;
+        color: $primary-color;
       }
     }
     
     i {
       margin-right: 4px;
+      color: $text-color;
     }
   }
 }
@@ -48,21 +52,22 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
     margin-bottom: 16px;
     
     .restaurant-title {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       margin: 0;
+      color: $text-color;
     }
     
     .favorite-button {
-      color: $dark-gray;
+      color: $text-color;
       border: 1px solid $medium-gray;
       
       &:hover {
-        color: $primary-color;
+        color: $accent-color;
       }
       
       i[nzTheme="fill"] {
-        color: $primary-color;
+        color: $accent-color;
       }
     }
   }
@@ -75,7 +80,7 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       
       i {
         margin-right: 8px;
-        color: $dark-gray;
+        color: $text-color;
       }
     }
     
@@ -95,7 +100,7 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       }
       
       .reviews-count {
-        color: $dark-gray;
+        color: rgba(59, 34, 27, 0.7);
         font-size: 14px;
       }
     }
@@ -118,11 +123,17 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       grid-row: 1 / span 2;
       border-radius: $border-radius;
       overflow: hidden;
+      cursor: pointer;
       
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
       }
     }
     
@@ -131,11 +142,17 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       grid-row: 1 / span 2;
       border-radius: $border-radius;
       overflow: hidden;
+      cursor: pointer;
       
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
       }
     }
     
@@ -144,11 +161,17 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       grid-row: 1;
       border-radius: $border-radius;
       overflow: hidden;
+      cursor: pointer;
       
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
       }
     }
     
@@ -157,11 +180,17 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       grid-row: 2;
       border-radius: $border-radius;
       overflow: hidden;
+      cursor: pointer;
       
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
       }
     }
     
@@ -177,6 +206,7 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.3s ease;
       }
       
       .more-overlay {
@@ -201,20 +231,28 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
 // Abas de Navegação
 .navigation-tabs {
   margin-bottom: 24px;
+  background-color: $white;
+  border-radius: $border-radius;
+  z-index: 100;
   
-  ::ng-deep .ant-tabs-tab {
-    padding: 12px 16px;
-    font-weight: 500;
-    
-    &.ant-tabs-tab-active {
-      .ant-tabs-tab-btn {
+  &.fixed {
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  ::ng-deep {
+    .mat-mdc-tab {
+      color: $text-color;
+      
+      &.mdc-tab--active {
         color: $primary-color;
       }
     }
-  }
-  
-  ::ng-deep .ant-tabs-ink-bar {
-    background-color: $primary-color;
+    
+    .mdc-tab-indicator__content--underline {
+      border-color: $primary-color;
+    }
   }
 }
 
@@ -225,6 +263,125 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
   
   .content-column {
     flex: 2;
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      color: $text-color;
+    }
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 12px;
+      color: $text-color;
+    }
+    
+    p {
+      line-height: 1.6;
+      color: rgba(59, 34, 27, 0.9);
+      margin-bottom: 16px;
+    }
+    
+    // Seção Sobre
+    .sobre-content {
+      .descricao-section {
+        margin-bottom: 32px;
+      }
+      
+      .localizacao-section {
+        margin-bottom: 32px;
+        
+        .mapa-container {
+          border-radius: $border-radius;
+          overflow: hidden;
+          margin-bottom: 16px;
+        }
+        
+        .endereco-completo {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+          
+          p {
+            margin: 0;
+          }
+          
+          button {
+            color: $primary-color;
+            border-color: $primary-color;
+            
+            mat-icon {
+              margin-right: 8px;
+            }
+          }
+        }
+        
+        .transporte-section {
+          margin-top: 16px;
+          
+          .transporte-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            
+            i {
+              margin-right: 8px;
+              color: $text-color;
+            }
+          }
+        }
+      }
+      
+      .mais-detalhes-section {
+        .horarios-section {
+          margin-bottom: 24px;
+          
+          .horarios-lista {
+            margin-bottom: 16px;
+          }
+          
+          .horario-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(59, 34, 27, 0.1);
+            
+            .dia {
+              font-weight: 500;
+            }
+            
+            .horas {
+              color: rgba(59, 34, 27, 0.8);
+            }
+          }
+          
+          .mostrar-mais {
+            color: $primary-color;
+          }
+        }
+        
+        .recursos-section {
+          .recursos-lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            
+            .recurso-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              
+              mat-icon {
+                color: $primary-color;
+              }
+            }
+          }
+        }
+      }
+    }
   }
   
   .booking-column {
@@ -233,6 +390,8 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
     .booking-card {
       background-color: $light-gray;
       border-radius: $border-radius;
+      position: sticky;
+      top: 80px;
       
       ::ng-deep .ant-card-meta-title {
         margin-bottom: 0;
@@ -242,6 +401,7 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
         font-size: 24px;
         font-weight: 700;
         margin: 0;
+        color: $text-color;
       }
       
       .free-text {
@@ -264,10 +424,12 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
           width: 100%;
           background-color: $primary-color;
           border-color: $primary-color;
+          color: $text-color;
+          font-weight: 600;
           
           &:hover {
-            background-color: darken($primary-color, 10%);
-            border-color: darken($primary-color, 10%);
+            background-color: darken($primary-color, 5%);
+            border-color: darken($primary-color, 5%);
           }
         }
       }
@@ -296,6 +458,40 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
   }
 }
 
+// Modal de Horários
+.horarios-descricao {
+  margin-bottom: 16px;
+  color: $text-color;
+}
+
+.horarios-lista-completa {
+  .horario-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(59, 34, 27, 0.1);
+    
+    .dia {
+      font-weight: 500;
+      color: $text-color;
+    }
+    
+    .horas {
+      color: rgba(59, 34, 27, 0.8);
+    }
+  }
+}
+
+// Botão de voltar ao topo
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99;
+  background-color: $primary-color;
+  color: $text-color;
+}
+
 // Responsividade
 @media (max-width: 992px) {
   .photo-gallery {
@@ -314,13 +510,37 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       }
     }
   }
+  
+  .content-area {
+    flex-direction: column;
+    
+    .booking-column {
+      .booking-card {
+        position: static;
+      }
+    }
+  }
 }
 
 @media (max-width: 768px) {
+  .container-rounded {
+    padding: 16px;
+    margin: 16px;
+    border-radius: 16px;
+  }
+  
+  .restaurant-header {
+    .title-row {
+      .restaurant-title {
+        font-size: 24px;
+      }
+    }
+  }
+  
   .photo-gallery {
     .gallery-grid {
       grid-template-columns: 1fr;
-      grid-template-rows: auto;
+      grid-template-rows: auto auto auto;
       height: auto;
       
       .main-photo {
@@ -329,22 +549,27 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
       }
       
       .medium-photo {
-        display: none;
+        grid-column: 1;
+        grid-row: 2;
+        height: 150px;
       }
       
       .more-photos {
         grid-column: 1;
-        grid-row: 2;
+        grid-row: 3;
         height: 60px;
       }
     }
   }
   
-  .content-area {
-    flex-direction: column;
-    
-    .content-column {
-      margin-bottom: 24px;
+  .localizacao-section {
+    .endereco-completo {
+      flex-direction: column;
+      align-items: flex-start !important;
+      
+      button {
+        margin-top: 12px;
+      }
     }
   }
   
@@ -357,8 +582,14 @@ $border-radius: 8px; // Aumentei para bordas mais arredondadas
 
 @media (max-width: 480px) {
   .full-gallery {
-    .gallery-grid-modal {
+    .gallery-grid-modal { 
       grid-template-columns: 1fr;
+    }
+  }
+  
+  .recursos-section {
+    .recursos-lista {
+      grid-template-columns: 1fr !important;
     }
   }
 }

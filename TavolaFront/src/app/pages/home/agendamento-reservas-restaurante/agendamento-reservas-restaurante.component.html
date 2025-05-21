@@ -1,168 +1,269 @@
 <div class="container-rounded">
-    <!-- Breadcrumb -->
-    <nz-breadcrumb class="breadcrumb">
-      <nz-breadcrumb-item>
-        <a routerLink="/home">
-          <i nz-icon nzType="home" nzTheme="outline"></i>
-        </a>
-      </nz-breadcrumb-item>
-      <nz-breadcrumb-item>
-        <a routerLink="/home">Restaurantes</a>
-      </nz-breadcrumb-item>
-      <nz-breadcrumb-item>{{ restaurante?.nome }}</nz-breadcrumb-item>
-    </nz-breadcrumb>
-  
-    <!-- Cabeçalho do Restaurante -->
-    <div class="restaurant-header">
-      <div class="title-row">
-        <h1 class="restaurant-title">{{ restaurante?.nome }}</h1>
-        <button nz-button nzType="default" nzShape="circle" class="favorite-button" (click)="toggleFavorite()">
-          <i nz-icon [nzType]="isFavorite ? 'heart' : 'heart'" [nzTheme]="isFavorite ? 'fill' : 'outline'"></i>
-        </button>
+  <!-- Breadcrumb -->
+  <nz-breadcrumb class="breadcrumb">
+    <nz-breadcrumb-item>
+      <a routerLink="/home">
+        <i nz-icon nzType="home" nzTheme="outline"></i>
+      </a>
+    </nz-breadcrumb-item>
+    <nz-breadcrumb-item>
+      <a routerLink="/restaurantes">Restaurantes</a>
+    </nz-breadcrumb-item>
+    <nz-breadcrumb-item>{{ restaurante?.nome }}</nz-breadcrumb-item>
+  </nz-breadcrumb>
+
+  <!-- Cabeçalho do Restaurante -->
+  <div class="restaurant-header">
+    <div class="title-row">
+      <h1 class="restaurant-title">{{ restaurante?.nome }}</h1>
+      <button nz-button nzType="default" nzShape="circle" class="favorite-button" (click)="toggleFavorite()">
+        <i nz-icon [nzType]="'heart'" [nzTheme]="isFavorite ? 'fill' : 'outline'"></i>
+      </button>
+    </div>
+    
+    <div class="restaurant-info">
+      <div class="info-item">
+        <i nz-icon nzType="environment" nzTheme="outline"></i>
+        <span>{{ restaurante?.endereco }}, {{ restaurante?.cidade }} - {{ restaurante?.estado }}</span>
       </div>
       
-      <div class="restaurant-info">
-        <div class="info-item">
-          <i nz-icon nzType="environment" nzTheme="outline"></i>
-          <span>27 Rue Aubry le Boucher, 75004, Paris</span>
-        </div>
-        
-        <div class="info-item">
-          <i nz-icon nzType="flag" nzTheme="outline"></i>
-          <span>Francês · Preço médio €22</span>
-        </div>
-        
-        <div class="info-item rating">
-          <nz-rate [ngModel]="restaurante?.avaliacao" nzDisabled [nzCount]="5"></nz-rate>
-          <span class="rating-value">{{ restaurante?.avaliacao }}</span>
-          <span class="reviews-count" *ngIf="restaurante?.totalAvaliacoes">({{ restaurante?.totalAvaliacoes }} avaliações)</span>
+      <div class="info-item">
+        <i nz-icon nzType="flag" nzTheme="outline"></i>
+        <span>{{ restaurante?.tipoCozinha }} · Preço médio {{ restaurante?.precoMedio | currency:'BRL' }}</span>
+      </div>
+      
+      <div class="info-item rating">
+        <nz-rate [ngModel]="restaurante?.avaliacao" nzDisabled [nzCount]="5"></nz-rate>
+        <span class="rating-value">{{ restaurante?.avaliacao }}</span>
+        <span class="reviews-count" *ngIf="restaurante?.totalAvaliacoes">({{ restaurante?.totalAvaliacoes }} avaliações)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Galeria de Fotos -->
+  <div class="photo-gallery">
+    <div class="gallery-grid">
+      <!-- Foto Principal (Grande) -->
+      <div class="main-photo" (click)="openGallery()">
+        <img [src]="restaurantImages[0]" alt="Interior do restaurante">
+      </div>
+      
+      <!-- Foto Média -->
+      <div class="medium-photo" (click)="openGallery()">
+        <img [src]="restaurantImages[1]" alt="Prato do restaurante">
+      </div>
+      
+      <!-- Foto Pequena Superior -->
+      <div class="small-photo-top" (click)="openGallery()">
+        <img [src]="restaurantImages[2]" alt="Detalhe do restaurante">
+      </div>
+      
+      <!-- Foto Pequena Inferior -->
+      <div class="small-photo-bottom" (click)="openGallery()">
+        <img [src]="restaurantImages[3]" alt="Ambiente do restaurante">
+      </div>
+      
+      <!-- Botão Ver Mais Fotos -->
+      <div class="more-photos" (click)="openGallery()">
+        <img [src]="restaurantImages[4]" alt="Mais fotos">
+        <div class="more-overlay">
+          <span>Veja outras {{ totalPhotos }} fotos</span>
         </div>
       </div>
     </div>
-  
-    <!-- Galeria de Fotos -->
-    <div class="photo-gallery">
-      <nz-image-group>
-        <div class="gallery-grid">
-          <!-- Foto Principal (Grande) -->
-          <div class="main-photo">
-            <img nz-image [nzSrc]="restaurantImages[0]" alt="Interior do restaurante">
+  </div>
+
+  <!-- Abas de Navegação -->
+  <div #tabsContainer class="navigation-tabs" [class.fixed]="tabFixo">
+    <mat-tab-group (selectedIndexChange)="onTabChange($event)" [selectedIndex]="activeTabIndex">
+      <mat-tab label="Sobre"></mat-tab>
+      <mat-tab label="Menu"></mat-tab>
+      <mat-tab label="Avaliações"></mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- Área de Conteúdo -->
+  <div class="content-area">
+    <!-- Coluna de Conteúdo -->
+    <div class="content-column">
+      <!-- Conteúdo da aba Sobre -->
+      <div *ngIf="activeTabIndex === 0" class="sobre-content">
+        <!-- Descrição do Restaurante -->
+        <div class="descricao-section">
+          <h2>Sobre o restaurante</h2>
+          <p>{{ restaurante?.descricao }}</p>
+        </div>
+        
+        <!-- Localização -->
+        <div class="localizacao-section">
+          <h2>Localização</h2>
+          <div class="mapa-container">
+            <google-map [center]="center" [zoom]="zoom" height="300px" width="100%">
+              <map-marker [position]="markerPosition" [options]="markerOptions"></map-marker>
+            </google-map>
+          </div>
+          <div class="endereco-completo">
+            <p>{{ restaurante?.endereco }}, {{ restaurante?.cidade }} - {{ restaurante?.estado }}, {{ restaurante?.cep }}</p>
+            <button mat-stroked-button color="primary">
+              <mat-icon>directions</mat-icon>
+              Como chegar
+            </button>
           </div>
           
-          <!-- Foto Média -->
-          <div class="medium-photo">
-            <img nz-image [nzSrc]="restaurantImages[1]" alt="Prato do restaurante">
-          </div>
-          
-          <!-- Foto Pequena Superior -->
-          <div class="small-photo-top">
-            <img nz-image [nzSrc]="restaurantImages[2]" alt="Detalhe do restaurante">
-          </div>
-          
-          <!-- Foto Pequena Inferior -->
-          <div class="small-photo-bottom">
-            <img nz-image [nzSrc]="restaurantImages[3]" alt="Ambiente do restaurante">
-          </div>
-          
-          <!-- Botão Ver Mais Fotos -->
-          <div class="more-photos" (click)="openGallery()">
-            <img nz-image [nzSrc]="restaurantImages[4]" alt="Mais fotos">
-            <div class="more-overlay">
-              <span>Veja outras {{ totalPhotos }} fotos</span>
+          <!-- Transporte Público -->
+          <div class="transporte-section">
+            <div class="transporte-item">
+              <nz-icon nzType="car" nzTheme="outline" />
+              <span>Châtelet, Les Halles, Rambuteau, Étienne Marcel</span>
+            </div>
+            <div class="transporte-item">
+              <i nz-icon nzType="environment" nzTheme="outline"></i>
+              <span>Estacionamento Indigo Sébastopol, estacionamento Georges Pompidou, estacionamento Rivoli Sébastopol</span>
             </div>
           </div>
         </div>
-      </nz-image-group>
-    </div>
-  
-    <!-- Abas de Navegação -->
-    <div class="navigation-tabs">
-      <nz-tabset nzTabPosition="top" [nzTabBarStyle]="{ 'border-bottom': '1px solid #e8e8e8' }">
-        <nz-tab nzTitle="Sobre"></nz-tab>
-        <nz-tab nzTitle="Menu"></nz-tab>
-        <nz-tab nzTitle="Avaliações"></nz-tab>
-      </nz-tabset>
-    </div>
-  
-    <!-- Área de Conteúdo -->
-    <div class="content-area">
-      <!-- Coluna de Conteúdo -->
-      <div class="content-column">
-        <!-- Conteúdo da aba selecionada aparecerá aqui -->
-      </div>
-      
-      <!-- Coluna de Reserva -->
-      <div class="booking-column">
-        <nz-card class="booking-card">
-          <nz-card-meta [nzTitle]="bookingTitle" [nzDescription]="bookingDescription"></nz-card-meta>
-          <ng-template #bookingTitle>
-            <h2 class="booking-title">Reserve uma mesa</h2>
-          </ng-template>
-          <ng-template #bookingDescription>
-            <p class="free-text">Grátis</p>
-          </ng-template>
+        
+        <!-- Mais Detalhes -->
+        <div class="mais-detalhes-section">
+          <h2>Mais detalhes</h2>
           
-          <!-- Formulário de Reserva -->
-          <div class="booking-form">
-            <!-- Data -->
-            <nz-form-item>
-              <nz-date-picker nzPlaceHolder="Selecione a data" class="form-control"></nz-date-picker>
-            </nz-form-item>
-            
-            <!-- Horário -->
-            <nz-form-item>
-              <nz-select nzPlaceHolder="Selecione o horário" class="form-control">
-                <nz-option nzValue="12:00" nzLabel="12:00"></nz-option>
-                <nz-option nzValue="12:30" nzLabel="12:30"></nz-option>
-                <nz-option nzValue="13:00" nzLabel="13:00"></nz-option>
-                <nz-option nzValue="13:30" nzLabel="13:30"></nz-option>
-                <nz-option nzValue="19:00" nzLabel="19:00"></nz-option>
-                <nz-option nzValue="19:30" nzLabel="19:30"></nz-option>
-                <nz-option nzValue="20:00" nzLabel="20:00"></nz-option>
-                <nz-option nzValue="20:30" nzLabel="20:30"></nz-option>
-              </nz-select>
-            </nz-form-item>
-            
-            <!-- Pessoas -->
-            <nz-form-item>
-              <nz-select nzPlaceHolder="Número de pessoas" class="form-control">
-                <nz-option nzValue="1" nzLabel="1 pessoa"></nz-option>
-                <nz-option nzValue="2" nzLabel="2 pessoas"></nz-option>
-                <nz-option nzValue="3" nzLabel="3 pessoas"></nz-option>
-                <nz-option nzValue="4" nzLabel="4 pessoas"></nz-option>
-                <nz-option nzValue="5" nzLabel="5 pessoas"></nz-option>
-                <nz-option nzValue="6" nzLabel="6 pessoas"></nz-option>
-                <nz-option nzValue="7" nzLabel="7 pessoas"></nz-option>
-                <nz-option nzValue="8" nzLabel="8+ pessoas"></nz-option>
-              </nz-select>
-            </nz-form-item>
-            
-            <!-- Botão de Busca -->
-            <button nz-button nzType="primary" class="search-button">
-              Buscar mesa
+          <!-- Horários de Funcionamento -->
+          <div class="horarios-section">
+            <h3>Horário de funcionamento</h3>
+            <div class="horarios-lista">
+              <div *ngFor="let horario of horariosFuncionamento.slice(0, 3)" class="horario-item">
+                <span class="dia">{{ horario.dia }}</span>
+                <span class="horas">{{ horario.abertura }} - {{ horario.fechamento }}</span>
+              </div>
+            </div>
+            <button mat-button color="primary" class="mostrar-mais" (click)="openHorarios()">
+              Mostre mais
             </button>
           </div>
-        </nz-card>
+          
+          <!-- Recursos e Serviços -->
+          <div class="recursos-section">
+            <h3>Recursos e serviços</h3>
+            <div class="recursos-lista">
+              <div *ngFor="let recurso of recursos" class="recurso-item">
+                <mat-icon>{{ recurso.icone }}</mat-icon>
+                <span>{{ recurso.nome }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Conteúdo da aba Menu -->
+      <div *ngIf="activeTabIndex === 1" class="menu-content">
+        <h2>Menu em breve</h2>
+        <p>O conteúdo do menu será implementado quando o endpoint estiver pronto.</p>
+      </div>
+      
+      <!-- Conteúdo da aba Avaliações -->
+      <div *ngIf="activeTabIndex === 2" class="avaliacoes-content">
+        <h2>Avaliações em breve</h2>
+        <p>O conteúdo das avaliações será implementado quando o endpoint estiver pronto.</p>
       </div>
     </div>
     
-    <!-- Modal de Galeria Completa (será aberto quando clicar em "Veja outras fotos") -->
-    <nz-modal
-      [(nzVisible)]="isGalleryVisible"
-      nzTitle="Galeria de Fotos"
-      [nzFooter]="null"
-      (nzOnCancel)="closeGallery()"
-      nzWidth="80%"
-      nzCentered
-    >
-      <ng-container *nzModalContent>
-        <div class="full-gallery">
-          <div class="gallery-grid-modal">
-            <div class="gallery-item" *ngFor="let img of allImages">
-              <img nz-image [nzSrc]="img" alt="Foto do restaurante">
-            </div>
+    <!-- Coluna de Reserva -->
+    <div class="booking-column">
+      <nz-card class="booking-card">
+        <nz-card-meta [nzTitle]="bookingTitle" [nzDescription]="bookingDescription"></nz-card-meta>
+        <ng-template #bookingTitle>
+          <h2 class="booking-title">Reserve uma mesa</h2>
+        </ng-template>
+        <ng-template #bookingDescription>
+          <p class="free-text">Grátis</p>
+        </ng-template>
+        
+        <!-- Formulário de Reserva -->
+        <div class="booking-form">
+          <!-- Data -->
+          <nz-form-item>
+            <nz-date-picker nzPlaceHolder="Selecione a data" class="form-control"></nz-date-picker>
+          </nz-form-item>
+          
+          <!-- Horário -->
+          <nz-form-item>
+            <nz-select nzPlaceHolder="Selecione o horário" class="form-control">
+              <nz-option nzValue="12:00" nzLabel="12:00"></nz-option>
+              <nz-option nzValue="12:30" nzLabel="12:30"></nz-option>
+              <nz-option nzValue="13:00" nzLabel="13:00"></nz-option>
+              <nz-option nzValue="13:30" nzLabel="13:30"></nz-option>
+              <nz-option nzValue="19:00" nzLabel="19:00"></nz-option>
+              <nz-option nzValue="19:30" nzLabel="19:30"></nz-option>
+              <nz-option nzValue="20:00" nzLabel="20:00"></nz-option>
+              <nz-option nzValue="20:30" nzLabel="20:30"></nz-option>
+            </nz-select>
+          </nz-form-item>
+          
+          <!-- Pessoas -->
+          <nz-form-item>
+            <nz-select nzPlaceHolder="Número de pessoas" class="form-control">
+              <nz-option nzValue="1" nzLabel="1 pessoa"></nz-option>
+              <nz-option nzValue="2" nzLabel="2 pessoas"></nz-option>
+              <nz-option nzValue="3" nzLabel="3 pessoas"></nz-option>
+              <nz-option nzValue="4" nzLabel="4 pessoas"></nz-option>
+              <nz-option nzValue="5" nzLabel="5 pessoas"></nz-option>
+              <nz-option nzValue="6" nzLabel="6 pessoas"></nz-option>
+              <nz-option nzValue="7" nzLabel="7 pessoas"></nz-option>
+              <nz-option nzValue="8" nzLabel="8+ pessoas"></nz-option>
+            </nz-select>
+          </nz-form-item>
+          
+          <!-- Botão de Busca -->
+          <button nz-button nzType="primary" class="search-button">
+            Buscar mesa
+          </button>
+        </div>
+      </nz-card>
+    </div>
+  </div>
+  
+  <!-- Botão de voltar ao topo -->
+  <button *ngIf="tabFixo" mat-fab color="primary" class="back-to-top" (click)="scrollToTop()">
+    <mat-icon>arrow_upward</mat-icon>
+  </button>
+  
+  <!-- Modal de Galeria Completa -->
+  <nz-modal
+    [(nzVisible)]="isGalleryVisible"
+    nzTitle="Galeria de Fotos"
+    [nzFooter]="null"
+    (nzOnCancel)="closeGallery()"
+    nzWidth="80%"
+    nzCentered
+  >
+    <ng-container *nzModalContent>
+      <div class="full-gallery">
+        <div class="gallery-grid-modal">
+          <div class="gallery-item" *ngFor="let img of allImages">
+            <img [src]="img" alt="Foto do restaurante">
           </div>
         </div>
-      </ng-container>
-    </nz-modal>
-  </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+  
+  <!-- Modal de Horários -->
+  <nz-modal
+    [(nzVisible)]="isHorariosVisible"
+    nzTitle="Horário de funcionamento"
+    [nzFooter]="null"
+    (nzOnCancel)="closeHorarios()"
+    nzWidth="500px"
+    nzCentered
+  >
+    <ng-container *nzModalContent>
+      <p class="horarios-descricao">Verifique a disponibilidade e reserve já a sua mesa para garantir o seu lugar.</p>
+      <div class="horarios-lista-completa">
+        <div *ngFor="let horario of horariosFuncionamento" class="horario-item">
+          <span class="dia">{{ horario.dia }}</span>
+          <span class="horas">{{ horario.abertura }} - {{ horario.fechamento }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+</div>

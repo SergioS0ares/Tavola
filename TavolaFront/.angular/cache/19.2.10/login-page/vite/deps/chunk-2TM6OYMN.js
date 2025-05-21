@@ -1,10 +1,10 @@
 import {
-  NzStringTemplateOutletDirective
-} from "./chunk-DKXAOBVB.js";
-import {
   NzConfigService,
   WithConfig
 } from "./chunk-OQEB3FQA.js";
+import {
+  NzStringTemplateOutletDirective
+} from "./chunk-DKXAOBVB.js";
 import {
   Directionality
 } from "./chunk-SLO47O37.js";
@@ -613,4 +613,4 @@ export {
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-25XMUXUH.js.map
+//# sourceMappingURL=chunk-2TM6OYMN.js.map

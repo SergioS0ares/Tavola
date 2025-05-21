@@ -97,6 +97,8 @@ export class LoginComponent {
           localStorage.setItem('tipoUsuario', res.tipoUsuario);
           this.authService.setToken(res.token);
           this.toastService.success("Login feito com sucesso!");
+          this.authService.setPerfil({ nome: res.name,
+            tipo: res.tipoUsuario as 'CLIENTE'|'RESTAURANTE' });
           // Redireciona com base no tipo de usuário
           if (res.tipoUsuario === 'RESTAURANTE') {
             this.router.navigate(['reserva']);

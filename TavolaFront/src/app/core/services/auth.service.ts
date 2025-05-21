@@ -15,6 +15,12 @@ export class AuthService {
     // ao instanciar, já puxa o que está salvo
     this._token = localStorage.getItem(this.TOKEN_KEY);
     console.log('[AuthService] token inicial:', this._token);
+    const nome  = localStorage.getItem('userName');
+    const tipo  = localStorage.getItem('tipoUsuario') as
+                  'CLIENTE' | 'RESTAURANTE' | null;
+    if (nome && tipo) {
+      this._perfil = { nome, tipo };
+    }
   }
   setToken(token: string) {
     this._token = token;

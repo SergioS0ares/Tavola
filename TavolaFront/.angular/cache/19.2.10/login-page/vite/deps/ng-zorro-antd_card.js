@@ -1,11 +1,11 @@
 import {
-  NzOutletModule,
-  NzStringTemplateOutletDirective
-} from "./chunk-DKXAOBVB.js";
-import {
   NzConfigService,
   WithConfig
 } from "./chunk-OQEB3FQA.js";
+import {
+  NzOutletModule,
+  NzStringTemplateOutletDirective
+} from "./chunk-DKXAOBVB.js";
 import {
   toCssPixel
 } from "./chunk-4OXNTDIN.js";
@@ -68,8 +68,8 @@ import {
   ɵɵtextInterpolate,
   ɵɵviewQuery
 } from "./chunk-CR2THLZV.js";
-import "./chunk-3LZ7TQJT.js";
 import "./chunk-QCX4XGGK.js";
+import "./chunk-3LZ7TQJT.js";
 import {
   Subject,
   __esDecorate,

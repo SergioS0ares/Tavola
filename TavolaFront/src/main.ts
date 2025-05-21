@@ -67,6 +67,7 @@ bootstrapApplication(AppComponent, {
       useClass: AuthInterceptor,
       multi: true
     },
+    
 
     // 4) outros providers do appConfig
     ...(appConfig.providers || []),
