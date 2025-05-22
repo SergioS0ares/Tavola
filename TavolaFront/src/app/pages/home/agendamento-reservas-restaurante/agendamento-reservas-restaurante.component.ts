@@ -24,7 +24,6 @@ import { NzRateModule } from "ng-zorro-antd/rate"
 import { NzTabsModule } from "ng-zorro-antd/tabs"
 import { NzCardModule } from "ng-zorro-antd/card"
 import { NZ_ICONS } from 'ng-zorro-antd/icon';
-import { CarOutline } from '@ant-design/icons-angular/icons';
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker"
 import { NzSelectModule } from "ng-zorro-antd/select"
 import { NzFormModule } from "ng-zorro-antd/form"
@@ -32,11 +31,20 @@ import { NzModalModule } from "ng-zorro-antd/modal"
 import { NzIconModule } from "ng-zorro-antd/icon"
 import { NzDividerModule } from "ng-zorro-antd/divider"
 import { NzCollapseModule } from "ng-zorro-antd/collapse"
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import type { IconDefinition } from "@ant-design/icons-angular"
+import {
+  CarOutline,
+  HomeOutline,
+  EnvironmentOutline,
+  FlagOutline,
+  HeartOutline,
+  HeartFill,
+} from "@ant-design/icons-angular/icons"
+
+const icons: IconDefinition[] = [CarOutline, HomeOutline, EnvironmentOutline, FlagOutline, HeartOutline, HeartFill]
 
 @Component({
-  providers: [
-    { provide: NZ_ICONS, useValue: [ CarOutline ] }
-  ],
   selector: "app-agendamento-reservas-restaurante",
   standalone: true,
   imports: [
@@ -69,6 +77,8 @@ import { NzCollapseModule } from "ng-zorro-antd/collapse"
     NzModalModule,
     NzDividerModule,
     NzCollapseModule,
+    NzToolTipModule,
+
     GoogleMap,
   ],
   templateUrl: "./agendamento-reservas-restaurante.component.html",
@@ -83,15 +93,16 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   isHorariosVisible = false
   activeTabIndex = 0
   tabFixo = false
+  copiado = false
 
   // Configuração do mapa
-  center: google.maps.LatLngLiteral = { lat: -23.5505, lng: -46.6333 } // São Paulo como padrão
+  center: any = { lat: -23.5505, lng: -46.6333 } // São Paulo como padrão
   zoom = 15
-  markerPosition: google.maps.LatLngLiteral = { lat: -23.5505, lng: -46.6333 }
-  markerOptions: google.maps.MarkerOptions = {
+  markerPosition: any = { lat: -23.5505, lng: -46.6333 }
+  markerOptions: any = {
     draggable: false,
     icon: {
-      url: "assets/icons/restaurant-marker.png",
+      url: "assets/png/restaurant-marker.png",
       scaledSize: new google.maps.Size(40, 40),
     },
   }
@@ -129,6 +140,14 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     { nome: "Estacionamento", icone: "local_parking" },
   ]
 
+  // Adicione estas propriedades após as propriedades existentes
+  itensMenu: any[] = []
+  categorias: string[] = ["Destaques", "Entradas", "Acompanhamentos", "Pratos Principais", "Sobremesas", "Bebidas"]
+  categoriaAtiva = "Destaques"
+  categoriasFixas = false
+  dietOptions: string[] = ["Sem glúten", "Halal", "Intolerância à lactose", "Vegano", "Vegetariano"]
+  isDietOptionsVisible = false
+
   constructor(
     private route: ActivatedRoute,
     private restauranteService: RestauranteService,
@@ -136,20 +155,15 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   ) {}
 
   ngOnInit() {
-    // seu código existente…
-    window.scrollTo(0, 0);
-    const id = this.route.snapshot.paramMap.get('id')!;
-    this.carregarDadosRestaurante(id);
-    this.gerarImagens();
+    // Mantenha o código existente
+    window.scrollTo(0, 0)
+    const id = this.route.snapshot.paramMap.get("id")!
+    this.carregarDadosRestaurante(id)
+    this.gerarImagens()
 
-    // ← Aqui, só após o Google Maps estar carregado:
-    this.markerOptions = {
-      draggable: false,
-      icon: {
-        url: 'assets/icons/restaurant-marker.png',
-        scaledSize: new google.maps.Size(40, 40),
-      }
-    }}
+    // Adicione esta linha para carregar os itens do menu
+    this.carregarItensMenu()
+  }
 
   ngAfterViewInit() {
     // Observar a posição da aba para fixá-la quando necessário
@@ -158,11 +172,6 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         this.checkTabPosition()
       }
     }, 100)
-  }
-
-  @HostListener("window:scroll", ["$event"])
-  onWindowScroll() {
-    this.checkTabPosition()
   }
 
   private checkTabPosition(): void {
@@ -244,5 +253,201 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  copiarEndereco(): void {
+    const endereco = `${this.restaurante.endereco}, ${this.restaurante.cidade} - ${this.restaurante.estado}, ${this.restaurante.cep}`
+    navigator.clipboard.writeText(endereco).then(() => {
+      this.copiado = true
+
+      // Voltar para o ícone de cópia após 2 segundos
+      setTimeout(() => {
+        this.copiado = false
+      }, 2000)
+    })
+  }
+
+  @HostListener("window:scroll", ["$event"])
+  onWindowScroll() {
+    this.checkTabPosition()
+    this.checkCategoriasPosition()
+  }
+
+  private checkCategoriasPosition(): void {
+    if (this.activeTabIndex !== 1) return
+
+    // Verificar se as categorias devem ficar fixas
+    const menuContent = this.elementRef.nativeElement.querySelector(".menu-content")
+    if (!menuContent) return
+
+    const categoriasNav = menuContent.querySelector(".categorias-nav")
+    if (!categoriasNav) return
+
+    const categoriasPosition = categoriasNav.getBoundingClientRect().top
+    this.categoriasFixas = categoriasPosition <= 48 // 48px é a altura da aba principal
+
+    // Verificar qual categoria está visível
+    this.categorias.forEach((categoria) => {
+      const section = document.getElementById("categoria-" + categoria.toLowerCase().replace(" ", "-"))
+      if (!section) return
+
+      const rect = section.getBoundingClientRect()
+      if (rect.top <= 150 && rect.bottom >= 150) {
+        this.categoriaAtiva = categoria
+      }
+    })
+  }
+
+  carregarItensMenu(): void {
+    // Simulação de dados do menu
+    this.itensMenu = [
+      {
+        id: "1",
+        nome: "Bruschetta Clássica",
+        preco: 18.9,
+        descricao: "Fatias de pão italiano grelhado com tomate, manjericão e azeite extra virgem",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Entradas",
+        tags: ["Vegetariano"],
+      },
+      {
+        id: "2",
+        nome: "Carpaccio de Filé Mignon",
+        preco: 32.5,
+        descricao: "Finas fatias de filé mignon com alcaparras, parmesão e molho de mostarda e mel",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Entradas",
+        tags: ["Sem Glúten"],
+      },
+      {
+        id: "3",
+        nome: "Risoto de Funghi",
+        preco: 45.9,
+        descricao: "Arroz arbóreo cremoso com mix de cogumelos frescos e parmesão",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Pratos Principais",
+        tags: ["Vegetariano", "Sem Glúten"],
+      },
+      {
+        id: "4",
+        nome: "Spaghetti alla Carbonara",
+        preco: 39.9,
+        descricao: "Massa fresca com molho cremoso de ovos, pancetta, pimenta preta e queijo pecorino",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Pratos Principais",
+        tags: [],
+      },
+      {
+        id: "5",
+        nome: "Tiramisu",
+        preco: 22.9,
+        descricao: "Sobremesa italiana clássica com camadas de biscoito champagne, café e creme de mascarpone",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Sobremesas",
+        tags: ["Vegetariano"],
+      },
+      {
+        id: "6",
+        nome: "Batatas Rústicas",
+        preco: 18.5,
+        descricao: "Batatas assadas com ervas finas, alho e azeite",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Acompanhamentos",
+        tags: ["Vegano", "Sem Glúten"],
+      },
+      {
+        id: "7",
+        nome: "Água Mineral",
+        preco: 5.9,
+        descricao: "Água mineral sem gás (500ml)",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Bebidas",
+        tags: ["Vegano", "Sem Glúten"],
+      },
+      {
+        id: "8",
+        nome: "Vinho Tinto da Casa",
+        preco: 89.9,
+        descricao: "Vinho tinto seco italiano (750ml)",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Bebidas",
+        tags: ["Vegano", "Sem Glúten"],
+      },
+      {
+        id: "9",
+        nome: "Filé Mignon ao Molho Madeira",
+        preco: 68.9,
+        descricao: "Medalhão de filé mignon grelhado com molho madeira e cogumelos",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Pratos Principais",
+        tags: ["Sem Glúten"],
+      },
+      {
+        id: "10",
+        nome: "Salada Caesar",
+        preco: 29.9,
+        descricao: "Mix de folhas, croutons, frango grelhado, parmesão e molho caesar",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Entradas",
+        tags: [],
+      },
+      {
+        id: "11",
+        nome: "Burrata com Tomate",
+        preco: 36.5,
+        descricao: "Burrata fresca com tomates cereja, rúcula, azeite e redução de balsâmico",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Entradas",
+        tags: ["Vegetariano", "Sem Glúten"],
+      },
+      {
+        id: "12",
+        nome: "Lasanha à Bolonhesa",
+        preco: 42.9,
+        descricao: "Camadas de massa fresca, molho bolonhesa, bechamel e queijo gratinado",
+        imagem: "assets/jpg/Comida.jpg",
+        disponivel: true,
+        categoria: "Pratos Principais",
+        tags: [],
+      },
+    ]
+
+    // Adicionar alguns itens em destaque
+    const destaques = this.itensMenu.filter((item, index) => index % 4 === 0)
+    destaques.forEach((item) => {
+      const destaque = { ...item }
+      destaque.categoria = "Destaques"
+      this.itensMenu.push(destaque)
+    })
+  }
+
+  getItensPorCategoria(categoria: string): any[] {
+    return this.itensMenu.filter((item) => item.categoria === categoria)
+  }
+
+  scrollToCategoria(categoria: string): void {
+    const element = document.getElementById("categoria-" + categoria.toLowerCase().replace(" ", "-"))
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  openDietOptions(): void {
+    this.isDietOptionsVisible = true
+  }
+
+  closeDietOptions(): void {
+    this.isDietOptionsVisible = false
   }
 }

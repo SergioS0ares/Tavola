@@ -1,7 +1,7 @@
 // Variáveis
 $primary-color: #F6BD38; // Amarelo
 $accent-color: #DA4A24; // Laranja
-$text-color: #3B221B; // Marrom escuro
+$text-color: #3B221B; // Marrom escuro (ajustado para corresponder às letras)
 $light-gray: #f5f5f5;
 $medium-gray: #e0e0e0;
 $dark-gray: #757575;
@@ -64,6 +64,7 @@ $border-radius: 16px; // Bordas mais arredondadas
       
       &:hover {
         color: $accent-color;
+        border-color: $accent-color;
       }
       
       i[nzTheme="fill"] {
@@ -251,7 +252,17 @@ $border-radius: 16px; // Bordas mais arredondadas
     }
     
     .mdc-tab-indicator__content--underline {
-      border-color: $primary-color;
+      border-color: $primary-color !important;
+    }
+    
+    // Ajuste para garantir que a cor da aba ativa seja amarela
+    .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label {
+      color: $primary-color !important;
+    }
+    
+    // Ajuste para garantir que a cor das abas inativas seja marrom
+    .mat-mdc-tab:not(.mat-mdc-tab-active) .mdc-tab__text-label {
+      color: $text-color !important;
     }
   }
 }
@@ -302,11 +313,30 @@ $border-radius: 16px; // Bordas mais arredondadas
         .endereco-completo {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           margin-bottom: 16px;
           
-          p {
-            margin: 0;
+          .endereco-copy {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            
+            p {
+              margin: 0;
+            }
+            
+            .copy-button {
+              padding: 0;
+              height: auto;
+              color: $text-color;
+              border: none;
+              background: transparent;
+              
+              &:hover {
+                color: $primary-color;
+                background: transparent;
+              }
+            }
           }
           
           button {
@@ -488,8 +518,268 @@ $border-radius: 16px; // Bordas mais arredondadas
   bottom: 24px;
   right: 24px;
   z-index: 99;
-  background-color: $primary-color;
-  color: $text-color;
+  background-color: $primary-color !important;
+  color: $text-color !important;
+}
+
+// Estilos específicos para o NzImageModule
+::ng-deep {
+  .ant-image-preview-operations {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .ant-image-preview-img {
+    max-width: 90%;
+    max-height: 90%;
+  }
+  
+  .ant-image-preview-switch-left, 
+  .ant-image-preview-switch-right {
+    color: white;
+    background-color: rgba(0, 0, 0, 0.3);
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+  // Tooltip personalizado
+  .ant-tooltip-inner {
+    background-color: $text-color;
+    color: white;
+  }
+  
+  .ant-tooltip-arrow-content {
+    background-color: $text-color;
+  }
+}
+
+// Estilos para a aba Menu
+.menu-content {
+  .menu-intro {
+    margin-bottom: 32px;
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: $text-color;
+    }
+    
+    p {
+      color: rgba(59, 34, 27, 0.8);
+      margin-bottom: 24px;
+    }
+    
+    .menu-info {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      
+      .opcoes-dieteticas {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: $border-radius;
+        background-color: $light-gray;
+        cursor: pointer;
+        
+        i {
+          color: $text-color;
+          font-size: 20px;
+        }
+        
+        div {
+          flex: 1;
+          
+          span {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+          
+          p {
+            margin: 0;
+            font-size: 14px;
+            color: rgba(59, 34, 27, 0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+          }
+        }
+      }
+    }
+  }
+  
+  .categorias-nav {
+    margin-bottom: 24px;
+    background-color: $white;
+    padding: 8px 0;
+    border-bottom: 1px solid $light-gray;
+    
+    &.fixed {
+      position: sticky;
+      top: 48px; // Altura da aba principal
+      z-index: 90;
+    }
+    
+    .categorias-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding-bottom: 4px;
+      
+      &::-webkit-scrollbar {
+        height: 4px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background-color: $medium-gray;
+        border-radius: 4px;
+      }
+      
+      .categoria-btn {
+        white-space: nowrap;
+        padding: 8px 16px;
+        border-radius: 20px;
+        background-color: $light-gray;
+        border: none;
+        color: $text-color;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: darken($light-gray, 5%);
+        }
+        
+        &.active {
+          background-color: $primary-color;
+          color: $text-color;
+        }
+      }
+    }
+  }
+  
+  .categorias-container {
+    .categoria-section {
+      margin-bottom: 40px;
+      scroll-margin-top: 120px; // Para o scroll considerar as abas fixas
+      
+      .categoria-titulo {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 20px;
+        color: $text-color;
+        padding-bottom: 8px;
+        border-bottom: 2px solid $primary-color;
+      }
+      
+      .itens-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        
+        .item-card {
+          background-color: $white;
+          border-radius: $border-radius;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          transition: all 0.2s ease;
+          
+          &:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          }
+          
+          .item-content {
+            display: flex;
+            align-items: flex-start;
+            
+            .item-image {
+              width: 120px;
+              height: 120px;
+              flex-shrink: 0;
+              
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: $border-radius 0 0 $border-radius;
+              }
+            }
+            
+            .item-info {
+              flex: 1;
+              padding: 16px;
+              
+              .item-nome {
+                font-size: 18px;
+                font-weight: 600;
+                margin: 0 0 8px;
+                color: $text-color;
+              }
+              
+              .item-descricao {
+                color: rgba(59, 34, 27, 0.8);
+                margin: 0 0 12px;
+                font-size: 14px;
+                line-height: 1.5;
+              }
+              
+              .item-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                
+                .tag-chip {
+                  background-color: $light-gray;
+                  padding: 4px 8px;
+                  border-radius: 12px;
+                  font-size: 12px;
+                  color: $text-color;
+                }
+              }
+            }
+            
+            .item-preco {
+              padding: 16px;
+              font-weight: 700;
+              color: $accent-color;
+              font-size: 18px;
+              min-width: 80px;
+              text-align: right;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Adicione estes estilos ao modal de opções dietéticas
+.opcoes-dieteticas-modal {
+  .opcao-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    
+    i {
+      color: $primary-color;
+    }
+    
+    span {
+      font-size: 16px;
+      color: $text-color;
+    }
+  }
+  
+  p.descricao {
+    margin-bottom: 24px;
+    color: rgba(59, 34, 27, 0.8);
+  }
 }
 
 // Responsividade
@@ -578,11 +868,33 @@ $border-radius: 16px; // Bordas mais arredondadas
       grid-template-columns: repeat(2, 1fr);
     }
   }
+
+  .menu-content {
+    .item-card {
+      .item-content {
+        flex-direction: column;
+        
+        .item-image {
+          width: 100% !important;
+          height: 180px !important;
+          
+          img {
+            border-radius: $border-radius $border-radius 0 0 !important;
+          }
+        }
+        
+        .item-preco {
+          align-self: flex-end;
+          padding-top: 0 !important;
+        }
+      }
+    }
+  }
 }
 
 @media (max-width: 480px) {
   .full-gallery {
-    .gallery-grid-modal { 
+    .gallery-grid-modal {
       grid-template-columns: 1fr;
     }
   }
