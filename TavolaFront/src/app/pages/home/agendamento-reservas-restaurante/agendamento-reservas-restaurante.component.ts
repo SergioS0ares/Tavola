@@ -1,15 +1,24 @@
-import { Component, type OnInit, ViewChild, ElementRef, type AfterViewInit, HostListener, LOCALE_ID, Inject } from "@angular/core"
-import { ActivatedRoute } from '@angular/router';
-import { RestauranteService } from "../../../core/services/restaurante.service";
+import {
+  Component,
+  type OnInit,
+  ViewChild,
+  ElementRef,
+  type AfterViewInit,
+  HostListener,
+  LOCALE_ID,
+} from "@angular/core"
+import { ActivatedRoute } from "@angular/router"
+import { RestauranteService } from "../../../core/services/restaurante.service"
+import { MapsService } from "../../../core/services/maps.service"
 import { CommonModule, registerLocaleData } from "@angular/common"
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import { RouterLink } from "@angular/router"
 import { GoogleMapsModule } from "@angular/google-maps"
 import { GoogleMap } from "@angular/google-maps"
-import localePt from '@angular/common/locales/pt';
+import localePt from "@angular/common/locales/pt"
 
 // Registrar locale português
-registerLocaleData(localePt);
+registerLocaleData(localePt)
 
 // Angular Material
 import { MatIconModule } from "@angular/material/icon"
@@ -27,7 +36,7 @@ import { NzButtonModule } from "ng-zorro-antd/button"
 import { NzRateModule } from "ng-zorro-antd/rate"
 import { NzTabsModule } from "ng-zorro-antd/tabs"
 import { NzCardModule } from "ng-zorro-antd/card"
-import { NZ_ICONS } from 'ng-zorro-antd/icon';
+import { NZ_ICONS } from "ng-zorro-antd/icon"
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker"
 import { NzSelectModule } from "ng-zorro-antd/select"
 import { NzFormModule } from "ng-zorro-antd/form"
@@ -35,11 +44,12 @@ import { NzModalModule } from "ng-zorro-antd/modal"
 import { NzIconModule } from "ng-zorro-antd/icon"
 import { NzDividerModule } from "ng-zorro-antd/divider"
 import { NzCollapseModule } from "ng-zorro-antd/collapse"
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NzBadgeModule } from 'ng-zorro-antd/badge';
-import { NZ_I18N, pt_BR } from 'ng-zorro-antd/i18n';
+import { NzToolTipModule } from "ng-zorro-antd/tooltip"
+import { NzDrawerModule } from "ng-zorro-antd/drawer"
+import { NzCalendarModule } from "ng-zorro-antd/calendar"
+import { NzBadgeModule } from "ng-zorro-antd/badge"
+import { NzMessageService } from "ng-zorro-antd/message"
+import { NZ_I18N, pt_BR } from "ng-zorro-antd/i18n"
 import type { IconDefinition } from "@ant-design/icons-angular"
 import {
   CarOutline,
@@ -61,11 +71,11 @@ import {
 } from "@ant-design/icons-angular/icons"
 
 const icons: IconDefinition[] = [
-  CarOutline, 
-  HomeOutline, 
-  EnvironmentOutline, 
-  FlagOutline, 
-  HeartOutline, 
+  CarOutline,
+  HomeOutline,
+  EnvironmentOutline,
+  FlagOutline,
+  HeartOutline,
   HeartFill,
   LeftOutline,
   RightOutline,
@@ -124,8 +134,8 @@ const icons: IconDefinition[] = [
   providers: [
     { provide: NZ_ICONS, useValue: icons },
     { provide: NZ_I18N, useValue: pt_BR },
-    { provide: LOCALE_ID, useValue: 'pt-BR' }
-  ]
+    { provide: LOCALE_ID, useValue: "pt-BR" },
+  ],
 })
 export class AgendamentoReservasRestauranteComponent implements OnInit, AfterViewInit {
   @ViewChild("tabsContainer") tabsContainer!: ElementRef
@@ -148,13 +158,15 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   categoriasFixas = false
 
   // Propriedades do sistema de reservas
-  bookingStep = 1 // 1: Data, 2: Horário, 3: Pessoas
+  bookingStep = 1 // 1: Data, 2: Horário, 3: Pessoas, 4: Confirmação
   selectedDate: Date = new Date()
-  selectedTime: string = ''
-  selectedGuests: number = 2
+  selectedTime = ""
+  selectedGuests = 2
   availableSlots: any[] = []
+  selectedComments = ""
+  bookingData: any = null
 
-  // Configuração do mapa
+  // Propriedades do mapa e rotas
   center: any = { lat: -23.5505, lng: -46.6333 }
   zoom = 15
   markerPosition: any = { lat: -23.5505, lng: -46.6333 }
@@ -165,6 +177,26 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       scaledSize: new google.maps.Size(40, 40),
     },
   }
+  mapOptions: any = {
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: true,
+  }
+
+  // Propriedades para rotas
+  directionsResult: google.maps.DirectionsResult | null = null
+  directionsOptions: google.maps.DirectionsRendererOptions = {
+    suppressMarkers: false,
+    polylineOptions: {
+      strokeColor: "#F6BD38",
+      strokeWeight: 5,
+      strokeOpacity: 0.8,
+    },
+  }
+  carregandoRota = false
+  userLocation: google.maps.LatLngLiteral | null = null
 
   // Imagens principais para a galeria
   restaurantImages = [
@@ -200,18 +232,30 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   // Propriedades do menu
   itensMenu: any[] = []
-  categorias: string[] = ["Destaques", "Entradas", "Acompanhamentos", "Pratos Principais", "Sobremesas", "Bebidas"]
+  categorias: string[] = [
+    "Destaques",
+    "Entradas",
+    "Acompanhamentos",
+    "Pratos Principais",
+    "Sobremesas",
+    "Bebidas",
+    "Vinhos",
+  ]
   categoriaAtiva = "Destaques"
   dietOptions: string[] = ["Sem glúten", "Halal", "Intolerância à lactose", "Vegano", "Vegetariano"]
 
   constructor(
     private route: ActivatedRoute,
     private restauranteService: RestauranteService,
+    private mapsService: MapsService,
+    private message: NzMessageService,
     private elementRef: ElementRef,
   ) {}
 
   ngOnInit() {
     window.scrollTo(0, 0)
+    this.selectedDate = new Date()
+    this.selectedDate.setHours(0, 0, 0, 0) // Zerando hora para evitar problemas na comparação
     const id = this.route.snapshot.paramMap.get("id")!
     this.carregarDadosRestaurante(id)
     this.gerarImagens()
@@ -241,7 +285,30 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     }
   }
 
+  // Função auxiliar para comparar só a parte da data (dia, mês, ano)
+  private isSameDate(d1: Date, d2: Date): boolean {
+    return d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear()
+  }
+
   onDateSelect(date: Date): void {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    console.log("Data selecionada:", date)
+    console.log("Data atual selecionada no componente:", this.selectedDate)
+    console.log("Hoje:", today)
+
+    if (date < today) {
+      this.message.error("Não é possível selecionar uma data anterior a hoje.")
+      return
+    }
+
+    // Verificar se é uma data diferente da atual
+    if (date == today) {
+      console.log("Não avançando - mesma data selecionada")
+      return
+    }
+
     this.selectedDate = date
     this.bookingStep = 2
     this.generateAvailableSlots()
@@ -254,12 +321,8 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   onGuestsSelect(guests: number): void {
     this.selectedGuests = guests
-    // Aqui você pode implementar a lógica para finalizar a reserva
-    console.log('Reserva:', {
-      date: this.selectedDate,
-      time: this.selectedTime,
-      guests: this.selectedGuests
-    })
+    this.bookingStep = 4
+    this.prepareBookingData()
   }
 
   goBackStep(): void {
@@ -271,8 +334,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   resetBooking(): void {
     this.bookingStep = 1
     this.selectedDate = new Date()
-    this.selectedTime = ''
+    this.selectedTime = ""
     this.selectedGuests = 2
+    this.selectedComments = ""
+    this.bookingData = null
   }
 
   disabledDate = (current: Date): boolean => {
@@ -280,32 +345,60 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     return current && current < new Date(new Date().setHours(0, 0, 0, 0))
   }
 
+  // Método para mostrar como chegar - simplificado
+  async mostrarComoChegar(): Promise<void> {
+    this.carregandoRota = true
+
+    try {
+      const restaurantLocation = {
+        lat: this.restaurante.coordenadas.latitude,
+        lng: this.restaurante.coordenadas.longitude,
+      }
+
+      await this.mapsService.mostrarRotaNoGoogleMaps(restaurantLocation)
+      this.message.success("Abrindo rota no Google Maps...")
+    } catch (error) {
+      console.error("Erro ao abrir rota:", error)
+      this.message.error("Erro ao abrir a rota")
+    } finally {
+      this.carregandoRota = false
+    }
+  }
+
   generateAvailableSlots(): void {
     // Gerar slots baseados nos horários de funcionamento
     const dayOfWeek = this.selectedDate.getDay()
-    const dayNames = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado']
+    const dayNames = [
+      "Domingo",
+      "Segunda-Feira",
+      "Terça-Feira",
+      "Quarta-Feira",
+      "Quinta-Feira",
+      "Sexta-Feira",
+      "Sábado",
+    ]
     const dayName = dayNames[dayOfWeek]
-    
-    const horario = this.horariosFuncionamento.find(h => h.dia === dayName)
+
+    const horario = this.horariosFuncionamento.find((h) => h.dia === dayName)
     if (!horario) return
 
     this.availableSlots = []
-    
+
     // Slots de almoço (12:00 - 16:00)
-    const lunchSlots = this.generateTimeSlots('12:00', '16:00', 15)
+    const lunchSlots = this.generateTimeSlots("12:00", "16:00", 15)
     if (lunchSlots.length > 0) {
       this.availableSlots.push({
-        period: 'Almoço',
-        slots: lunchSlots
+        period: "Almoço",
+        slots: lunchSlots,
       })
     }
 
     // Slots de jantar (17:00 - 23:30)
-    const dinnerSlots = this.generateTimeSlots('17:00', '23:30', 15)
+    const dinnerSlots = this.generateTimeSlots("17:00", "23:30", 15)
     if (dinnerSlots.length > 0) {
       this.availableSlots.push({
-        period: 'Jantar',
-        slots: dinnerSlots
+        period: "Jantar",
+        slots: dinnerSlots,
       })
     }
   }
@@ -314,36 +407,36 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     const slots = []
     const startTime = this.timeToMinutes(start)
     const endTime = this.timeToMinutes(end)
-    
+
     for (let time = startTime; time <= endTime; time += intervalMinutes) {
       const timeString = this.minutesToTime(time)
-      const availability = Math.random() > 0.3 ? 'available' : Math.random() > 0.5 ? 'limited' : 'unavailable'
-      
+      const availability = Math.random() > 0.3 ? "available" : Math.random() > 0.5 ? "limited" : "unavailable"
+
       slots.push({
         time: timeString,
         availability: availability,
-        percentage: availability === 'limited' ? Math.floor(Math.random() * 50) + 20 : null
+        percentage: availability === "limited" ? Math.floor(Math.random() * 50) + 20 : null,
       })
     }
-    
+
     return slots
   }
 
   timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number)
+    const [hours, minutes] = time.split(":").map(Number)
     return hours * 60 + minutes
   }
 
   minutesToTime(minutes: number): string {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
+    return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`
   }
 
   getFormattedDate(): string {
-    return this.selectedDate.toLocaleDateString('pt-BR', {
-      day: 'numeric',
-      month: 'long'
+    return this.selectedDate.toLocaleDateString("pt-BR", {
+      day: "numeric",
+      month: "long",
     })
   }
 
@@ -531,69 +624,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         categoria: "Acompanhamentos",
         tags: ["Vegano", "Sem Glúten"],
       },
-      {
-        id: "7",
-        nome: "Água Mineral",
-        preco: 5.9,
-        descricao: "Água mineral sem gás (500ml)",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Bebidas",
-        tags: ["Vegano", "Sem Glúten"],
-      },
-      {
-        id: "8",
-        nome: "Vinho Tinto da Casa",
-        preco: 89.9,
-        descricao: "Vinho tinto seco italiano (750ml)",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Bebidas",
-        tags: ["Vegano", "Sem Glúten"],
-      },
-      {
-        id: "9",
-        nome: "Filé Mignon ao Molho Madeira",
-        preco: 68.9,
-        descricao: "Medalhão de filé mignon grelhado com molho madeira e cogumelos",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Pratos Principais",
-        tags: ["Sem Glúten"],
-      },
-      {
-        id: "10",
-        nome: "Salada Caesar",
-        preco: 29.9,
-        descricao: "Mix de folhas, croutons, frango grelhado, parmesão e molho caesar",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Entradas",
-        tags: [],
-      },
-      {
-        id: "11",
-        nome: "Burrata com Tomate",
-        preco: 36.5,
-        descricao: "Burrata fresca com tomates cereja, rúcula, azeite e redução de balsâmico",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Entradas",
-        tags: ["Vegetariano", "Sem Glúten"],
-      },
-      {
-        id: "12",
-        nome: "Lasanha à Bolonhesa",
-        preco: 42.9,
-        descricao: "Camadas de massa fresca, molho bolonhesa, bechamel e queijo gratinado",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Pratos Principais",
-        tags: [],
-      },
     ]
 
-    const destaques = this.itensMenu.filter((item, index) => index % 4 === 0)
+    const destaques = this.itensMenu.filter((item, index) => index % 3 === 0)
     destaques.forEach((item) => {
       const destaque = { ...item }
       destaque.categoria = "Destaques"
@@ -607,40 +640,38 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   selecionarCategoria(categoria: string): void {
     this.categoriaAtiva = categoria
-    
+
     const element = document.getElementById("categoria-" + categoria.toLowerCase().replace(" ", "-"))
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
     }
-    
+
     this.centralizarCategoriaAtiva()
   }
 
   verificarSetas(): void {
     if (!this.categoriasScrollContainer) return
-    
+
     const container = this.categoriasScrollContainer.nativeElement
-    
-    this.mostrarSetaDireita = container.scrollWidth > container.clientWidth && 
-                             container.scrollLeft < (container.scrollWidth - container.clientWidth - 10)
+
+    this.mostrarSetaDireita =
+      container.scrollWidth > container.clientWidth &&
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 10
     this.mostrarSetaEsquerda = container.scrollLeft > 10
   }
 
-  scrollCategorias(direcao: 'left' | 'right'): void {
+  scrollCategorias(direcao: "left" | "right"): void {
     if (!this.categoriasScrollContainer) return
-    
+
     const container = this.categoriasScrollContainer.nativeElement
     const scrollAtual = container.scrollLeft
-    
-    if (direcao === 'left') {
+
+    if (direcao === "left") {
       container.scrollLeft = Math.max(0, scrollAtual - this.scrollAmount)
     } else {
-      container.scrollLeft = Math.min(
-        container.scrollWidth - container.clientWidth,
-        scrollAtual + this.scrollAmount
-      )
+      container.scrollLeft = Math.min(container.scrollWidth - container.clientWidth, scrollAtual + this.scrollAmount)
     }
-    
+
     setTimeout(() => {
       this.verificarSetas()
     }, 300)
@@ -648,24 +679,24 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   centralizarCategoriaAtiva(): void {
     if (!this.categoriasScrollContainer) return
-    
+
     const container = this.categoriasScrollContainer.nativeElement
-    const buttons = container.querySelectorAll('.categoria-btn')
-    
+    const buttons = container.querySelectorAll(".categoria-btn")
+
     for (let i = 0; i < buttons.length; i++) {
       if (buttons[i].textContent.trim() === this.categoriaAtiva) {
         const button = buttons[i]
         const containerWidth = container.clientWidth
         const buttonLeft = button.offsetLeft
         const buttonWidth = button.offsetWidth
-        
-        const scrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2)
-        
+
+        const scrollLeft = buttonLeft - containerWidth / 2 + buttonWidth / 2
+
         container.scrollTo({
           left: scrollLeft,
-          behavior: 'smooth'
+          behavior: "smooth",
         })
-        
+
         break
       }
     }
@@ -675,8 +706,27 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     this.verificarSetas()
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener("window:resize", ["$event"])
   onResize(event: Event): void {
     this.verificarSetas()
+  }
+
+  prepareBookingData(): void {
+    this.bookingData = {
+      date: this.selectedDate,
+      time: this.selectedTime,
+      guests: this.selectedGuests,
+      restaurant: this.restaurante?.nome,
+      formattedDate: this.getFormattedDate(),
+      comments: this.selectedComments,
+    }
+  }
+
+  finalizarReserva(): void {
+    console.log("Reserva finalizada:", this.bookingData)
+    // Aqui você implementaria a chamada para a API
+    // Por enquanto, apenas mostrar mensagem de sucesso
+    this.message.success("Reserva realizada com sucesso!")
+    this.resetBooking()
   }
 }
