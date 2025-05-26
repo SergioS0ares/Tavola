@@ -46,8 +46,14 @@ public class Restaurante {
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
+    
+    @Column(name = "establishment_average_score")
+    private double mediaAvaliacao; // Campo para armazenar a média das avaliações
 
-    private UUID idImagem;
+    private UUID idImagemRepository;
+    
+    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Avaliacao> avaliacoes = new ArrayList<>();
 
     // métodos de restaurante para retornar informações de usuario - coisa de register...
     
@@ -62,13 +68,34 @@ public class Restaurante {
 	public Endereco getEndereco() { return usuario.getEndereco(); }
     
     // fim dos métodos de usuario
+	
+	public double getMediaAvaliacao() {
+        return mediaAvaliacao;
+    }
+
+    public void setMediaAvaliacao(double mediaAvaliacao) {
+        this.mediaAvaliacao = mediaAvaliacao;
+    }
+
+    public List<Avaliacao> getAvaliacoes() {
+        return avaliacoes;
+    }
+
+    public void setAvaliacoes(List<Avaliacao> avaliacoes) {
+        this.avaliacoes = avaliacoes;
+    }
+
+    public void addAvaliacao(Avaliacao avaliacao) {
+        this.avaliacoes.add(avaliacao);
+        avaliacao.setRestaurante(this);
+    }
 
     public UUID getIdImagem(){
-        return idImagem;
+        return idImagemRepository;
     }
 
     public void setIdImagem(UUID id){
-        this.idImagem = id;
+        this.idImagemRepository = id;
     }
 	
 	public void addMesa(Mesas mesa) {
