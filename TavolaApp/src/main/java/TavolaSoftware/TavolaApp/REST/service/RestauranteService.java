@@ -10,6 +10,7 @@ import TavolaSoftware.TavolaApp.tools.UploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,7 +62,15 @@ public class RestauranteService {
 
         if (atualizado.getMesas() != null && !atualizado.getMesas().isEmpty()) {
             existente.setMesas(atualizado.getMesas());
-            uplUtil.processImageFromMesas(atualizado.getMesas(), existente.getId());
+            // Processa as imagens de cada mesa
+            for (Mesas mesa : atualizado.getMesas()) {
+                try {
+                    List<String> imagensProcessadas = uplUtil.processMesas(mesa, existente.getId());
+                    mesa.setImagem(imagensProcessadas);
+                } catch (IOException e) {
+                    throw new RuntimeException("Erro ao processar imagens da mesa: " + e.getMessage());
+                }
+            }
         }
 
         return repo.save(existente);

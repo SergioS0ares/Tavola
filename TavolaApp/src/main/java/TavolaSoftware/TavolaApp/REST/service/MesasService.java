@@ -136,7 +136,7 @@ public class MesasService {
         uplUtil.removeOrfans(pasta, nomes);
     }
 
-    public Restaurante update(int index, Mesas mesaAtualizada, UUID restauranteId) {
+    public Restaurante update(int index, Mesas mesaAtualizada, UUID restauranteId) throws IOException {
         Restaurante restaurante = repoRestaurante.findById(restauranteId)
             .orElseThrow(() -> new RuntimeException("Restaurante não encontrado."));
         Mesas existente = restaurante.getMesas().get(index);

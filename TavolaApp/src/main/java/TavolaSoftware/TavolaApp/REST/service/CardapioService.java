@@ -78,21 +78,24 @@ public class CardapioService {
             cardapioExistente.setPreco(cardapioAtualizado.getPreco());
         }
 
-        if (cardapioAtualizado.getDisponivel() != false) {
-            cardapioExistente.setDisponivel(cardapioAtualizado.getDisponivel());
+        cardapioExistente.setDisponivel(cardapioAtualizado.getDisponivel());
+
+        if (cardapioAtualizado.getCategoria() != null && cardapioAtualizado.getCategoria().getNome() != null) {
+            cardapioExistente.setCategoria(cardapioAtualizado.getCategoria());
         }
 
-        // Processa imagem se houver
-        if (cardapioAtualizado.getImagem() != null && !cardapioAtualizado.getImagem().trim().isEmpty()) {
+        if (cardapioAtualizado.getTags() != null && !cardapioAtualizado.getTags().isEmpty()) {
+            cardapioExistente.setTags(cardapioAtualizado.getTags());
+        }
+
+        // Processa a imagem se fornecida
+        if (cardapioAtualizado.getImagem() != null && !cardapioAtualizado.getImagem().trim().isEmpty() && uplUtil.isBase64Image(cardapioAtualizado.getImagem())) {
             try {
-                uplUtil.processCardapioImagem(cardapioAtualizado.getImagem(), 
-                    cardapioExistente.getRestaurante().getId(), 
-                    cardapioExistente.getId());
-                cardapioExistente.setImagem("/upl/cardapios/" + 
-                    cardapioExistente.getRestaurante().getId() + "/" + 
-                    cardapioExistente.getId() + "/prato.jpg");
+                String pasta = "upl/cardapios/" + cardapioExistente.getRestaurante().getId();
+                String nomeArquivo = uplUtil.processBase64(cardapioAtualizado.getImagem(), pasta, "jpg");
+                cardapioExistente.setImagem("/upl/cardapios/" + cardapioExistente.getRestaurante().getId() + "/" + nomeArquivo);
             } catch (IOException e) {
-                throw new RuntimeException("Erro ao processar imagem do cardápio", e);
+                throw new RuntimeException("Erro ao processar imagem do cardápio: " + e.getMessage(), e);
             }
         }
 
