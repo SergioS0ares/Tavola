@@ -1,6 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.dto.AvaliacaoRequest;
+import TavolaSoftware.TavolaApp.REST.dto.AvaliacaoResponse;
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
@@ -43,8 +44,7 @@ public class ClienteController {
             // O serviço de avaliação cuidará da lógica de encontrar o cliente, restaurante e salvar/atualizar a avaliação.
             // E também de calcular a média.
             Avaliacao avaliacaoSalva = servAvaliacao.avaliarRestaurante(avaliacaoRequest.getScore(), avaliacaoRequest.getComentario(), restauranteId, emailCliente);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(avaliacaoSalva);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new AvaliacaoResponse(avaliacaoSalva));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {

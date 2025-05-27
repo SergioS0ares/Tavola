@@ -4,6 +4,7 @@ import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.REST.dto.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Mesas;
 import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
@@ -31,8 +32,9 @@ public class RestauranteService {
         return repo.findAll();
     }
 
-    public Optional<Restaurante> findById(UUID id) {
-        return repo.findById(id);
+ // No RestauranteService
+    public Optional<RestauranteResponse> findById(UUID id) { // Novo método ou renomeia o antigo
+        return repo.findById(id).map(RestauranteResponse::new);
     }
 
     public Restaurante save(Restaurante restaurante) {

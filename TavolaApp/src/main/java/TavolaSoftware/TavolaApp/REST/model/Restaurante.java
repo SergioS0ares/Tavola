@@ -6,13 +6,17 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import TavolaSoftware.TavolaApp.tools.Endereco;
@@ -48,12 +52,21 @@ public class Restaurante {
     private List<Cardapio> cardapio;
     
     @Column(name = "establishment_average_score")
-    private double mediaAvaliacao; // Campo para armazenar a média das avaliações
+    private double mediaAvaliacao = 0; // Campo para armazenar a média das avaliações
 
     private UUID idImagemRepository;
     
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Avaliacao> avaliacoes = new ArrayList<>();
+    
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) // Cascata para persistir e mesclar serviços
+    @JoinTable(
+        name = "restaurante_servicos_associacao", // Nome da tabela de junção
+        joinColumns = @JoinColumn(name = "restaurante_id"), // Coluna que referencia o Restaurante
+        inverseJoinColumns = @JoinColumn(name = "servico_id") // Coluna que referencia o Servico
+    )
+    private Set<Servico> servicos = new HashSet<>(); // Conjunto de serviços que o restaurante oferece
+
 
     // métodos de restaurante para retornar informações de usuario - coisa de register...
     

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Importar Transactional
 
+import TavolaSoftware.TavolaApp.REST.dto.AvaliacaoResponse;
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
@@ -63,15 +64,7 @@ public class AvaliacaoService {
     }
 
     @Transactional // Garante que a operação seja atômica
-    public Avaliacao avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) {
-        /*
-         * Esse será o método que irá registrar ou alterar uma linha na tabela de avaliações, caso não haja uma linha com a Id do cliente, uma nova deve ser
-         * criada, a id do cliente será retirada pelo Security do spring com contextholder.getprincipal como vc pode ver pelo findByEmail no ClienteService,
-         * é assim que eu identifico quem é o cliente que está fazendo a avaliação.
-         * score, óbviamente é o valor da avaliação feita pelo cliente, para o restaurante que contenha a id entregue.
-         * esse método será entregue em uma requisição POST, ela deve servir tanto para criar uma...
-         */
-
+    public AvaliacaoResponse avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) {
         // 1. Validar e formatar o score
         int scoreFinal = formatarScore(score);
 
@@ -99,11 +92,10 @@ public class AvaliacaoService {
 
         // 5. Salvar a avaliação
         Avaliacao avaliacaoSalva = repo.save(avaliacao);
-
-        // 6. Recalcular e atualizar a média do restaurante
+        
         calcularMedia(restauranteId);
-
-        return avaliacaoSalva;
+        
+        return new AvaliacaoResponse(avaliacaoSalva); // Converte aqui
     }
 
     private int formatarScore(double score) {
