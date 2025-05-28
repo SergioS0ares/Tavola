@@ -8,18 +8,13 @@
     <app-search-bar
       *ngIf="showStickySearchBar"
       [@searchBarAnim]
-      [cidade]="cidade"
-      [query]="query"
       [citySuggestions]="citySuggestions"
       [querySuggestions]="querySuggestions"
       [showCityDropdown]="showCityDropdown"
       [showQueryDropdown]="showQueryDropdown"
       [cityCtrl]="cityCtrl"
       [queryCtrl]="queryCtrl"
-      [filteredCities$]="filteredCities$"
-      [filteredQueries$]="filteredQueries$"
-      (cidadeChange)="cidade = $event"
-      (queryChange)="query = $event"
+      (cidadeChange)="onStickyCityChange($event)"
       (search)="onSearch()"
       (cityInput)="onCityInput($event)"
       (selectCity)="selectCity($event)"
@@ -102,7 +97,7 @@
     <!-- Content -->
     <div class="content">
       <div class="router-container">
-        <router-outlet></router-outlet>
+        <router-outlet (activate)="onOutletActivate($event)"></router-outlet>
       </div>
     </div>
   </div>

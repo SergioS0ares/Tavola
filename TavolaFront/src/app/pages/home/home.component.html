@@ -49,19 +49,41 @@
   
   <!-- Grid de restaurantes -->
   <div class="restaurants-section">
-    <h2>Restaurantes populares em Paris</h2>
-    <div class="restaurants-grid">
-      <div class="restaurant-card" *ngFor="let r of restaurants" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
-        <img [src]="r.imagem" [alt]="r.nome" class="restaurant-img" />
-        <div class="restaurant-info">
-          <div class="restaurant-type">{{ r.tipo }}</div>
-          <div class="restaurant-name">{{ r.nome }}</div>
-          <div class="restaurant-rating">
-            <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r.avaliacao)}">star</mat-icon>
-            <span class="rate-number">{{ r.avaliacao }}</span>
+    <!-- Iterate over cuisine types -->
+    <div *ngFor="let cuisine of getCuisineTypes()" class="cuisine-group">
+      <div class="cuisine-header">
+        <h2>{{ cuisine }}</h2>
+        <!-- Navigation arrows for this cuisine group -->
+        <div class="navigation-arrows">
+          <button mat-icon-button (click)="scrollRestaurants(cuisine, 'left')" [disabled]="!canScrollLeft(cuisine)">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <button mat-icon-button (click)="scrollRestaurants(cuisine, 'right')" [disabled]="!canScrollRight(cuisine)">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable container for restaurant cards -->
+      <div class="scrollable-restaurants" #scrollContainer>
+        <div class="restaurants-grid">
+          <!-- Iterate over ALL restaurants in this cuisine group -->
+          <div class="restaurant-card" *ngFor="let r of groupedRestaurants[cuisine]" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
+            <img [src]="r.imagem" [alt]="r.nome" class="restaurant-img" />
+            <div class="restaurant-info">
+              <!-- Address added here -->
+              <div class="restaurant-address">{{ r.endereco }}</div>
+              <div class="restaurant-name">{{ r.nome }}</div>
+              <div class="restaurant-rating">
+                <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r.avaliacao)}">star</mat-icon>
+                <span class="rate-number">{{ r.avaliacao }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
+
   </div>
   

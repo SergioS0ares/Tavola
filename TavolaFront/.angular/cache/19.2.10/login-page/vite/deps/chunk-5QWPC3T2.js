@@ -2,11 +2,11 @@ import {
   SharedResizeObserver
 } from "./chunk-JHVY26RY.js";
 import {
-  _IdGenerator
-} from "./chunk-V2OSAOCA.js";
-import {
   coerceBooleanProperty
 } from "./chunk-37JVYMH4.js";
+import {
+  _IdGenerator
+} from "./chunk-V2OSAOCA.js";
 import {
   Directionality
 } from "./chunk-SLO47O37.js";
@@ -1467,4 +1467,4 @@ export {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormField
 };
-//# sourceMappingURL=chunk-WDHHYLRW.js.map
+//# sourceMappingURL=chunk-5QWPC3T2.js.map

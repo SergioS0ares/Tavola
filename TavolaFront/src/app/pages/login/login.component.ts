@@ -48,28 +48,10 @@ export class LoginComponent {
       }),
       senha: new FormControl<string>('', {
         nonNullable: true,
-        validators: [Validators.required, this.validadorSenhaForte]
+        validators: [Validators.required]
       })
     });
   }
-
-  validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
-    const valor = control.value;
-    if (!valor) return { required: true };
-  
-    const erros: ValidationErrors = {};
-  
-    if (valor.length < 8) {
-      erros['minCaracteres'] = true;
-    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
-      erros['semCaractereEspecial'] = true;
-    }
-  
-    return Object.keys(erros).length ? erros : null;
-  }
-  
-
-
   emailWithTLDValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value as string;
     // Regex para verificar se o e-mail termina com um TLD válido

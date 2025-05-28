@@ -7,7 +7,7 @@ import {
   HostListener,
   LOCALE_ID,
 } from "@angular/core"
-import { ActivatedRoute } from "@angular/router"
+import { ActivatedRoute, Router } from "@angular/router"
 import { RestauranteService } from "../../../core/services/restaurante.service"
 import { MapsService } from "../../../core/services/maps.service"
 import { CommonModule, registerLocaleData } from "@angular/common"
@@ -24,6 +24,10 @@ registerLocaleData(localePt)
 import { MatIconModule } from "@angular/material/icon"
 import { MatTabsModule } from "@angular/material/tabs"
 import { MatButtonModule } from "@angular/material/button"
+import { MatFormFieldModule } from '@angular/material/form-field'
+import { MatInputModule } from '@angular/material/input'
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
 
 // NG-Zorro
 import { NzGridModule } from "ng-zorro-antd/grid"
@@ -103,6 +107,10 @@ const icons: IconDefinition[] = [
     MatIconModule,
     MatTabsModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
 
     // NG-Zorro
     NzBreadCrumbModule,
@@ -165,6 +173,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   availableSlots: any[] = []
   selectedComments = ""
   bookingData: any = null
+
+  // Properties for loading spinner
+  isLoading = false;
 
   // Propriedades do mapa e rotas
   center: any = { lat: -23.5505, lng: -46.6333 }
@@ -250,6 +261,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private mapsService: MapsService,
     private message: NzMessageService,
     private elementRef: ElementRef,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -444,7 +456,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     this.restaurante = {
       id: id,
       nome: "Restaurante Tavola",
-      endereco: "Rua das Flores, 123",
+      endereco: "Rua das Flores, 123, São Paulo",
       cidade: "São Paulo",
       estado: "SP",
       cep: "01234-567",
@@ -462,12 +474,30 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       },
     }
 
-    if (this.restaurante.coordenadas) {
-      this.center = {
-        lat: this.restaurante.coordenadas.latitude,
-        lng: this.restaurante.coordenadas.longitude,
-      }
-      this.markerPosition = this.center
+    if (this.restaurante.endereco) {
+      this.mapsService.getCoordinatesFromAddress(this.restaurante.endereco).subscribe({
+        next: (coords) => {
+          this.center = { lat: coords.lat, lng: coords.lng };
+          this.markerPosition = this.center;
+        },
+        error: (err) => {
+          console.error('Geocoding error:', err);
+          if (this.restaurante?.coordenadas) {
+            this.center = {
+              lat: this.restaurante.coordenadas.latitude,
+              lng: this.restaurante.coordenadas.longitude,
+            };
+            this.markerPosition = this.center;
+          }
+          this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.');
+        }
+      });
+    } else if (this.restaurante?.coordenadas) {
+       this.center = {
+         lat: this.restaurante.coordenadas.latitude,
+         lng: this.restaurante.coordenadas.longitude,
+       };
+       this.markerPosition = this.center;
     }
   }
 
@@ -726,7 +756,12 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     console.log("Reserva finalizada:", this.bookingData)
     // Aqui você implementaria a chamada para a API
     // Por enquanto, apenas mostrar mensagem de sucesso
-    this.message.success("Reserva realizada com sucesso!")
-    this.resetBooking()
+    this.isLoading = true;
+    setTimeout(() => {
+      this.message.success("Reserva realizada com sucesso!");
+      this.isLoading = false;
+      this.resetBooking()
+      this.router.navigate(['/home'])
+    }, 3000)
   }
 }

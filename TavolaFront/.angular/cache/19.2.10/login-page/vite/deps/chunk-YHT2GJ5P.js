@@ -1,4 +1,7 @@
 import {
+  NzI18nService
+} from "./chunk-DLGAON6Q.js";
+import {
   NzOutletModule,
   NzStringTemplateOutletDirective
 } from "./chunk-DKXAOBVB.js";
@@ -11,9 +14,6 @@ import {
   PortalModule,
   TemplatePortal
 } from "./chunk-2ET3CX5M.js";
-import {
-  NzI18nService
-} from "./chunk-DLGAON6Q.js";
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -664,4 +664,4 @@ export {
   NzEmbedEmptyComponent,
   NzEmptyModule
 };
-//# sourceMappingURL=chunk-MP6ZOVAG.js.map
+//# sourceMappingURL=chunk-YHT2GJ5P.js.map

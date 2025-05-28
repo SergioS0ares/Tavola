@@ -11,6 +11,7 @@ import { SearchBarComponent } from '../home/search-bar/search-bar.component';
 import { FormControl } from '@angular/forms';
 import { Observable, of, startWith, map } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { HomeComponent } from '../home/home.component';
 
 @Component({
   selector: 'app-layout-principal',
@@ -45,6 +46,8 @@ export class LayoutPrincipalComponent {
   filteredCities$: Observable<string[]> = of([]);
   filteredQueries$: Observable<string[]> = of([]);
 
+  homeCity: string = '';
+
   private router = inject(Router);
   private auth = inject(AuthService);
   private stickyService = inject(StickySearchService);
@@ -71,6 +74,11 @@ export class LayoutPrincipalComponent {
       startWith(''),
       map(val => this._filter(val ?? '', this.querySuggestions))
     );
+  }
+
+  ngOnInit() {
+    // Initialize sidebar state in the service
+    this.stickyService.setSidebarAberta(this.sidebarAberta);
   }
 
   get userName(): string {
@@ -103,11 +111,13 @@ export class LayoutPrincipalComponent {
     }
     if (!this.sidebarAberta) {
       this.sidebarAberta = true;
+      this.stickyService.setSidebarAberta(true);
     }
   }
 
   toggleSidebar() {
     this.sidebarAberta = !this.sidebarAberta;
+    this.stickyService.setSidebarAberta(this.sidebarAberta);
   }
 
   logout() {
@@ -118,7 +128,11 @@ export class LayoutPrincipalComponent {
     this.router.navigate(['/login']);
   }
 
-  onSearch() {}
+  onSearch() {
+    console.log('Layout search:', this.cityCtrl.value, this.queryCtrl.value);
+    // Potentially navigate or emit event to home component
+  }
+
   onCityInput(event: any) {}
   selectCity(city: string) {}
   selectQuery(query: string) {}
@@ -136,5 +150,34 @@ export class LayoutPrincipalComponent {
     return list.filter(item =>
       item.toLowerCase().includes(filter)
     );
+  }
+
+  // Method to receive city changes from Home
+  onHomeCityChange(city: string): void {
+    this.homeCity = city;
+    // Update the city control in the sticky search bar when homeCity changes
+    if (this.showStickySearchBar) {
+       this.cityCtrl.setValue(this.homeCity, { emitEvent: false });
+    }
+  }
+
+  // Method to handle city changes from sticky search bar
+  onStickyCityChange(city: string): void {
+    this.cidade = city;
+    // If needed, emit this change back to HomeComponent
+    // This might require an EventEmitter in LayoutPrincipalComponent
+    // For now, we just update the local state and the control.
+     this.cityCtrl.setValue(this.cidade, { emitEvent: false });
+  }
+
+  // Method to handle activated route components
+  onOutletActivate(component: any) {
+    // Check if the activated component is HomeComponent
+    if (component instanceof HomeComponent) {
+      // Subscribe to the cityChangeInHome event
+      component.cityChangeInHome.subscribe((city: string) => {
+        this.onHomeCityChange(city);
+      });
+    }
   }
 }

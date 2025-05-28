@@ -387,11 +387,6 @@
                   {{ num }}
                 </button>
               </div>
-
-              <div class="info-disponibilidade">
-                <i nz-icon nzType="exclamation-circle" nzTheme="outline"></i>
-                <span>Encontre uma mesa em restaurante similar</span>
-              </div>
             </div>
 
             <!-- Etapa 4: Confirmação e Comentários -->
@@ -429,16 +424,17 @@
                 <h4>Comentários ou preferências especiais</h4>
                 <p class="comentarios-desc">Adicione qualquer informação que possa nos ajudar a tornar sua experiência ainda melhor.</p>
                 
-                <nz-form-item>
-                  <textarea 
-                    nz-input 
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Comentários</mat-label>
+                  <textarea
+                    matInput
                     [(ngModel)]="selectedComments"
                     placeholder="Ex: Mesa perto da janela, aniversário, alergias alimentares..."
                     rows="3"
-                    maxlength="200">
-                  </textarea>
-                  <div class="char-count">{{ selectedComments.length }}/200</div>
-                </nz-form-item>
+                    maxlength="200"
+                  ></textarea>
+                  <mat-hint align="end">{{ selectedComments.length }}/200</mat-hint>
+                </mat-form-field>
 
                 <!-- Sugestões rápidas -->
                 <div class="sugestoes-rapidas">
@@ -459,20 +455,16 @@
 
               <!-- Botão de Confirmação -->
               <div class="confirmacao-section">
-                <button 
-                  nz-button 
-                  nzType="primary" 
-                  nzSize="large"
-                  class="botao-confirmar"
-                  (click)="finalizarReserva()">
-                  <i nz-icon nzType="check" nzTheme="outline"></i>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  class="botao-confirmar mat-rounded-button"
+                  (click)="finalizarReserva()"
+                >
+                  <mat-icon>check</mat-icon>
                   Confirmar Reserva
                 </button>
-                
-                <p class="confirmacao-info">
-                  <i nz-icon nzType="info-circle" nzTheme="outline"></i>
-                  Você receberá uma confirmação por email em instantes.
-                </p>
+              
               </div>
             </div>
           </div>
@@ -547,4 +539,9 @@
       </div>
     </ng-container>
   </nz-drawer>
+</div>
+
+<!-- Custom Loading Spinner Overlay -->
+<div class="global-spinner-overlay" *ngIf="isLoading">
+  <div class="pizza-spinner-image"></div>
 </div>

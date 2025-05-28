@@ -333,3 +333,40 @@ $dark-theme: mat.m2-define-dark-theme((
   border-color: #3B221B !important;
 }
 
+// Custom Global Spinner with Pizza
+.global-spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Ajustado para uma cor mais escura e transparente */
+  z-index: 9999; // Ensure it's on top of everything
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-pizza-spinner.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: transparent !important; // Hide default spinner indicator
+  
+  .mat-mdc-progress-spinner-circle {
+    stroke: transparent !important; // Hide default spinner circle
+  }
+}
+
+.pizza-spinner-image {
+  width: 80px; // Adjust size as needed
+  height: 80px;
+  background-image: url('assets/png/pizzaSpin.png'); // Replace with the path to your pizza image
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: spin 1.5s linear infinite; // Add spin animation
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

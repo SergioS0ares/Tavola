@@ -1,6 +1,6 @@
 // Variáveis
 $primary-color: #F6BD38;
-$accent-color: #DA4A24;
+$accent-color: #3B221B;
 $text-color: #3B221B;
 $light-gray: #f5f5f5;
 $medium-gray: #e0e0e0;
@@ -33,6 +33,40 @@ $tavola-cinza: #F8F9FA;
     // Remover ajustes que causavam problemas
     max-width: 1200px;
     margin-right: auto;
+  }
+
+  /* Add styles for when sidebar is open */
+  &.sidebar-aberta {
+    /* Adjust max-width and margin to account for the open sidebar */
+    max-width: 960px; /* Example: Reduced max-width */
+    margin-left: auto; /* Center the container */
+    margin-right: auto;
+
+    .content-area {
+      /* Adjust gap or flex basis if needed */
+      gap: 16px; /* Example: reduced gap */
+    }
+
+    .coluna-reserva {
+      /* Adjust min/max width if needed */
+      min-width: 320px; /* Example: slightly smaller min-width */
+      max-width: 320px; /* Example: slightly smaller max-width */
+    }
+
+    /* Adjust menu section height if necessary */
+    .menu-content {
+      .categorias-nav-container {
+         /* Adjust sticky top position */
+         .categorias-nav.fixed {
+           top: 76px; /* Example: adjust based on toolbar height and padding */
+         }
+      }
+      .categorias-content {
+        .categoria-section {
+          scroll-margin-top: 150px; /* Adjust scroll margin top */
+        }
+      }
+    }
   }
 }
 
@@ -458,12 +492,12 @@ $tavola-cinza: #F8F9FA;
         border-radius: 12px;
         box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
         overflow: hidden;
-        height: 650px;
+        height: 500px;
         display: flex;
         flex-direction: column;
         
         .cabecalho-reserva {
-          background: $tavola-amarelo-claro;
+          background: $tavola-amarelo;
           padding: 20px 24px;
           text-align: center;
           
@@ -471,7 +505,7 @@ $tavola-cinza: #F8F9FA;
             font-size: 20px;
             font-weight: 700;
             margin: 0 0 6px;
-            color: $text-color;
+            color: $accent-color;
           }
           
           .texto-gratis {
@@ -514,10 +548,10 @@ $tavola-cinza: #F8F9FA;
             
             &.completed {
               background: $white;
-              border-bottom-color: $tavola-vermelho;
+              border-bottom-color: $success-color;
               
               .conteudo-etapa {
-                color: $tavola-vermelho;
+                color: $text-color;
                 font-weight: 500;
               }
             }
@@ -1133,7 +1167,7 @@ $tavola-cinza: #F8F9FA;
               font-weight: 700;
               color: $accent-color;
               font-size: 18px;
-              min-width: 80px;
+              min-width: 100px;
               text-align: right;
             }
           }
@@ -1333,6 +1367,10 @@ $tavola-cinza: #F8F9FA;
       margin-top: 4px;
     }
     
+    .mat-mdc-form-field {
+      width: 100%;
+    }
+    
     .sugestoes-rapidas {
       margin-top: 16px;
       
@@ -1375,7 +1413,7 @@ $tavola-cinza: #F8F9FA;
       background-color: $tavola-amarelo;
       border-color: $tavola-amarelo;
       color: $text-color;
-      margin-bottom: 12px;
+      margin-bottom: 0;
       
       &:hover {
         background-color: darken($tavola-amarelo, 10%);
@@ -1386,6 +1424,7 @@ $tavola-cinza: #F8F9FA;
         margin-right: 8px;
       }
     }
+    
     
     .confirmacao-info {
       font-size: 12px;
@@ -1400,5 +1439,23 @@ $tavola-cinza: #F8F9FA;
         font-size: 14px;
       }
     }
+  }
+}
+
+// Styles for the rounded Material button
+.mat-rounded-button {
+  border-radius: 8px !important;
+  height: 48px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  background-color: $tavola-amarelo !important;
+  color: $text-color !important;
+  
+  &:hover {
+    background-color: darken($tavola-amarelo, 10%) !important;
+  }
+  
+  mat-icon {
+    margin-right: 8px;
   }
 }

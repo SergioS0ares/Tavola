@@ -1,10 +1,36 @@
 import { Injectable } from "@angular/core"
+import { HttpClient } from "@angular/common/http"
+import { Observable } from "rxjs"
+import { map } from "rxjs/operators"
 
 @Injectable({
   providedIn: "root",
 })
 export class MapsService {
-  constructor() {}
+  constructor(private http: HttpClient) {}
+
+  // Add your Google Maps Geocoding API key here
+  private googleMapsApiKey = 'AIzaSyCUDeZfumwzHU8nU1iPvX2s6C0tAZYEaxQ'; // <-- Replace with your actual API key
+
+  /**
+   * Converts an address string to latitude and longitude coordinates using Google Maps Geocoding API.
+   * @param address The address string.
+   * @returns An Observable that emits an object with lat and lng, or an error if geocoding fails.
+   */
+  getCoordinatesFromAddress(address: string): Observable<{ lat: number; lng: number }> {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${this.googleMapsApiKey}`;
+
+    return this.http.get<any>(url).pipe(
+      map(response => {
+        if (response.results && response.results.length > 0) {
+          const location = response.results[0].geometry.location;
+          return { lat: location.lat, lng: location.lng };
+        } else {
+          throw new Error('Geocoding failed: No results found');
+        }
+      })
+    );
+  }
 
   /**
    * Abre o Google Maps com a rota da localização atual para o destino
