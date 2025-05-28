@@ -1,5 +1,6 @@
+// src/app/core/services/maps.service.ts
 import { Injectable } from "@angular/core"
-import { HttpClient } from "@angular/common/http"
+import { HttpClient } from "@angular/common/http" // Certifique-se de que HttpClient está injetado se for usar getCoordinatesFromAddress
 import { Observable } from "rxjs"
 import { map } from "rxjs/operators"
 
@@ -7,15 +8,15 @@ import { map } from "rxjs/operators"
   providedIn: "root",
 })
 export class MapsService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {} // Mantenha HttpClient se usar getCoordinatesFromAddress
 
-  // Add your Google Maps Geocoding API key here
-  private googleMapsApiKey = 'AIzaSyCUDeZfumwzHU8nU1iPvX2s6C0tAZYEaxQ'; // <-- Replace with your actual API key
+  // Adicione sua chave da API do Google Maps aqui
+  private googleMapsApiKey = 'AIzaSyCUDeZfumwzHU8nU1iPvX2s6C0tAZYEaxQ';
 
   /**
-   * Converts an address string to latitude and longitude coordinates using Google Maps Geocoding API.
-   * @param address The address string.
-   * @returns An Observable that emits an object with lat and lng, or an error if geocoding fails.
+   * Converte uma string de endereço em coordenadas de latitude e longitude usando a API de Geocoding do Google Maps.
+   * @param address A string do endereço.
+   * @returns Um Observable que emite um objeto com lat e lng, ou um erro se a geocodificação falhar.
    */
   getCoordinatesFromAddress(address: string): Observable<{ lat: number; lng: number }> {
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${this.googleMapsApiKey}`;
@@ -80,7 +81,8 @@ export class MapsService {
    * Abre o Google Maps com a rota
    */
   private abrirGoogleMapsComRota(origem: { lat: number; lng: number }, destino: { lat: number; lng: number }): void {
-    const url = `https://www.google.com/maps/dir/${origem.lat},${origem.lng}/${destino.lat},${destino.lng}`
+    // Formato correto para abrir rotas no Google Maps
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${origem.lat},${origem.lng}&destination=${destino.lat},${destino.lng}&travelmode=driving`;
     window.open(url, "_blank")
   }
 }
