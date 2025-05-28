@@ -171,5 +171,9 @@ public class Restaurante {
 	public void setImagem(List<String> imagens) {
 		this.imagens = imagens;
 	}
+
+	public Set<Servico> getServicos() {
+		return servicos;
+	}
 	
 }
