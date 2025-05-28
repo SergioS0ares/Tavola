@@ -3,113 +3,93 @@ package TavolaSoftware.TavolaApp.REST.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors; // Importar Collectors
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importar Transactional
+import org.springframework.transaction.annotation.Transactional;
 
-import TavolaSoftware.TavolaApp.REST.dto.AvaliacaoResponse;
+// Removido o import de AvaliacaoResponse, pois não será mais usado diretamente aqui para retorno.
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository; // Importar ClienteRepository
+// ClienteRepository já era importado, mantido.
 
 @Service
 public class AvaliacaoService {
 
     @Autowired
-    private RestauranteService restauranteService; // Renomeado para clareza
-    
-    @Autowired
-    private ClienteService clienteService; // Injetar ClienteService
+    private RestauranteRepository repoRestaurante; // Usaremos para buscar o restaurante
 
     @Autowired
-    private AvaliacaoRepository repo; // O repositório de Avaliacao
+    private ClienteService servCliente; 
 
     @Autowired
-    private RestauranteRepository restauranteRepo; // Injetar RestauranteRepository para save
+    private AvaliacaoRepository avaliacaoRepository; // Renomeado para consistência
 
-    @Transactional // Garante que a operação seja atômica
+    // Removido o autowired para RestauranteService se não for mais usado diretamente aqui para salvar média.
+    // A lógica de salvar média já está no calcularMedia que usa restauranteRepository.
+
+    @Transactional
     public double calcularMedia(UUID restauranteId) {
-        /*
-         * Esse será o método que irá calcular a média de todas as avaliações feitas no restaurante com a id entregada pelo parametro, para isso ele irá
-         * puxar todas as avaliações que contenham aquela id de restaurante do AvaliacaoRepository, e com elas calcular a média aritimética e salvar esse valor
-         * na variável dedicada a isso na entidade de restaurante através da RestauranteService.
-         */
-        List<Avaliacao> avaliacoes = repo.findByRestauranteId(restauranteId);
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findByRestauranteId(restauranteId);
 
         if (avaliacoes.isEmpty()) {
-            return 0.0; // Se não houver avaliações, a média é 0
+            // Atualiza a média para 0.0 se não houver avaliações
+            Restaurante restaurante = repoRestaurante.findById(restauranteId)
+                .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado para calcular média."));
+            restaurante.setMediaAvaliacao(0.0);
+            repoRestaurante.save(restaurante);
+            return 0.0;
         }
 
         double somaScores = avaliacoes.stream()
                                      .mapToDouble(Avaliacao::getScore)
                                      .sum();
-
         double media = somaScores / avaliacoes.size();
+        media = Math.round(media * 10.0) / 10.0; // Arredonda para uma casa decimal
 
-        // Salvar a média no restaurante
-        Optional<Restaurante> restauranteOptional = restauranteService.findById(restauranteId);
-        if (restauranteOptional.isPresent()) {
-            Restaurante restaurante = restauranteOptional.get();
-            restaurante.setMediaAvaliacao(media);
-            restauranteRepo.save(restaurante); // Salva o restaurante com a nova média
-        } else {
-            throw new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado.");
-        }
+        Restaurante restaurante = repoRestaurante.findById(restauranteId)
+            .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado para salvar média."));
+        restaurante.setMediaAvaliacao(media);
+        repoRestaurante.save(restaurante);
         return media;
     }
 
-    @Transactional // Garante que a operação seja atômica
-    public AvaliacaoResponse avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) {
-        // 1. Validar e formatar o score
+    @Transactional
+    public Avaliacao avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) { // MUDANÇA: Retorna Avaliacao
         int scoreFinal = formatarScore(score);
 
-        // 2. Encontrar o cliente
-        Cliente cliente = clienteService.findByEmail(emailCliente)
+        Cliente cliente = servCliente.findByEmail(emailCliente)
                                         .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado para o email: " + emailCliente));
 
-        // 3. Encontrar o restaurante
-        Restaurante restaurante = restauranteService.findById(restauranteId)
+        Restaurante restaurante = repoRestaurante.findById(restauranteId) // Busca pelo RestauranteRepository
                                                  .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado."));
 
-        // 4. Verificar se já existe uma avaliação do cliente para este restaurante
-        Optional<Avaliacao> avaliacaoExistente = repo.findByClienteAndRestaurante(cliente, restaurante);
+        Optional<Avaliacao> avaliacaoExistente = avaliacaoRepository.findByClienteAndRestaurante(cliente, restaurante);
 
         Avaliacao avaliacao;
         if (avaliacaoExistente.isPresent()) {
-            // Se a avaliação já existe, atualiza
             avaliacao = avaliacaoExistente.get();
             avaliacao.setScore(scoreFinal);
             avaliacao.setComentario(comentario);
         } else {
-            // Se não existe, cria uma nova avaliação
             avaliacao = new Avaliacao(restaurante, cliente, scoreFinal, comentario);
         }
 
-        // 5. Salvar a avaliação
-        Avaliacao avaliacaoSalva = repo.save(avaliacao);
+        Avaliacao avaliacaoSalva = avaliacaoRepository.save(avaliacao);
         
-        calcularMedia(restauranteId);
+        calcularMedia(restauranteId); // Recalcula e salva a média
         
-        return new AvaliacaoResponse(avaliacaoSalva); // Converte aqui
+        return avaliacaoSalva; // MUDANÇA: Retorna a entidade Avaliacao salva
     }
 
     private int formatarScore(double score) {
-        // Implementa a lógica de formatação do score (dividir por 2 e arredondar para o inteiro mais próximo, arredondando para maior)
-        // Ex: 8.5 -> 4.25 -> 5
-        // Ex: 3.0 -> 1.5 -> 2
-        // Ex: 10.0 -> 5.0 -> 5
-        if (score < 0.5) return 1; // Score mínimo de 1, se vier muito baixo
-        if (score > 10.0) score = 10.0; // Limitar o score máximo para 10
-
+        if (score < 0.5) return 1; 
+        if (score > 10.0) score = 10.0; 
         double scoreDivided = score / 2.0;
-        return (int) Math.round(scoreDivided); // Arredonda para o inteiro mais próximo
+        return (int) Math.round(scoreDivided); 
     }
-
-    // Você precisará de um repositório para Avaliacao.
-    // Crie uma interface AvaliacaoRepository que estenda JpaRepository.
 }

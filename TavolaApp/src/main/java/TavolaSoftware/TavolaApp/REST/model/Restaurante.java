@@ -175,5 +175,25 @@ public class Restaurante {
 	public Set<Servico> getServicos() {
 		return servicos;
 	}
+
+	public void setServicos(Set<Servico> servicos) {
+		this.servicos = servicos;
+	}
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

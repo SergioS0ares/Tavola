@@ -1,22 +1,26 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.dto.AvaliacaoRequest;
-import TavolaSoftware.TavolaApp.REST.dto.AvaliacaoResponse;
+// Removido import de AvaliacaoResponse
+import TavolaSoftware.TavolaApp.REST.dto.RestauranteResponse; // MUDANÇA: Para retornar o restaurante atualizado
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante; // Para buscar o restaurante
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.service.AvaliacaoService;
 import TavolaSoftware.TavolaApp.REST.service.ClienteService;
 import TavolaSoftware.TavolaApp.REST.service.ReservaService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService; // MUDANÇA: Para buscar o restaurante
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
-import TavolaSoftware.TavolaApp.tools.UploadUtils;
+import TavolaSoftware.TavolaApp.tools.UploadUtils; // Mantido para atualização de cliente
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.io.IOException; // Mantido para atualização de cliente
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,28 +30,47 @@ import java.util.UUID;
 public class ClienteController {
 
     @Autowired
-    private ClienteService serv;
+    private ClienteService serv; // Renomeado para consistência
 
     @Autowired
     private ReservaService servReserva;
     
     @Autowired
-    private AvaliacaoService servAvaliacao;
+    private AvaliacaoService servAvaliacao; // Renomeado para consistência
 
     @Autowired
-    private UploadUtils uplUtil;
+    private RestauranteService servRestaurante; // MUDANÇA: Injetar RestauranteService
+
+    @Autowired
+    private UploadUtils uplUtil; // Mantido para atualização de cliente
     
-    @PostMapping("/avaliar/{restauranteId}")
+    @PostMapping("/avaliar/{restauranteId}") // MUDANÇA: Retorna RestauranteResponse
     public ResponseEntity<?> avaliar(@PathVariable UUID restauranteId, @RequestBody AvaliacaoRequest avaliacaoRequest) {
         try {
             String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            // O serviço de avaliação cuidará da lógica de encontrar o cliente, restaurante e salvar/atualizar a avaliação.
-            // E também de calcular a média.
-            Avaliacao avaliacaoSalva = servAvaliacao.avaliarRestaurante(avaliacaoRequest.getScore(), avaliacaoRequest.getComentario(), restauranteId, emailCliente);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new AvaliacaoResponse(avaliacaoSalva));
+            
+            // 1. Salva/Atualiza a avaliação (agora retorna a entidade Avaliacao)
+            servAvaliacao.avaliarRestaurante(
+                avaliacaoRequest.getScore(), 
+                avaliacaoRequest.getComentario(), 
+                restauranteId, 
+                emailCliente
+            );
+            
+            // 2. Busca o Restaurante atualizado para obter o RestauranteResponse completo
+            Optional<RestauranteResponse> restauranteResponseOpt = servRestaurante.findById(restauranteId);
+            
+            if (restauranteResponseOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.OK).body(restauranteResponseOpt.get());
+            } else {
+                // Isso não deveria acontecer se a avaliação foi bem-sucedida, pois o restaurante existe.
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurante não encontrado após avaliação.");
+            }
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
+            // Logar o erro e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao realizar avaliação: " + e.getMessage());
         }
     }
@@ -79,6 +102,11 @@ public class ClienteController {
         Cliente novoCliente = serv.save(cliente);
         return ResponseEntity.ok(novoCliente);
     }
+    
+    @GetMapping("/getall")
+    public ResponseEntity<List<Cliente>> findAll() {
+        return ResponseEntity.ok(serv.findAll());
+    }
 
     @GetMapping("/get")
     public ResponseEntity<Cliente> findSelf() {
@@ -87,10 +115,7 @@ public class ClienteController {
         return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/getall")
-    public ResponseEntity<List<Cliente>> findAll() {
-        return ResponseEntity.ok(serv.findAll());
-    }
+    
 
     @PutMapping("/update")
     public ResponseEntity<?> update(@RequestBody Cliente atualizacao) {

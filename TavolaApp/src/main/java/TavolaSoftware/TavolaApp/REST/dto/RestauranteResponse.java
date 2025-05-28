@@ -99,8 +99,6 @@ public class RestauranteResponse {
             this.diaSemana = hf.getDiaSemana();
             this.abertura = hf.getAbertura();
             this.fechamento = hf.getFechamento();
-            // Como os getters não existem em HorarioFuncionamento.java, vou comentar
-            // e você precisará implementá-los ou ajustar aqui.
         }
         
         // Getters
