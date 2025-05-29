@@ -24,9 +24,7 @@ import { AuthService } from '../../core/services/auth.service';
     MatIconModule,
     MatButtonModule
   ],
-  providers: [
-    LoginService
-  ],
+  providers: [],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -74,14 +72,11 @@ export class LoginComponent {
     if (email && senha) {
       this.loginService.login(email, senha).subscribe({
         next: (res) => {
-          localStorage.setItem('token', res.token);
-          localStorage.setItem('userName', res.name);
-          localStorage.setItem('tipoUsuario', res.tipoUsuario);
-          this.authService.setToken(res.token);
+          // Centraliza o armazenamento no AuthService
+          this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+          
           this.toastService.success("Login feito com sucesso!");
-          this.authService.setPerfil({ nome: res.name,
-            tipo: res.tipoUsuario as 'CLIENTE'|'RESTAURANTE' });
-          // Redireciona com base no tipo de usuário
+          
           if (res.tipoUsuario === 'RESTAURANTE') {
             this.router.navigate(['reserva']);
           } else {

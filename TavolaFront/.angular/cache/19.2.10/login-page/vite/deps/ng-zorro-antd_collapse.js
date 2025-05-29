@@ -1,10 +1,4 @@
 import {
-  NzNoAnimationDirective
-} from "./chunk-RMYNG7YU.js";
-import {
-  collapseMotion
-} from "./chunk-GVUQ4SW7.js";
-import {
   NzDestroyService
 } from "./chunk-THNKFP42.js";
 import {
@@ -13,6 +7,12 @@ import {
 } from "./chunk-OPPET6GO.js";
 import "./chunk-2SJ2DHYL.js";
 import "./chunk-BQ76GOFF.js";
+import {
+  NzNoAnimationDirective
+} from "./chunk-RMYNG7YU.js";
+import {
+  collapseMotion
+} from "./chunk-GVUQ4SW7.js";
 import {
   NzOutletModule,
   NzStringTemplateOutletDirective
@@ -39,11 +39,11 @@ import "./chunk-37JVYMH4.js";
 import "./chunk-WZFLAKUS.js";
 import "./chunk-7N4PRWGB.js";
 import "./chunk-UWI5G4WL.js";
-import "./chunk-B5GAWAR3.js";
 import "./chunk-IJ3KGSPX.js";
 import {
   Directionality
 } from "./chunk-SLO47O37.js";
+import "./chunk-B5GAWAR3.js";
 import "./chunk-USHARBCX.js";
 import "./chunk-HPCFBG3Q.js";
 import "./chunk-GAMILAFO.js";

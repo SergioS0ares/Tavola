@@ -12,19 +12,13 @@ import {
   NzOverlayModule,
   POSITION_MAP,
   getPlacementName
-} from "./chunk-D7LZX3LM.js";
+} from "./chunk-F6PDYWT6.js";
 import {
   NZ_SPACE_COMPACT_ITEM_TYPE,
   NZ_SPACE_COMPACT_SIZE,
   NzSpaceCompactItemDirective,
   takeUntilDestroyed
 } from "./chunk-25XMUXUH.js";
-import {
-  NzNoAnimationDirective
-} from "./chunk-RMYNG7YU.js";
-import {
-  slideMotion
-} from "./chunk-GVUQ4SW7.js";
 import {
   NzDestroyService,
   cancelRequestAnimationFrame,
@@ -34,6 +28,12 @@ import {
   NzIconDirective,
   NzIconModule
 } from "./chunk-OPPET6GO.js";
+import {
+  NzNoAnimationDirective
+} from "./chunk-RMYNG7YU.js";
+import {
+  slideMotion
+} from "./chunk-GVUQ4SW7.js";
 import {
   NzOutletModule,
   NzStringTemplateOutletDirective
@@ -52,7 +52,7 @@ import {
   CdkConnectedOverlay,
   CdkOverlayOrigin,
   OverlayModule
-} from "./chunk-BDTLI736.js";
+} from "./chunk-DWD24MB2.js";
 import {
   COMPOSITION_BUFFER_MODE,
   DefaultValueAccessor,
@@ -3396,4 +3396,4 @@ export {
   NzSelectComponent,
   NzSelectModule
 };
-//# sourceMappingURL=chunk-ECH35M7R.js.map
+//# sourceMappingURL=chunk-3CR72GVI.js.map

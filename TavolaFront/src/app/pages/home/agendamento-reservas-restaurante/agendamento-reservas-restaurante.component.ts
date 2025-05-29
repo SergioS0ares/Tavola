@@ -6,6 +6,7 @@ import {
   type AfterViewInit,
   HostListener,
   LOCALE_ID,
+  OnDestroy,
 } from "@angular/core"
 import { ActivatedRoute, Router } from "@angular/router"
 import { RestauranteService } from "../../../core/services/restaurante.service"
@@ -16,6 +17,10 @@ import { RouterLink } from "@angular/router"
 import { GoogleMapsModule } from "@angular/google-maps"
 import { GoogleMap } from "@angular/google-maps"
 import localePt from "@angular/common/locales/pt"
+import { GlobalSpinnerService } from "../../../core/services/global-spinner.service"
+import { forkJoin, fromEvent, Subscription } from 'rxjs'
+import { MatTabGroup } from '@angular/material/tabs'
+import { MapMarker } from '@angular/google-maps'
 
 // Registrar locale português
 registerLocaleData(localePt)
@@ -145,7 +150,7 @@ const icons: IconDefinition[] = [
     { provide: LOCALE_ID, useValue: "pt-BR" },
   ],
 })
-export class AgendamentoReservasRestauranteComponent implements OnInit, AfterViewInit {
+export class AgendamentoReservasRestauranteComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("tabsContainer") tabsContainer!: ElementRef
   @ViewChild("categoriasScrollContainer") categoriasScrollContainer!: ElementRef
   @ViewChild("categoriasNavContainer") categoriasNavContainer!: ElementRef
@@ -175,7 +180,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   bookingData: any = null
 
   // Properties for loading spinner
-  isLoading = false;
+  isLoading = true
 
   // Propriedades do mapa e rotas
   center: any = { lat: -23.5505, lng: -46.6333 }
@@ -255,6 +260,8 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   categoriaAtiva = "Destaques"
   dietOptions: string[] = ["Sem glúten", "Halal", "Intolerância à lactose", "Vegano", "Vegetariano"]
 
+  restauranteId!: string
+
   constructor(
     private route: ActivatedRoute,
     private restauranteService: RestauranteService,
@@ -262,14 +269,19 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private message: NzMessageService,
     private elementRef: ElementRef,
     private router: Router,
+    private spinnerService: GlobalSpinnerService
   ) {}
 
   ngOnInit() {
     window.scrollTo(0, 0)
     this.selectedDate = new Date()
     this.selectedDate.setHours(0, 0, 0, 0) // Zerando hora para evitar problemas na comparação
-    const id = this.route.snapshot.paramMap.get("id")!
-    this.carregarDadosRestaurante(id)
+    this.route.params.subscribe(params => {
+      this.restauranteId = params['id']
+      if (this.restauranteId) {
+        this.carregarDadosRestaurante()
+      }
+    })
     this.gerarImagens()
     this.carregarItensMenu()
     this.generateAvailableSlots()
@@ -303,27 +315,21 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   onDateSelect(date: Date): void {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    console.log("Data selecionada:", date)
-    console.log("Data atual selecionada no componente:", this.selectedDate)
-    console.log("Hoje:", today)
+    console.log("Data selecionada:", date);
+    console.log("Data atual selecionada no componente:", this.selectedDate);
+    console.log("Hoje:", today);
 
     if (date < today) {
-      this.message.error("Não é possível selecionar uma data anterior a hoje.")
-      return
+      this.message.error("Não é possível selecionar uma data anterior a hoje.");
+      return;
     }
 
-    // Verificar se é uma data diferente da atual
-    if (date == today) {
-      console.log("Não avançando - mesma data selecionada")
-      return
-    }
-
-    this.selectedDate = date
-    this.bookingStep = 2
-    this.generateAvailableSlots()
+    this.selectedDate = date;
+    this.bookingStep = 2; // Avança para a etapa de horário
+    this.generateAvailableSlots();
   }
 
   onTimeSelect(time: string): void {
@@ -363,8 +369,8 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
     try {
       const restaurantLocation = {
-        lat: this.restaurante.coordenadas.latitude,
-        lng: this.restaurante.coordenadas.longitude,
+        lat: this.restaurante?.coordenadas?.latitude || -23.5505,
+        lng: this.restaurante?.coordenadas?.longitude || -46.6333,
       }
 
       await this.mapsService.mostrarRotaNoGoogleMaps(restaurantLocation)
@@ -392,7 +398,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     const dayName = dayNames[dayOfWeek]
 
     const horario = this.horariosFuncionamento.find((h) => h.dia === dayName)
-    if (!horario) return
+    if (!horario) {
+      this.availableSlots = []
+      return
+    }
 
     this.availableSlots = []
 
@@ -452,53 +461,27 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     })
   }
 
-  carregarDadosRestaurante(id: string): void {
-    this.restaurante = {
-      id: id,
-      nome: "Restaurante Tavola",
-      endereco: "Rua das Flores, 123, São Paulo",
-      cidade: "São Paulo",
-      estado: "SP",
-      cep: "01234-567",
-      telefone: "(11) 99999-9999",
-      email: "contato@tavola.com.br",
-      descricao:
-        "O Restaurante Tavola oferece uma experiência gastronômica única, com pratos da culinária italiana preparados com ingredientes frescos e de alta qualidade. Nosso ambiente acolhedor é perfeito para momentos especiais em família ou com amigos. Venha conhecer nosso cardápio variado e se surpreender com sabores autênticos da Itália.",
-      tipoCozinha: "Italiana",
-      precoMedio: 120,
-      avaliacao: 4.8,
-      totalAvaliacoes: 256,
-      coordenadas: {
-        latitude: -23.5505,
-        longitude: -46.6333,
-      },
-    }
+  carregarDadosRestaurante(): void {
+    this.spinnerService.mostrar(0)
+    this.isLoading = true
 
-    if (this.restaurante.endereco) {
-      this.mapsService.getCoordinatesFromAddress(this.restaurante.endereco).subscribe({
-        next: (coords) => {
-          this.center = { lat: coords.lat, lng: coords.lng };
-          this.markerPosition = this.center;
-        },
-        error: (err) => {
-          console.error('Geocoding error:', err);
-          if (this.restaurante?.coordenadas) {
-            this.center = {
-              lat: this.restaurante.coordenadas.latitude,
-              lng: this.restaurante.coordenadas.longitude,
-            };
-            this.markerPosition = this.center;
-          }
-          this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.');
-        }
-      });
-    } else if (this.restaurante?.coordenadas) {
-       this.center = {
-         lat: this.restaurante.coordenadas.latitude,
-         lng: this.restaurante.coordenadas.longitude,
-       };
-       this.markerPosition = this.center;
-    }
+    this.restauranteService.findById(this.restauranteId).subscribe({
+      next: (restaurante: any) => {
+        this.restaurante = restaurante
+        this.allImages = [...this.restaurantImages]
+        this.totalPhotos = this.allImages.length
+        this.definirDadosEstaticos()
+        this.checkIfFavorite()
+        this.isLoading = false
+        this.spinnerService.ocultar()
+      },
+      error: (error: any) => {
+        console.error('Erro ao carregar dados do restaurante:', error)
+        this.isLoading = false
+        this.spinnerService.ocultar()
+        this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.')
+      }
+    })
   }
 
   gerarImagens(): void {
@@ -549,13 +532,15 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   copiarEndereco(): void {
-    const endereco = `${this.restaurante.endereco}, ${this.restaurante.cidade} - ${this.restaurante.estado}, ${this.restaurante.cep}`
-    navigator.clipboard.writeText(endereco).then(() => {
-      this.copiado = true
-      setTimeout(() => {
-        this.copiado = false
-      }, 2000)
-    })
+    const endereco = `${this.restaurante?.endereco}, ${this.restaurante?.cidade} - ${this.restaurante?.estado}, ${this.restaurante?.cep}`
+    if (endereco) {
+      navigator.clipboard.writeText(endereco).then(() => {
+        this.copiado = true
+        setTimeout(() => {
+          this.copiado = false
+        }, 2000)
+      }).catch(err => console.error('Erro ao copiar:', err))
+    }
   }
 
   @HostListener("window:scroll", ["$event"])
@@ -753,15 +738,75 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   finalizarReserva(): void {
-    console.log("Reserva finalizada:", this.bookingData)
-    // Aqui você implementaria a chamada para a API
-    // Por enquanto, apenas mostrar mensagem de sucesso
-    this.isLoading = true;
+    if (!this.selectedDate || !this.selectedTime || !this.selectedGuests) {
+      console.log('Por favor, selecione a data, horário e número de pessoas.')
+      return
+    }
+
+    this.spinnerService.mostrar(0)
+
+    const reservaData = {
+      restaurantId: this.restauranteId,
+      date: this.selectedDate.toISOString().split('T')[0],
+      time: this.selectedTime,
+      guests: this.selectedGuests,
+      comments: this.selectedComments
+    }
+
+    // Simulação de sucesso/erro para demonstração com o mock atual
+    console.log('Simulando finalização de reserva:', reservaData)
     setTimeout(() => {
-      this.message.success("Reserva realizada com sucesso!");
-      this.isLoading = false;
-      this.resetBooking()
-      this.router.navigate(['/home'])
-    }, 3000)
+      const sucesso = Math.random() > 0.2 // 80% de chance de sucesso
+      if (sucesso) {
+        console.log('Reserva simulada com sucesso!')
+        this.spinnerService.ocultar()
+        this.message.success("Reserva realizada com sucesso (simulado)!")
+        this.resetBooking()
+        this.router.navigate(['/home'])
+      } else {
+        console.error('Erro simulado ao criar reserva.')
+        this.spinnerService.ocultar()
+        this.message.error("Erro ao criar reserva (simulado)")
+      }
+    }, 2000) // Simula um delay de 2 segundos
+  }
+
+  definirDadosEstaticos(): void {
+    if (this.restaurante?.endereco) {
+      this.mapsService.getCoordinatesFromAddress(this.restaurante.endereco).subscribe({
+        next: (coords) => {
+          this.center = { lat: coords.lat, lng: coords.lng }
+          this.markerPosition = this.center
+        },
+        error: (err) => {
+          console.error('Geocoding error:', err)
+          if (this.restaurante?.coordenadas) {
+            this.center = {
+              lat: this.restaurante.coordenadas.latitude,
+              lng: this.restaurante.coordenadas.longitude,
+            }
+            this.markerPosition = this.center
+          }
+          this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.')
+        }
+      })
+    } else if (this.restaurante?.coordenadas) {
+      this.center = {
+        lat: this.restaurante.coordenadas.latitude,
+        lng: this.restaurante.coordenadas.longitude,
+      }
+      this.markerPosition = this.center
+    }
+  }
+
+  checkIfFavorite(): void {
+    // Implementação simples mock: apenas alterna a propriedade isFavorite.
+    // Para uma implementação real, você verificaria em uma lista de IDs favoritos.
+    console.log('Verificando se restaurante é favorito (mock)')
+    // Mantendo a propriedade isFavorite como um boolean simples por enquanto.
+  }
+
+  ngOnDestroy(): void {
+    console.log('Componente AgendamentoReservasRestauranteComponent sendo destruído.')
   }
 }

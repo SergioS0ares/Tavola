@@ -134,10 +134,7 @@ export class LayoutPrincipalComponent implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tipoUsuario');
-    localStorage.removeItem('userName');
+    this.auth.clearAuthData(); // Usa o método centralizado do AuthService
     this.router.navigate(['/login']);
   }
 

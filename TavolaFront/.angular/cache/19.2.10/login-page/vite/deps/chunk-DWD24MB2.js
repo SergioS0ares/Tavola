@@ -21,12 +21,6 @@ import {
   coerceArray
 } from "./chunk-UWI5G4WL.js";
 import {
-  _CdkPrivateStyleLoader
-} from "./chunk-E2JSMR2W.js";
-import {
-  _bindEventWithOptions
-} from "./chunk-B5GAWAR3.js";
-import {
   ScrollDispatcher,
   ScrollingModule,
   ViewportRuler
@@ -38,6 +32,12 @@ import {
   BidiModule,
   Directionality
 } from "./chunk-SLO47O37.js";
+import {
+  _CdkPrivateStyleLoader
+} from "./chunk-E2JSMR2W.js";
+import {
+  _bindEventWithOptions
+} from "./chunk-B5GAWAR3.js";
 import {
   Platform
 } from "./chunk-USHARBCX.js";
@@ -2927,4 +2927,4 @@ export {
   CdkConnectedOverlay,
   OverlayModule
 };
-//# sourceMappingURL=chunk-BDTLI736.js.map
+//# sourceMappingURL=chunk-DWD24MB2.js.map

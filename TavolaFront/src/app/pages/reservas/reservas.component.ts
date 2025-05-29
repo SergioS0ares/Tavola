@@ -1,6 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, ViewChild, ElementRef, type AfterViewInit, HostListener, LOCALE_ID, OnDestroy } from "@angular/core"
+import { ActivatedRoute, Router } from "@angular/router"
+import { RestauranteService } from "../../core/services/restaurante.service"
+import { MapsService } from "../../core/services/maps.service"
+import { CommonModule, registerLocaleData } from "@angular/common"
+import { FormsModule, ReactiveFormsModule } from "@angular/forms"
+import { RouterLink } from "@angular/router"
+// import { GoogleMapsModule } from "@angular/google-maps"
+// import { GoogleMap } from "@angular/google-maps"
+import localePt from "@angular/common/locales/pt"
+// import { GlobalSpinnerService } from "../../../core/services/global-spinner.service"
+// import { forkJoin, fromEvent, Subscription } from 'rxjs'
+// import { MatTabGroup } from '@angular/material/tabs'
+// import { MapMarker } from '@angular/google-maps'
+
+// Registrar locale português
+registerLocaleData(localePt)
 
 // Angular Material
 import { MatTabsModule } from '@angular/material/tabs';
@@ -14,16 +28,41 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialogModule } from '@angular/material/dialog';
 
 // NG-Zorro
-import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzAvatarModule } from 'ng-zorro-antd/avatar';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzLayoutModule } from "ng-zorro-antd/layout"
+import { NzGridModule } from "ng-zorro-antd/grid"
+import { NzAvatarModule } from "ng-zorro-antd/avatar"
+import { NzTagModule } from "ng-zorro-antd/tag"
+import { NzTypographyModule } from "ng-zorro-antd/typography"
+import { NzSpaceModule } from "ng-zorro-antd/space"
+import { NzButtonModule } from "ng-zorro-antd/button"
+import { NzRateModule } from "ng-zorro-antd/rate"
+import { NzTabsModule } from "ng-zorro-antd/tabs"
+import { NzCardModule } from "ng-zorro-antd/card"
+import { NZ_ICONS } from "ng-zorro-antd/icon"
+import { NzDatePickerModule } from "ng-zorro-antd/date-picker"
+import { NzSelectModule as NzSelectModuleZorro } from "ng-zorro-antd/select"
+import { NzFormModule } from "ng-zorro-antd/form"
+import { NzModalModule, NzModalService } from "ng-zorro-antd/modal"
+import { NzIconModule } from "ng-zorro-antd/icon"
+import { NzDividerModule as NzDividerModuleZorro } from "ng-zorro-antd/divider"
+import { NzCollapseModule } from "ng-zorro-antd/collapse"
+import { NzToolTipModule } from "ng-zorro-antd/tooltip"
+import { NzDrawerModule } from "ng-zorro-antd/drawer"
+import { NzCalendarModule } from "ng-zorro-antd/calendar"
+import { NzBadgeModule as NzBadgeModuleZorro } from "ng-zorro-antd/badge"
+import { NzMessageService } from "ng-zorro-antd/message"
+import { NZ_I18N, pt_BR } from "ng-zorro-antd/i18n"
+import type { IconDefinition } from "@ant-design/icons-angular"
+import { CarOutline, HomeOutline, EnvironmentOutline, FlagOutline, HeartOutline, HeartFill, LeftOutline, RightOutline, CalendarOutline, ClockCircleOutline, TeamOutline, CheckCircleOutline, ExclamationCircleOutline, FireFill, CopyOutline, CheckOutline } from "@ant-design/icons-angular/icons"
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
+
+const icons: IconDefinition[] = [ CarOutline, HomeOutline, EnvironmentOutline, FlagOutline, HeartOutline, HeartFill, LeftOutline, RightOutline, CalendarOutline, ClockCircleOutline, TeamOutline, CheckCircleOutline, ExclamationCircleOutline, FireFill, CopyOutline, CheckOutline, ]
 
 interface Mesa {
   id: string;
@@ -54,7 +93,6 @@ interface Cliente {
 interface Reserva {
   id: string;
   clienteId: string;
-  mesa: string;
   mesaIds: string[]; // IDs das mesas associadas à reserva
   data: Date;
   horario: string;
@@ -74,6 +112,7 @@ interface Reserva {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     // Angular Material
     MatTabsModule,
     MatCardModule,
@@ -86,33 +125,53 @@ interface Reserva {
     MatBadgeModule,
     MatDividerModule,
     MatTooltipModule,
+    MatChipsModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatDialogModule,
     // NG-Zorro
     NzLayoutModule,
     NzGridModule,
     NzAvatarModule,
     NzTagModule,
-    NzButtonModule,
     NzIconModule,
+    NzSpaceModule,
+    NzButtonModule,
+    NzEmptyModule,
+    NzModalModule,
+    NzTabsModule,
+    NzCardModule,
+    NzDatePickerModule,
+    NzSelectModuleZorro,
+    NzFormModule,
+    NzDividerModuleZorro,
+    NzCollapseModule,
+    NzToolTipModule,
     NzDrawerModule,
-    NzEmptyModule
+    NzCalendarModule,
+    NzBadgeModuleZorro,
   ],
   templateUrl: './reservas.component.html',
-  styleUrls: ['./reservas.component.scss']
+  styleUrls: ['./reservas.component.scss'],
+  providers: [
+    { provide: NZ_ICONS, useValue: icons },
+    { provide: NZ_I18N, useValue: pt_BR },
+    { provide: LOCALE_ID, useValue: "pt-BR" },
+    NzModalService,
+    NzMessageService,
+    RestauranteService
+  ]
 })
 export class ReservasComponent implements OnInit {
-  // Data atual
   dataAtual: Date = new Date();
   
-  // Controle de visualização
-  reservaSelecionadaId: string | null = null;
+  reservaSelecionada: Reserva | null = null;
   mostrarDetalhes = false;
-  abaAtiva = 'reservas';
+  abaAtiva = 'Reservas';
   
-  // Filtros
   periodoFiltro: 'todos' | 'Almoço' | 'Jantar' = 'todos';
   pesquisa = '';
   
-  // Dados
   clientes: Cliente[] = [
     {
       id: '1',
@@ -195,7 +254,6 @@ export class ReservasComponent implements OnInit {
     {
       id: '1',
       clienteId: '1',
-      mesa: '05, 06, 07',
       mesaIds: ['1', '2', '3'],
       data: new Date(),
       horario: '10:00',
@@ -211,7 +269,6 @@ export class ReservasComponent implements OnInit {
     {
       id: '2',
       clienteId: '2',
-      mesa: '08, 09',
       mesaIds: ['4', '5'],
       data: new Date(),
       horario: '12:00',
@@ -227,7 +284,6 @@ export class ReservasComponent implements OnInit {
     {
       id: '3',
       clienteId: '1',
-      mesa: '10, 11',
       mesaIds: ['6', '7'],
       data: new Date(),
       horario: '15:00',
@@ -243,7 +299,6 @@ export class ReservasComponent implements OnInit {
     {
       id: '4',
       clienteId: '3',
-      mesa: '05, 06',
       mesaIds: ['8', '9'],
       data: new Date(),
       horario: '16:00',
@@ -259,7 +314,6 @@ export class ReservasComponent implements OnInit {
     {
       id: '5',
       clienteId: '4',
-      mesa: 'VIP',
       mesaIds: ['10'],
       data: new Date(),
       horario: '17:00',
@@ -275,7 +329,6 @@ export class ReservasComponent implements OnInit {
     {
       id: '6',
       clienteId: '5',
-      mesa: 'VIP',
       mesaIds: ['13'],
       data: new Date(),
       horario: '19:00',
@@ -310,25 +363,29 @@ export class ReservasComponent implements OnInit {
   areas = ['Salão Principal', 'Área Externa', 'Terraço'];
   areaAtiva = 'Salão Principal';
   
-  constructor() {}
+  reservasVisiveis: Reserva[] = [];
+  
+  mesaEditando: Mesa = { id: '', numero: '', tipo: 'retangular', area: this.areas[0], vip: false, ocupada: false };
+  novaMesaNumero: string = '';
+  
+  mesaSelecionadaParaCliente: Mesa | null = null;
+  
+  constructor(private modalService: NzModalService) {}
   
   ngOnInit(): void {
-    // Associar mesas às reservas
     this.atualizarStatusMesas();
+    this.filtrarReservasPorData(this.dataAtual);
   }
   
-  // Atualizar status das mesas
   atualizarStatusMesas(): void {
-    // Resetar status
-    this.mesas.forEach(mesa => {
+    this.mesas.forEach((mesa: Mesa) => {
       mesa.ocupada = false;
       mesa.reservaId = undefined;
     });
     
-    // Atualizar com reservas
-    this.reservas.forEach(reserva => {
-      reserva.mesaIds.forEach(mesaId => {
-        const mesa = this.mesas.find(m => m.id === mesaId);
+    this.reservasVisiveis.forEach((reserva: Reserva) => {
+      reserva.mesaIds.forEach((mesaId: string) => {
+        const mesa = this.mesas.find((m: Mesa) => m.id === mesaId);
         if (mesa) {
           mesa.ocupada = true;
           mesa.reservaId = reserva.id;
@@ -337,15 +394,12 @@ export class ReservasComponent implements OnInit {
     });
   }
   
-  // Métodos para filtrar reservas
   get reservasFiltradas(): Reserva[] {
     return this.reservas.filter(reserva => {
-      // Filtro por período
       if (this.periodoFiltro !== 'todos' && reserva.periodo !== this.periodoFiltro) {
         return false;
       }
       
-      // Filtro por pesquisa
       if (this.pesquisa) {
         const cliente = this.getClientePorId(reserva.clienteId);
         if (!cliente || !cliente.nome.toLowerCase().includes(this.pesquisa.toLowerCase())) {
@@ -365,7 +419,6 @@ export class ReservasComponent implements OnInit {
     return this.reservasFiltradas.filter(r => r.periodo === 'Jantar');
   }
   
-  // Métodos para obter dados
   getClientePorId(id: string): Cliente | undefined {
     return this.clientes.find(cliente => cliente.id === id);
   }
@@ -374,22 +427,12 @@ export class ReservasComponent implements OnInit {
     return this.reservas.find(reserva => reserva.id === id);
   }
   
-  // Métodos para interação
-  selecionarReserva(id: string): void {
-    this.reservaSelecionadaId = id;
-    this.mostrarDetalhes = true;
-  }
-  
-  selecionarMesa(mesa: Mesa): void {
-    if (mesa.reservaId) {
-      this.reservaSelecionadaId = mesa.reservaId;
-      this.mostrarDetalhes = true;
-    }
+  selecionarReserva(reserva: Reserva): void {
+    this.reservaSelecionada = reserva;
   }
   
   fecharDetalhes(): void {
-    this.mostrarDetalhes = false;
-    this.reservaSelecionadaId = null;
+    this.reservaSelecionada = null;
   }
   
   mudarAba(aba: string): void {
@@ -400,19 +443,148 @@ export class ReservasComponent implements OnInit {
     this.areaAtiva = area;
   }
   
-  // Formatação de data
   formatarData(data: Date): string {
     return data.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   }
   
-  // Obter mesas por área
   getMesasPorArea(area: string): Mesa[] {
     return this.mesas.filter(mesa => mesa.area === area);
   }
   
-  // Verificar se uma mesa está ocupada
   isMesaOcupada(mesaId: string): boolean {
-    const mesa = this.mesas.find(m => m.id === mesaId);
-    return mesa ? mesa.ocupada : false;
+    return this.reservasVisiveis.some((reserva: Reserva) => reserva.mesaIds.includes(mesaId));
+  }
+  
+  filtrarReservasPorData(data: Date): void {
+    const dataFormatada = data.toLocaleDateString();
+    this.reservasVisiveis = this.reservas.filter((reserva: Reserva) =>
+      new Date(reserva.data).toLocaleDateString() === dataFormatada
+    );
+    if (this.reservaSelecionada && !this.reservasVisiveis.find((r: Reserva) => r.id === this.reservaSelecionada!.id)) {
+        this.reservaSelecionada = null;
+    }
+    this.atualizarStatusMesas();
+  }
+  
+  onDateChange(event: any): void {
+    const novaData = event.value;
+    if (novaData) {
+      this.dataAtual = novaData;
+      this.filtrarReservasPorData(this.dataAtual);
+    }
+  }
+  
+  get reservasAlmocoVisiveis(): Reserva[] {
+    return this.reservasVisiveis.filter((r: Reserva) => r.periodo === 'Almoço');
+  }
+  
+  get reservasJantarVisiveis(): Reserva[] {
+    return this.reservasVisiveis.filter((r: Reserva) => r.periodo === 'Jantar');
+  }
+  
+  getMesaPorId(id: string): Mesa | undefined {
+    return this.mesas.find(mesa => mesa.id === id);
+  }
+  
+  getMesasFormatadas(reserva: Reserva | null): string {
+    if (!reserva || !reserva.mesaIds || reserva.mesaIds.length === 0) {
+      return 'Não atribuída';
+    }
+    return reserva.mesaIds.map(id => this.getMesaPorId(id)?.numero).join(', ') || 'Não atribuída';
+  }
+  
+  isMesaSelecionadaCliente(mesaId: string): boolean {
+    return this.mesaSelecionadaParaCliente?.id === mesaId;
+  }
+  
+  selecionarMesaParaCliente(mesa: Mesa): void {
+    if (!this.reservaSelecionada) {
+      this.mesaSelecionadaParaCliente = this.mesaSelecionadaParaCliente?.id === mesa.id ? null : mesa;
+      console.log('Mesa selecionada no layout:', this.mesaSelecionadaParaCliente);
+      return;
+    }
+    
+    if (!this.reservaSelecionada.mesaIds.includes(mesa.id)) {
+      this.reservaSelecionada.mesaIds.push(mesa.id);
+      this.atualizarStatusMesas();
+      console.log('Mesa', mesa.numero, 'adicionada à reserva', this.reservaSelecionada.id);
+    } else {
+      console.log('Mesa', mesa.numero, 'já está associada à reserva', this.reservaSelecionada.id);
+    }
+    
+    this.mesaSelecionadaParaCliente = null;
+  }
+  
+  removerMesaDaReserva(reservaId: string, mesaId: string): void {
+    const reserva = this.reservas.find(r => r.id === reservaId);
+    if (reserva) {
+      reserva.mesaIds = reserva.mesaIds.filter(id => id !== mesaId);
+      this.atualizarStatusMesas();
+      console.log('Mesa', mesaId, 'removida da reserva', reservaId);
+    }
+  }
+  
+  adicionarMesaAReserva(reservaId: string): void {
+    if (!this.novaMesaNumero) return;
+    
+    const reserva = this.reservas.find(r => r.id === reservaId);
+    if (reserva) {
+      const mesaParaAdicionar = this.mesas.find((mesa: Mesa) => mesa.numero.toLowerCase() === this.novaMesaNumero.toLowerCase());
+      
+      if (mesaParaAdicionar) {
+        if (!reserva.mesaIds.includes(mesaParaAdicionar.id)) {
+          reserva.mesaIds.push(mesaParaAdicionar.id);
+          this.atualizarStatusMesas();
+          console.log('Mesa', mesaParaAdicionar.numero, 'adicionada à reserva', reservaId);
+          this.novaMesaNumero = '';
+        } else {
+          console.log('Mesa', mesaParaAdicionar.numero, 'já está associada à reserva', reservaId);
+        }
+      } else {
+        console.log('Mesa com número/nome', this.novaMesaNumero, 'não encontrada.');
+      }
+    } else {
+      console.log('Reserva', reservaId, 'não encontrada para adicionar mesa.');
+    }
+  }
+  
+  abrirModalAdicionarMesa(mesa?: Mesa): void {
+    this.mesaEditando = mesa ? { ...mesa } : { id: '', numero: '', tipo: 'retangular', area: this.areas[0], vip: false, ocupada: false };
+    console.log(mesa ? 'Abrir modal Editar Mesa' : 'Abrir modal Adicionar Nova Mesa', this.mesaEditando);
+    
+    setTimeout(() => {
+    }, 1000);
+  }
+  
+  salvarMesa(): void {
+    if (this.mesaEditando.id) {
+      const index = this.mesas.findIndex((m: Mesa) => m.id === this.mesaEditando.id);
+      if (index !== -1) {
+        this.mesas[index] = { ...this.mesaEditando };
+        console.log('Mesa editada:', this.mesaEditando);
+      }
+    } else {
+      const newId = Date.now().toString();
+      this.mesaEditando.id = newId;
+      this.mesas.push({ ...this.mesaEditando });
+      console.log('Nova mesa adicionada:', this.mesaEditando);
+    }
+    this.atualizarStatusMesas();
+    this.fecharModalMesa();
+  }
+  
+  excluirMesa(mesaId: string): void {
+    this.mesas = this.mesas.filter((m: Mesa) => m.id !== mesaId);
+    this.reservas.forEach((reserva: Reserva) => {
+      reserva.mesaIds = reserva.mesaIds.filter(id => id !== mesaId);
+    });
+    this.atualizarStatusMesas();
+    console.log('Mesa excluída:', mesaId);
+    this.fecharModalMesa();
+  }
+  
+  fecharModalMesa(): void {
+    this.mesaEditando = { id: '', numero: '', tipo: 'retangular', area: this.areas[0], vip: false, ocupada: false };
+    console.log('Fechar modal Mesa');
   }
 }

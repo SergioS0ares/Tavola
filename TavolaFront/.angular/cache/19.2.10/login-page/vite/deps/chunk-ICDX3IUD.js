@@ -13,12 +13,6 @@ import {
   coerceArray
 } from "./chunk-UWI5G4WL.js";
 import {
-  _CdkPrivateStyleLoader
-} from "./chunk-E2JSMR2W.js";
-import {
-  _bindEventWithOptions
-} from "./chunk-B5GAWAR3.js";
-import {
   CdkScrollableModule,
   ScrollDispatcher,
   ViewportRuler
@@ -26,6 +20,12 @@ import {
 import {
   Directionality
 } from "./chunk-SLO47O37.js";
+import {
+  _CdkPrivateStyleLoader
+} from "./chunk-E2JSMR2W.js";
+import {
+  _bindEventWithOptions
+} from "./chunk-B5GAWAR3.js";
 import {
   coerceElement,
   coerceNumberProperty
@@ -4136,4 +4136,4 @@ export {
   CdkDragHandle,
   CdkDrag
 };
-//# sourceMappingURL=chunk-EAKQYTLC.js.map
+//# sourceMappingURL=chunk-ICDX3IUD.js.map

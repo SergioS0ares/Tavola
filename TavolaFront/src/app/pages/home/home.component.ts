@@ -61,16 +61,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   query = '';
 
   restaurants: any[] = [
-    { id: '1', nome: 'L\'Osteria Paris Chatelet', tipo: 'Italiano', avaliacao: 8.0, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Rua das Flores, 123, Paris' },
-    { id: '2', nome: 'Café Terry', tipo: 'Francês', avaliacao: 5.0, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Avenida Principal, 456, Paris' },
-    { id: '3', nome: 'Les Rupins', tipo: 'Francês', avaliacao: 3.8, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Praça Central, 789, Paris' },
-    { id: '4', nome: 'Le Gourmet Burger', tipo: 'Hamburgueria', avaliacao: 4.5, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Rua do Sabor, 101, Paris' },
-    { id: '5', nome: 'Sushi Place', tipo: 'Japonês', avaliacao: 4.0, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Alameda dos Peixes, 202, Paris' },
-    { id: '6', nome: 'La Dolce Vita', tipo: 'Italiano', avaliacao: 4.7, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Via Roma, 303, Paris' },
-    { id: '7', nome: 'Bistro Parisian', tipo: 'Francês', avaliacao: 4.1, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Rue de la Paix, 404, Paris' },
-    { id: '8', nome: 'Cantina da Nonna', tipo: 'Italiano', avaliacao: 9.2, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Travessa da Massa, 505, Paris' },
-    { id: '9', nome: 'Temaki Express', tipo: 'Japonês', avaliacao: 3.5, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Rua do Sushi, 606, Paris' },
-    { id: '10', nome: 'El Fuego Mexicano', tipo: 'Mexicano', avaliacao: 4.9, imagem: 'assets/jpg/restauranteModelo.jpg', endereco: 'Calle del Sol, 707, Paris' },
+    { id: '1', nome: 'L\'Osteria Paris Chatelet', tipo: 'Italiano', avaliacao: 8.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua das Flores, 123, Paris' },
+    { id: '2', nome: 'Café Terry', tipo: 'Italiano', avaliacao: 5.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Avenida Principal, 456, Paris' },
+    { id: '3', nome: 'Les Rupins', tipo: 'Italiano', avaliacao: 3.8, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Praça Central, 789, Paris' },
+    { id: '4', nome: 'Le Gourmet Burger', tipo: 'Hamburgueria', avaliacao: 4.5, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua do Sabor, 101, Paris' },
+    { id: '5', nome: 'Sushi Place', tipo: 'Italiano', avaliacao: 4.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Alameda dos Peixes, 202, Paris' },
+    { id: '6', nome: 'La Dolce Vita', tipo: 'Italiano', avaliacao: 4.7, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Via Roma, 303, Paris' },
+    { id: '7', nome: 'Bistro Parisian', tipo: 'Italiano', avaliacao: 4.1, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rue de la Paix, 404, Paris' },
+    { id: '8', nome: 'Cantina da Nonna', tipo: 'Italiano', avaliacao: 9.2, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Travessa da Massa, 505, Paris' },
+    { id: '9', nome: 'Temaki Express', tipo: 'Italiano', avaliacao: 3.5, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua do Sushi, 606, Paris' },
+    { id: '10', nome: 'El Fuego Mexicano', tipo: 'Italiano', avaliacao: 4.9, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Calle del Sol, 707, Paris' },
   ];
 
   groupedRestaurants: { [cuisine: string]: any[] } = {};
