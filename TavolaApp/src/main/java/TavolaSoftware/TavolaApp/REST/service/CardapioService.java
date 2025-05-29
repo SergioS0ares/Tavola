@@ -38,7 +38,7 @@ public class CardapioService {
         if (uplUtil.isBase64Image(cardapio.getImagem())) {
             String pasta = "upl/cardapios/" + cardapio.getRestaurante().getId();
             try {
-                String nomeArquivo = uplUtil.processBase64(cardapio.getImagem(), pasta, "jpg");
+                String nomeArquivo = uplUtil.processBase64(cardapio.getImagem(), pasta, "jpg", "image");
                 cardapio.setImagem("/upl/cardapios/" + cardapio.getRestaurante().getId() + "/" + nomeArquivo);
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao salvar imagem de cardápio", e);
@@ -92,7 +92,7 @@ public class CardapioService {
         if (cardapioAtualizado.getImagem() != null && !cardapioAtualizado.getImagem().trim().isEmpty() && uplUtil.isBase64Image(cardapioAtualizado.getImagem())) {
             try {
                 String pasta = "upl/cardapios/" + cardapioExistente.getRestaurante().getId();
-                String nomeArquivo = uplUtil.processBase64(cardapioAtualizado.getImagem(), pasta, "jpg");
+                String nomeArquivo = uplUtil.processBase64(cardapioAtualizado.getImagem(), pasta, "jpg", "image");
                 cardapioExistente.setImagem("/upl/cardapios/" + cardapioExistente.getRestaurante().getId() + "/" + nomeArquivo);
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao processar imagem do cardápio: " + e.getMessage(), e);

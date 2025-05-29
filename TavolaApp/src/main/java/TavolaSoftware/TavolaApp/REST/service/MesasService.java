@@ -63,7 +63,7 @@ public class MesasService {
             for (String imagem : mesa.getImagem()) {
                 if (uplUtil.isBase64Image(imagem)) {
                     String pasta = "upl/mesas/" + restauranteId + "/" + mesa.getIdImagem();
-                    String nome = uplUtil.processBase64(imagem, pasta, "jpg");
+                    String nome = uplUtil.processBase64(imagem, pasta, "jpg", "image");
                     imagensConvertidas.add(pasta + "/" + nome);
                 } else {
                     imagensConvertidas.add(imagem);
@@ -90,7 +90,7 @@ public class MesasService {
                 for (String img : mesa.getImagem()) {
                     if (uplUtil.isBase64Image(img)) {
                         String pasta = "upl/mesas/" + restaurante.getId() + "/" + mesa.getIdImagem();
-                        String nome = uplUtil.processBase64(img, pasta, "jpg");
+                        String nome = uplUtil.processBase64(img, pasta, "jpg", "image");
                         imagensConvertidas.add(pasta + "/" + nome);
                     } else {
                         imagensConvertidas.add(img);
