@@ -75,7 +75,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }),
         catchError(_ => {
           // refresh estourou → limpa tudo e manda pra login
-          this.auth.clearAuthData(); // <--- CORREÇÃO AQUI
+          this.auth.clearAuthData();
           this.router.navigate(['/login']);
           return EMPTY;
         }),

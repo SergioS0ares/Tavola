@@ -1,50 +1,27 @@
 <div class="reservas-container">
-  <!-- Cabeçalho -->
-  <div class="reservas-header">
-    <div class="restaurante-info">
-      <h2>Bem-vindo ao <span class="restaurante-nome">Demo Restaurant</span></h2>
-    </div>
-    <div class="header-actions">
-      <mat-form-field appearance="outline" class="data-picker">
-        <input matInput [matDatepicker]="picker" [(ngModel)]="dataAtual" (dateChange)="onDateChange($event)">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
-      <button mat-raised-button color="primary" (click)="abrirModalAdicionarMesa()">
-        <mat-icon>add</mat-icon>Adicionar Mesa
-      </button>
-    </div>
-  </div>
-
-  <!-- Conteúdo Principal: Layout de Duas Colunas -->
   <div class="reservas-content-columns">
-    <!-- Coluna Esquerda: Lista de Reservas e Clientes -->
     <div class="reservas-list-column">
-      <!-- Abas (Reservas, Lista de Espera, Garçons) -->
-      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarAba($event.tab.textLabel)">
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarAba($event)">
         <mat-tab>
           <ng-template mat-tab-label>
             <span class="tab-label">Reservas</span>
             <span class="tab-badge">{{ reservasVisiveis.length }}</span>
           </ng-template>
 
-          <!-- Barra de Pesquisa -->
           <div class="search-bar">
             <mat-form-field appearance="outline">
-              <input matInput placeholder="Buscar aqui" [(ngModel)]="pesquisa">
-              <button mat-icon-button matSuffix>
+              <input matInput placeholder="Buscar por nome do cliente" [(ngModel)]="pesquisa" (input)="aplicarFiltros()">
+              <button mat-icon-button matSuffix *ngIf="pesquisa" (click)="limparPesquisa()" aria-label="Limpar pesquisa">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button mat-icon-button matSuffix *ngIf="!pesquisa" aria-label="Buscar">
                 <mat-icon>search</mat-icon>
               </button>
             </mat-form-field>
-            <button mat-icon-button>
-              <mat-icon>filter_list</mat-icon>
-            </button>
           </div>
 
-          <!-- Lista de Reservas -->
           <div class="reservas-list">
-            <!-- Almoço -->
-            <div class="periodo-section">
+            <div class="periodo-section" *ngIf="reservasAlmocoVisiveis.length > 0">
               <h3>Almoço</h3>
               <div class="reserva-cards">
                 <mat-card *ngFor="let reserva of reservasAlmocoVisiveis" class="reserva-card" [class.selected]="reservaSelecionada?.id === reserva.id" (click)="selecionarReserva(reserva)">
@@ -63,8 +40,8 @@
                       </div>
                     </div>
                     <div class="reserva-acoes">
-                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada'}" matTooltip="Status">
-                        <mat-icon>check_circle</mat-icon>
+                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" [matTooltip]="reserva.status | titlecase" aria-label="Status da reserva">
+                        <mat-icon>{{ reserva.status === 'confirmada' ? 'check_circle' : (reserva.status === 'pendente' ? 'hourglass_empty' : 'cancel') }}</mat-icon>
                       </button>
                       <div class="horario">
                         {{ reserva.horario }}
@@ -72,18 +49,17 @@
                     </div>
                   </div>
                 </mat-card>
-                <div *ngIf="reservasAlmocoVisiveis.length === 0" class="sem-reservas">
-                  <nz-empty nzDescription="Sem reservas para o almoço"></nz-empty>
-                </div>
               </div>
             </div>
+            <div *ngIf="reservasAlmocoVisiveis.length === 0 && (periodoFiltro === 'todos' || periodoFiltro === 'Almoço') && (pesquisa.trim() === '' || (pesquisa.trim() !== '' && !temReservasParaPesquisaNoPeriodo('Almoço')))" class="sem-reservas">
+              <nz-empty nzDescription="Sem reservas para o almoço nesta data com os filtros aplicados"></nz-empty>
+            </div>
 
-            <!-- Jantar -->
-            <div class="periodo-section">
+            <div class="periodo-section" *ngIf="reservasJantarVisiveis.length > 0">
               <h3>Jantar</h3>
               <div class="reserva-cards">
                 <mat-card *ngFor="let reserva of reservasJantarVisiveis" class="reserva-card" [class.selected]="reservaSelecionada?.id === reserva.id" (click)="selecionarReserva(reserva)">
-                  <div class="reserva-info">
+                   <div class="reserva-info">
                     <div class="cliente-info">
                       <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
                       <div class="reserva-detalhes">
@@ -98,8 +74,8 @@
                       </div>
                     </div>
                     <div class="reserva-acoes">
-                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada'}" matTooltip="Status">
-                        <mat-icon>check_circle</mat-icon>
+                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" [matTooltip]="reserva.status | titlecase" aria-label="Status da reserva">
+                         <mat-icon>{{ reserva.status === 'confirmada' ? 'check_circle' : (reserva.status === 'pendente' ? 'hourglass_empty' : 'cancel') }}</mat-icon>
                       </button>
                       <div class="horario">
                         {{ reserva.horario }}
@@ -107,64 +83,85 @@
                     </div>
                   </div>
                 </mat-card>
-                 <div *ngIf="reservasJantarVisiveis.length === 0" class="sem-reservas">
-                  <nz-empty nzDescription="Sem reservas para o jantar"></nz-empty>
-                </div>
               </div>
+            </div>
+            <div *ngIf="reservasJantarVisiveis.length === 0 && (periodoFiltro === 'todos' || periodoFiltro === 'Jantar') && (pesquisa.trim() === '' || (pesquisa.trim() !== '' && !temReservasParaPesquisaNoPeriodo('Jantar')))" class="sem-reservas">
+              <nz-empty nzDescription="Sem reservas para o jantar nesta data com os filtros aplicados"></nz-empty>
+            </div>
+
+            <div *ngIf="reservasVisiveis.length === 0 && pesquisa.trim() !== ''" class="sem-reservas">
+                <nz-empty nzDescription="Nenhuma reserva encontrada para sua busca."></nz-empty>
+            </div>
+             <div *ngIf="reservasAlmocoVisiveis.length === 0 && reservasJantarVisiveis.length === 0 && pesquisa.trim() === '' && !existemReservasParaDataAtual()" class="sem-reservas">
+                 <nz-empty nzDescription="Nenhuma reserva para a data selecionada."></nz-empty>
             </div>
           </div>
         </mat-tab>
-         <!-- Abas Lista de Espera e Garçons (manter por enquanto, estilizar depois) -->
         <mat-tab label="Lista de Espera">
-           <div class="tab-content">
-            <nz-empty nzDescription="Lista de espera vazia"></nz-empty>
+           <div class="tab-content-placeholder"> <nz-empty nzDescription="Lista de espera vazia"></nz-empty>
           </div>
         </mat-tab>
         <mat-tab label="Garçons">
-          <div class="tab-content">
-            <nz-empty nzDescription="Nenhum garçom disponível"></nz-empty>
+          <div class="tab-content-placeholder"> <nz-empty nzDescription="Nenhum garçom disponível"></nz-empty>
           </div>
         </mat-tab>
       </mat-tab-group>
     </div>
 
-    <!-- Coluna Direita: Detalhes da Reserva e Visualização de Mesas -->
     <div class="reserva-details-tables-column">
-       <!-- Detalhes da Reserva (Exibição direta na coluna) -->
-      <div class="reserva-detalhes-container" *ngIf="reservaSelecionada">
-         <div class="detalhes-header">
-           <h2>Detalhes da Reserva</h2>
-         </div>
+      <div class="right-column-header">
+        <div class="date-navigator">
+          <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="current-date">{{ dataAtual | date:'dd/MM/yyyy' : '' : 'pt-BR' }} ({{ dataAtual | date:'EEEE' : '' : 'pt-BR' | titlecase }})</span>
+          <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+        <div class="table-actions">
+          <button mat-stroked-button color="primary" (click)="abrirModalAdicionarMesa()">
+            <mat-icon>add_circle_outline</mat-icon>Gerenciar Mesas
+          </button>
+        </div>
+      </div>
 
-         <ng-container *ngIf="getClientePorId(reservaSelecionada.clienteId) as cliente">
-            <!-- Informações do Cliente -->
-            <div class="cliente-detalhes">
-              <div class="cliente-header">
-                <nz-avatar [nzSize]="64" [nzSrc]="cliente.avatar"></nz-avatar>
-                <div class="cliente-info-principal">
-                  <h3>{{ cliente.nome }}</h3>
-                  <div class="cliente-contato">
-                    <div class="contato-item">
-                      <mat-icon>email</mat-icon>
-                      <span>{{ cliente.email }}</span>
-                    </div>
-                    <div class="contato-item">
-                      <mat-icon>phone</mat-icon>
-                      <span>{{ cliente.telefone }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="cliente-id">
-                  <span>ID: #56481654</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Estatísticas (Manter a estrutura por enquanto, estilizar depois) -->
-            <div class="estatisticas">
-              <h3>Informações</h3>
-              <div class="estatisticas-grid">
-                 <div class="estatistica-item">
+      <ng-container *ngIf="reservaSelecionada; else mapaDeMesas">
+        <div class="reserva-detalhes-container">
+          <div class="detalhes-header">
+            <button mat-icon-button (click)="fecharDetalhes()" class="back-button-details" matTooltip="Voltar para o mapa de mesas" aria-label="Voltar para mapa de mesas">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <h2>Detalhes da Reserva #{{ reservaSelecionada.id.slice(-4) }}</h2>
+          </div>
+  
+          <ng-container *ngIf="getClientePorId(reservaSelecionada.clienteId) as cliente">
+             <div class="cliente-detalhes">
+               <div class="cliente-header">
+                 <nz-avatar [nzSize]="64" [nzSrc]="cliente.avatar" nzIcon="user"></nz-avatar>
+                 <div class="cliente-info-principal">
+                   <h3>{{ cliente.nome }}</h3>
+                   <div class="cliente-contato">
+                     <div class="contato-item">
+                       <mat-icon>email</mat-icon>
+                       <span>{{ cliente.email }}</span>
+                     </div>
+                     <div class="contato-item">
+                       <mat-icon>phone</mat-icon>
+                       <span>{{ cliente.telefone }}</span>
+                     </div>
+                   </div>
+                 </div>
+                 <div class="cliente-id">
+                   <span>ID Cliente: #{{ cliente.id.slice(-5) }}</span>
+                 </div>
+               </div>
+             </div>
+ 
+             <div class="estatisticas">
+               <h3>Informações</h3>
+               <div class="estatisticas-grid">
+                  <div class="estatistica-item">
                     <div class="estatistica-valor">{{ cliente.historico.proximas.toString().padStart(2, '0') }}</div>
                     <div class="estatistica-label">Próximas</div>
                   </div>
@@ -181,29 +178,25 @@
                     <div class="estatistica-label">Não Compareceu</div>
                   </div>
                   <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.gastoMedio.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-valor">{{ cliente.historico.gastoMedio | currency:'BRL':'symbol':'1.0-0' }}</div>
                     <div class="estatistica-label">Gasto/Pessoa</div>
                   </div>
                   <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.gastoTotal.toString().padStart(2, '0') }}</div>
+                    <div class="estatistica-valor">{{ cliente.historico.gastoTotal | currency:'BRL':'symbol':'1.0-0' }}</div>
                     <div class="estatistica-label">Gasto Total</div>
                   </div>
-              </div>
-            </div>
-
-            <!-- Abas de Detalhes (Adaptar para exibição direta) -->
-             <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="detalhes-tabs">
-                <mat-tab label="Detalhes">
-                  <div class="detalhes-content">
-                    <!-- Detalhes Pessoais -->
-                    <div class="secao-detalhes">
-                      <div class="secao-header">
-                        <h4>Detalhes da Reserva</h4>
-                      </div>
-
-                      <!-- Informações da Reserva -->
-                      <div class="info-grid">
-                        <div class="info-row">
+               </div>
+             </div>
+ 
+              <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="detalhes-tabs">
+                 <mat-tab label="Detalhes">
+                   <div class="detalhes-content">
+                     <div class="secao-detalhes">
+                       <div class="secao-header">
+                         <h4>Detalhes da Reserva</h4>
+                       </div>
+                       <div class="info-grid">
+                         <div class="info-row">
                           <div class="info-label">Data</div>
                           <div class="info-valor">
                             <div class="data-com-icone">
@@ -228,125 +221,118 @@
                          <div class="info-row">
                           <div class="info-label">Status</div>
                           <div class="info-valor">
-                            <nz-tag [nzColor]="reservaSelecionada.status === 'confirmada' ? 'green' : 'orange'">{{ reservaSelecionada.status | uppercase }}</nz-tag>
+                            <nz-tag [nzColor]="reservaSelecionada.status === 'confirmada' ? 'green' : (reservaSelecionada.status === 'pendente' ? 'gold' : 'red')">{{ reservaSelecionada.status | titlecase }}</nz-tag>
                           </div>
                         </div>
                         <div class="info-row">
-                          <div class="info-label">Mesa(s)</div>
-                          <div class="info-valor">{{ getMesasFormatadas(reservaSelecionada) }}</div>
-                        </div>
-                         <div class="info-row">
                           <div class="info-label">Duração</div>
                           <div class="info-valor">{{ reservaSelecionada.duracao }}</div>
                         </div>
-                      </div>
-
-                      <!-- Comentários e Notas -->
-                      <div class="comentarios-notas">
-                        <div class="comentarios">
-                          <h5>Comentários</h5>
-                          <p>{{ reservaSelecionada.comentarios || 'Nenhum comentário.' }}</p>
-                        </div>
-                        <div class="notas">
-                          <h5>Notas</h5>
-                          <p>{{ reservaSelecionada.notas || 'Nenhuma nota.' }}</p>
-                        </div>
-                      </div>
-
-                       <!-- Seção para adicionar/remover/editar mesas da reserva -->
-                       <div class="secao-detalhes" *ngIf="reservaSelecionada">
-                          <div class="secao-header">
-                              <h4>Mesas Associadas</h4>
-                          </div>
-                          <div class="mesas-associadas-chips">
-                              <mat-chip-listbox aria-label="Mesas da reserva">
-                                  <mat-chip *ngFor="let mesaId of reservaSelecionada.mesaIds" (removed)="removerMesaDaReserva(reservaSelecionada.id, mesaId)">
-                                      {{ getMesaPorId(mesaId)?.numero }}
-                                      <button matChipRemove [attr.aria-label]="'remove ' + (getMesaPorId(mesaId)?.numero || '')">
-                                          <mat-icon>cancel</mat-icon>
-                                      </button>
-                                  </mat-chip>
-                              </mat-chip-listbox>
-                               <!-- Adicionar input e botão para adicionar mesa por número/nome -->
-                                <mat-form-field appearance="outline" class="adicionar-mesa-input">
-                                    <input matInput placeholder="Adicionar mesa por nº/nome" [(ngModel)]="novaMesaNumero" (keydown.enter)="adicionarMesaAReserva(reservaSelecionada.id)">
-                                </mat-form-field>
-                                <button mat-raised-button color="primary" (click)="adicionarMesaAReserva(reservaSelecionada.id)">Adicionar</button>
-                          </div>
                        </div>
-
-                    </div>
-                  </div>
-                </mat-tab>
-                 <!-- Abas de Mensagens, Pagamento, PDV (manter a estrutura por enquanto) -->
-                 <mat-tab label="Mensagens">
-                  <div class="tab-content">
-                    <nz-empty nzDescription="Nenhuma mensagem disponível"></nz-empty>
-                  </div>
-                </mat-tab>
-                <mat-tab label="Pagamento">
-                  <div class="tab-content">
-                    <nz-empty nzDescription="Nenhum pagamento registrado"></nz-empty>
-                  </div>
-                </mat-tab>
-                <mat-tab label="PDV">
-                  <div class="tab-content">
-                    <nz-empty nzDescription="Nenhuma informação de PDV disponível"></nz-empty>
-                  </div>
-                </mat-tab>
+ 
+                       <div class="secao-header mesas-atribuidas-header">
+                           <h4>Mesas Atribuídas</h4>
+                       </div>
+                       <div class="mesas-atribuidas-lista" *ngIf="reservaSelecionada.mesaIds.length > 0; else nenhumaMesaAtribuida">
+                           <div *ngFor="let mesaId of reservaSelecionada.mesaIds" class="mesa-atribuida-item">
+                               <mat-icon class="mesa-atribuida-icone">table_restaurant</mat-icon>
+                               <span class="mesa-atribuida-nome">{{ getMesaPorId(mesaId)?.numero }}</span>
+                               <button mat-icon-button color="warn" (click)="removerMesaDaReserva(reservaSelecionada!.id, mesaId)" matTooltip="Desassociar mesa" aria-label="Desassociar mesa">
+                                   <mat-icon>close</mat-icon>
+                               </button>
+                           </div>
+                       </div>
+                       <ng-template #nenhumaMesaAtribuida>
+                           <p class="info-placeholder">Nenhuma mesa atribuída. Selecione mesas no mapa abaixo.</p>
+                       </ng-template>
+ 
+                       <div class="comentarios-notas">
+                         <div class="comentarios">
+                           <h5>Comentários</h5>
+                           <p>{{ reservaSelecionada.comentarios || 'Nenhum comentário.' }}</p>
+                         </div>
+                         <div class="notas">
+                           <h5>Notas</h5>
+                           <p>{{ reservaSelecionada.notas || 'Nenhuma nota.' }}</p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </mat-tab>
+                  <mat-tab label="Mensagens"> <div class="tab-content-placeholder"><nz-empty nzDescription="Sem mensagens"></nz-empty></div> </mat-tab>
+                  <mat-tab label="Pagamento"> <div class="tab-content-placeholder"><nz-empty nzDescription="Sem dados de pagamento"></nz-empty></div> </mat-tab>
+                  <mat-tab label="PDV"> <div class="tab-content-placeholder"><nz-empty nzDescription="Sem dados de PDV"></nz-empty></div> </mat-tab>
               </mat-tab-group>
+           </ng-container>
+        </div>
+      </ng-container>
 
-          </ng-container>
-           <div *ngIf="!reservaSelecionada" class="mensagem-selecione">
-               <nz-empty nzDescription="Selecione uma reserva à esquerda para ver os detalhes."></nz-empty>
-           </div>
-      </div>
-
-      <!-- Visualização de Mesas -->
-      <div class="mesas-container">
-        <!-- Abas de Áreas -->
-        <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarArea($event.tab.textLabel)">
-          <mat-tab *ngFor="let area of areas" [label]="area"></mat-tab>
-        </mat-tab-group>
-
-        <!-- Grid de Mesas -->
-        <div class="mesas-grid">
-          <div *ngFor="let mesa of getMesasPorArea(areaAtiva)"
-               class="mesa"
-               [ngClass]="{
-                 'mesa-circular': mesa.tipo === 'circular',
-                 'mesa-vip': mesa.vip,
-                 'mesa-ocupada': isMesaOcupada(mesa.id),
-                 'mesa-selecionada-cliente': isMesaSelecionadaCliente(mesa.id)
-               }"
-               (click)="selecionarMesaParaCliente(mesa)">
-            <div class="mesa-numero">{{ mesa.numero }}</div>
+      <ng-template #mapaDeMesas>
+        <div class="mesas-container">
+          <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarArea($event)">
+            <mat-tab *ngFor="let area of areas" [label]="area"></mat-tab>
+          </mat-tab-group>
+          <div class="mesas-grid">
+            <div *ngFor="let mesa of getMesasPorArea(areaAtiva)"
+                 class="mesa"
+                 [ngClass]="{
+                   'mesa-circular': mesa.tipo === 'circular',
+                   'mesa-vip': mesa.vip,
+                   'mesa-ocupada': isMesaOcupadaPorOutraReserva(mesa.id),
+                   'mesa-atribuida-reserva-atual': isMesaAtribuidaAReservaAtual(mesa.id)
+                 }"
+                 (click)="toggleMesaParaReserva(mesa)"
+                 [matTooltip]="isMesaOcupadaPorOutraReserva(mesa.id) ? 'Ocupada por: ' + (getClientePorId(getReservaPorId(mesa.reservaId!)?.clienteId!)?.nome || 'Outra reserva') : (isMesaAtribuidaAReservaAtual(mesa.id) ? 'Atribuída a esta reserva (' + (getClientePorId(reservaSelecionada?.clienteId || '')?.nome || '') + ')' : 'Disponível - Capacidade: ' + (mesa.capacidade || 'N/A') + 'P')"
+                 matTooltipPosition="above">
+              <div class="mesa-visual" [class.mesa-visual-circular]="mesa.tipo === 'circular'">
+                </div>
+              <span class="mesa-identificador">{{ mesa.numero }}</span>
+            </div>
           </div>
         </div>
-      </div>
+      </ng-template>
     </div>
   </div>
+
+  <button mat-fab class="fab-adicionar-reserva" matTooltip="Adicionar Nova Reserva" aria-label="Adicionar Nova Reserva" (click)="abrirModalAdicionarReserva()">
+    <mat-icon>add</mat-icon>
+  </button>
 </div>
 
-<!-- Modal para Adicionar/Editar Mesa -->
 <ng-template #modalMesa>
-  <div nz-modal-content>
-    <h3>{{ mesaEditando?.id ? 'Editar Mesa' : 'Adicionar Nova Mesa' }}</h3>
-    <mat-form-field appearance="outline" class="full-width">
+  <form nz-form> <mat-form-field appearance="outline" class="full-width modal-form-field">
       <mat-label>Número/Nome da Mesa</mat-label>
-      <input matInput [(ngModel)]="mesaEditando.numero">
+      <input matInput [(ngModel)]="mesaEditando.numero" name="numeroMesaModal" required>
     </mat-form-field>
-     <mat-form-field appearance="outline" class="full-width">
+
+    <mat-form-field appearance="outline" class="full-width modal-form-field">
       <mat-label>Área</mat-label>
-       <mat-select [(ngModel)]="mesaEditando.area">
+      <mat-select [(ngModel)]="mesaEditando.area" name="areaMesaModal" required>
         <mat-option *ngFor="let area of areas" [value]="area">{{ area }}</mat-option>
-       </mat-select>
+      </mat-select>
     </mat-form-field>
-    <mat-checkbox [(ngModel)]="mesaEditando.vip">Mesa VIP</mat-checkbox>
-    <div class="modal-actions">
-      <button mat-button (click)="fecharModalMesa()">Cancelar</button>
-      <button mat-raised-button color="primary" (click)="salvarMesa()">Salvar</button>
-       <button *ngIf="mesaEditando?.id" mat-raised-button color="warn" (click)="excluirMesa(mesaEditando.id)">Excluir</button>
-    </div>
+    
+    <mat-form-field appearance="outline" class="full-width modal-form-field">
+      <mat-label>Capacidade</mat-label>
+      <input matInput type="number" [(ngModel)]="mesaEditando.capacidade" name="capacidadeMesaModal" min="1">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width modal-form-field">
+      <mat-label>Tipo de Mesa</mat-label>
+      <mat-select [(ngModel)]="mesaEditando.tipo" name="tipoMesaModal" required>
+        <mat-option value="retangular">Retangular</mat-option>
+        <mat-option value="circular">Circular</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-checkbox [(ngModel)]="mesaEditando.vip" name="vipMesaModal" class="modal-checkbox-vip">
+      Mesa VIP
+    </mat-checkbox>
+  </form>
+  <div class="modal-actions-delete" *ngIf="mesaEditando?.id">
+      <button mat-stroked-button color="warn" (click)="excluirMesa(mesaEditando.id!)">
+          <mat-icon>delete</mat-icon>
+          Excluir Mesa
+      </button>
   </div>
 </ng-template>
