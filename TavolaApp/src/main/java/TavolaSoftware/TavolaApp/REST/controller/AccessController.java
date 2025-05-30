@@ -239,6 +239,7 @@ public class AccessController {
                 // String novoRefreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
                 // Cookie novoRefreshTokenCookie = new Cookie("refreshToken", novoRefreshTokenString);
                 // ... configurar e adicionar à response (precisaria injetar HttpServletResponse aqui também)
+                // mas nós não vamos fazer isso... por enquanto!
 
                 return ResponseEntity.ok(new LoginResponse(
                         novoAccessToken,
