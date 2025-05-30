@@ -27,22 +27,7 @@ public class CategoriaController {
     @Autowired
     private RestauranteService restauranteService;
 
-    @GetMapping
-    public ResponseEntity<List<CategoriaResponse>> findAll() {
-        List<CategoriaResponse> resposta = serv.findAll().stream()
-                .map(cat -> new CategoriaResponse(cat.getId(), cat.getNome()))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(resposta);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoriaResponse> findById(@PathVariable UUID id) {
-        Optional<Categoria> categoria = serv.findById(id);
-        return categoria
-                .map(cat -> ResponseEntity.ok(new CategoriaResponse(cat.getId(), cat.getNome())))
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
+    // GET - self
     @GetMapping("/restaurante")
     public ResponseEntity<List<CategoriaResponse>> findSelfByRestaurante() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -55,6 +40,25 @@ public class CategoriaController {
         return ResponseEntity.ok(resposta);
     }
 
+    // GET - all
+    @GetMapping
+    public ResponseEntity<List<CategoriaResponse>> findAll() {
+        List<CategoriaResponse> resposta = serv.findAll().stream()
+                .map(cat -> new CategoriaResponse(cat.getId(), cat.getNome()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(resposta);
+    }
+
+    // GET - byId
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoriaResponse> findById(@PathVariable UUID id) {
+        Optional<Categoria> categoria = serv.findById(id);
+        return categoria
+                .map(cat -> ResponseEntity.ok(new CategoriaResponse(cat.getId(), cat.getNome())))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // POST
     @PostMapping
     public ResponseEntity<?> save(@RequestBody Categoria categoria) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -73,6 +77,7 @@ public class CategoriaController {
         return ResponseEntity.ok(new CategoriaResponse(salvo.getId(), salvo.getNome()));
     }
 
+    // PUT
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Categoria categoria) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -93,6 +98,7 @@ public class CategoriaController {
                 : ResponseEntity.notFound().build();
     }
 
+    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         serv.deleteById(id);

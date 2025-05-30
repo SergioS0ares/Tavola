@@ -42,6 +42,47 @@ public class ClienteController {
     @Autowired
     private UploadUtils uplUtil;
     
+    // GET - self
+    @GetMapping("/favoritos")
+    public ResponseEntity<?> findAllFavoritos() {
+        try {
+            String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            List<UUID> favoritos = serv.getFavoritos(emailCliente);
+            return ResponseEntity.ok(favoritos);
+        } catch (RuntimeException e) { // Captura "Cliente não encontrado"
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
+        } catch (Exception e) {
+            // Logar o erro: e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar favoritos: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/get")
+    public ResponseEntity<Cliente> findSelf() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<Cliente> cliente = serv.findByEmail(email);
+        return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/reservas")
+    public ResponseEntity<List<Reserva>> findAllByClient(
+            @RequestParam(defaultValue = "latest") String ordem,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "20") int tamanho) {
+
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID id = serv.getIdByEmail(email);
+        List<Reserva> reservas = servReserva.findAllByClienteOrdered(id, ordem, pagina, tamanho);
+        return ResponseEntity.ok(reservas);
+    }
+
+    // GET - all
+    @GetMapping("/getall")
+    public ResponseEntity<List<Cliente>> findAll() {
+        return ResponseEntity.ok(serv.findAll());
+    }
+
+    // POST
     @PostMapping("/avaliar/{restauranteId}")
     public ResponseEntity<?> avaliar(@PathVariable UUID restauranteId, @RequestBody AvaliacaoRequest avaliacaoRequest) {
         try {
@@ -70,18 +111,20 @@ public class ClienteController {
         }
     }
 
-    @GetMapping("/reservas")
-    public ResponseEntity<List<Reserva>> findAllByClient(
-            @RequestParam(defaultValue = "latest") String ordem,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "20") int tamanho) {
-
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UUID id = serv.getIdByEmail(email);
-        List<Reserva> reservas = servReserva.findAllByClienteOrdered(id, ordem, pagina, tamanho);
-        return ResponseEntity.ok(reservas);
+    @PostMapping("/favoritar/{id}") // /{id} como solicitado
+    public ResponseEntity<?> favoritar(@PathVariable("id") UUID restauranteId) { // @PathVariable("id") para corresponder
+        try {
+            String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String resultado = serv.toggleFavorito(emailCliente, restauranteId);
+            return ResponseEntity.ok(Map.of("mensagem", resultado));
+        } catch (RuntimeException e) { // Captura exceções como "Cliente não encontrado" ou "Restaurante não encontrado"
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
+        } catch (Exception e) {
+            // Logar o erro: e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao processar 'favoritar': " + e.getMessage()));
+        }
     }
-
+    
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody Cliente cliente) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -104,19 +147,8 @@ public class ClienteController {
         Cliente novoCliente = serv.save(cliente);
         return ResponseEntity.ok(novoCliente);
     }
-    
-    @GetMapping("/getall")
-    public ResponseEntity<List<Cliente>> findAll() {
-        return ResponseEntity.ok(serv.findAll());
-    }
 
-    @GetMapping("/get")
-    public ResponseEntity<Cliente> findSelf() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<Cliente> cliente = serv.findByEmail(email);
-        return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-    
+    // PUT
     @PutMapping("/update")
     public ResponseEntity<?> update(@RequestBody Cliente atualizacao) {
         try {
@@ -193,49 +225,11 @@ public class ClienteController {
         }
     }
 
+    // DELETE - self
     @DeleteMapping("/delete")
     public ResponseEntity<Void> delete() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         serv.deleteByEmail(email);
         return ResponseEntity.noContent().build();
-    }
-
-    // --- NOVOS ENDPOINTS PARA FAVORITOS ---
-
-    /**
-     * Adiciona ou remove um restaurante da lista de favoritos do cliente logado.
-     * @param id O ID do restaurante a ser favoritado/desfavoritado.
-     * @return ResponseEntity com mensagem de sucesso ou erro.
-     */
-    @PostMapping("/favoritar/{id}") // /{id} como solicitado
-    public ResponseEntity<?> favoritar(@PathVariable("id") UUID restauranteId) { // @PathVariable("id") para corresponder
-        try {
-            String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            String resultado = serv.toggleFavorito(emailCliente, restauranteId);
-            return ResponseEntity.ok(Map.of("mensagem", resultado));
-        } catch (RuntimeException e) { // Captura exceções como "Cliente não encontrado" ou "Restaurante não encontrado"
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-        } catch (Exception e) {
-            // Logar o erro: e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao processar 'favoritar': " + e.getMessage()));
-        }
-    }
-
-    /**
-     * Retorna a lista de IDs de restaurantes favoritos do cliente logado.
-     * @return ResponseEntity com a lista de UUIDs ou mensagem de erro.
-     */
-    @GetMapping("/favoritos")
-    public ResponseEntity<?> findAllFavoritos() {
-        try {
-            String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            List<UUID> favoritos = serv.getFavoritos(emailCliente);
-            return ResponseEntity.ok(favoritos);
-        } catch (RuntimeException e) { // Captura "Cliente não encontrado"
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-        } catch (Exception e) {
-            // Logar o erro: e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar favoritos: " + e.getMessage()));
-        }
     }
 }

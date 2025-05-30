@@ -30,6 +30,7 @@ public class MesasController {
     @Autowired
     private UploadUtils uplUtil;
 
+    // GET - self
     @GetMapping
     public ResponseEntity<List<MesaResponse>> findAll() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -41,6 +42,7 @@ public class MesasController {
         return ResponseEntity.ok(response);
     }
 
+    // GET - byId
     @GetMapping("/{mesaId}")
     public ResponseEntity<MesaResponse> findById(@PathVariable UUID mesaId) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -49,6 +51,7 @@ public class MesasController {
         return mesa != null ? ResponseEntity.ok(MesaResponse.fromEntity(mesa)) : ResponseEntity.notFound().build();
     }
 
+    // POST
     @PostMapping
     public ResponseEntity<MesaResponse> save(@RequestBody Mesas mesa) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -69,6 +72,7 @@ public class MesasController {
         return ResponseEntity.ok(MesaResponse.fromEntity(savedMesa));
     }
 
+    // PUT
     @PutMapping("/{mesaId}")
     public ResponseEntity<MesaResponse> updateMesa(@PathVariable UUID mesaId, @RequestBody Mesas mesa) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -95,6 +99,7 @@ public class MesasController {
         return ResponseEntity.ok(MesaResponse.fromEntity(updatedMesa));
     }
 
+    // DELETE
     @DeleteMapping("/{mesaId}")
     public ResponseEntity<Void> deleteMesa(@PathVariable UUID mesaId) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

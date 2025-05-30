@@ -35,6 +35,7 @@ public class RestauranteController {
         return servRestaurante.getByEmail(email);
     }
 
+    // GET - self
     @GetMapping("/reservas") //
     public ResponseEntity<List<Reserva>> findAllByRestaurante(
             @RequestParam(defaultValue = "latest") String ordem,
@@ -46,20 +47,6 @@ public class RestauranteController {
         return ResponseEntity.ok(reservas);
     }
 
-    // MUDANÇA: Retorna List<RestauranteResponse>
-    @GetMapping //
-    public ResponseEntity<List<RestauranteResponse>> findAll() {
-        List<RestauranteResponse> responses = servRestaurante.findAll(); // Agora retorna List<RestauranteResponse>
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/{id}") //
-    public ResponseEntity<RestauranteResponse> findById(@PathVariable UUID id) {
-        return servRestaurante.findById(id) 
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-    
     @GetMapping("/self") //
     public ResponseEntity<RestauranteResponse> findSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -70,7 +57,23 @@ public class RestauranteController {
         return ResponseEntity.ok(new RestauranteResponse(restaurante)); 
     }
 
+    // GET - all
+    // MUDANÇA: Retorna List<RestauranteResponse>
+    @GetMapping //
+    public ResponseEntity<List<RestauranteResponse>> findAll() {
+        List<RestauranteResponse> responses = servRestaurante.findAll(); // Agora retorna List<RestauranteResponse>
+        return ResponseEntity.ok(responses);
+    }
 
+    // GET - byId
+    @GetMapping("/{id}") //
+    public ResponseEntity<RestauranteResponse> findById(@PathVariable UUID id) {
+        return servRestaurante.findById(id) 
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    
+    // POST
     @PostMapping("/save") //
     public ResponseEntity<?> save(@RequestBody RestauranteRequest request) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -91,6 +94,7 @@ public class RestauranteController {
         }
     }
 
+    // PUT
     @PutMapping("/update") //
     public ResponseEntity<?> updateSelf(@RequestBody RestauranteRequest request) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -121,6 +125,7 @@ public class RestauranteController {
         }
     }
 
+    // DELETE - self
     @DeleteMapping //
     public ResponseEntity<Void> deleteSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -136,6 +141,7 @@ public class RestauranteController {
         }
     }
 
+    // DELETE - byId
     @DeleteMapping("/{id}") //
     public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
         try {

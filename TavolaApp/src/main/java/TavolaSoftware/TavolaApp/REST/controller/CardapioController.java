@@ -40,6 +40,48 @@ public class CardapioController {
     @Autowired
     private UploadUtils uplUtil;
 
+    // GET - self
+    @GetMapping 
+    public ResponseEntity<List<CardapioResponse>> findAllSelf() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteServ.getByEmail(email);
+        List<Cardapio> cardapios = serv.findByRestauranteId(restaurante.getId());
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/disponiveis") 
+    public ResponseEntity<List<CardapioResponse>> findAllSelfByDisponivel() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteServ.getByEmail(email);
+        List<Cardapio> cardapios = serv.findAllByDisponivel(restaurante.getId());
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    // GET - byId
+    @GetMapping("/disponiveis/{restauranteId}")
+    public ResponseEntity<List<CardapioResponse>> findAllByDisponivel(@PathVariable UUID restauranteId) {
+        List<Cardapio> cardapios = serv.findAllByDisponivel(restauranteId);
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/restaurante/{restauranteId}") 
+    public ResponseEntity<List<CardapioResponse>> findAllByRestaurante(@PathVariable UUID restauranteId) {
+        List<Cardapio> cardapios = serv.findByRestauranteId(restauranteId);
+        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CardapioResponse> findById(@PathVariable UUID id) {
+        Optional<Cardapio> cardapio = serv.findById(id);
+        return cardapio.map(c -> ResponseEntity.ok(new CardapioResponse(c)))
+                       .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // POST
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody Cardapio cardapio) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -123,45 +165,7 @@ public class CardapioController {
         return ResponseEntity.ok(salvos);
     }
 
-    @GetMapping 
-    public ResponseEntity<List<CardapioResponse>> findAllSelf() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteServ.getByEmail(email);
-        List<Cardapio> cardapios = serv.findByRestauranteId(restaurante.getId());
-        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/disponiveis") 
-    public ResponseEntity<List<CardapioResponse>> findAllSelfByDisponivel() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteServ.getByEmail(email);
-        List<Cardapio> cardapios = serv.findAllByDisponivel(restaurante.getId());
-        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CardapioResponse> findById(@PathVariable UUID id) {
-        Optional<Cardapio> cardapio = serv.findById(id);
-        return cardapio.map(c -> ResponseEntity.ok(new CardapioResponse(c)))
-                       .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/restaurante/{restauranteId}") 
-    public ResponseEntity<List<CardapioResponse>> findAllByRestaurante(@PathVariable UUID restauranteId) {
-        List<Cardapio> cardapios = serv.findByRestauranteId(restauranteId);
-        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/disponiveis/{restauranteId}")
-    public ResponseEntity<List<CardapioResponse>> findAllByDisponivel(@PathVariable UUID restauranteId) {
-        List<Cardapio> cardapios = serv.findAllByDisponivel(restauranteId);
-        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
+    // PUT
     @PutMapping("/update/{id}")
     public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Cardapio cardapio) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
@@ -211,6 +215,7 @@ public class CardapioController {
         return ResponseEntity.ok(new CardapioResponse(salvo));
     }
 
+    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
         serv.deleteById(id);
