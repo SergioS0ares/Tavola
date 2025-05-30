@@ -34,13 +34,14 @@ public class AvaliacaoService {
 
     @Transactional
     public double calcularMedia(UUID restauranteId) {
-        List<Avaliacao> avaliacoes = avaliacaoRepository.findByRestauranteId(restauranteId);
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findByRestauranteId(restauranteId); //
+
+        Restaurante restaurante = repoRestaurante.findById(restauranteId)
+            .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado para calcular/salvar média e total de avaliações."));
 
         if (avaliacoes.isEmpty()) {
-            // Atualiza a média para 0.0 se não houver avaliações
-            Restaurante restaurante = repoRestaurante.findById(restauranteId)
-                .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado para calcular média."));
             restaurante.setMediaAvaliacao(0.0);
+            restaurante.setTotalDeAvaliacoes(0); // Define o total de avaliações como 0
             repoRestaurante.save(restaurante);
             return 0.0;
         }
@@ -49,11 +50,10 @@ public class AvaliacaoService {
                                      .mapToDouble(Avaliacao::getScore)
                                      .sum();
         double media = somaScores / avaliacoes.size();
-        media = Math.round(media * 10.0) / 10.0; // Arredonda para uma casa decimal
+        media = Math.round(media * 10.0) / 10.0;
 
-        Restaurante restaurante = repoRestaurante.findById(restauranteId)
-            .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado para salvar média."));
         restaurante.setMediaAvaliacao(media);
+        restaurante.setTotalDeAvaliacoes(avaliacoes.size()); // Define o total de avaliações com o tamanho da lista
         repoRestaurante.save(restaurante);
         return media;
     }

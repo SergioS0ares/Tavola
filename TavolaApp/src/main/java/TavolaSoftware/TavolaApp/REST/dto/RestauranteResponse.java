@@ -21,6 +21,7 @@ public class RestauranteResponse {
     private String tipoCozinha;
     private List<String> imagens;
     private double mediaAvaliacao;
+    private int totalDeAvaliacoes;
     private List<SimpleAvaliacaoResponse> avaliacoes;
     private List<HorarioFuncionamentoDTO> horariosFuncionamento; // DTO para Horário
     private Set<String> servicos; // Nomes dos serviços
@@ -31,26 +32,27 @@ public class RestauranteResponse {
 
     // Construtor que aceita a entidade Restaurante
     public RestauranteResponse(Restaurante restaurante) {
-        this.id = restaurante.getId(); //
+        this.id = restaurante.getId();
         if (restaurante.getUsuario() != null) {
-            Usuario usuario = restaurante.getUsuario(); //
-            this.nome = usuario.getNome(); //
-            this.email = usuario.getEmail(); //
-            this.endereco = usuario.getEndereco(); //
+            Usuario usuario = restaurante.getUsuario();
+            this.nome = usuario.getNome();
+            this.email = usuario.getEmail();
+            this.endereco = usuario.getEndereco();
         }
-        this.tipoCozinha = restaurante.getTipoCozinha(); //
-        this.imagens = restaurante.getImagem() != null ? new ArrayList<>(restaurante.getImagem()) : new ArrayList<>(); //
-        this.mediaAvaliacao = restaurante.getMediaAvaliacao(); //
+        this.tipoCozinha = restaurante.getTipoCozinha();
+        this.imagens = restaurante.getImagem() != null ? new ArrayList<>(restaurante.getImagem()) : new ArrayList<>();
+        this.mediaAvaliacao = restaurante.getMediaAvaliacao();
+        this.totalDeAvaliacoes = restaurante.getTotalDeAvaliacoes(); // Popular o novo campo
 
         if (restaurante.getAvaliacoes() != null) {
             this.avaliacoes = restaurante.getAvaliacoes().stream()
                                   .map(SimpleAvaliacaoResponse::new)
-                                  .collect(Collectors.toList()); //
+                                  .collect(Collectors.toList());
         } else {
             this.avaliacoes = new ArrayList<>();
         }
 
-        if (restaurante.getHoraFuncionamento() != null) { //
+        if (restaurante.getHoraFuncionamento() != null) {
             this.horariosFuncionamento = restaurante.getHoraFuncionamento().stream()
                                             .map(HorarioFuncionamentoDTO::new)
                                             .collect(Collectors.toList());
@@ -109,6 +111,14 @@ public class RestauranteResponse {
 
 
     // Getters e Setters para RestauranteResponse
+    public int getTotalDeAvaliacoes() {
+        return totalDeAvaliacoes;
+    }
+
+    public void setTotalDeAvaliacoes(int totalDeAvaliacoes) {
+        this.totalDeAvaliacoes = totalDeAvaliacoes;
+    }
+    
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

@@ -53,6 +53,9 @@ public class Restaurante {
     
     @Column(name = "establishment_average_score")
     private double mediaAvaliacao = 0; // Campo para armazenar a média das avaliações
+    
+    @Column(name = "establishment_total_reviews") // Nome da coluna no banco
+    private int totalDeAvaliacoes = 0; // Campo para armazenar o total de avaliações
 
     private UUID idImagemRepository;
     
@@ -81,6 +84,14 @@ public class Restaurante {
 	public Endereco getEndereco() { return usuario.getEndereco(); }
     
     // fim dos métodos de usuario
+	
+	public int getTotalDeAvaliacoes() {
+	    return totalDeAvaliacoes;
+	}
+
+	public void setTotalDeAvaliacoes(int totalDeAvaliacoes) {
+	    this.totalDeAvaliacoes = totalDeAvaliacoes;
+	}
 	
 	public double getMediaAvaliacao() {
         return mediaAvaliacao;
