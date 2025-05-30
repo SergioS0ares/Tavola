@@ -9,7 +9,7 @@ public class WebConfig implements WebMvcConfigurer {
 	@Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
-          .addResourceHandler("/upl/cardapios/**")
+          .addResourceHandler("/upl/**")
           .addResourceLocations("file:upl/cardapios/")
           .setCachePeriod(3600);
     }

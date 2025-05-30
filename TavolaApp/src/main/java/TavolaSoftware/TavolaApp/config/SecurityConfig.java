@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import TavolaSoftware.TavolaApp.REST.security.JwtAuthenticationFilter;
 
@@ -18,17 +20,17 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
+    
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1️⃣ Ativa o CORS usando as regras do CorsConfig
             .cors().and()
-
-            // 2️⃣ Desativa CSRF (REST stateless)
             .csrf(csrf -> csrf.disable())
-
-            // 3️⃣ Define quem pode acessar sem autenticação
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/auth/refresh",
@@ -41,13 +43,9 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
-
-            // 4️⃣ Stateless session
             .sessionManagement(sess ->
                 sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
-            // 5️⃣ Insere o filtro JWT antes do filtro padrão de Spring
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
         ;
 

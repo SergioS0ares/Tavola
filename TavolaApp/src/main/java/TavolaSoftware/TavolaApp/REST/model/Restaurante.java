@@ -6,14 +6,17 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import TavolaSoftware.TavolaApp.tools.Endereco;
@@ -47,8 +50,26 @@ public class Restaurante {
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio;
+    
+    @Column(name = "establishment_average_score")
+    private double mediaAvaliacao = 0; // Campo para armazenar a média das avaliações
+    
+    @Column(name = "establishment_total_reviews") // Nome da coluna no banco
+    private int totalDeAvaliacoes = 0; // Campo para armazenar o total de avaliações
 
-    private UUID idImagem;
+    private UUID idImagemRepository;
+    
+    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Avaliacao> avaliacoes = new ArrayList<>();
+    
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) // Cascata para persistir e mesclar serviços
+    @JoinTable(
+        name = "restaurante_servicos_associacao", // Nome da tabela de junção
+        joinColumns = @JoinColumn(name = "restaurante_id"), // Coluna que referencia o Restaurante
+        inverseJoinColumns = @JoinColumn(name = "servico_id") // Coluna que referencia o Servico
+    )
+    private Set<Servico> servicos = new HashSet<>(); // Conjunto de serviços que o restaurante oferece
+
 
     // métodos de restaurante para retornar informações de usuario - coisa de register...
     
@@ -63,13 +84,42 @@ public class Restaurante {
 	public Endereco getEndereco() { return usuario.getEndereco(); }
     
     // fim dos métodos de usuario
+	
+	public int getTotalDeAvaliacoes() {
+	    return totalDeAvaliacoes;
+	}
+
+	public void setTotalDeAvaliacoes(int totalDeAvaliacoes) {
+	    this.totalDeAvaliacoes = totalDeAvaliacoes;
+	}
+	
+	public double getMediaAvaliacao() {
+        return mediaAvaliacao;
+    }
+
+    public void setMediaAvaliacao(double mediaAvaliacao) {
+        this.mediaAvaliacao = mediaAvaliacao;
+    }
+
+    public List<Avaliacao> getAvaliacoes() {
+        return avaliacoes;
+    }
+
+    public void setAvaliacoes(List<Avaliacao> avaliacoes) {
+        this.avaliacoes = avaliacoes;
+    }
+
+    public void addAvaliacao(Avaliacao avaliacao) {
+        this.avaliacoes.add(avaliacao);
+        avaliacao.setRestaurante(this);
+    }
 
     public UUID getIdImagem(){
-        return idImagem;
+        return idImagemRepository;
     }
 
     public void setIdImagem(UUID id){
-        this.idImagem = id;
+        this.idImagemRepository = id;
     }
 	
 	public void addMesa(Mesas mesa) {
@@ -132,5 +182,29 @@ public class Restaurante {
 	public void setImagem(List<String> imagens) {
 		this.imagens = imagens;
 	}
+
+	public Set<Servico> getServicos() {
+		return servicos;
+	}
+
+	public void setServicos(Set<Servico> servicos) {
+		this.servicos = servicos;
+	}
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
