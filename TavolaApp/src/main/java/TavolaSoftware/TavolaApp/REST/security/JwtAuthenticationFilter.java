@@ -31,10 +31,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (
         	    path.equals("/auth/login") ||
         	    path.equals("/auth/register") ||
-        	    path.equals("/auth/refresh") // <--- ESTA LINHA É ESSENCIAL
+        	    path.equals("/auth/refresh") ||
+        	    path.startsWith("/v3/api-docs") ||      // Corrigido para startsWith e adicionado /
+        	    path.startsWith("/swagger-ui") ||       // Corrigido para startsWith
+        	    path.equals("/swagger-ui.html") ||      // Mantido .equals se for exato
+        	    path.startsWith("/upl/cardapios/")      // <--- CORREÇÃO PRINCIPAL AQUI: usar startsWith e adicionar a barra final
         	) {
         	    filterChain.doFilter(request, response);
-        	    System.out.println("Filtro ignorado para path: " + path);
+        	    System.out.println("Filtro JWT ignorado para path: " + path);
         	    return;
         	}
 
@@ -54,8 +58,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            // Token presente, mas inválido (expirado, assinatura incorreta, etc.)
+            // Limpar qualquer contexto de segurança que possa existir de uma tentativa anterior
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token JWT inválido ou expirado");
+            System.out.println("Filtro JWT: Token inválido/expirado para path: " + path);
+            return; // Interrompe a cadeia de filtros
         }
-
         filterChain.doFilter(request, response);
     }
 
