@@ -1,113 +1,294 @@
+// Variáveis
+$primary-color: #F6BD38; // Amarelo
+$accent-color: #DA4A24; // Laranja
+$text-color: #333333;
+$light-gray: #f5f5f5;
+$border-radius: 16px; // Bordas mais arredondadas
+
 .configuracoes-container {
   max-width: 800px;
-  margin: 0 auto;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
 
-  mat-card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+// Cabeçalho da página
+.page-header {
+  margin-bottom: 24px;
+  
+  h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: $text-color;
+    margin: 0;
   }
+}
 
-  .profile-section {
-    mat-card-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px;
-
-      .avatar-container {
-        position: relative;
-        margin-bottom: 16px;
-
-        img {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 3px solid #F6BD38;
-        }
-
-        .change-photo {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          background-color: #F6BD38;
-          
-          mat-icon {
-            color: #3B221B;
-          }
-        }
-      }
-
-      mat-card-title {
-        font-size: 24px;
-        margin: 8px 0;
-        color: #3B221B;
-      }
-
-      mat-card-subtitle {
-        font-size: 16px;
-        color: rgba(59, 34, 27, 0.7);
-      }
-    }
+// Cards
+mat-card {
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid transparent;
+  background-color: white;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+  
+  &:hover {
+    border-color: $primary-color;
   }
+}
 
-  .info-section,
-  .address-section,
-  .restaurant-section {
-    mat-card-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
-      mat-card-title {
-        font-size: 18px;
-        color: #3B221B;
-      }
-    }
-
-    mat-card-content {
-      padding: 24px;
+// Remover o efeito de hover cinza dos cards
+::ng-deep {
+  .mat-mdc-card {
+    &:hover {
+      background-color: white !important;
     }
   }
 }
 
-@media (max-width: 600px) {
-  .configuracoes-container {
-    padding: 16px;
-    gap: 16px;
-
-    .profile-section {
-      mat-card-header {
-        padding: 16px;
-
-        .avatar-container img {
-          width: 100px;
-          height: 100px;
-        }
-
-        mat-card-title {
-          font-size: 20px;
-        }
-
-        mat-card-subtitle {
-          font-size: 14px;
+// Card de perfil
+.profile-card {
+  padding: 24px;
+  
+  .profile-header {
+    display: flex;
+    align-items: center;
+    
+    .avatar-container {
+      position: relative;
+      margin-right: 24px;
+      
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid $primary-color;
+      }
+      
+      .change-photo-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: $primary-color;
+        color: #3B221B;
+        width: 36px;
+        height: 36px;
+        
+        mat-icon {
+          font-size: 18px;
+          line-height: 18px;
+          height: 18px;
+          width: 18px;
         }
       }
     }
-
-    .info-section,
-    .address-section,
-    .restaurant-section {
-      mat-card-header {
-        padding: 12px 16px;
+    
+    .profile-info {
+      .profile-name {
+        font-size: 24px;
+        font-weight: 500;
+        margin: 0 0 4px 0;
+        color: $text-color;
       }
-
-      mat-card-content {
-        padding: 16px;
+      
+      .profile-type {
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.6);
+        margin: 0;
       }
+    }
+  }
+}
+
+// Cards de informação
+.info-card {
+  padding: 0;
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 500;
+      margin: 0;
+      color: $text-color;
+    }
+    
+    .edit-icon {
+      color: $primary-color;
+    }
+  }
+  
+  .card-content {
+    padding: 16px 24px;
+    
+    .info-row {
+      display: flex;
+      margin-bottom: 12px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .info-label {
+        width: 150px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+      }
+      
+      .info-value {
+        flex: 1;
+        color: $text-color;
+      }
+    }
+  }
+  
+  // Formulário de edição
+  .edit-form {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    
+    mat-form-field {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    
+    h4 {
+      margin: 8px 0 16px;
+      font-size: 16px;
+      font-weight: 500;
+      color: $text-color;
+    }
+    
+    .horarios-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 16px;
+      
+      .horario-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        
+        .horario-inputs {
+          display: flex;
+          gap: 12px;
+          flex: 1;
+        }
+      }
+    }
+    
+    .add-horario-btn {
+      align-self: flex-start;
+      margin-bottom: 16px;
+      color: $accent-color;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+  }
+}
+
+// Botões
+.save-btn {
+  background-color: $primary-color !important;
+  color: #3B221B !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  padding: 8px 22px !important;
+}
+
+// Estilização para o botão Cancelar
+::ng-deep {
+  .mat-mdc-stroked-button.mat-warn {
+    color: $accent-color !important;
+    border-color: $accent-color !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    padding: 8px 22px !important;
+    
+    &:hover {
+      background-color: rgba(218, 74, 36, 0.1) !important;
+    }
+  }
+  
+  // Estilização para o botão de editar
+  .edit-icon {
+    color: $primary-color !important;
+    
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.1) !important;
+    }
+  }
+  
+  // Estilização para os campos de formulário
+  .mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(59, 34, 27, 0.2) !important;
+    }
+    
+    &:hover .mdc-notched-outline__leading,
+    &:hover .mdc-notched-outline__notch,
+    &:hover .mdc-notched-outline__trailing {
+      border-color: $primary-color !important;
+    }
+  }
+}
+
+// Mensagem de funcionalidade não implementada
+.not-ready-container {
+  padding: 0 24px 16px;
+}
+
+.not-ready {
+  display: flex;
+  align-items: center;
+  background-color: rgba(218, 74, 36, 0.1);
+  color: $accent-color;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+// Responsividade
+@media (max-width: 600px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    
+    .avatar-container {
+      margin-right: 0 !important;
+      margin-bottom: 16px;
+    }
+  }
+  
+  .info-row {
+    flex-direction: column;
+    
+    .info-label {
+      width: 100% !important;
+      margin-bottom: 4px;
+    }
+  }
+  
+  .horario-item {
+    flex-direction: column;
+    
+    .horario-inputs {
+      width: 100%;
     }
   }
 }

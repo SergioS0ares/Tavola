@@ -18,6 +18,7 @@ import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { LayoutPrincipalComponent } from '../layout-principal/layout-principal.component';
 import { NgxMaskDirective} from 'ngx-mask';
 import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -38,7 +39,7 @@ import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
     LayoutPrincipalComponent,
     NgxMaskDirective
   ],
-  providers: [LoginService],
+  providers: [],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
@@ -60,6 +61,7 @@ export class SignUpComponent {
   private toastService = inject(ToastrService);
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   mensagemCepInvalido = '';
   mensagemCepInvalidoRestaurante = '';
@@ -269,10 +271,9 @@ export class SignUpComponent {
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('refreshToken', res.refreshToken);
-        localStorage.setItem('userName', res.name);
-        localStorage.setItem('tipoUsuario', res.tipoUsuario);
+        // Centraliza o armazenamento no AuthService
+        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+        
         this.toastService.success("Cadastro realizado com sucesso!");
         this.router.navigate(['home']);
       },
@@ -298,25 +299,29 @@ export class SignUpComponent {
       } : null)
       .filter((h: any) => h !== null);
     const payload = {
-      nomeCompleto: form.nomeCompleto,
+      nome: form.nomeCompleto,
       email: form.email,
       senha: form.senha,
-      endereco: form.endereco,
       tipo: 'RESTAURANTE',
       tipoCozinha: form.tipoCozinha,
       quantidadeMesas: form.quantidadeMesas,
-      horariosFuncionamento,
-      telefone: form.telefone,
-      descricao: form.descricao
+      endereco: {
+        pais: 'Brasil',
+        estado: form.endereco.estado,
+        cidade: form.endereco.cidade,
+        bairro: form.endereco.bairro,
+        rua: form.endereco.rua,
+        numero: form.endereco.numero
+      },
+      horarioFuncionamento: horariosFuncionamento
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('refreshToken', res.refreshToken);
-        localStorage.setItem('userName', res.name);
-        localStorage.setItem('tipoUsuario', res.tipoUsuario);
+        // Centraliza o armazenamento no AuthService
+        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['reserva']);
+        this.router.navigate(['reserva']); // Ou para onde o restaurante deve ir
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";

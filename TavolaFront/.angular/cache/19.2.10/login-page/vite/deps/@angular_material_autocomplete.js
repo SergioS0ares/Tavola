@@ -1,4 +1,16 @@
 import {
+  Breakpoints
+} from "./chunk-SW2FAAQS.js";
+import {
+  Overlay,
+  OverlayConfig,
+  OverlayModule
+} from "./chunk-DWD24MB2.js";
+import "./chunk-OIBNGD5S.js";
+import {
+  TemplatePortal
+} from "./chunk-2ET3CX5M.js";
+import {
   MAT_OPTGROUP,
   MAT_OPTION_PARENT_COMPONENT,
   MatOptgroup,
@@ -7,59 +19,62 @@ import {
   MatOptionSelectionChange,
   _countGroupLabelsBeforeOption,
   _getOptionScrollPosition
-} from "./chunk-FEJQMK7A.js";
-import {
-  Overlay,
-  OverlayConfig,
-  OverlayModule
-} from "./chunk-QME35Z6Q.js";
-import "./chunk-XUL36GCJ.js";
-import {
-  TemplatePortal
-} from "./chunk-BONEFVH4.js";
-import {
-  NG_VALUE_ACCESSOR
-} from "./chunk-SBNHBCJ6.js";
+} from "./chunk-YS7DTNW4.js";
 import {
   MAT_FORM_FIELD
-} from "./chunk-OUUGXXI6.js";
-import "./chunk-7X7O5WUS.js";
+} from "./chunk-5QWPC3T2.js";
+import "./chunk-JHVY26RY.js";
 import {
-  CdkScrollableModule,
-  ViewportRuler
-} from "./chunk-N7RC2SFH.js";
-import "./chunk-YRC4JC3H.js";
-import "./chunk-MXIQ4RMY.js";
-import "./chunk-2PX7555F.js";
-import "./chunk-OM7KFJUU.js";
-import "./chunk-AQ46JP2X.js";
-import "./chunk-C6D5CFV2.js";
-import "./chunk-RNK63XMY.js";
+  NG_VALUE_ACCESSOR
+} from "./chunk-2ZAX7M67.js";
+import "./chunk-CUGNFELP.js";
+import "./chunk-Y7MKC3P2.js";
+import "./chunk-MP5B2SRU.js";
+import "./chunk-OHWI2S6G.js";
+import "./chunk-37JVYMH4.js";
+import {
+  MatCommonModule
+} from "./chunk-WIMFBQKR.js";
 import {
   ActiveDescendantKeyManager,
-  BreakpointObserver,
+  addAriaReferencedId,
+  removeAriaReferencedId
+} from "./chunk-CKIU65T3.js";
+import "./chunk-52CXO2VH.js";
+import {
   DOWN_ARROW,
   ENTER,
   ESCAPE,
-  MatCommonModule,
   TAB,
   UP_ARROW,
   _IdGenerator,
+  hasModifierKey
+} from "./chunk-V2OSAOCA.js";
+import {
+  BreakpointObserver
+} from "./chunk-WZFLAKUS.js";
+import {
   _getEventTarget,
-  _getFocusedElementPierceShadowDom,
-  addAriaReferencedId,
-  hasModifierKey,
-  removeAriaReferencedId
-} from "./chunk-BVMVWLVH.js";
+  _getFocusedElementPierceShadowDom
+} from "./chunk-7N4PRWGB.js";
+import "./chunk-UWI5G4WL.js";
+import {
+  CdkScrollableModule,
+  ViewportRuler
+} from "./chunk-EDUYFCL7.js";
+import "./chunk-EJC5EH6D.js";
+import "./chunk-IJ3KGSPX.js";
 import {
   Directionality
-} from "./chunk-Y6TRRFRC.js";
-import "./chunk-SGMQ3WCV.js";
+} from "./chunk-SLO47O37.js";
+import "./chunk-E2JSMR2W.js";
+import "./chunk-B5GAWAR3.js";
 import {
   Platform
-} from "./chunk-BNYCB3WC.js";
-import "./chunk-GOES35AV.js";
-import "./chunk-HYLWCB4X.js";
+} from "./chunk-USHARBCX.js";
+import "./chunk-HPCFBG3Q.js";
+import "./chunk-GAMILAFO.js";
+import "./chunk-O3MZQZIU.js";
 import {
   ANIMATION_MODULE_TYPE,
   ChangeDetectionStrategy,
@@ -106,58 +121,28 @@ import {
   ɵɵqueryRefresh,
   ɵɵtemplate,
   ɵɵviewQuery
-} from "./chunk-2CWWOKTM.js";
+} from "./chunk-CR2THLZV.js";
+import {
+  defer,
+  merge
+} from "./chunk-QCX4XGGK.js";
+import "./chunk-3LZ7TQJT.js";
 import {
   Observable,
   Subject,
   Subscription,
-  defer,
   delay,
   filter,
   map,
-  merge,
   of,
   startWith,
   switchMap,
   take,
   tap
-} from "./chunk-K3A73UNH.js";
+} from "./chunk-3SRVZXQZ.js";
 import "./chunk-WDMUDEB6.js";
 
-// ../../../../node_modules/@angular/cdk/fesm2022/layout.mjs
-var LayoutModule = class _LayoutModule {
-  static ɵfac = function LayoutModule_Factory(__ngFactoryType__) {
-    return new (__ngFactoryType__ || _LayoutModule)();
-  };
-  static ɵmod = ɵɵdefineNgModule({
-    type: _LayoutModule
-  });
-  static ɵinj = ɵɵdefineInjector({});
-};
-(() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(LayoutModule, [{
-    type: NgModule,
-    args: [{}]
-  }], null, null);
-})();
-var Breakpoints = {
-  XSmall: "(max-width: 599.98px)",
-  Small: "(min-width: 600px) and (max-width: 959.98px)",
-  Medium: "(min-width: 960px) and (max-width: 1279.98px)",
-  Large: "(min-width: 1280px) and (max-width: 1919.98px)",
-  XLarge: "(min-width: 1920px)",
-  Handset: "(max-width: 599.98px) and (orientation: portrait), (max-width: 959.98px) and (orientation: landscape)",
-  Tablet: "(min-width: 600px) and (max-width: 839.98px) and (orientation: portrait), (min-width: 960px) and (max-width: 1279.98px) and (orientation: landscape)",
-  Web: "(min-width: 840px) and (orientation: portrait), (min-width: 1280px) and (orientation: landscape)",
-  HandsetPortrait: "(max-width: 599.98px) and (orientation: portrait)",
-  TabletPortrait: "(min-width: 600px) and (max-width: 839.98px) and (orientation: portrait)",
-  WebPortrait: "(min-width: 840px) and (orientation: portrait)",
-  HandsetLandscape: "(max-width: 959.98px) and (orientation: landscape)",
-  TabletLandscape: "(min-width: 960px) and (max-width: 1279.98px) and (orientation: landscape)",
-  WebLandscape: "(min-width: 1280px) and (orientation: landscape)"
-};
-
-// ../../../../node_modules/@angular/material/fesm2022/autocomplete.mjs
+// node_modules/@angular/material/fesm2022/autocomplete.mjs
 var _c0 = ["panel"];
 var _c1 = ["*"];
 function MatAutocomplete_ng_template_0_Template(rf, ctx) {

@@ -1,5 +1,8 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.RestauranteRequest;
+import TavolaSoftware.TavolaApp.REST.dto.RestauranteResponse;
+import TavolaSoftware.TavolaApp.REST.dto.ClienteHomeResponse; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.ReservaService;
@@ -13,17 +16,24 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth/restaurantes")
 public class RestauranteController {
 
     @Autowired
-    private RestauranteService serv;
+    private RestauranteService servRestaurante;
 
     @Autowired
-    private ReservaService reservaService;
+    private ReservaService servReserva;
+    
+    private Restaurante getSelfRestauranteEntity() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return servRestaurante.getByEmail(email);
+    }
 
     @GetMapping("/reservas")
     public ResponseEntity<List<Reserva>> findAllByRestaurante(
@@ -31,67 +41,111 @@ public class RestauranteController {
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
 
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = serv.getByEmail(email);
-        List<Reserva> reservas = reservaService.findAllByRestauranteOrdered(restaurante.getId(), ordem, pagina, tamanho);
+        Restaurante restaurante = getSelfRestauranteEntity(); //
+        List<Reserva> reservas = servReserva.findAllByRestauranteOrdered(restaurante.getId(), ordem, pagina, tamanho); //
         return ResponseEntity.ok(reservas);
     }
 
+    // MUDANÇA: Retorna List<RestauranteHomeDTO>
     @GetMapping
-    public ResponseEntity<List<Restaurante>> findAll() {
-        return ResponseEntity.ok(serv.findAll());
+    public ResponseEntity<List<ClienteHomeResponse>> findAll() {
+        List<ClienteHomeResponse> responses = servRestaurante.findAll(); // Agora retorna a lista de DTOs para a home
+        return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Restaurante> findById(@PathVariable UUID id) {
-        return serv.findById(id)
+    @GetMapping("/{id}") // Este endpoint ainda usa RestauranteResponse. Avaliar se precisa mudar.
+    public ResponseEntity<RestauranteResponse> findById(@PathVariable UUID id) {
+        return servRestaurante.findById(id) //
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+    
+    @GetMapping("/self")
+    public ResponseEntity<RestauranteResponse> findSelf() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = servRestaurante.getByEmail(email); //
+        if (restaurante == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new RestauranteResponse(restaurante)); //
+    }
+
 
     @PostMapping("/save")
-    public ResponseEntity<?> save(@RequestBody Restaurante restaurante) {
+    public ResponseEntity<?> save(@RequestBody RestauranteRequest request) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
-
-        handler.checkEmptyStrting("nome", restaurante.getUsuario().getNome());
-        handler.checkEmptyStrting("email", restaurante.getUsuario().getEmail());
-        handler.checkEmptyStrting("senha", restaurante.getUsuario().getSenha());
-        handler.checkEmptyObject("endereco", restaurante.getUsuario().getEndereco());
-        handler.checkEmptyList("horário de funcionamento", restaurante.getHorarioFuncionamento());
+        handler.checkEmptyStrting("nome do usuário", request.getNomeUsuario()); //
+        handler.checkEmptyStrting("email do usuário", request.getEmailUsuario()); //
+        handler.checkEmptyStrting("senha do usuário", request.getSenhaUsuario()); //
+        handler.checkEmptyObject("endereço do usuário", request.getEnderecoUsuario()); //
 
         if (handler.errors()) {
             return handler.generateResponse(HttpStatus.BAD_REQUEST);
         }
-
-        return ResponseEntity.ok(serv.save(restaurante));
+        
+        try {
+            Restaurante restauranteSalvo = servRestaurante.saveFromRequest(request); //
+            return ResponseEntity.status(HttpStatus.CREATED).body(new RestauranteResponse(restauranteSalvo)); //
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> update(@RequestBody Restaurante atualizacao) {
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
+    public ResponseEntity<?> updateSelf(@RequestBody RestauranteRequest request) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restauranteExistente = servRestaurante.getByEmail(email); //
 
-        handler.checkEmptyStrting("nome", atualizacao.getUsuario().getNome());
-        handler.checkEmptyStrting("email", atualizacao.getUsuario().getEmail());
-        handler.checkEmptyStrting("senha", atualizacao.getUsuario().getSenha());
-        handler.checkEmptyObject("endereco", atualizacao.getUsuario().getEndereco());
-        handler.checkEmptyList("horário de funcionamento", atualizacao.getHorarioFuncionamento());
-
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        if (restauranteExistente == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurante não encontrado para o usuário autenticado.");
         }
 
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante existente = serv.getByEmail(email);
-        Restaurante atualizado = serv.update(existente, atualizacao);
+        try {
+            Restaurante restauranteAtualizado = servRestaurante.updateFromRequest(restauranteExistente.getId(), request); //
+            return ResponseEntity.ok(new RestauranteResponse(restauranteAtualizado)); //
+        } catch (RuntimeException e) {
+             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
-        return ResponseEntity.ok(atualizado);
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateById(@PathVariable UUID id, @RequestBody RestauranteRequest request) {
+        try {
+            Restaurante restauranteAtualizado = servRestaurante.updateFromRequest(id, request); //
+            return ResponseEntity.ok(new RestauranteResponse(restauranteAtualizado)); //
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("não encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @DeleteMapping
     public ResponseEntity<Void> deleteSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = serv.getByEmail(email);
-        serv.deleteById(restaurante.getId());
-        return ResponseEntity.noContent().build();
+        Restaurante restaurante = servRestaurante.getByEmail(email); //
+        if (restaurante == null) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            servRestaurante.deleteById(restaurante.getId()); //
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-} 
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
+        try {
+            servRestaurante.deleteById(id); //
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("não encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+}

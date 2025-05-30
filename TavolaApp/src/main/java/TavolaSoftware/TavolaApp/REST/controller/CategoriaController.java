@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.CategoriaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.CategoriaService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth/categorias")
@@ -26,21 +28,31 @@ public class CategoriaController {
     private RestauranteService restauranteService;
 
     @GetMapping
-    public ResponseEntity<List<Categoria>> findAll() {
-        return ResponseEntity.ok(serv.findAll());
+    public ResponseEntity<List<CategoriaResponse>> findAll() {
+        List<CategoriaResponse> resposta = serv.findAll().stream()
+                .map(cat -> new CategoriaResponse(cat.getId(), cat.getNome()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(resposta);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Categoria> findById(@PathVariable UUID id) {
+    public ResponseEntity<CategoriaResponse> findById(@PathVariable UUID id) {
         Optional<Categoria> categoria = serv.findById(id);
-        return categoria.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return categoria
+                .map(cat -> ResponseEntity.ok(new CategoriaResponse(cat.getId(), cat.getNome())))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/restaurante")
-    public ResponseEntity<List<Categoria>> findByRestaurante() {
-    	String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    	Restaurante restaurante = restauranteService.getByEmail(email);
-        return ResponseEntity.ok(serv.findByRestauranteId(restaurante.getId()));
+    public ResponseEntity<List<CategoriaResponse>> findSelfByRestaurante() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        List<CategoriaResponse> resposta = serv.findByRestauranteId(restaurante.getId()).stream()
+                .map(cat -> new CategoriaResponse(cat.getId(), cat.getNome()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resposta);
     }
 
     @PostMapping
@@ -57,7 +69,8 @@ public class CategoriaController {
         Restaurante restaurante = restauranteService.getByEmail(email);
         categoria.setRestaurante(restaurante);
 
-        return ResponseEntity.ok(serv.save(categoria));
+        Categoria salvo = serv.save(categoria);
+        return ResponseEntity.ok(new CategoriaResponse(salvo.getId(), salvo.getNome()));
     }
 
     @PutMapping("/{id}")
@@ -75,7 +88,9 @@ public class CategoriaController {
         categoria.setRestaurante(restaurante);
 
         Categoria atualizado = serv.update(id, categoria);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+        return (atualizado != null)
+                ? ResponseEntity.ok(new CategoriaResponse(atualizado.getId(), atualizado.getNome()))
+                : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

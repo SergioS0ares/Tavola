@@ -1,0 +1,866 @@
+// Variáveis
+$primary-color: #F6BD38; // Amarelo
+$accent-color: #DA4A24; // Laranja
+$text-color: #3B221B; // Marrom escuro (substituindo o preto)
+$light-gray: #f5f5f5;
+$border-radius: 16px; // Bordas mais arredondadas
+$sidebar-width: 380px;
+$header-height: 70px;
+
+// Container principal
+.reservas-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f0f2f5;
+  overflow: hidden;
+  color: $text-color;
+}
+
+// Cabeçalho
+.reservas-header {
+  height: $header-height;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  background-color: white;
+  border-bottom: 1px solid #e8e8e8;
+  border-radius: $border-radius $border-radius 0 0;
+  
+  .restaurante-info {
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      color: $text-color;
+      
+      .restaurante-nome {
+        color: $primary-color;
+        font-weight: 600;
+      }
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    
+    .data-picker {
+      width: 180px;
+      margin-bottom: -22px; // Compensar o padding do mat-form-field
+    }
+    
+    button {
+      color: $text-color;
+    }
+    
+    button.mat-raised-button.mat-primary {
+      color: white;
+    }
+  }
+}
+
+// Conteúdo principal com layout de duas colunas
+.reservas-content-columns {
+  display: flex;
+  height: calc(100vh - #{$header-height});
+  overflow: hidden;
+}
+
+// Coluna Esquerda: Lista de Reservas
+.reservas-list-column {
+  width: $sidebar-width;
+  background-color: white;
+  border-right: 1px solid #e8e8e8;
+  overflow-y: auto;
+  flex-shrink: 0;
+  
+  // Estilização das abas
+  ::ng-deep {
+    .mat-mdc-tab-header {
+      border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .mat-mdc-tab {
+      min-width: 120px;
+      color: $text-color;
+      
+      &.mat-mdc-tab-active {
+        .mdc-tab__text-label {
+          color: $primary-color;
+          font-weight: 500;
+        }
+        
+        .tab-label {
+          color: $primary-color;
+          font-weight: 500;
+        }
+        
+        .tab-badge {
+          background-color: $primary-color;
+          color: white;
+        }
+      }
+    }
+    
+    // Estilização para o campo de busca
+    .mat-mdc-form-field-appearance-outline {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(59, 34, 27, 0.2) !important;
+      }
+      
+      &:hover .mdc-notched-outline__leading,
+      &:hover .mdc-notched-outline__notch,
+      &:hover .mdc-notched-outline__trailing {
+        border-color: $primary-color !important;
+      }
+      
+      .mat-mdc-form-field-infix {
+        color: $text-color;
+      }
+    }
+    
+    // Estilização para ícones
+    .mat-icon {
+      color: $text-color;
+    }
+  }
+  
+  .tab-label {
+    margin-right: 8px;
+  }
+  
+  .tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    color: $text-color;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  // Barra de pesquisa
+  .search-bar {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 8px;
+    
+    mat-form-field {
+      flex: 1;
+    }
+  }
+  
+  // Lista de reservas
+  .reservas-list {
+    padding: 0 16px 16px;
+    
+    .periodo-section {
+      margin-bottom: 24px;
+      
+      h3 {
+        font-size: 18px;
+        font-weight: 500;
+        margin: 16px 0 12px;
+        color: $text-color;
+      }
+    }
+    
+    .reserva-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .reserva-card {
+      padding: 12px;
+      border-radius: $border-radius;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-color: white;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      
+      &:hover {
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-color: $primary-color;
+      }
+      
+      &.selected {
+        border-color: $primary-color;
+        background-color: lighten($primary-color, 40%);
+      }
+      
+      .reserva-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        .cliente-info {
+          h4 {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 500;
+            color: $text-color;
+          }
+          
+          .reserva-detalhes {
+            display: flex;
+            gap: 16px;
+            color: rgba(59, 34, 27, 0.7);
+            font-size: 14px;
+            
+            .pessoas-info, .mesa-info {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              
+              mat-icon {
+                font-size: 16px;
+                height: 16px;
+                width: 16px;
+                line-height: 16px;
+              }
+            }
+          }
+        }
+        
+        .reserva-acoes {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 4px;
+          
+          button.confirmada {
+            color: #4CAF50;
+          }
+          
+          .horario {
+            font-size: 14px;
+            font-weight: 500;
+            color: $text-color;
+          }
+        }
+      }
+    }
+    
+    .sem-reservas {
+      padding: 20px 0;
+      text-align: center;
+    }
+  }
+}
+
+// Coluna Direita: Detalhes da Reserva e Mesas
+.reserva-details-tables-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background-color: #f0f2f5;
+  padding: 16px;
+  
+  .mensagem-selecione {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    
+    nz-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  
+  // Detalhes da reserva (Exibição direta)
+  .reserva-detalhes-container {
+    background-color: white;
+    border-radius: $border-radius;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    
+    .detalhes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e8e8e8;
+      
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 500;
+        color: $text-color;
+      }
+      
+      button[mat-icon-button] {
+        color: $text-color;
+        margin-right: 8px;
+      }
+    }
+    
+    // Informações do cliente
+    .cliente-detalhes {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e8e8e8;
+      
+      .cliente-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        nz-avatar {
+          flex-shrink: 0;
+        }
+        
+        .cliente-info-principal {
+          flex: 1;
+          
+          h3 {
+            margin: 0 0 4px;
+            font-size: 18px;
+            font-weight: 500;
+            color: $text-color;
+          }
+          
+          .cliente-contato {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            
+            .contato-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: rgba(59, 34, 27, 0.7);
+              font-size: 14px;
+              
+              mat-icon {
+                font-size: 16px;
+                height: 16px;
+                width: 16px;
+                line-height: 16px;
+              }
+            }
+          }
+        }
+        
+        .cliente-id {
+          color: $primary-color;
+          font-weight: 500;
+        }
+      }
+    }
+    
+    // Estatísticas
+    .estatisticas {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e8e8e8;
+      
+      h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 500;
+        color: $text-color;
+      }
+      
+      .estatisticas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 16px;
+        
+        .estatistica-item {
+          text-align: center;
+          
+          .estatistica-valor {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: $text-color;
+          }
+          
+          .estatistica-label {
+            font-size: 12px;
+            color: rgba(59, 34, 27, 0.7);
+          }
+        }
+      }
+    }
+    
+    // Abas de detalhes da reserva (adaptar para exibição direta)
+    .detalhes-tabs {
+      margin-top: 0;
+      
+      ::ng-deep {
+        .mat-mdc-tab {
+          color: $text-color;
+          
+          &.mat-mdc-tab-active .mdc-tab__text-label {
+            color: $primary-color;
+          }
+        }
+        .mat-ink-bar {
+          background-color: $primary-color;
+        }
+      }
+      
+      .detalhes-content {
+        padding: 16px 0;
+        
+        .secao-detalhes {
+          .secao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            
+            h4 {
+              margin: 0;
+              font-size: 16px;
+              font-weight: 500;
+              color: $text-color;
+            }
+          }
+          
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            
+            .info-row {
+              .info-label {
+                font-size: 12px;
+                color: rgba(59, 34, 27, 0.7);
+                margin-bottom: 4px;
+              }
+              
+              .info-valor {
+                font-size: 14px;
+                font-weight: 500;
+                color: $text-color;
+                
+                .data-com-icone {
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  
+                  mat-icon {
+                    font-size: 16px;
+                    height: 16px;
+                    width: 16px;
+                    line-height: 16px;
+                    color: rgba(59, 34, 27, 0.7);
+                  }
+                }
+              }
+            }
+          }
+          
+          .comentarios-notas {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e8e8e8;
+            
+            h5 {
+              margin: 0 0 8px;
+              font-size: 14px;
+              font-weight: 500;
+              color: rgba(59, 34, 27, 0.7);
+            }
+            
+            p {
+              margin: 0;
+              font-size: 14px;
+              line-height: 1.5;
+              color: $text-color;
+            }
+          }
+          
+          .mesas-associadas-chips {
+            margin-top: 16px;
+            
+            mat-chip-listbox {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+              margin-bottom: 16px;
+            }
+            
+            mat-chip {
+              background-color: $primary-color;
+              color: white;
+              .mat-chip-remove {
+                color: rgba(255, 255, 255, 0.8);
+              }
+            }
+            
+            .adicionar-mesa-input {
+              flex: 1;
+              margin-right: 8px;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Container de mesas (Visualização no lado direito)
+  .mesas-container {
+    background-color: white;
+    border-radius: $border-radius;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    ::ng-deep {
+      .mat-mdc-tab-header {
+        margin-bottom: 16px;
+      }
+      
+      .mat-mdc-tab {
+        color: $text-color;
+        
+        &.mat-mdc-tab-active .mdc-tab__text-label {
+          color: $primary-color;
+        }
+      }
+      
+      .mat-ink-bar {
+        background-color: $primary-color;
+      }
+    }
+    
+    .mesas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 12px;
+      padding: 0;
+      overflow-y: auto;
+      
+      .mesa {
+        height: 60px;
+        background-color: #f0f0f0;
+        border: 1px solid #d0d0d0;
+        border-radius: $border-radius;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: none;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+          border-color: $primary-color;
+        }
+        
+        &.mesa-circular {
+          border-radius: 50%;
+          aspect-ratio: 1;
+        }
+        
+        &.mesa-vip {
+          border-color: $primary-color;
+          
+          .mesa-numero {
+            color: $primary-color;
+            font-weight: 600;
+          }
+        }
+        
+        &.mesa-ocupada {
+          background-color: lighten($accent-color, 30%);
+          border-color: $accent-color;
+          
+          .mesa-numero {
+            color: $text-color;
+          }
+        }
+        
+        &.mesa-selecionada-cliente {
+          background-color: lighten($primary-color, 30%);
+          border-color: $primary-color;
+          
+          .mesa-numero {
+            color: $text-color;
+          }
+        }
+        
+        .mesa-numero {
+          font-weight: 500;
+          color: $text-color;
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
+// Estilos para o modal de adicionar/editar mesa
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// Responsividade (ajustar breakpoints se necessário)
+@media (max-width: 1200px) {
+  .reservas-list-column {
+    width: 300px;
+  }
+  
+  .estatisticas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+  }
+  
+  .info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  }
+  
+  .mesas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .reservas-content-columns {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  .reservas-list-column {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e8e8e8;
+    overflow-y: visible;
+    flex-shrink: 1;
+  }
+  
+  .reserva-details-tables-column {
+    flex: none;
+    height: auto;
+    overflow-y: visible;
+  }
+  
+  .reserva-detalhes-container, .mesas-container {
+    margin-bottom: 16px;
+  }
+  
+  .comentarios-notas {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .reservas-header {
+    flex-direction: column;
+    height: auto;
+    padding-bottom: 10px;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    
+    .data-picker, button {
+      width: 100%;
+    }
+  }
+  
+  .cliente-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    text-align: center;
+    
+    nz-avatar {
+      align-self: center;
+    }
+    
+    .cliente-info-principal {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .cliente-id {
+      align-self: center;
+      margin-top: 8px;
+    }
+  }
+  
+  .estatisticas-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+// Estilos para o modal de adicionar/editar mesa
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+::ng-deep .ant-modal-content {
+  .mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(59, 34, 27, 0.2) !important;
+    }
+    &:hover .mdc-notched-outline__leading,
+    &:hover .mdc-notched-outline__notch,
+    &:hover .mdc-notched-outline__trailing {
+      border-color: $primary-color !important;
+    }
+    .mat-mdc-input-element, .mat-mdc-select-value-text, .mdc-floating-label {
+        color: $text-color !important;
+    }
+  }
+
+  .mat-mdc-checkbox .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
+    border-color: $text-color !important;
+  }
+  .mat-mdc-checkbox.mat-accent .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
+  .mat-mdc-checkbox.mat-accent .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
+    background-color: $primary-color !important;
+    border-color: $primary-color !important;
+  }
+}
+
+// Estilos para a seção de detalhes da reserva
+.reserva-detalhes-container {
+  .detalhes-header {
+    button[mat-icon-button] {
+      color: $text-color;
+      margin-right: 8px;
+    }
+  }
+}
+
+// Estilos para o botão FAB Adicionar (replicando do cadastro-cardapio)
+.fab-add {
+  background-color: $primary-color !important;
+  color: $text-color !important;
+  border-radius: 8px !important;
+  width: 48px !important;
+  height: 48px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  &:hover {
+    background-color: darken($primary-color, 5%) !important;
+  }
+}
+
+// Estilos para mesas atribuídas
+.mesas-atribuidas-header {
+  margin-top: 24px;
+}
+
+.mesas-atribuidas-lista {
+  display: flex;
+  button[mat-icon-button] {
+    color: $accent-color;
+  }
+  border-radius: $border-radius / 2;
+  text-align: center;
+}
+
+// Styles for the table grid (Visualização de Mesas)
+.mesas-container {
+  .mesas-grid {
+    .mesa {
+      position: relative;
+      padding: 8px;
+      text-align: center;
+
+      .mesa-numero {
+        font-weight: 600;
+        font-size: 16px;
+        color: $text-color;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .mesa-capacidade {
+          font-size: 11px;
+          color: rgba(59, 34, 27, 0.7);
+      }
+
+      &.mesa-circular {
+        border-radius: 50% !important;
+        width: 70px;
+        height: 70px;
+        &.mesa-vip .mesa-numero::after {
+            content: " VIP";
+            font-size: 9px;
+            font-weight: normal;
+            display: block;
+            color: $primary-color;
+        }
+      }
+
+      &.mesa-ocupada {
+        background-color: lighten($accent-color, 45%);
+        border-color: $accent-color;
+        cursor: not-allowed;
+
+        .mesa-numero {
+          color: darken($accent-color, 10%);
+        }
+      }
+
+      &.mesa-atribuida-reserva-atual {
+          background-color: lighten($primary-color, 35%);
+          border: 2px solid $primary-color;
+          box-shadow: 0 0 8px rgba($primary-color, 0.5);
+      }
+
+      &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
+          background-color: lighten($primary-color, 45%);
+          border-color: $primary-color;
+      }
+    }
+  }
+}

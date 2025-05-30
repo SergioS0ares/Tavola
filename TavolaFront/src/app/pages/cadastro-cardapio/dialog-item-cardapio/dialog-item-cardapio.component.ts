@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule , MatChipInputEvent} from '@angular/material/chips';
 import {MatDialogModule, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { CardapioService } from '../../../core/services/cardapio.service';
-import { IItemCardapio } from '../../../Interfaces/Iitem-cardapio';
+import { IItemCardapio } from '../../../Interfaces/IItem-cardapio';
 import { MatIconModule } from '@angular/material/icon';
 import Swal from 'sweetalert2';
 
@@ -74,13 +74,14 @@ export class DialogItemCardapioComponent {
 
   constructor() {
     if (this.data.modo === 'editar' && this.data.item) {
-      const categoria = this.categorias.find(c => c.id === this.data.item?.categoriaId);
+      const categoria = this.categorias.find(c => c.nome === this.data.item?.categoria.nome);
       this.form.patchValue({
         ...this.data.item,
         categoriaInput: categoria,
-        tags: this.data.item.tags || []
+        tags: this.data.item.tags.map(t => t.tag),
+        imagemBase64: this.data.item.imagem
       });
-      this.preview = this.data.item.imagemBase64;
+      this.preview = this.data.item.imagem;
     }
   }
 
@@ -152,36 +153,51 @@ export class DialogItemCardapioComponent {
 
   /** Salva criando ou atualizando via serviço */
   salvar() {
-    if (this.form.invalid) {
-      console.log('Formulário inválido:', this.form.errors);
-      return;
-    }
-    
+    if (this.form.invalid) return;
     const formValue = this.form.value;
     const categoria = formValue.categoriaInput as Categoria;
-
-    console.log('Categoria selecionada:', categoria);
-    console.log('Form value:', formValue);
 
     const itemToSave: Omit<IItemCardapio, 'id'> = {
       nome: formValue.nome!,
       descricao: formValue.descricao || '',
       preco: formValue.preco!,
       disponivel: formValue.disponivel!,
-      categoriaId: categoria.id,
-      tags: formValue.tags || [],
-      imagemBase64: formValue.imagemBase64!
+      imagem: formValue.imagemBase64 || '',
+      categoria: { nome: categoria.nome },
+      tags: formValue.tags?.map(tag => ({ tag })) || []
     };
 
-    console.log('Item a ser salvo:', itemToSave);
-
     if (this.data.modo === 'criar') {
-      this.service.adicionarItem(itemToSave);
-    } else if (this.data.item) {
-      this.service.atualizarItem({ ...this.data.item, ...itemToSave });
+      this.service.adicionarItem(itemToSave).subscribe({
+        next: (res) => {
+          if (res && res.id) {
+            this.dialogRef.close(res);
+          }
+        },
+        error: () => {
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Não foi possível adicionar o item.',
+            icon: 'error',
+            confirmButtonColor: '#F6BD38'
+          });
+        }
+      });
+    } else if (this.data.item?.id) {
+      this.service.atualizarItem(this.data.item.id, itemToSave).subscribe({
+        next: (res) => {
+          this.dialogRef.close(res);
+        },
+        error: () => {
+          Swal.fire({
+            title: 'Erro!',
+            text: 'Não foi possível atualizar o item.',
+            icon: 'error',
+            confirmButtonColor: '#F6BD38'
+          });
+        }
+      });
     }
-    
-    this.dialogRef.close(true);
   }
 
   /** Fecha o diálogo sem salvar */

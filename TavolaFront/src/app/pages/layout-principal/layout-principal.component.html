@@ -1,10 +1,21 @@
 <div class="layout-container">
-  <!-- Top Toolbar -->
   <div class="toolbar">
     <button class="menu-toggle" (click)="toggleSidebar()">
       <mat-icon>menu</mat-icon>
     </button>
     
+    <app-search-bar
+      *ngIf="showStickySearchBar"
+      [@searchBarAnim]
+      [citySuggestions]="citySuggestions"
+      [querySuggestions]="querySuggestions"
+      [showCityDropdown]="showCityDropdown"
+      [showQueryDropdown]="showQueryDropdown"
+      [cityCtrl]="cityCtrl"
+      [queryCtrl]="queryCtrl"
+      (cidadeChange)="onCityInputSticky($event)"       (queryChange)="queryCtrl.setValue($event)"        (search)="onSearchSticky()"                       (cityInput)="onCityInputSticky($event)"           (selectCity)="selectCitySticky($event)"           (selectQuery)="selectQuerySticky($event)"         (cityBlur)="onCityBlurSticky($event)"             class="toolbar-search-bar"
+    ></app-search-bar>
+
     <div class="user-menu" [matMenuTriggerFor]="menu">
       <div class="user-info">
         <div class="avatar">
@@ -30,17 +41,13 @@
     </mat-menu>
   </div>
 
-  <!-- Main Content -->
   <div class="main-wrapper">
-    <!-- Sidebar -->
     <div class="sidebar" [class.fechada]="!sidebarAberta" (click)="handleSidebarClick($event)">
       <div class="sidebar-header">
         <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo" />
       </div>
 
-      <!-- Menu -->
       <div class="menu">
-        <!-- Cliente Menu Items -->
         <ng-container *ngIf="isCliente">
           <button routerLink="/home" routerLinkActive="active">
             <mat-icon>home</mat-icon>
@@ -52,7 +59,6 @@
           </button>
         </ng-container>
 
-        <!-- Restaurante Menu Items -->
         <ng-container *ngIf="isRestaurante">
           <button routerLink="/reserva" routerLinkActive="active">
             <mat-icon>event</mat-icon>
@@ -64,11 +70,10 @@
           </button>
           <button routerLink="/cadastro-cardapio" routerLinkActive="active">
             <mat-icon>menu_book</mat-icon>
-            <span>Cadastro de Cardápio</span>
+            <span>Cardápio</span>
           </button>
         </ng-container>
 
-        <!-- Common Menu Items -->
         <button routerLink="/configuracoes" routerLinkActive="active">
           <mat-icon>settings</mat-icon>
           <span>Configurações</span>
@@ -76,13 +81,10 @@
       </div>
     </div>
 
-    <!-- Content -->
     <div class="content">
       <div class="router-container">
-        <router-outlet></router-outlet>
+        <router-outlet (activate)="onOutletActivate($event)"></router-outlet>
       </div>
     </div>
   </div>
 </div>
-
-

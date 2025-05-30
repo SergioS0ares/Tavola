@@ -1,0 +1,1461 @@
+// Variáveis
+$primary-color: #F6BD38;
+$accent-color: #3B221B;
+$text-color: #3B221B;
+$light-gray: #f5f5f5;
+$medium-gray: #e0e0e0;
+$dark-gray: #757575;
+$white: #fff;
+$border-radius: 16px;
+$success-color: #52c41a;
+$warning-color: #faad14;
+
+// Cores do Tavola
+$tavola-amarelo: #F6BD38;
+$tavola-vermelho: #DA4A24;
+$tavola-amarelo-claro: #FFF4D6;
+$tavola-cinza: #F8F9FA;
+
+// Container principal com ajuste para drawer
+.container-rounded {
+  background: $white;
+  border-radius: 24px;
+  padding: 24px;
+  margin: 24px auto;
+  max-width: 1200px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  color: $text-color;
+  position: relative;
+  transition: all 0.3s ease;
+  
+  // Quando o drawer está aberto, não ajustar o container
+  &.drawer-open {
+    // Remover ajustes que causavam problemas
+    max-width: 1200px;
+    margin-right: auto;
+  }
+
+  /* Add styles for when sidebar is open */
+  &.sidebar-aberta {
+    /* Adjust max-width and margin to account for the open sidebar */
+    max-width: 960px; /* Example: Reduced max-width */
+    margin-left: auto; /* Center the container */
+    margin-right: auto;
+
+    .content-area {
+      /* Adjust gap or flex basis if needed */
+      gap: 16px; /* Example: reduced gap */
+    }
+
+    .coluna-reserva {
+      /* Adjust min/max width if needed */
+      min-width: 320px; /* Example: slightly smaller min-width */
+      max-width: 320px; /* Example: slightly smaller max-width */
+    }
+
+    /* Adjust menu section height if necessary */
+    .menu-content {
+      .categorias-nav-container {
+         /* Adjust sticky top position */
+         .categorias-nav.fixed {
+           top: 76px; /* Example: adjust based on toolbar height and padding */
+         }
+      }
+      .categorias-content {
+        .categoria-section {
+          scroll-margin-top: 150px; /* Adjust scroll margin top */
+        }
+      }
+    }
+  }
+}
+
+// Breadcrumb
+.breadcrumb {
+  margin-bottom: 24px;
+  
+  ::ng-deep .ant-breadcrumb-link {
+    a {
+      color: $text-color;
+      text-decoration: none;
+      
+      &:hover {
+        color: $primary-color;
+      }
+    }
+    
+    i {
+      margin-right: 4px;
+      color: $text-color;
+    }
+  }
+}
+
+// Cabeçalho do Restaurante
+.restaurant-header {
+  margin-bottom: 24px;
+  
+  .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    .restaurant-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0;
+      color: $text-color;
+    }
+    
+    .favorite-button {
+      color: $text-color;
+      border: 1px solid $medium-gray;
+      
+      &:hover {
+        color: $accent-color;
+        border-color: $accent-color;
+      }
+      
+      i[nzTheme="fill"] {
+        color: $accent-color;
+      }
+    }
+  }
+  
+  .restaurant-info {
+    .info-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      
+      i {
+        margin-right: 8px;
+        color: $text-color;
+      }
+    }
+    
+    .rating {
+      display: flex;
+      align-items: center;
+      
+      ::ng-deep .ant-rate {
+        font-size: 16px;
+        color: $primary-color;
+        margin-right: 8px;
+      }
+      
+      .rating-value {
+        font-weight: 700;
+        margin-right: 4px;
+      }
+      
+      .reviews-count {
+        color: rgba(59, 34, 27, 0.7);
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Galeria de Fotos
+.photo-gallery {
+  margin-bottom: 24px;
+  
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 400px;
+    
+    .main-photo {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .medium-photo {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .small-photo-top {
+      grid-column: 3;
+      grid-row: 1;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .small-photo-bottom {
+      grid-column: 3;
+      grid-row: 2;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .more-photos {
+      grid-column: 3;
+      grid-row: 2;
+      position: relative;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+      
+      .more-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $white;
+        font-weight: 500;
+        text-align: center;
+        padding: 0 8px;
+      }
+    }
+  }
+}
+
+// Abas de Navegação
+.navigation-tabs {
+  margin-bottom: 24px;
+  background-color: $white;
+  border-radius: $border-radius;
+  z-index: 100;
+  
+  &.fixed {
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  ::ng-deep {
+    .mat-mdc-tab {
+      color: $text-color;
+      
+      &.mdc-tab--active {
+        color: $primary-color;
+      }
+    }
+    
+    .mdc-tab-indicator__content--underline {
+      border-color: $primary-color !important;
+    }
+    
+    .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label {
+      color: $primary-color !important;
+    }
+    
+    .mat-mdc-tab:not(.mat-mdc-tab-active) .mdc-tab__text-label {
+      color: $text-color !important;
+    }
+  }
+}
+
+// Área de Conteúdo
+.content-area {
+  display: flex;
+  gap: 24px;
+  
+  .content-column {
+    flex: 1; // Reduzido de 1.5 para 1
+    transition: all 0.3s ease;
+    min-width: 0;
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      color: $text-color;
+    }
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 12px;
+      color: $text-color;
+    }
+    
+    p {
+      line-height: 1.6;
+      color: rgba(59, 34, 27, 0.9);
+      margin-bottom: 16px;
+    }
+    
+    // Seção Sobre
+    .sobre-content {
+      .descricao-section {
+        margin-bottom: 32px;
+      }
+      
+      .localizacao-section {
+        margin-bottom: 32px;
+        
+        .mapa-container {
+          border-radius: $border-radius;
+          overflow: hidden;
+          margin-bottom: 16px;
+        }
+        
+        .endereco-completo {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 16px;
+          
+          .endereco-copy {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            
+            p {
+              margin: 0;
+            }
+            
+            .copy-button {
+              padding: 0;
+              height: auto;
+              color: $text-color;
+              border: none;
+              background: transparent;
+              
+              &:hover {
+                color: $primary-color;
+                background: transparent;
+              }
+            }
+          }
+          
+          .como-chegar-btn {
+            color: $primary-color;
+            border-color: $primary-color;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+            
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+            
+            mat-icon {
+              margin-right: 8px;
+            }
+            
+            &:hover:not(:disabled) {
+              background-color: rgba(246, 189, 56, 0.1);
+            }
+          }
+        }
+        
+        .transporte-section {
+          margin-top: 16px;
+          
+          .transporte-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            
+            i {
+              margin-right: 8px;
+              color: $text-color;
+            }
+          }
+        }
+      }
+      
+      .mais-detalhes-section {
+        .horarios-section {
+          margin-bottom: 24px;
+          
+          .horarios-lista {
+            margin-bottom: 16px;
+          }
+          
+          .horario-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(59, 34, 27, 0.1);
+            
+            .dia {
+              font-weight: 500;
+            }
+            
+            .horas {
+              color: rgba(59, 34, 27, 0.8);
+            }
+          }
+          
+          .mostrar-mais {
+            color: $primary-color;
+          }
+        }
+        
+        .recursos-section {
+          .recursos-lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            
+            .recurso-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              
+              mat-icon {
+                color: $primary-color;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .coluna-reserva {
+    flex: 0 0 380px; // Aumentado de 320px para 380px
+    min-width: 380px;
+    max-width: 380px;
+    
+    .card-reserva-fixo {
+      position: sticky;
+      top: 20px;
+      
+      // Card estilo Tavola
+      .card-reserva-tavola {
+        background: $white;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        height: 500px;
+        display: flex;
+        flex-direction: column;
+        
+        .cabecalho-reserva {
+          background: $tavola-amarelo;
+          padding: 20px 24px;
+          text-align: center;
+          
+          .titulo-reserva {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: $accent-color;
+          }
+          
+          .texto-gratis {
+            font-size: 15px;
+            color: $tavola-vermelho;
+            font-weight: 600;
+            margin: 0;
+          }
+        }
+        
+        // Navegação horizontal estilo Tavola
+        .navegacao-reserva {
+          display: flex;
+          padding: 0;
+          border-bottom: 1px solid $light-gray;
+          
+          .etapa-nav {
+            flex: 1;
+            background: $white;
+            border: none;
+            padding: 12px 8px; // Reduzido para acomodar 4 steps
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+            
+            &.active {
+              background: $white;
+              border-bottom-color: $tavola-amarelo;
+              
+              .conteudo-etapa {
+                color: $text-color;
+                font-weight: 600;
+              }
+            }
+            
+            &.completed {
+              background: $white;
+              border-bottom-color: $success-color;
+              
+              .conteudo-etapa {
+                color: $text-color;
+                font-weight: 500;
+              }
+            }
+            
+            &:hover:not(:disabled) {
+              background: $tavola-cinza;
+            }
+            
+            .conteudo-etapa {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 4px; // Reduzido
+              
+              i {
+                font-size: 16px; // Reduzido
+                color: $medium-gray;
+              }
+              
+              span {
+                font-size: 11px; // Reduzido para acomodar 4 steps
+                color: $dark-gray;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 70px; // Reduzido
+              }
+            }
+            
+            &.active .conteudo-etapa i,
+            &.completed .conteudo-etapa i {
+              color: inherit;
+            }
+          }
+        }
+        
+        // Container de conteúdo com scroll
+        .conteudo-reserva {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px 24px;
+          
+          &::-webkit-scrollbar {
+            width: 4px;
+          }
+          
+          &::-webkit-scrollbar-track {
+            background: $light-gray;
+            border-radius: 2px;
+          }
+          
+          &::-webkit-scrollbar-thumb {
+            background: $medium-gray;
+            border-radius: 2px;
+            
+            &:hover {
+              background: $dark-gray;
+            }
+          }
+        }
+        
+        .etapa-reserva {
+          .cabecalho-etapa {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            
+            .botao-voltar {
+              padding: 6px;
+              color: $text-color;
+              
+              &:hover {
+                color: $tavola-amarelo;
+              }
+            }
+            
+            h3 {
+              margin: 0;
+              font-size: 17px;
+              font-weight: 600;
+              color: $text-color;
+            }
+          }
+          
+          // Calendário estilo Tavola
+          .calendario-tavola {
+            ::ng-deep .ant-picker-calendar {
+              .ant-picker-calendar-header {
+                padding: 10px 0;
+                
+                .ant-picker-calendar-year-select,
+                .ant-picker-calendar-month-select {
+                  color: $text-color;
+                  font-size: 15px;
+                }
+              }
+              
+              .ant-picker-body {
+                padding: 0;
+              }
+              
+              .ant-picker-content {
+                th, td {
+                  padding: 3px;
+                  font-size: 12px;
+                }
+                
+                th {
+                  color: $dark-gray;
+                  font-weight: 500;
+                }
+              }
+              
+              .ant-picker-cell {
+                &:hover .ant-picker-cell-inner {
+                  background-color: $tavola-amarelo-claro;
+                }
+                
+                &.ant-picker-cell-selected .ant-picker-cell-inner {
+                  background-color: $tavola-amarelo;
+                  color: $text-color;
+                  font-weight: 600;
+                }
+                
+                &.ant-picker-cell-disabled .ant-picker-cell-inner {
+                  color: $medium-gray;
+                  background-color: transparent;
+                }
+                
+                .ant-picker-cell-inner {
+                  width: 32px; // Aumentado para acomodar o card maior
+                  height: 32px;
+                  line-height: 32px;
+                  font-size: 12px;
+                  border-radius: 4px;
+                }
+              }
+            }
+          }
+          
+          // Horários estilo Tavola
+          .periodo-horario {
+            margin-bottom: 24px;
+            
+            h4 {
+              font-size: 15px;
+              font-weight: 600;
+              margin: 0 0 14px;
+              color: $text-color;
+            }
+            
+            .slots-horario {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 8px;
+              
+              .slot-horario {
+                position: relative;
+                padding: 10px 6px;
+                font-size: 12px;
+                font-weight: 500;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+                border: 1px solid $medium-gray;
+                background: $white;
+                
+                &:hover:not(:disabled) {
+                  background-color: $tavola-amarelo;
+                  border-color: $tavola-amarelo;
+                  color: $text-color;
+                }
+                
+                &.limitado {
+                  border-color: $warning-color;
+                  background-color: rgba(250, 173, 20, 0.1);
+                  
+                  .percentual {
+                    position: absolute;
+                    top: -6px;
+                    right: -6px;
+                    background-color: $warning-color;
+                    color: $white;
+                    font-size: 8px;
+                    padding: 1px 3px;
+                    border-radius: 3px;
+                    font-weight: 600;
+                  }
+                }
+                
+                &:disabled {
+                  opacity: 0.3;
+                  cursor: not-allowed;
+                  background-color: $light-gray;
+                }
+              }
+            }
+          }
+          
+          // Seleção de pessoas estilo Tavola
+          .grid-pessoas {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 24px;
+            
+            .botao-pessoa {
+              aspect-ratio: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 15px;
+              font-weight: 600;
+              border-radius: 8px;
+              transition: all 0.2s ease;
+              border: 1px solid $medium-gray;
+              background: $white;
+              
+              &:hover {
+                border-color: $tavola-amarelo;
+                background-color: $tavola-amarelo-claro;
+              }
+              
+              &.selecionado {
+                background-color: $tavola-amarelo;
+                border-color: $tavola-amarelo;
+                color: $text-color;
+              }
+            }
+          }
+          
+          .info-disponibilidade {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            background-color: rgba(218, 74, 36, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid $accent-color;
+            
+            i {
+              color: $accent-color;
+              font-size: 15px;
+            }
+            
+            span {
+              font-size: 13px;
+              color: $text-color;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Modal de Galeria Completa
+.full-gallery {
+  .gallery-grid-modal {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    
+    .gallery-item {
+      border-radius: $border-radius;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+
+// Modal de Horários
+.horarios-descricao {
+  margin-bottom: 16px;
+  color: $text-color;
+}
+
+.horarios-lista-completa {
+  .horario-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(59, 34, 27, 0.1);
+    
+    .dia {
+      font-weight: 500;
+      color: $text-color;
+    }
+    
+    .horas {
+      color: rgba(59, 34, 27, 0.8);
+    }
+  }
+}
+
+// Botão de voltar ao topo
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99;
+  background-color: $primary-color !important;
+  color: $text-color !important;
+}
+
+// Estilos específicos para o NzImageModule
+::ng-deep {
+  .ant-image-preview-operations {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .ant-image-preview-img {
+    max-width: 90%;
+    max-height: 90%;
+  }
+  
+  .ant-image-preview-switch-left, 
+  .ant-image-preview-switch-right {
+    color: white;
+    background-color: rgba(0, 0, 0, 0.3);
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+  .ant-tooltip-inner {
+    background-color: $text-color;
+    color: white;
+  }
+  
+  .ant-tooltip-arrow-content {
+    background-color: $text-color;
+  }
+}
+
+// Estilos para a aba Menu
+.menu-content {
+  .menu-intro {
+    margin-bottom: 32px;
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: $text-color;
+    }
+    
+    p {
+      color: rgba(59, 34, 27, 0.8);
+      margin-bottom: 24px;
+    }
+    
+    .menu-info {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      
+      .opcoes-dieteticas {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: $border-radius;
+        background-color: $light-gray;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: darken($light-gray, 3%);
+        }
+        
+        i {
+          color: $text-color;
+          font-size: 20px;
+        }
+        
+        div {
+          flex: 1;
+          
+          span {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+          
+          p {
+            margin: 0;
+            font-size: 14px;
+            color: rgba(59, 34, 27, 0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+          }
+        }
+      }
+    }
+  }
+  
+  // Container para a navegação de categorias com sticky correto
+  .categorias-nav-container {
+    margin-bottom: 24px;
+    
+    .categorias-nav {
+      background-color: $white;
+      padding: 8px 0;
+      border-bottom: 1px solid $light-gray;
+      transition: all 0.3s ease;
+      
+      &.fixed {
+        position: sticky;
+        top: 28px;
+        z-index: 90;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-left: -24px;
+        margin-right: -24px;
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      
+      .categorias-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        max-width: 100%;
+        overflow: hidden;
+      }
+      
+      .categorias-scroll {
+        display: flex;
+        overflow-x: auto;
+        gap: 12px;
+        padding: 0 40px;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        width: 100%;
+        max-width: calc(100% - 80px);
+        
+        &::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .categoria-btn {
+          white-space: nowrap;
+          padding: 8px 16px;
+          border-radius: 20px;
+          background-color: $light-gray;
+          border: none;
+          color: $text-color;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+          min-width: calc((100% - 120px) / 4); // Garantir que apenas 4 categorias sejam visíveis
+          text-align: center;
+          
+          &:hover {
+            background-color: darken($light-gray, 5%);
+          }
+          
+          &.active {
+            background-color: $primary-color;
+            color: $text-color;
+            font-weight: 600;
+          }
+        }
+      }
+      
+      .nav-arrow {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: $white;
+        border: 1px solid $medium-gray;
+        color: $text-color;
+        cursor: pointer;
+        z-index: 2;
+        transition: all 0.2s ease;
+        opacity: 1;
+        visibility: visible;
+        
+        &.hidden {
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        
+        &:hover {
+          background-color: $light-gray;
+          border-color: $primary-color;
+          color: $primary-color;
+        }
+        
+        &.left-arrow {
+          left: 0;
+          box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        &.right-arrow {
+          right: 0;
+          box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        i {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+  
+  .categorias-content {
+    .categoria-section {
+      margin-bottom: 40px;
+      scroll-margin-top: 100px;
+      
+      .categoria-titulo {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 20px;
+        color: $text-color;
+        padding-bottom: 8px;
+        border-bottom: 2px solid $primary-color;
+      }
+      
+      .itens-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        
+        .item-card {
+          background-color: $white;
+          border-radius: $border-radius;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          transition: all 0.2s ease;
+          
+          &:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          }
+          
+          .item-content {
+            display: flex;
+            align-items: flex-start;
+            
+            .item-image {
+              width: 120px;
+              height: 120px;
+              flex-shrink: 0;
+              cursor: pointer;
+              
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: $border-radius 0 0 $border-radius;
+                transition: transform 0.2s ease;
+                
+                &:hover {
+                  transform: scale(1.02);
+                }
+              }
+            }
+            
+            .item-info {
+              flex: 1;
+              padding: 16px;
+              
+              .item-nome {
+                font-size: 18px;
+                font-weight: 600;
+                margin: 0 0 8px;
+                color: $text-color;
+              }
+              
+              .item-descricao {
+                color: rgba(59, 34, 27, 0.8);
+                margin: 0 0 12px;
+                font-size: 14px;
+                line-height: 1.5;
+              }
+              
+              .item-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                
+                .tag-chip {
+                  background-color: $primary-color;
+                  padding: 4px 8px;
+                  border-radius: 12px;
+                  font-size: 12px;
+                  color: $text-color;
+                  font-weight: 500;
+                }
+              }
+            }
+            
+            .item-preco {
+              padding: 16px;
+              font-weight: 700;
+              color: $accent-color;
+              font-size: 18px;
+              min-width: 100px;
+              text-align: right;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Estilos para o drawer de opções dietéticas
+.drawer-description {
+  margin-bottom: 24px;
+  color: rgba(59, 34, 27, 0.8);
+  line-height: 1.6;
+}
+
+.opcoes-dieteticas-drawer {
+  .opcao-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 8px 0;
+    
+    i {
+      color: $primary-color;
+      font-size: 16px;
+    }
+    
+    span {
+      font-size: 16px;
+      color: $text-color;
+    }
+  }
+}
+
+// Responsividade ajustada
+@media (max-width: 992px) {
+  .content-area {
+    flex-direction: column;
+    
+    .coluna-reserva {
+      flex: none;
+      min-width: auto;
+      max-width: none;
+      
+      .card-reserva-fixo {
+        position: static;
+        
+        .card-reserva-tavola {
+          height: auto;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .localizacao-section {
+    .endereco-completo {
+      flex-direction: column;
+      align-items: flex-start !important;
+      
+      .como-chegar-btn {
+        margin-top: 12px;
+        margin-left: 0;
+        width: 100%;
+      }
+    }
+  }
+  
+  // Ajustes mobile para sistema de reservas estilo Tavola
+  .coluna-reserva {
+    .card-reserva-tavola {
+      .navegacao-reserva {
+        .etapa-nav {
+          .conteudo-etapa {
+            span {
+              font-size: 10px;
+              max-width: 60px;
+            }
+          }
+        }
+      }
+      
+      .etapa-reserva {
+        .calendario-tavola {
+          ::ng-deep .ant-picker-calendar {
+            .ant-picker-cell {
+              .ant-picker-cell-inner {
+                width: 28px;
+                height: 28px;
+                line-height: 28px;
+              }
+            }
+          }
+        }
+        
+        .periodo-horario {
+          .slots-horario {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+        
+        .grid-pessoas {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .full-gallery {
+    .gallery-grid-modal {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .recursos-section {
+    .recursos-lista {
+      grid-template-columns: 1fr !important;
+    }
+  }
+  
+  // Ajustes para telas muito pequenas
+  .coluna-reserva {
+    .card-reserva-tavola {
+      .etapa-reserva {
+        .periodo-horario {
+          .slots-horario {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        
+        .grid-pessoas {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    }
+  }
+}
+
+// Estilos para o step 4 de confirmação
+.etapa-reserva {
+  .resumo-reserva {
+    background-color: $tavola-amarelo-claro;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 16px;
+      color: $text-color;
+    }
+    
+    .resumo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      
+      .label {
+        font-weight: 500;
+        color: rgba(59, 34, 27, 0.8);
+      }
+      
+      .value {
+        font-weight: 600;
+        color: $text-color;
+      }
+    }
+  }
+  
+  .comentarios-section {
+    margin-bottom: 24px;
+    
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: $text-color;
+    }
+    
+    .comentarios-desc {
+      font-size: 14px;
+      color: rgba(59, 34, 27, 0.7);
+      margin-bottom: 16px;
+    }
+    
+    .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: rgba(59, 34, 27, 0.6);
+      margin-top: 4px;
+    }
+    
+    .mat-mdc-form-field {
+      width: 100%;
+    }
+    
+    .sugestoes-rapidas {
+      margin-top: 16px;
+      
+      .sugestoes-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: $text-color;
+      }
+      
+      .sugestoes-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        
+        .sugestao-chip {
+          font-size: 12px;
+          padding: 4px 8px;
+          height: auto;
+          border-color: $medium-gray;
+          
+          &:hover {
+            border-color: $tavola-amarelo;
+            color: $tavola-amarelo;
+          }
+        }
+      }
+    }
+  }
+  
+  .confirmacao-section {
+    text-align: center;
+    
+    .botao-confirmar {
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+      font-weight: 600;
+      background-color: $tavola-amarelo;
+      border-color: $tavola-amarelo;
+      color: $text-color;
+      margin-bottom: 0;
+      
+      &:hover {
+        background-color: darken($tavola-amarelo, 10%);
+        border-color: darken($tavola-amarelo, 10%);
+      }
+      
+      i {
+        margin-right: 8px;
+      }
+    }
+    
+    
+    .confirmacao-info {
+      font-size: 12px;
+      color: rgba(59, 34, 27, 0.7);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Styles for the rounded Material button
+.mat-rounded-button {
+  border-radius: 8px !important;
+  height: 48px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  background-color: $tavola-amarelo !important;
+  color: $text-color !important;
+  
+  &:hover {
+    background-color: darken($tavola-amarelo, 10%) !important;
+  }
+  
+  mat-icon {
+    margin-right: 8px;
+  }
+}

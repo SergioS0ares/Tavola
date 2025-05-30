@@ -1,41 +1,262 @@
 <div class="configuracoes-container">
-  <mat-card class="profile-section">
-    <mat-card-header>
+  <!-- Cabeçalho da Página -->
+  <div class="page-header">
+    <h1>Meu Perfil</h1>
+  </div>
+
+  <!-- Seção de Perfil -->
+  <mat-card class="profile-card">
+    <div class="profile-header">
       <div class="avatar-container">
-        <img [src]="'assets/png/avatar-padrao-tavola-cordeirinho.png'" alt="Avatar do usuário">
-        <button mat-mini-fab color="primary" class="change-photo">
+        <img [src]="previewImage || userAvatar" alt="Avatar do usuário" class="profile-avatar">
+        <button mat-mini-fab class="change-photo-btn" aria-label="Alterar foto" (click)="fileInput.click()">
           <mat-icon>photo_camera</mat-icon>
         </button>
+        <input #fileInput type="file" style="display: none" accept="image/*" (change)="onFileSelected($event)">
       </div>
-      <mat-card-title>{{ userName }}</mat-card-title>
-      <mat-card-subtitle>{{ userType }}</mat-card-subtitle>
-    </mat-card-header>
+      <div class="profile-info">
+        <h2 class="profile-name">{{ userName }}</h2>
+        <p class="profile-type">{{ userType }}</p>
+      </div>
+    </div>
   </mat-card>
 
-  <mat-card class="info-section">
-    <mat-card-header>
-      <mat-card-title>Informações da Conta</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Formulário de informações será adicionado aqui -->
-    </mat-card-content>
+  <!-- Informações Pessoais -->
+  <mat-card class="info-card">
+    <div class="card-header">
+      <h3>Informações da Conta</h3>
+      <button mat-icon-button class="edit-icon" *ngIf="!editingInfo" (click)="toggleEditInfo()" aria-label="Editar">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="card-content" *ngIf="!editingInfo">
+      <div class="info-row">
+        <span class="info-label">Nome</span>
+        <span class="info-value">{{ userData.nome }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ userData.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Telefone</span>
+        <span class="info-value">{{ userData.telefone }}</span>
+      </div>
+    </div>
+
+    <form *ngIf="editingInfo" [formGroup]="infoForm" class="edit-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" type="text">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Telefone</mat-label>
+        <input matInput formControlName="telefone" type="tel">
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button mat-stroked-button color="warn" (click)="cancelEditInfo()">Cancelar</button>
+        <button mat-raised-button class="save-btn" (click)="saveInfo()">Salvar</button>
+      </div>
+    </form>
+    
+    <div class="not-ready-container" *ngIf="showInfoMessage">
+      <span class="not-ready">Funcionalidade ainda não implementada.</span>
+    </div>
   </mat-card>
 
-  <mat-card class="address-section">
-    <mat-card-header>
-      <mat-card-title>Endereço</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Formulário de endereço será adicionado aqui -->
-    </mat-card-content>
+  <!-- Endereço -->
+  <mat-card class="info-card">
+    <div class="card-header">
+      <h3>Endereço</h3>
+      <button mat-icon-button class="edit-icon" *ngIf="!editingAddress" (click)="toggleEditAddress()" aria-label="Editar">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="card-content" *ngIf="!editingAddress">
+      <div class="info-row">
+        <span class="info-label">País</span>
+        <span class="info-value">{{ userData.endereco.pais }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Estado</span>
+        <span class="info-value">{{ userData.endereco.estado }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Cidade</span>
+        <span class="info-value">{{ userData.endereco.cidade }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Bairro</span>
+        <span class="info-value">{{ userData.endereco.bairro }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Rua</span>
+        <span class="info-value">{{ userData.endereco.rua }}, {{ userData.endereco.numero }}</span>
+      </div>
+      <div class="info-row" *ngIf="userData.endereco.complemento">
+        <span class="info-label">Complemento</span>
+        <span class="info-value">{{ userData.endereco.complemento }}</span>
+      </div>
+    </div>
+
+    <form *ngIf="editingAddress" [formGroup]="addressForm" class="edit-form">
+      <mat-form-field appearance="outline">
+        <mat-label>País</mat-label>
+        <input matInput formControlName="pais">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <input matInput formControlName="estado">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Cidade</mat-label>
+        <input matInput formControlName="cidade">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Bairro</mat-label>
+        <input matInput formControlName="bairro">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Rua</mat-label>
+        <input matInput formControlName="rua">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Número</mat-label>
+        <input matInput formControlName="numero">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Complemento</mat-label>
+        <input matInput formControlName="complemento">
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button mat-stroked-button color="warn" (click)="cancelEditAddress()">Cancelar</button>
+        <button mat-raised-button class="save-btn" (click)="saveAddress()">Salvar</button>
+      </div>
+    </form>
+    
+    <div class="not-ready-container" *ngIf="showAddressMessage">
+      <span class="not-ready">Funcionalidade ainda não implementada.</span>
+    </div>
   </mat-card>
 
-  <mat-card *ngIf="isRestaurante" class="restaurant-section">
-    <mat-card-header>
-      <mat-card-title>Dados do Restaurante</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <!-- Formulário do restaurante será adicionado aqui -->
-    </mat-card-content>
+  <!-- Dados do Restaurante (condicional) -->
+  <mat-card class="info-card" *ngIf="isRestaurante">
+    <div class="card-header">
+      <h3>Dados do Restaurante</h3>
+      <button mat-icon-button class="edit-icon" *ngIf="!editingRestaurant" (click)="toggleEditRestaurant()" aria-label="Editar">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="card-content" *ngIf="!editingRestaurant">
+      <div class="info-row">
+        <span class="info-label">Nome Fantasia</span>
+        <span class="info-value">{{ userData.nome }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Tipo de Cozinha</span>
+        <span class="info-value">{{ userData.tipoCozinha }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Quantidade de Mesas</span>
+        <span class="info-value">{{ userData.quantidadeMesas }}</span>
+      </div>
+      <div class="info-row" *ngFor="let horario of userData.horaFuncionamento">
+        <span class="info-label">{{ getDiaSemana(horario.diaSemana) }}</span>
+        <span class="info-value">{{ horario.abertura }} - {{ horario.fechamento }}</span>
+      </div>
+    </div>
+
+    <form *ngIf="editingRestaurant" [formGroup]="restaurantForm" class="edit-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Nome Fantasia</mat-label>
+        <input matInput formControlName="nome">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de Cozinha</mat-label>
+        <mat-select formControlName="tipoCozinha">
+          <mat-option value="italiana">Italiana</mat-option>
+          <mat-option value="brasileira">Brasileira</mat-option>
+          <mat-option value="japonesa">Japonesa</mat-option>
+          <mat-option value="francesa">Francesa</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Quantidade de Mesas</mat-label>
+        <input matInput formControlName="quantidadeMesas" type="number">
+      </mat-form-field>
+
+      <h4>Horários de Funcionamento</h4>
+      
+      <div formArrayName="horaFuncionamento" class="horarios-container">
+        <div *ngFor="let horario of horaFuncionamentoControls; let i = index" [formGroupName]="i" class="horario-item">
+          <mat-form-field appearance="outline">
+            <mat-label>Dia da Semana</mat-label>
+            <mat-select formControlName="diaSemana">
+              <mat-option value="SEGUNDA">Segunda-feira</mat-option>
+              <mat-option value="TERCA">Terça-feira</mat-option>
+              <mat-option value="QUARTA">Quarta-feira</mat-option>
+              <mat-option value="QUINTA">Quinta-feira</mat-option>
+              <mat-option value="SEXTA">Sexta-feira</mat-option>
+              <mat-option value="SABADO">Sábado</mat-option>
+              <mat-option value="DOMINGO">Domingo</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <div class="horario-inputs">
+            <mat-form-field appearance="outline">
+              <mat-label>Abertura</mat-label>
+              <input matInput formControlName="abertura" type="time">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Fechamento</mat-label>
+              <input matInput formControlName="fechamento" type="time">
+            </mat-form-field>
+          </div>
+          
+          <button mat-icon-button color="warn" (click)="removeHorario(i)" *ngIf="horaFuncionamentoControls.length > 1">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <button mat-button class="add-horario-btn" (click)="addHorario()">
+        <mat-icon>add</mat-icon> Adicionar Horário
+      </button>
+
+      <div class="form-actions">
+        <button mat-stroked-button color="warn" (click)="cancelEditRestaurant()">Cancelar</button>
+        <button mat-raised-button class="save-btn" (click)="saveRestaurant()">Salvar</button>
+      </div>
+    </form>
+    
+    <div class="not-ready-container" *ngIf="showRestaurantMessage">
+      <span class="not-ready">Funcionalidade ainda não implementada.</span>
+    </div>
   </mat-card>
 </div>

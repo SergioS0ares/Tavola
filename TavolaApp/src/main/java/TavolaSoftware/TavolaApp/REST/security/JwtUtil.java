@@ -15,12 +15,13 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
 
     private static final long ACCESS_TOKEN_EXPIRATION = 10 * 60 * 1000; // 10 min
-    private static final long REFRESH_TOKEN_EXPIRATION = 24 * 60 * 60 * 1000; // 1 dia
+    private static final long REFRESH_TOKEN_EXPIRATION = 30 * 60 * 60 * 1000; // 30 horas
 
     private final PrivateKey privateKey;
     private final PublicKey publicKey;
@@ -39,16 +40,19 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String sessionId) {
+    public String generateRefreshToken(UUID id, String email) {
         return Jwts.builder()
-                .setId(sessionId)
+                .setSubject(email)
+                .claim("id", id.toString()) 
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
 
+
     public Claims parseToken(String token) {
+        System.out.println("Tentando validar token...");
         return Jwts.parserBuilder()
                 .setSigningKey(publicKey)
                 .build()

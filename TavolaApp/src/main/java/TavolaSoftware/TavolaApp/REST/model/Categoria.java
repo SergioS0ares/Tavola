@@ -20,7 +20,7 @@ public class Categoria {
     @Column(name = "categoria_id")
     private UUID id;
 
-    @Column(name = "nome", nullable = false)
+    @Column(name = "nome", nullable = false, length = 500)
     private String nome;
 
     @ManyToOne

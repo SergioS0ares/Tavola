@@ -8,10 +8,12 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CardapioService } from '../../core/services/cardapio.service';
-import { IItemCardapio } from '../../Interfaces/Iitem-cardapio';
+import { IItemCardapio } from '../../Interfaces/IItem-cardapio';
 import { ICategoriaComItens } from '../../Interfaces/ICategoriaComItens.interface';
 import { DialogItemCardapioComponent } from './dialog-item-cardapio/dialog-item-cardapio.component';
 import Swal from 'sweetalert2';
+import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-cadastro-cardapio',
@@ -33,6 +35,7 @@ import Swal from 'sweetalert2';
 export class CadastroCardapioComponent implements OnInit {
   private service = inject(CardapioService);
   private dialog  = inject(MatDialog);
+  private toastr = inject(ToastrService);
 
   itens: IItemCardapio[] = [];
   defaultImg = 'assets/png/placeholder.png';
@@ -47,22 +50,41 @@ export class CadastroCardapioComponent implements OnInit {
 
   categoriasComItens: ICategoriaComItens[] = [];
 
+  mensagemSucesso = '';
+
   ngOnInit() {
     this.carregarItens();
-    this.atualizarCategoriasComItens();
   }
 
   private carregarItens() {
-    this.service.listarItens().subscribe(itens => {
-      this.itens = itens;
-      this.atualizarCategoriasComItens();
+    this.service.listarItens().subscribe({
+      next: (itens) => {
+        this.itens = itens.map(item => ({
+          ...item,
+          categoria: typeof item.categoria === 'string'
+            ? { nome: item.categoria }
+            : item.categoria,
+          tags: (item.tags || []).map((t: any) =>
+            typeof t === 'string' ? { tag: t } : t
+          ),
+          imagem: item.imagem && !item.imagem.startsWith('http')
+            ? `${environment.apiUrl}${item.imagem}`
+            : item.imagem
+        }));
+        this.atualizarCategoriasComItens();
+      },
+      error: (erro) => {
+        console.warn('Nenhum item carregado ou erro no backend:', erro);
+        this.itens = [];
+        this.atualizarCategoriasComItens();
+      }
     });
   }
 
   private atualizarCategoriasComItens() {
     this.categoriasComItens = this.categorias.map(cat => ({
       ...cat,
-      itens: this.itens.filter(item => item.categoriaId === cat.id)
+      itens: this.itens.filter(item => item.categoria && item.categoria.nome === cat.nome)
     }));
   }
 
@@ -71,7 +93,6 @@ export class CadastroCardapioComponent implements OnInit {
     this.atualizarCategoriasComItens();
   }
 
-  // dispara o diálogo para criar
   adicionar() {
     const dialogRef = this.dialog.open(DialogItemCardapioComponent, {
       width: '600px',
@@ -80,12 +101,22 @@ export class CadastroCardapioComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.carregarItens();
+        const novoItem = {
+          ...result,
+          categoria: typeof result.categoria === 'string'
+            ? { nome: result.categoria }
+            : result.categoria,
+          tags: (result.tags || []).map((t: any) =>
+            typeof t === 'string' ? { tag: t } : t
+          )
+        };
+        this.itens.push(novoItem);
+        this.atualizarCategoriasComItens();
+        this.toastr.success('Item adicionado com sucesso!');
       }
     });
   }
 
-  // dispara o diálogo para editar
   editar(item: IItemCardapio) {
     const dialogRef = this.dialog.open(DialogItemCardapioComponent, {
       width: '600px',
@@ -100,12 +131,30 @@ export class CadastroCardapioComponent implements OnInit {
   }
 
   toggleDisponibilidade(item: IItemCardapio) {
+    if (!item.id) return;
     const itemAtualizado = { ...item, disponivel: !item.disponivel };
-    this.service.atualizarItem(itemAtualizado);
-    this.carregarItens();
+    this.service.atualizarItem(item.id, itemAtualizado).subscribe({
+      next: () => {
+        this.carregarItens();
+        this.toastr.success('Disponibilidade atualizada!');
+      },
+      error: () => {
+        this.toastr.error('Não foi possível atualizar a disponibilidade.');
+      }
+    });
   }
 
   confirmarRemocao(item: IItemCardapio) {
+    if (!item.id) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Item inválido para remoção.',
+        icon: 'error',
+        confirmButtonColor: '#F6BD38'
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Tem certeza?',
       text: `Deseja remover "${item.nome}" do cardápio?`,
@@ -117,13 +166,25 @@ export class CadastroCardapioComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.service.removerItem(item.id);
-        this.carregarItens();
-        Swal.fire({
-          title: 'Removido!',
-          text: 'Item removido com sucesso.',
-          icon: 'success',
-          confirmButtonColor: '#F6BD38'
+        this.service.removerItem(item.id!).subscribe({
+          next: () => {
+            this.carregarItens();
+            Swal.fire({
+              title: 'Removido!',
+              text: 'Item removido com sucesso.',
+              icon: 'success',
+              confirmButtonColor: '#F6BD38'
+            });
+          },
+          error: (erro) => {
+            console.error('Erro ao remover item:', erro);
+            Swal.fire({
+              title: 'Erro!',
+              text: 'Não foi possível remover o item.',
+              icon: 'error',
+              confirmButtonColor: '#F6BD38'
+            });
+          }
         });
       }
     });

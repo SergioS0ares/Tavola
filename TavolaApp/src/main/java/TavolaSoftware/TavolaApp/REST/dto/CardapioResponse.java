@@ -12,6 +12,7 @@ public class CardapioResponse {
     private Double preco;
     private String descricao;
     private String imagem;
+    private UUID idImagem;
     private boolean disponivel;
     private String categoria;
     private Set<String> tags;
@@ -27,6 +28,14 @@ public class CardapioResponse {
         this.tags = c.getTags() != null ?
             c.getTags().stream().map(t -> t.getTag()).collect(Collectors.toSet()) :
             Set.of();
+    }
+
+    public UUID getIdImagem() {
+        return idImagem;
+    }
+
+    public void setIdImagem(UUID idImagem) {
+        this.idImagem = idImagem;
     }
 
     public UUID getId() {
@@ -49,7 +58,7 @@ public class CardapioResponse {
     	return imagem;
     }
     
-    public boolean getDesponivel() {
+    public boolean getDisponivel() {
     	return disponivel;
     }
     

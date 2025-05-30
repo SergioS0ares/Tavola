@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { ILoginForm } from '../../Interfaces/ILoginForm.interface';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -23,9 +24,7 @@ import { ILoginForm } from '../../Interfaces/ILoginForm.interface';
     MatIconModule,
     MatButtonModule
   ],
-  providers: [
-    LoginService
-  ],
+  providers: [],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -37,6 +36,7 @@ export class LoginComponent {
   private router = inject(Router);
   private loginService = inject(LoginService);
   private toastService = inject(ToastrService);
+  private authService = inject(AuthService);
 
   constructor() {
     this.loginForm = new FormGroup<ILoginForm>({
@@ -46,28 +46,10 @@ export class LoginComponent {
       }),
       senha: new FormControl<string>('', {
         nonNullable: true,
-        validators: [Validators.required, this.validadorSenhaForte]
+        validators: [Validators.required]
       })
     });
   }
-
-  validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
-    const valor = control.value;
-    if (!valor) return { required: true };
-  
-    const erros: ValidationErrors = {};
-  
-    if (valor.length < 8) {
-      erros['minCaracteres'] = true;
-    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
-      erros['semCaractereEspecial'] = true;
-    }
-  
-    return Object.keys(erros).length ? erros : null;
-  }
-  
-
-
   emailWithTLDValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value as string;
     // Regex para verificar se o e-mail termina com um TLD válido
@@ -90,13 +72,11 @@ export class LoginComponent {
     if (email && senha) {
       this.loginService.login(email, senha).subscribe({
         next: (res) => {
-          localStorage.setItem('token', res.token);
-          localStorage.setItem('refreshToken', res.refreshToken);
-          localStorage.setItem('userName', res.name);
-          localStorage.setItem('tipoUsuario', res.tipoUsuario);
-        
+          // Centraliza o armazenamento no AuthService
+          this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+          
           this.toastService.success("Login feito com sucesso!");
-          // Redireciona com base no tipo de usuário
+          
           if (res.tipoUsuario === 'RESTAURANTE') {
             this.router.navigate(['reserva']);
           } else {

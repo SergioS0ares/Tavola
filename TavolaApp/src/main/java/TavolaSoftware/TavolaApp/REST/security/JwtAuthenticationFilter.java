@@ -28,10 +28,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String path = request.getServletPath();
 
         // Ignorar autenticação nas rotas públicas
-        if (path.equals("/auth/login") || path.equals("/auth/register") || path.equals("/test/dev-token")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        if (
+        	    path.equals("/auth/login") ||
+        	    path.equals("/auth/register") ||
+        	    path.equals("/auth/refresh") // <--- ESTA LINHA É ESSENCIAL
+        	) {
+        	    filterChain.doFilter(request, response);
+        	    System.out.println("Filtro ignorado para path: " + path);
+        	    return;
+        	}
+
 
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
