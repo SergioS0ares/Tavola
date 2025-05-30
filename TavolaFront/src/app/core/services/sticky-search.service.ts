@@ -3,10 +3,19 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class StickySearchService {
-  private stickySubject = new BehaviorSubject<boolean>(false);
-  sticky$ = this.stickySubject.asObservable();
+  private _sticky = new BehaviorSubject<boolean>(false);
+  sticky$ = this._sticky.asObservable();
 
-  setSticky(isSticky: boolean) {
-    this.stickySubject.next(isSticky);
+  private _sidebarAberta = new BehaviorSubject<boolean>(true); // Assuming sidebar starts open
+  sidebarAberta$ = this._sidebarAberta.asObservable();
+
+  constructor() {}
+
+  setSticky(value: boolean) {
+    this._sticky.next(value);
+  }
+
+  setSidebarAberta(value: boolean) {
+    this._sidebarAberta.next(value);
   }
 } 

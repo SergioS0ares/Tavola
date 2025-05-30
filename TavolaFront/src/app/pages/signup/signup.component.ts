@@ -39,7 +39,7 @@ import { AuthService } from '../../core/services/auth.service';
     LayoutPrincipalComponent,
     NgxMaskDirective
   ],
-  providers: [LoginService],
+  providers: [],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
@@ -271,9 +271,9 @@ export class SignUpComponent {
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('userName', res.name);
-        localStorage.setItem('tipoUsuario', res.tipoUsuario);
+        // Centraliza o armazenamento no AuthService
+        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+        
         this.toastService.success("Cadastro realizado com sucesso!");
         this.router.navigate(['home']);
       },
@@ -317,12 +317,11 @@ export class SignUpComponent {
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('userName', res.name);
-        localStorage.setItem('tipoUsuario', res.tipoUsuario);
-        this.authService.setToken(res.token);
+        // Centraliza o armazenamento no AuthService
+        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['reserva']);
+        this.router.navigate(['reserva']); // Ou para onde o restaurante deve ir
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";

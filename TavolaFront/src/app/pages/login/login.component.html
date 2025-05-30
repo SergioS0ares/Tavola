@@ -38,12 +38,6 @@
                 <mat-error *ngIf="loginForm.get('senha')?.hasError('required')">
                     Este campo é obrigatório
                 </mat-error>
-                <mat-error *ngIf="loginForm.get('senha')?.hasError('minCaracteres')">
-                  A senha deve ter no mínimo 8 caracteres.
-                </mat-error>
-                <mat-error *ngIf="loginForm.get('senha')?.hasError('semCaractereEspecial')">
-                  A senha deve conter ao menos um caractere especial, como ! &#64; # $ %
-                </mat-error>
             </mat-form-field>
             <!-- Link Esqueci Minha Senha -->
             <div class="forgot-password">

@@ -1,11 +1,11 @@
 import {
-  NzConfigService,
-  WithConfig
-} from "./chunk-OQEB3FQA.js";
-import {
   NzOutletModule,
   NzStringTemplateOutletDirective
 } from "./chunk-DKXAOBVB.js";
+import {
+  NzConfigService,
+  WithConfig
+} from "./chunk-OQEB3FQA.js";
 import {
   toCssPixel
 } from "./chunk-4OXNTDIN.js";

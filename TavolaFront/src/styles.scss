@@ -2,11 +2,88 @@
 @include mat.elevation-classes();
 @include mat.app-background();
 @import 'ngx-toastr/toastr';
-@import 'ng-zorro-antd/ng-zorro-antd.min.css';
+@import 'ng-zorro-antd/ng-zorro-antd.min.css'; // Certifique-se que está importado
 
 :root {
-    --mdc-outlined-text-field-focus-outline-color: #32CD32 !important; 
-    --mdc-outlined-text-field-focus-label-text-color: #32CD32 !important; 
+  // Cores base do seu tema Tavola (reutilize ou defina conforme sua paleta)
+  --tavola-amarelo: #F6BD38;
+  --tavola-vermelho: #DA4A24;
+  --tavola-marrom-escuro: #3B221B;
+  --tavola-marrom-medio: #4e2e22; // Ex: scrollbar thumb
+  --tavola-marrom-claro: #5C7028; // Ex: card image bg
+  --tavola-fundo-componente-claro: #FFFFFF; // Para cards e modais em fundo #ebe8e2
+  --tavola-fundo-componente-dialog: #FFF8EE; // Usado em .dialog-cardapio
+  --tavola-fundo-pagina: #ebe8e2;
+  --tavola-texto-sobre-escuro: #FFFFFF;
+  --tavola-texto-sobre-claro: var(--tavola-marrom-escuro);
+  --tavola-erro: #D1495B; // Consistent with mat-error
+
+  // === Variáveis Globais NG-ZORRO ===
+
+  // Cor Primária (principal para ações, botões, links ativos, foco)
+  --ant-primary-color: var(--tavola-amarelo);
+  --ant-primary-color-hover: darken(var(--tavola-amarelo), 5%);
+  --ant-primary-color-active: darken(var(--tavola-amarelo), 10%);
+  --ant-primary-color-outline: fade(var(--tavola-amarelo), 20%); // Para outlines e sombras de foco
+
+  // Links
+  --ant-link-color: var(--tavola-vermelho); // Ou var(--tavola-amarelo) se preferir
+  --ant-link-hover-color: darken(var(--ant-link-color), 10%);
+  --ant-link-active-color: darken(var(--ant-link-color), 20%);
+
+  // Cores de Texto
+  --ant-text-color: var(--tavola-texto-sobre-claro); // Para texto em fundos claros (padrão de componentes Zorro)
+  --ant-text-color-secondary: rgba(59, 34, 27, 0.7); // Um pouco mais claro que o principal
+  --ant-heading-color: var(--tavola-texto-sobre-claro); // Cor dos títulos
+
+  // Cores de Fundo
+  --ant-component-background: var(--tavola-fundo-componente-claro); // Fundo de la maioria dos componentes: modais, cards, popovers, datepickers
+  --ant-body-background: var(--tavola-fundo-pagina); // Fundo principal da página
+  --ant-background-color-light: var(--tavola-amarelo-claro); // Usado em destaques, hovers sutis
+
+  // Bordas e Divisores
+  --ant-border-color-base: rgba(59, 34, 27, 0.2); // Cor base para bordas (ex: inputs, cards) - como em dialog-item-cardapio
+  --ant-border-color-split: rgba(59, 34, 27, 0.1);  // Cor para divisores internos
+  --ant-border-radius-base: 8px; // Consistente com seus cards e botões Material
+
+  // Inputs e Form Fields (para alinhar com seus MatFormField customizados)
+  --ant-input-placeholder-color: rgba(59, 34, 27, 0.6);
+  --ant-input-bg: var(--tavola-fundo-componente-claro);
+  --ant-input-border-color: var(--ant-border-color-base);
+  --ant-input-hover-border-color: var(--tavola-amarelo); // Similar ao MatFormField hover
+  // Para foco, NG-Zorro usa --ant-primary-color por padrão, que já definimos como amarelo.
+
+  // Botões (para alinhar com seus botões Material customizados)
+  --ant-btn-primary-bg: var(--tavola-amarelo);
+  --ant-btn-default-bg: var(--tavola-fundo-componente-claro);
+  --ant-btn-default-color: var(--tavola-texto-sobre-claro);
+  --ant-btn-default-border: var(--ant-border-color-base);
+  --ant-btn-border-radius-base: 8px;
+
+  // Alertas e Mensagens
+  --ant-error-color: var(--tavola-erro);
+  --ant-success-color: #52c41a; // Cor de sucesso (pode ajustar)
+  --ant-warning-color: #faad14; // Cor de aviso (pode ajustar)
+
+  // Modais (para alinhar com Material Dialogs customizados)
+  --ant-modal-content-bg: var(--tavola-fundo-componente-dialog); // Se quiser o fundo creme para modais Zorro
+  --ant-modal-header-bg: var(--tavola-fundo-componente-dialog);
+  --ant-modal-mask-bg: rgba(0,0,0,0.7); // Fundo do overlay (já usado no seu spinner)
+
+  // Outros componentes que você usa bastante (ex: DatePicker, Select)
+  --ant-picker-bg: var(--tavola-fundo-componente-claro);
+  --ant-select-bg: var(--tavola-fundo-componente-claro);
+
+  --ant-card-background: var(--tavola-fundo-componente-claro); 
+  --ant-card-head-background: transparent;
+
+  // Isso é um ponto de partida. Você pode precisar adicionar mais variáveis
+  // específicas do NG-Zorro conforme for usando mais componentes.
+  // Consulte a documentação do NG-Zorro sobre "Customize Theme" para a lista completa.
+
+  // Suas variáveis existentes (para referência, pode ser que algumas do MDC não sejam mais necessárias ou precisem de ajuste)
+  --mdc-outlined-text-field-focus-outline-color: #32CD32 !important; // Esta parece ser uma cor diferente do seu tema principal
+  --mdc-outlined-text-field-focus-label-text-color: #32CD32 !important; // Esta parece ser uma cor diferente
 }
 
 * {
@@ -331,5 +408,42 @@ $dark-theme: mat.m2-define-dark-theme((
 .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__notch,
 .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__trailing {
   border-color: #3B221B !important;
+}
+
+// Custom Global Spinner with Pizza
+.global-spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Ajustado para uma cor mais escura e transparente */
+  z-index: 9999; // Ensure it's on top of everything
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-pizza-spinner.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: transparent !important; // Hide default spinner indicator
+  
+  .mat-mdc-progress-spinner-circle {
+    stroke: transparent !important; // Hide default spinner circle
+  }
+}
+
+.pizza-spinner-image {
+  width: 80px; // Adjust size as needed
+  height: 80px;
+  background-image: url('assets/png/pizzaSpin.png'); // Replace with the path to your pizza image
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: spin 1.5s linear infinite; // Add spin animation
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 

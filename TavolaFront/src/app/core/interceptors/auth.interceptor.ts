@@ -1,3 +1,4 @@
+// auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import {
   HttpInterceptor,
@@ -19,7 +20,7 @@ export class AuthInterceptor implements HttpInterceptor {
   private refreshTokenSubject = new BehaviorSubject<string|null>(null);
 
   constructor(
-    private auth: AuthService,
+    private auth: AuthService, // Seu AuthService
     private loginService: LoginService,
     private router: Router
   ) {}
@@ -39,7 +40,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
         // 1) se vier 401 no próprio /auth/refresh → logout e redirect imediato
         if (err.status === 401 && request.url.endsWith('/auth/refresh')) {
-          this.auth.clearToken();
+          this.auth.clearAuthData();
           this.router.navigate(['/login']);
           return EMPTY;
         }
@@ -65,7 +66,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
       return this.loginService.refreshToken().pipe(
         switchMap(res => {
-          this.auth.setToken(res.token);
           this.refreshTokenSubject.next(res.token);
           const retry = request.clone({
             setHeaders: { Authorization: `Bearer ${res.token}` },
@@ -75,7 +75,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }),
         catchError(_ => {
           // refresh estourou → limpa tudo e manda pra login
-          this.auth.clearToken();
+          this.auth.clearAuthData();
           this.router.navigate(['/login']);
           return EMPTY;
         }),
