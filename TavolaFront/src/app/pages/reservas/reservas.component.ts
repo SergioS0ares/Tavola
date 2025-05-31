@@ -2,6 +2,11 @@ import { Component, OnInit, ViewChild, ElementRef, TemplateRef, ChangeDetectorRe
 import { CommonModule, registerLocaleData, TitleCasePipe } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import localePt from "@angular/common/locales/pt";
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { trigger, state, style, animate, transition } from '@angular/animations';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogGerenciarMesasComponent } from './dialog-gerenciar-mesas/dialog-gerenciar-mesas.component';
+import { v4 as uuidv4 } from 'uuid';
 
 // Angular Material (imports existentes)
 import { MatTabsModule } from '@angular/material/tabs';
@@ -30,6 +35,7 @@ import { NZ_ICONS } from "ng-zorro-antd/icon";
 import { NZ_I18N, pt_BR } from "ng-zorro-antd/i18n";
 import type { IconDefinition } from "@ant-design/icons-angular";
 import { CarOutline, HomeOutline, EnvironmentOutline, FlagOutline, HeartOutline, HeartFill, LeftOutline, RightOutline, CalendarOutline, ClockCircleOutline, TeamOutline, CheckCircleOutline, ExclamationCircleOutline, FireFill, CopyOutline, CheckOutline, PlusOutline, DeleteOutline, EditOutline } from "@ant-design/icons-angular/icons";
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 registerLocaleData(localePt);
 
@@ -73,8 +79,7 @@ interface Reserva {
   pessoas: number;
   status: 'confirmada' | 'pendente' | 'cancelada' | 'finalizada' | 'ausente';
   duracao: string;
-  comentarios: string;
-  notas: string;
+  preferencias: string;
   oferta?: string;
   desconto?: string;
 }
@@ -106,7 +111,8 @@ interface Reserva {
     NzButtonModule,
     NzEmptyModule,
     NzModalModule,
-    TitleCasePipe
+    TitleCasePipe,
+    NzDatePickerModule
   ],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.scss'],
@@ -115,28 +121,109 @@ interface Reserva {
     { provide: NZ_I18N, useValue: pt_BR },
     { provide: LOCALE_ID, useValue: "pt-BR" },
     NzModalService,
+  ],
+  animations: [
   ]
 })
 export class ReservasComponent implements OnInit {
   @ViewChild('modalMesa') modalMesaTemplate!: TemplateRef<any>;
 
-  dataAtual: Date = new Date();
+  dataAtual: Date = new Date(2025, 4, 30);
+  filtroPesquisa: string = '';
+  areasMesa: string[] = ['Salão Principal', 'Deck', 'Mezanino', 'Área Externa'];
+  areaAtiva: string = this.areasMesa[0];
+  periodoFiltro: 'todos' | 'Almoço' | 'Jantar' = 'todos';
   reservaSelecionada: Reserva | null = null;
   abaAtiva = 'Reservas';
-  areaAtiva = 'Salão Principal';
   pesquisa = '';
-  periodoFiltro: 'todos' | 'Almoço' | 'Jantar' = 'todos'; // Garantir que está declarada
 
   // Mock data (como no seu código)
   clientes: Cliente[] = [
     { id: 'c1', nome: 'Ana Silva', email: 'ana.silva@email.com', telefone: '(11) 98765-4321', avatar: 'assets/png/avatar-padrao-tavola-cordeirinho.png', historico: { proximas: 1, negadas: 0, canceladas: 0, naoCompareceu: 0, gastoMedio: 150, gastoTotal: 300 } },
     { id: 'c2', nome: 'Carlos Pereira', email: 'carlos.pereira@email.com', telefone: '(21) 91234-5678', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', historico: { proximas: 2, negadas: 1, canceladas: 0, naoCompareceu: 1, gastoMedio: 120, gastoTotal: 600 } },
-    { id: 'c3', nome: 'Beatriz Costa', email: 'beatriz.costa@email.com', telefone: '(31) 95555-5555', avatar: 'https://randomuser.me/api/portraits/women/12.jpg', historico: { proximas: 0, negadas: 0, canceladas: 2, naoCompareceu: 0, gastoMedio: 90, gastoTotal: 180 } }
+    { id: 'c3', nome: 'Beatriz Costa', email: 'beatriz.costa@email.com', telefone: '(31) 95555-5555', avatar: 'https://randomuser.me/api/portraits/women/12.jpg', historico: { proximas: 0, negadas: 0, canceladas: 2, naoCompareceu: 0, gastoMedio: 90, gastoTotal: 180 } },
+    // Added new clients
+    { id: 'c4', nome: 'Fernando Rocha', email: 'fernando.rocha@email.com', telefone: '(41) 99888-7777', avatar: 'https://randomuser.me/api/portraits/men/45.jpg', historico: { proximas: 3, negadas: 0, canceladas: 1, naoCompareceu: 0, gastoMedio: 180, gastoTotal: 1080 } },
+    { id: 'c5', nome: 'Gabriela Lima', email: 'gabriela.lima@email.com', telefone: '(51) 97777-6666', avatar: 'https://randomuser.me/api/portraits/women/21.jpg', historico: { proximas: 1, negadas: 0, canceladas: 0, naoCompareceu: 0, gastoMedio: 220, gastoTotal: 220 } },
+    { id: 'c6', nome: 'Eduardo Gomes', email: 'eduardo.gomes@email.com', telefone: '(61) 96666-5555', avatar: 'https://randomuser.me/api/portraits/men/60.jpg', historico: { proximas: 0, negadas: 0, canceladas: 0, naoCompareceu: 3, gastoMedio: 80, gastoTotal: 240 } }
   ];
 
   reservas: Reserva[] = [
-    { id: 'r1', clienteId: 'c1', mesaIds: ['m1', 'm2'], data: new Date(), horario: '12:30', periodo: 'Almoço', pessoas: 4, status: 'confirmada', duracao: '2h', comentarios: 'Mesa perto da janela, por favor.', notas: 'Aniversário da Ana.' },
-    { id: 'r2', clienteId: 'c2', mesaIds: ['m5'], data: new Date(), horario: '20:00', periodo: 'Jantar', pessoas: 2, status: 'pendente', duracao: '1h30', comentarios: 'Sem cebola.', notas: '' },
+    { id: 'r1', clienteId: 'c1', mesaIds: ['m1', 'm2'], data: new Date(), horario: '12:30', periodo: 'Almoço', pessoas: 4, status: 'confirmada', duracao: '2h', preferencias: 'Mesa perto da janela, por favor.'},
+    { id: 'r2', clienteId: 'c2', mesaIds: ['m5'], data: new Date(), horario: '20:00', periodo: 'Jantar', pessoas: 2, status: 'pendente', duracao: '1h30', preferencias: 'Sem cebola.'},
+    // Added new reservations for various dates, times, and statuses
+    {
+      id: 'r3',
+      clienteId: 'c4',
+      mesaIds: ['m4'],
+      data: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
+      horario: '13:00',
+      periodo: 'Almoço',
+      pessoas: 6,
+      status: 'confirmada',
+      duracao: '2h30',
+      preferencias: 'Reunião de negócios.'
+    },
+    {
+      id: 'r4',
+      clienteId: 'c5',
+      mesaIds: ['m8'],
+      data: new Date(new Date().setDate(new Date().getDate() + 2)), // Day after tomorrow
+      horario: '19:30',
+      periodo: 'Jantar',
+      pessoas: 2,
+      status: 'pendente',
+      duracao: '1h45',
+      preferencias: ''
+    },
+     {
+      id: 'r5',
+      clienteId: 'c6',
+      mesaIds: [], // No table assigned yet
+      data: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
+      horario: '21:00',
+      periodo: 'Jantar',
+      pessoas: 3,
+      status: 'cancelada',
+      duracao: '1h30',
+      preferencias: 'Problema familiar.'
+    },
+     {
+      id: 'r6',
+      clienteId: 'c1',
+      mesaIds: ['m1', 'm2', 'm3'],
+      data: new Date(2025, 4, 30), // May 30, 2025
+      horario: '19:00',
+      periodo: 'Jantar',
+      pessoas: 8,
+      status: 'confirmada',
+      duracao: '3h',
+      preferencias: 'Aniversário.'
+    },
+     {
+      id: 'r7',
+      clienteId: 'c2',
+      mesaIds: ['m5'],
+      data: new Date(2025, 4, 31), // May 31, 2025
+      horario: '13:00',
+      periodo: 'Almoço',
+      pessoas: 2,
+      status: 'confirmada',
+      duracao: '1h30',
+      preferencias: 'Mesa externa.'
+    },
+     {
+      id: 'r8',
+      clienteId: 'c4',
+      mesaIds: ['m6', 'm7'],
+      data: new Date(2025, 4, 31), // May 31, 2025
+      horario: '20:30',
+      periodo: 'Jantar',
+      pessoas: 10,
+      status: 'pendente',
+      duracao: '2h',
+      preferencias: 'Evento corporativo.'
+    }
   ];
 
   mesas: Mesa[] = [
@@ -160,11 +247,13 @@ export class ReservasComponent implements OnInit {
   
   constructor(
     private modalService: NzModalService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.aplicarFiltros();
+    this.nzDatePickerChange(this.dataAtual);
   }
 
   criarMesaPadrao(): Mesa {
@@ -176,6 +265,7 @@ export class ReservasComponent implements OnInit {
     novaData.setDate(novaData.getDate() + 1);
     this.dataAtual = novaData;
     this.aplicarFiltros();
+    this.limparSelecao();
   }
 
   diaAnterior(): void {
@@ -183,37 +273,31 @@ export class ReservasComponent implements OnInit {
     novaData.setDate(novaData.getDate() - 1);
     this.dataAtual = novaData;
     this.aplicarFiltros();
+    this.limparSelecao();
   }
 
-  // CORRIGIDO: Usar as propriedades corretas e adicionar tipo ao parâmetro 'reserva'
   temReservasParaPesquisaNoPeriodo(periodo: 'Almoço' | 'Jantar'): boolean {
     if (!this.pesquisa.trim()) return false;
 
     const termoBusca = this.pesquisa.toLowerCase().trim();
-    // Usar as listas _VISIVEIS_ que já foram filtradas por data e período geral
     const reservasDoPeriodo = periodo === 'Almoço' ? this.reservasAlmocoVisiveis : this.reservasJantarVisiveis;
     
-    // Se a lista do período já está vazia, não há como ter resultado para a pesquisa
     if (reservasDoPeriodo.length === 0) return false;
 
-    return reservasDoPeriodo.some((reserva: Reserva) => { // Adicionado tipo Reserva
+    return reservasDoPeriodo.some((reserva: Reserva) => {
       const cliente = this.getClientePorId(reserva.clienteId);
       return cliente && cliente.nome.toLowerCase().includes(termoBusca);
     });
   }
 
-  // Este método já existe e parece correto na sua cópia.
-  // Apenas garantindo que ele é chamado corretamente e que as listas que ele usa estão corretas.
   temReservasVisiveisParaPesquisaNoPeriodo(periodo: 'Almoço' | 'Jantar'): boolean {
-    if (!this.pesquisa.trim()) return false; // Se não há pesquisa, não faz sentido essa verificação
-    // Verifica se há itens nas listas já filtradas (por data E pesquisa) para o período
+    if (!this.pesquisa.trim()) return false;
     return periodo === 'Almoço' ? this.reservasAlmocoVisiveis.length > 0 : this.reservasJantarVisiveis.length > 0;
   }
 
-
   existemReservasParaDataAtual(): boolean {
     const dataFormatada = this.dataAtual.toLocaleDateString('pt-BR');
-    return this.reservas.some((reserva: Reserva) => // Adicionado tipo Reserva
+    return this.reservas.some((reserva: Reserva) =>
       new Date(reserva.data).toLocaleDateString('pt-BR') === dataFormatada
     );
   }
@@ -227,31 +311,26 @@ export class ReservasComponent implements OnInit {
 
     if (this.pesquisa && this.pesquisa.trim() !== '') {
       const termoBusca = this.pesquisa.toLowerCase().trim();
-      tempReservas = tempReservas.filter((reserva: Reserva) => { // Adicionado tipo Reserva
+      tempReservas = tempReservas.filter((reserva: Reserva) => {
         const cliente = this.getClientePorId(reserva.clienteId);
         return cliente && cliente.nome.toLowerCase().includes(termoBusca);
       });
     }
     
-    // Filtra por período SE um período específico (Almoço ou Jantar) estiver selecionado.
-    // Se 'todos', não aplica filtro de período adicional aqui.
     if (this.periodoFiltro !== 'todos') {
         tempReservas = tempReservas.filter(r => r.periodo === this.periodoFiltro);
     }
     
     this.reservasVisiveis = [...tempReservas];
     
-    // As listas por período agora são derivadas da reservasVisiveis (que já foi filtrada por data E pesquisa E períodoFiltro se aplicável)
     this.reservasAlmocoVisiveis = this.reservasVisiveis.filter(r => r.periodo === 'Almoço');
     this.reservasJantarVisiveis = this.reservasVisiveis.filter(r => r.periodo === 'Jantar');
 
-    // Se o filtro for 'Almoço', a lista de jantar visível deve ser vazia, e vice-versa
     if (this.periodoFiltro === 'Almoço') {
         this.reservasJantarVisiveis = [];
     } else if (this.periodoFiltro === 'Jantar') {
         this.reservasAlmocoVisiveis = [];
     }
-
 
     if (this.reservaSelecionada && !this.reservasVisiveis.find(r => r.id === this.reservaSelecionada!.id)) {
         this.reservaSelecionada = null;
@@ -288,10 +367,6 @@ export class ReservasComponent implements OnInit {
 
   mudarAba(event: any): void {
     this.abaAtiva = event.tab.textLabel;
-    // Poderia resetar periodoFiltro ou pesquisa ao mudar de aba principal
-    // this.periodoFiltro = 'todos';
-    // this.pesquisa = '';
-    // this.aplicarFiltros();
   }
 
   mudarArea(event: any): void {
@@ -324,14 +399,10 @@ export class ReservasComponent implements OnInit {
   }
 
   toggleMesaParaReserva(mesa: Mesa): void {
-    if (!this.reservaSelecionada) {
-      console.log('Nenhuma reserva selecionada para atribuir a mesa:', mesa.numero);
-      return;
+    if (!this.reservaSelecionada || this.isMesaOcupadaPorOutraReserva(mesa.id)) {
+      return; // Cannot assign if no reservation is selected or if the table is occupied by another reservation
     }
-    if (this.isMesaOcupadaPorOutraReserva(mesa.id)) {
-      console.log('Mesa', mesa.numero, 'já está ocupada por outra reserva.');
-      return;
-    }
+
     const indexNaReserva = this.reservaSelecionada.mesaIds.indexOf(mesa.id);
     if (indexNaReserva > -1) {
       this.reservaSelecionada.mesaIds.splice(indexNaReserva, 1);
@@ -433,5 +504,48 @@ export class ReservasComponent implements OnInit {
       this.modalService.closeAll();
     }
     this.mesaEditando = this.criarMesaPadrao();
+  }
+
+  abrirModalGerenciarMesas(mesa?: Mesa): void {
+    const dialogRef = this.dialog.open(DialogGerenciarMesasComponent, {
+      data: { modo: mesa ? 'editar' : 'criar', mesa: mesa, areas: this.areasMesa },
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.modo === 'criar') {
+          const novaMesa = { id: uuidv4(), ...result.mesa };
+          this.mesas.push(novaMesa);
+          console.log('Nova mesa adicionada:', novaMesa);
+        } else if (result.modo === 'editar') {
+          const index = this.mesas.findIndex(m => m.id === result.mesa.id);
+          if (index > -1) {
+            this.mesas[index] = result.mesa;
+            console.log('Mesa atualizada:', result.mesa);
+            const reservaOcupando = this.reservas.find(r => r.mesaIds.includes(result.mesa.id));
+            if(reservaOcupando) {
+               const mesaAtualizadaNaReserva = reservaOcupando.mesaIds.find(mesaId => mesaId === result.mesa.id);
+               if(!mesaAtualizadaNaReserva) {
+                  reservaOcupando.mesaIds = reservaOcupando.mesaIds.filter(mesaId => mesaId !== result.mesa.id);
+               }
+            }
+          }
+        }
+        this.cdr.detectChanges();
+        console.log('Dados recebidos do modal:', result);
+      }
+    });
+  }
+
+  nzDatePickerChange(date: Date): void {
+    this.dataAtual = date;
+    this.aplicarFiltros();
+    this.limparSelecao();
+  }
+
+  limparSelecao(): void {
+    this.reservaSelecionada = null;
+    this.cdr.detectChanges();
   }
 }

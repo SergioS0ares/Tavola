@@ -81,6 +81,7 @@ $header-height: 70px;
   ::ng-deep {
     .mat-mdc-tab-header {
       border-bottom: 1px solid #e8e8e8;
+      justify-content: center;
     }
     
     .mat-mdc-tab {
@@ -89,12 +90,12 @@ $header-height: 70px;
       
       &.mat-mdc-tab-active {
         .mdc-tab__text-label {
-          color: $primary-color;
+          color: white;
           font-weight: 500;
         }
         
         .tab-label {
-          color: $primary-color;
+          color: white;
           font-weight: 500;
         }
         
@@ -105,12 +106,18 @@ $header-height: 70px;
       }
     }
     
+    // Estilização para a barra indicadora
+    .mat-ink-bar {
+      background-color: $primary-color !important;
+    }
+    
     // Estilização para o campo de busca
     .mat-mdc-form-field-appearance-outline {
       .mdc-notched-outline__leading,
       .mdc-notched-outline__notch,
       .mdc-notched-outline__trailing {
-        border-color: rgba(59, 34, 27, 0.2) !important;
+        border-color: $text-color !important;
+        border-radius: $border-radius !important;
       }
       
       &:hover .mdc-notched-outline__leading,
@@ -156,6 +163,26 @@ $header-height: 70px;
     
     mat-form-field {
       flex: 1;
+      ::ng-deep {
+        .mat-mdc-form-field-appearance-outline {
+          .mdc-notched-outline__leading,
+          .mdc-notched-outline__notch,
+          .mdc-notched-outline__trailing {
+            border-color: $text-color !important;
+            border-radius: $border-radius !important;
+          }
+          
+          &:hover .mdc-notched-outline__leading,
+          &:hover .mdc-notched-outline__notch,
+          &:hover .mdc-notched-outline__trailing {
+            border-color: $primary-color !important;
+          }
+          
+          .mat-mdc-form-field-infix {
+            color: $text-color;
+          }
+        }
+      }
     }
   }
   
@@ -553,64 +580,89 @@ $header-height: 70px;
     .mesas-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 12px;
+      gap: 16px;
       padding: 0;
       overflow-y: auto;
       
       .mesa {
-        height: 60px;
+        position: relative;
+        padding: 12px;
+        text-align: center;
         background-color: #f0f0f0;
         border: 1px solid #d0d0d0;
-        border-radius: $border-radius;
+        border-radius: 8px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-          border-color: $primary-color;
+        .mesa-numero {
+          font-weight: 700;
+          font-size: 18px;
+          color: $text-color;
+          display: block;
+          margin-bottom: 4px;
+        }
+        
+        .mesa-capacidade {
+          font-size: 12px;
+          color: rgba(59, 34, 27, 0.8);
+          font-weight: 500;
         }
         
         &.mesa-circular {
-          border-radius: 50%;
-          aspect-ratio: 1;
+          border-radius: 50% !important;
+          width: 80px;
+          height: 80px;
+          &.mesa-vip .mesa-numero::after {
+            content: " VIP";
+            font-size: 10px;
+            font-weight: 600;
+            display: inline;
+            color: $primary-color;
+            margin-left: 4px;
+          }
         }
         
-        &.mesa-vip {
-          border-color: $primary-color;
-          
-          .mesa-numero {
-            color: $primary-color;
-            font-weight: 600;
-          }
+        &.mesa-vip:not(.mesa-circular) .mesa-numero::after {
+          content: " VIP";
+          font-size: 10px;
+          font-weight: 600;
+          display: inline;
+          color: $primary-color;
+          margin-left: 4px;
         }
         
         &.mesa-ocupada {
-          background-color: lighten($accent-color, 30%);
+          background-color: lighten($accent-color, 40%);
           border-color: $accent-color;
+          cursor: not-allowed;
           
-          .mesa-numero {
-            color: $text-color;
+          .mesa-numero,
+          .mesa-capacidade {
+            color: darken($accent-color, 10%);
           }
         }
         
-        &.mesa-selecionada-cliente {
+        &.mesa-atribuida-reserva-atual {
           background-color: lighten($primary-color, 30%);
-          border-color: $primary-color;
+          border: 2px solid $primary-color;
+          box-shadow: 0 0 8px rgba($primary-color, 0.5);
           
-          .mesa-numero {
+          .mesa-numero,
+          .mesa-capacidade {
             color: $text-color;
           }
         }
         
-        .mesa-numero {
-          font-weight: 500;
-          color: $text-color;
-          font-size: 14px;
+        &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
+          background-color: lighten($primary-color, 40%);
+          border-color: $primary-color;
+          transform: translateY(-3px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
       }
     }
@@ -770,7 +822,7 @@ $header-height: 70px;
 }
 
 // Estilos para o botão FAB Adicionar (replicando do cadastro-cardapio)
-.fab-add {
+.fab-add-reservas {
   background-color: $primary-color !important;
   color: $text-color !important;
   border-radius: 8px !important;
@@ -780,16 +832,53 @@ $header-height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 0;
+  flex-shrink: 0;
 
   mat-icon {
-    font-size: 20px !important;
-    width: 20px !important;
-    height: 20px !important;
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
   }
 
   &:hover {
     background-color: darken($primary-color, 5%) !important;
+  }
+}
+
+// Estilos para a área do navegador de data
+.date-navigator-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: white;
+  border-radius: $border-radius;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  .date-navigator {
+    display: flex;
+    align-items: center;
+
+    .current-date {
+      font-size: 16px;
+      font-weight: 500;
+      color: $text-color;
+      margin: 0 12px;
+    }
+
+    button {
+      color: $text-color;
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .table-actions {
+    
   }
 }
 
@@ -805,62 +894,4 @@ $header-height: 70px;
   }
   border-radius: $border-radius / 2;
   text-align: center;
-}
-
-// Styles for the table grid (Visualização de Mesas)
-.mesas-container {
-  .mesas-grid {
-    .mesa {
-      position: relative;
-      padding: 8px;
-      text-align: center;
-
-      .mesa-numero {
-        font-weight: 600;
-        font-size: 16px;
-        color: $text-color;
-        display: block;
-        margin-bottom: 4px;
-      }
-
-      .mesa-capacidade {
-          font-size: 11px;
-          color: rgba(59, 34, 27, 0.7);
-      }
-
-      &.mesa-circular {
-        border-radius: 50% !important;
-        width: 70px;
-        height: 70px;
-        &.mesa-vip .mesa-numero::after {
-            content: " VIP";
-            font-size: 9px;
-            font-weight: normal;
-            display: block;
-            color: $primary-color;
-        }
-      }
-
-      &.mesa-ocupada {
-        background-color: lighten($accent-color, 45%);
-        border-color: $accent-color;
-        cursor: not-allowed;
-
-        .mesa-numero {
-          color: darken($accent-color, 10%);
-        }
-      }
-
-      &.mesa-atribuida-reserva-atual {
-          background-color: lighten($primary-color, 35%);
-          border: 2px solid $primary-color;
-          box-shadow: 0 0 8px rgba($primary-color, 0.5);
-      }
-
-      &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
-          background-color: lighten($primary-color, 45%);
-          border-color: $primary-color;
-      }
-    }
-  }
 }

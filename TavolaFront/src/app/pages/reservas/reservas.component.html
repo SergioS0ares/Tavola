@@ -110,19 +110,32 @@
 
     <div class="reserva-details-tables-column">
       <div class="right-column-header">
-        <div class="date-navigator">
-          <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
-            <mat-icon>chevron_left</mat-icon>
-          </button>
-          <span class="current-date">{{ dataAtual | date:'dd/MM/yyyy' : '' : 'pt-BR' }} ({{ dataAtual | date:'EEEE' : '' : 'pt-BR' | titlecase }})</span>
-          <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
-            <mat-icon>chevron_right</mat-icon>
-          </button>
-        </div>
-        <div class="table-actions">
-          <button mat-stroked-button color="primary" (click)="abrirModalAdicionarMesa()">
-            <mat-icon>add_circle_outline</mat-icon>Gerenciar Mesas
-          </button>
+        <div class="date-navigator-area">
+          <div class="date-navigator">
+            <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <nz-date-picker
+              nzFormat="dd/MM/yyyy"
+              [(ngModel)]="dataAtual"
+              (ngModelChange)="nzDatePickerChange($event)"
+              nzAllowClear="false"
+            ></nz-date-picker>
+            <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+          <div class="table-actions">
+            <button
+              mat-fab
+              color="primary"
+              class="fab-add-reservas"
+              aria-label="Gerenciar Mesas"
+              matTooltip="Adicionar, Editar ou Remover Mesas"
+              (click)="abrirModalAdicionarMesa()">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -157,37 +170,7 @@
                  </div>
                </div>
              </div>
- 
-             <div class="estatisticas">
-               <h3>Informações</h3>
-               <div class="estatisticas-grid">
-                  <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.proximas.toString().padStart(2, '0') }}</div>
-                    <div class="estatistica-label">Próximas</div>
-                  </div>
-                  <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.negadas.toString().padStart(2, '0') }}</div>
-                    <div class="estatistica-label">Negadas</div>
-                  </div>
-                  <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.canceladas.toString().padStart(2, '0') }}</div>
-                    <div class="estatistica-label">Canceladas</div>
-                  </div>
-                  <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.naoCompareceu.toString().padStart(2, '0') }}</div>
-                    <div class="estatistica-label">Não Compareceu</div>
-                  </div>
-                  <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.gastoMedio | currency:'BRL':'symbol':'1.0-0' }}</div>
-                    <div class="estatistica-label">Gasto/Pessoa</div>
-                  </div>
-                  <div class="estatistica-item">
-                    <div class="estatistica-valor">{{ cliente.historico.gastoTotal | currency:'BRL':'symbol':'1.0-0' }}</div>
-                    <div class="estatistica-label">Gasto Total</div>
-                  </div>
-               </div>
-             </div>
- 
+             
               <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="detalhes-tabs">
                  <mat-tab label="Detalhes">
                    <div class="detalhes-content">
@@ -248,12 +231,8 @@
  
                        <div class="comentarios-notas">
                          <div class="comentarios">
-                           <h5>Comentários</h5>
-                           <p>{{ reservaSelecionada.comentarios || 'Nenhum comentário.' }}</p>
-                         </div>
-                         <div class="notas">
-                           <h5>Notas</h5>
-                           <p>{{ reservaSelecionada.notas || 'Nenhuma nota.' }}</p>
+                           <h5>Preferências</h5>
+                           <p>{{ reservaSelecionada.preferencias || 'Nenhuma preferência.' }}</p>
                          </div>
                        </div>
                      </div>
@@ -282,21 +261,24 @@
                    'mesa-atribuida-reserva-atual': isMesaAtribuidaAReservaAtual(mesa.id)
                  }"
                  (click)="toggleMesaParaReserva(mesa)"
-                 [matTooltip]="isMesaOcupadaPorOutraReserva(mesa.id) ? 'Ocupada por: ' + (getClientePorId(getReservaPorId(mesa.reservaId!)?.clienteId!)?.nome || 'Outra reserva') : (isMesaAtribuidaAReservaAtual(mesa.id) ? 'Atribuída a esta reserva (' + (getClientePorId(reservaSelecionada?.clienteId || '')?.nome || '') + ')' : 'Disponível - Capacidade: ' + (mesa.capacidade || 'N/A') + 'P')"
+                 [matTooltip]="
+                   isMesaOcupadaPorOutraReserva(mesa.id) ?
+                   'Ocupada por: ' + (getClientePorId(getReservaPorId(mesa.reservaId!)?.clienteId!)?.nome || 'Outra reserva') + 
+                   ' (' + (getReservaPorId(mesa.reservaId!)?.horario || '') + ')' :
+                   (isMesaAtribuidaAReservaAtual(mesa.id) ?
+                   'Atribuída a esta reserva (' + (getClientePorId(reservaSelecionada?.clienteId || '')?.nome || '') + 
+                   ', ' + (reservaSelecionada?.horario || '') + ')' :
+                   'Disponível - Capacidade: ' + (mesa.capacidade || 'N/A') + 'P')
+                 "
                  matTooltipPosition="above">
-              <div class="mesa-visual" [class.mesa-visual-circular]="mesa.tipo === 'circular'">
-                </div>
-              <span class="mesa-identificador">{{ mesa.numero }}</span>
+              <span class="mesa-numero">{{ mesa.numero }}</span>
+              <span class="mesa-capacidade">{{ mesa.capacidade || 'N/A' }} P</span>
             </div>
           </div>
         </div>
       </ng-template>
     </div>
   </div>
-
-  <button mat-fab class="fab-adicionar-reserva" matTooltip="Adicionar Nova Reserva" aria-label="Adicionar Nova Reserva" (click)="abrirModalAdicionarReserva()">
-    <mat-icon>add</mat-icon>
-  </button>
 </div>
 
 <ng-template #modalMesa>

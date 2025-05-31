@@ -4,18 +4,18 @@ import {
   NzSpaceCompactItemDirective
 } from "./chunk-25XMUXUH.js";
 import {
-  NzWaveModule
-} from "./chunk-4BZXXO42.js";
-import {
   NzTransitionPatchModule
 } from "./chunk-NGENWOJK.js";
+import {
+  NzWaveModule
+} from "./chunk-4BZXXO42.js";
 import {
   NzDestroyService
 } from "./chunk-THNKFP42.js";
 import {
   NzIconDirective,
   NzIconModule
-} from "./chunk-OPPET6GO.js";
+} from "./chunk-T5PPVGM7.js";
 import {
   NzConfigService,
   WithConfig
@@ -477,4 +477,4 @@ export {
   NzButtonGroupComponent,
   NzButtonModule
 };
-//# sourceMappingURL=chunk-OSLH5AIW.js.map
+//# sourceMappingURL=chunk-ZKGTRQWQ.js.map

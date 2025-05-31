@@ -4,7 +4,7 @@ import {
   NzOverlayModule,
   POSITION_MAP,
   getPlacementName
-} from "./chunk-F6PDYWT6.js";
+} from "./chunk-D7LZX3LM.js";
 import {
   NzNoAnimationDirective
 } from "./chunk-RMYNG7YU.js";
@@ -26,7 +26,7 @@ import {
 import {
   CdkConnectedOverlay,
   OverlayModule
-} from "./chunk-DWD24MB2.js";
+} from "./chunk-BDTLI736.js";
 import {
   _getEventTarget
 } from "./chunk-7N4PRWGB.js";
@@ -805,4 +805,4 @@ export {
   NzToolTipComponent,
   NzToolTipModule
 };
-//# sourceMappingURL=chunk-6QE452HI.js.map
+//# sourceMappingURL=chunk-EWXQF6TU.js.map
