@@ -1,7 +1,7 @@
 <div class="reservas-container">
   <div class="reservas-content-columns">
     <div class="reservas-list-column">
-      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarAba($event)">
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" (selectedTabChange)="mudarAba($event)">
         <mat-tab>
           <ng-template mat-tab-label>
             <span class="tab-label">Reservas</span>
@@ -40,7 +40,11 @@
                       </div>
                     </div>
                     <div class="reserva-acoes">
-                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" [matTooltip]="reserva.status | titlecase" aria-label="Status da reserva">
+                      <button mat-icon-button 
+                        [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" 
+                        [matTooltip]="getTooltipStatus(reserva.status)" 
+                        matTooltipClass="tavola-tooltip"
+                        aria-label="Status da reserva">
                         <mat-icon>{{ reserva.status === 'confirmada' ? 'check_circle' : (reserva.status === 'pendente' ? 'hourglass_empty' : 'cancel') }}</mat-icon>
                       </button>
                       <div class="horario">
@@ -74,7 +78,11 @@
                       </div>
                     </div>
                     <div class="reserva-acoes">
-                      <button mat-icon-button [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" [matTooltip]="reserva.status | titlecase" aria-label="Status da reserva">
+                      <button mat-icon-button 
+                        [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" 
+                        [matTooltip]="getTooltipStatus(reserva.status)" 
+                        matTooltipClass="tavola-tooltip"
+                        aria-label="Status da reserva">
                          <mat-icon>{{ reserva.status === 'confirmada' ? 'check_circle' : (reserva.status === 'pendente' ? 'hourglass_empty' : 'cancel') }}</mat-icon>
                       </button>
                       <div class="horario">
@@ -132,6 +140,7 @@
               class="fab-add-reservas"
               aria-label="Gerenciar Mesas"
               matTooltip="Adicionar, Editar ou Remover Mesas"
+              matTooltipClass="tavola-tooltip"
               (click)="abrirModalAdicionarMesa()">
               <mat-icon>add</mat-icon>
             </button>
@@ -142,7 +151,7 @@
       <ng-container *ngIf="reservaSelecionada; else mapaDeMesas">
         <div class="reserva-detalhes-container">
           <div class="detalhes-header">
-            <button mat-icon-button (click)="fecharDetalhes()" class="back-button-details" matTooltip="Voltar para o mapa de mesas" aria-label="Voltar para mapa de mesas">
+            <button mat-icon-button (click)="fecharDetalhes()" class="back-button-details" matTooltip="Voltar para o mapa de mesas" matTooltipClass="tavola-tooltip" aria-label="Voltar para mapa de mesas">
                 <mat-icon>arrow_back</mat-icon>
             </button>
             <h2>Detalhes da Reserva #{{ reservaSelecionada.id.slice(-4) }}</h2>
@@ -220,7 +229,8 @@
                            <div *ngFor="let mesaId of reservaSelecionada.mesaIds" class="mesa-atribuida-item">
                                <mat-icon class="mesa-atribuida-icone">table_restaurant</mat-icon>
                                <span class="mesa-atribuida-nome">{{ getMesaPorId(mesaId)?.numero }}</span>
-                               <button mat-icon-button color="warn" (click)="removerMesaDaReserva(reservaSelecionada!.id, mesaId)" matTooltip="Desassociar mesa" aria-label="Desassociar mesa">
+                               <button mat-icon-button color="warn" (click)="removerMesaDaReserva(reservaSelecionada!.id, mesaId)" matTooltip="Desassociar mesa" 
+                               matTooltipClass="tavola-tooltip" aria-label="Desassociar mesa">
                                    <mat-icon>close</mat-icon>
                                </button>
                            </div>
@@ -261,18 +271,33 @@
                    'mesa-atribuida-reserva-atual': isMesaAtribuidaAReservaAtual(mesa.id)
                  }"
                  (click)="toggleMesaParaReserva(mesa)"
-                 [matTooltip]="
-                   isMesaOcupadaPorOutraReserva(mesa.id) ?
-                   'Ocupada por: ' + (getClientePorId(getReservaPorId(mesa.reservaId!)?.clienteId!)?.nome || 'Outra reserva') + 
-                   ' (' + (getReservaPorId(mesa.reservaId!)?.horario || '') + ')' :
-                   (isMesaAtribuidaAReservaAtual(mesa.id) ?
-                   'Atribuída a esta reserva (' + (getClientePorId(reservaSelecionada?.clienteId || '')?.nome || '') + 
-                   ', ' + (reservaSelecionada?.horario || '') + ')' :
-                   'Disponível - Capacidade: ' + (mesa.capacidade || 'N/A') + 'P')
-                 "
+                 [matTooltip]="getTooltipMesa(mesa)"
+                 matTooltipClass="tavola-tooltip"
                  matTooltipPosition="above">
-              <span class="mesa-numero">{{ mesa.numero }}</span>
-              <span class="mesa-capacidade">{{ mesa.capacidade || 'N/A' }} P</span>
+              
+              <!-- Menu de 3 pontinhos -->
+              <div class="mesa-menu" (click)="$event.stopPropagation()">
+                <button mat-icon-button [matMenuTriggerFor]="mesaMenu" aria-label="Opções da mesa">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #mesaMenu="matMenu">
+                  <button mat-menu-item (click)="editarMesa(mesa)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
+                  <button mat-menu-item (click)="confirmarRemocaoMesa(mesa)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Remover</span>
+                  </button>
+                </mat-menu>
+              </div>
+
+              <div class="mesa-visual" [ngClass]="{'mesa-circular': mesa.tipo === 'circular'}">
+                <span class="mesa-capacidade">{{ mesa.capacidade || 'N/A' }} P</span>
+              </div>
+              <div class="mesa-etiqueta" [ngClass]="{'mesa-vip': mesa.vip}">
+                {{ mesa.numero }}
+              </div>
             </div>
           </div>
         </div>
@@ -280,41 +305,3 @@
     </div>
   </div>
 </div>
-
-<ng-template #modalMesa>
-  <form nz-form> <mat-form-field appearance="outline" class="full-width modal-form-field">
-      <mat-label>Número/Nome da Mesa</mat-label>
-      <input matInput [(ngModel)]="mesaEditando.numero" name="numeroMesaModal" required>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width modal-form-field">
-      <mat-label>Área</mat-label>
-      <mat-select [(ngModel)]="mesaEditando.area" name="areaMesaModal" required>
-        <mat-option *ngFor="let area of areas" [value]="area">{{ area }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    
-    <mat-form-field appearance="outline" class="full-width modal-form-field">
-      <mat-label>Capacidade</mat-label>
-      <input matInput type="number" [(ngModel)]="mesaEditando.capacidade" name="capacidadeMesaModal" min="1">
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width modal-form-field">
-      <mat-label>Tipo de Mesa</mat-label>
-      <mat-select [(ngModel)]="mesaEditando.tipo" name="tipoMesaModal" required>
-        <mat-option value="retangular">Retangular</mat-option>
-        <mat-option value="circular">Circular</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-checkbox [(ngModel)]="mesaEditando.vip" name="vipMesaModal" class="modal-checkbox-vip">
-      Mesa VIP
-    </mat-checkbox>
-  </form>
-  <div class="modal-actions-delete" *ngIf="mesaEditando?.id">
-      <button mat-stroked-button color="warn" (click)="excluirMesa(mesaEditando.id!)">
-          <mat-icon>delete</mat-icon>
-          Excluir Mesa
-      </button>
-  </div>
-</ng-template>

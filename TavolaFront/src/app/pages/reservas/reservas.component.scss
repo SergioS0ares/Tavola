@@ -1,11 +1,4 @@
-// Variáveis
-$primary-color: #F6BD38; // Amarelo
-$accent-color: #DA4A24; // Laranja
-$text-color: #3B221B; // Marrom escuro (substituindo o preto)
-$light-gray: #f5f5f5;
-$border-radius: 16px; // Bordas mais arredondadas
-$sidebar-width: 380px;
-$header-height: 70px;
+@import '../../../styles/variables.scss';
 
 // Container principal
 .reservas-container {
@@ -76,33 +69,56 @@ $header-height: 70px;
   border-right: 1px solid #e8e8e8;
   overflow-y: auto;
   flex-shrink: 0;
+  border-radius: $border-radius $border-radius 0 0; // Adicionar bordas arredondadas
   
   // Estilização das abas
   ::ng-deep {
     .mat-mdc-tab-header {
       border-bottom: 1px solid #e8e8e8;
       justify-content: center;
+      border-radius: $border-radius $border-radius 0 0;
     }
     
     .mat-mdc-tab {
       min-width: 120px;
-      color: $text-color;
+      color: $text-color; // Texto marrom para abas não selecionadas
+      background-color: transparent; // Sem fundo
+      margin: 0 2px;
+      border-radius: 8px 8px 0 0;
+      
+      .mdc-tab__text-label {
+        color: $text-color; // Texto marrom para abas não selecionadas
+      }
       
       &.mat-mdc-tab-active {
+        background-color: transparent; // Sem fundo
+        
         .mdc-tab__text-label {
-          color: white;
+          color: $primary-color; // Texto amarelo na aba selecionada
           font-weight: 500;
         }
         
         .tab-label {
-          color: white;
+          color: $primary-color; // Texto amarelo na aba selecionada
           font-weight: 500;
         }
         
         .tab-badge {
+          margin-left: 6px;
           background-color: $primary-color;
-          color: white;
+          color: $text-color;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 10px;
+          line-height: 1;
+          transition: background-color 0.3s, color 0.3s;
         }
+      }
+
+      // Adicionar hover
+      &:hover .mdc-tab__text-label {
+        color: $primary-color; // Hover amarelo nas letras
       }
     }
     
@@ -155,36 +171,70 @@ $header-height: 70px;
   }
   
   // Barra de pesquisa
-  .search-bar {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    gap: 8px;
-    
-    mat-form-field {
-      flex: 1;
-      ::ng-deep {
-        .mat-mdc-form-field-appearance-outline {
-          .mdc-notched-outline__leading,
-          .mdc-notched-outline__notch,
-          .mdc-notched-outline__trailing {
-            border-color: $text-color !important;
-            border-radius: $border-radius !important;
-          }
-          
-          &:hover .mdc-notched-outline__leading,
-          &:hover .mdc-notched-outline__notch,
-          &:hover .mdc-notched-outline__trailing {
-            border-color: $primary-color !important;
-          }
-          
-          .mat-mdc-form-field-infix {
-            color: $text-color;
-          }
+  // Em reservas.component.scss
+.search-bar {
+  display: flex;
+  align-items: center;
+  padding: 16px; // Adicionado padding ao redor da search-bar inteira
+  gap: 8px;
+  // border-bottom: 1px solid $border-color-light; // Removido se o header da coluna da direita já tiver
+
+  mat-form-field {
+    flex: 1;
+    ::ng-deep { // Lembre-se que ::ng-deep está depreciado, mas às vezes é necessário para Material
+      .mat-mdc-form-field-flex { // Alvo para o container do input
+        // Não é necessário definir altura aqui, o Material controla isso.
+      }
+
+      .mdc-notched-outline { // Container da borda
+        // Borda padrão (sem hover/focus)
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: $text-color !important; // Marrom Tavola para borda padrão
+          border-width: 1px !important;    // Espessura da borda padrão
+          // border-radius: $border-radius-base !important; // Para cantos arredondados, se desejar
         }
+      }
+      
+      // Placeholder color
+      .mat-mdc-form-field-input-control::placeholder { // Seletor mais específico para placeholder
+        color: $text-color-lighter !important; // Um tom de marrom mais claro para o placeholder
+        opacity: 1; // Garante que a opacidade não o deixe muito claro
+      }
+      // Cor do texto do input
+      .mat-mdc-input-element {
+        color: $text-color !important;
+      }
+
+      // Borda no Hover
+      &:hover .mdc-notched-outline__leading,
+      &:hover .mdc-notched-outline__notch,
+      &:hover .mdc-notched-outline__trailing {
+        border-color: $primary-color !important; // Amarelo Tavola no hover
+        // border-width: 1px !important; // Pode manter 1px ou aumentar para 2px se preferir
+      }
+      
+      // Borda e Label no Foco
+      &.mat-focused {
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: $primary-color !important; // Amarelo Tavola no foco
+          border-width: 2px !important; // Borda mais grossa no foco
+        }
+        .mat-mdc-form-field-label, .mdc-floating-label { // Se houver label flutuante
+           color: $primary-color !important;
+        }
+      }
+      
+      // Cor dos ícones de sufixo (search, close)
+      .mat-mdc-form-field-icon-suffix .mat-icon {
+          color: $text-color-light !important; // Marrom claro para os ícones
       }
     }
   }
+}
   
   // Lista de reservas
   .reservas-list {
@@ -433,11 +483,32 @@ $header-height: 70px;
       margin-top: 0;
       
       ::ng-deep {
+        .mat-mdc-tab-header {
+          border-bottom: 2px solid $primary-color !important;
+          justify-content: center;
+          border-radius: $border-radius $border-radius 0 0;
+        }
+
         .mat-mdc-tab {
-          color: $text-color;
+          color: $text-color; // Texto marrom para abas não selecionadas
+          background-color: transparent; // Sem fundo
           
-          &.mat-mdc-tab-active .mdc-tab__text-label {
-            color: $primary-color;
+          .mdc-tab__text-label {
+            color: $text-color; // Texto marrom para abas não selecionadas
+          }
+          
+          &.mat-mdc-tab-active {
+            background-color: transparent; // Sem fundo
+            
+            .mdc-tab__text-label {
+              color: $primary-color; // Texto amarelo na aba selecionada
+              font-weight: 500;
+            }
+          }
+
+          // Adicionar hover
+          &:hover .mdc-tab__text-label {
+            color: $primary-color; // Hover amarelo nas letras
           }
         }
         .mat-ink-bar {
@@ -552,7 +623,7 @@ $header-height: 70px;
   // Container de mesas (Visualização no lado direito)
   .mesas-container {
     background-color: white;
-    border-radius: $border-radius;
+    border-radius: $border-radius; // Bordas arredondadas em todo o container
     padding: 16px;
     flex: 1;
     display: flex;
@@ -561,108 +632,185 @@ $header-height: 70px;
     
     ::ng-deep {
       .mat-mdc-tab-header {
+        border-bottom: 2px solid $primary-color !important;
         margin-bottom: 16px;
-      }
-      
-      .mat-mdc-tab {
-        color: $text-color;
+        justify-content: center; // Centralizar as abas
+        border-radius: $border-radius $border-radius 0 0;
+
+        .mat-mdc-tab-header-pagination {
+          display: none; // Esconder botões de paginação se houver
+        }
         
-        &.mat-mdc-tab-active .mdc-tab__text-label {
-          color: $primary-color;
+        .mat-mdc-tab-label-container {
+          justify-content: center;
+          display: flex;
+          width: 100%;
+        }
+        
+        .mat-mdc-tab-list {
+          display: flex;
+          justify-content: center;
+          width: 100%;
         }
       }
-      
-      .mat-ink-bar {
-        background-color: $primary-color;
+
+      .mat-mdc-tab {
+        color: $text-color; // Texto marrom para abas não selecionadas
+        background-color: transparent; // Remover fundo marrom
+        margin: 0 2px;
+        border-radius: 8px 8px 0 0;
+        min-width: 100px;
+        
+        .mdc-tab__text-label {
+          color: $text-color; // Texto marrom para abas não selecionadas
+        }
+        
+        &.mat-mdc-tab-active {
+          background-color: transparent; // Sem fundo
+          
+          .mdc-tab__text-label {
+            color: $primary-color; // Texto amarelo na aba selecionada
+            font-weight: 600;
+          }
+        }
+
+        // Adicionar hover
+        &:hover .mdc-tab__text-label {
+          color: $primary-color; // Hover amarelo nas letras
+        }
       }
     }
     
     .mesas-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); // Aumentar largura mínima
+      gap: 20px; // Aumentar gap para acomodar o label
       padding: 0;
       overflow-y: auto;
       
       .mesa {
         position: relative;
-        padding: 12px;
-        text-align: center;
-        background-color: #f0f0f0;
-        border: 1px solid #d0d0d0;
-        border-radius: 8px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        gap: 8px;
         
-        .mesa-numero {
-          font-weight: 700;
-          font-size: 18px;
-          color: $text-color;
-          display: block;
-          margin-bottom: 4px;
-        }
-        
-        .mesa-capacidade {
-          font-size: 12px;
-          color: rgba(59, 34, 27, 0.8);
-          font-weight: 500;
-        }
-        
-        &.mesa-circular {
-          border-radius: 50% !important;
+        .mesa-visual {
           width: 80px;
           height: 80px;
-          &.mesa-vip .mesa-numero::after {
-            content: " VIP";
-            font-size: 10px;
+          background-color: #f0f0f0;
+          border: 2px solid #d0d0d0;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          transition: all 0.2s ease;
+          
+          .mesa-capacidade {
+            font-size: 14px;
+            color: rgba(59, 34, 27, 0.8);
             font-weight: 600;
-            display: inline;
-            color: $primary-color;
-            margin-left: 4px;
+          }
+          
+          &.mesa-circular {
+            border-radius: 50% !important;
           }
         }
         
-        &.mesa-vip:not(.mesa-circular) .mesa-numero::after {
-          content: " VIP";
-          font-size: 10px;
+        .mesa-etiqueta {
+          padding: 4px 8px;
+          background-color: $text-color;
+          color: white;
+          border-radius: 4px;
+          font-size: 12px;
           font-weight: 600;
-          display: inline;
-          color: $primary-color;
-          margin-left: 4px;
-        }
-        
-        &.mesa-ocupada {
-          background-color: lighten($accent-color, 40%);
-          border-color: $accent-color;
-          cursor: not-allowed;
+          text-align: center;
+          min-width: 60px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
           
-          .mesa-numero,
-          .mesa-capacidade {
-            color: darken($accent-color, 10%);
-          }
-        }
-        
-        &.mesa-atribuida-reserva-atual {
-          background-color: lighten($primary-color, 30%);
-          border: 2px solid $primary-color;
-          box-shadow: 0 0 8px rgba($primary-color, 0.5);
-          
-          .mesa-numero,
-          .mesa-capacidade {
+          &.mesa-vip {
+            background-color: $primary-color;
             color: $text-color;
           }
         }
         
+        &.mesa-ocupada {
+          .mesa-visual {
+            background-color: lighten($accent-color, 40%);
+            border-color: $accent-color;
+            cursor: not-allowed;
+            
+            .mesa-capacidade {
+              color: darken($accent-color, 10%);
+            }
+          }
+          
+          .mesa-etiqueta {
+            background-color: $accent-color;
+            color: white;
+          }
+        }
+        
+        &.mesa-atribuida-reserva-atual {
+          .mesa-visual {
+            background-color: lighten($primary-color, 30%);
+            border: 3px solid $primary-color;
+            box-shadow: 0 0 12px rgba($primary-color, 0.5);
+            
+            .mesa-capacidade {
+              color: $text-color;
+              font-weight: 700;
+            }
+          }
+          
+          .mesa-etiqueta {
+            background-color: $primary-color;
+            color: $text-color;
+            font-weight: 700;
+          }
+        }
+        
         &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
-          background-color: lighten($primary-color, 40%);
-          border-color: $primary-color;
-          transform: translateY(-3px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          .mesa-visual {
+            background-color: lighten($primary-color, 40%);
+            border-color: $primary-color;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          }
+          
+          .mesa-etiqueta {
+            background-color: $primary-color;
+            color: $text-color;
+          }
+        }
+
+        .mesa-menu {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          
+          button {
+            width: 24px;
+            height: 24px;
+            min-height: 24px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: $text-color;
+            
+            mat-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+            }
+          }
+        }
+        
+        &:hover .mesa-menu {
+          opacity: 1;
         }
       }
     }
@@ -889,9 +1037,49 @@ $header-height: 70px;
 
 .mesas-atribuidas-lista {
   display: flex;
-  button[mat-icon-button] {
-    color: $accent-color;
+  flex-direction: column;
+  gap: 8px;
+  
+  .mesa-atribuida-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: lighten($primary-color, 45%);
+    border: 1px solid $primary-color;
+    border-radius: 8px;
+    gap: 8px;
+    
+    .mesa-atribuida-icone {
+      color: $primary-color;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+    
+    .mesa-atribuida-nome {
+      flex: 1;
+      font-weight: 500;
+      color: $text-color;
+    }
+    
+    button[mat-icon-button] {
+      color: $accent-color;
+    }
   }
-  border-radius: $border-radius / 2;
+}
+
+.info-placeholder {
+  color: rgba(59, 34, 27, 0.6);
+  font-style: italic;
   text-align: center;
+  padding: 16px;
+}
+
+// Updates applied:
+.detalhes-tabs ::ng-deep .mat-mdc-tab-header {
+  border-bottom: none !important;
+}
+
+.mesas-container ::ng-deep .mat-mdc-tab-header {
+  border-bottom: none !important;
 }

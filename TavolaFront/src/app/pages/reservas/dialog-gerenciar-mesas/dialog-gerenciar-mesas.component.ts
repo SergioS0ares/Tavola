@@ -1,23 +1,41 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, Inject, type OnInit } from "@angular/core"
+import { CommonModule } from "@angular/common"
+import {  FormBuilder, type FormGroup, Validators, ReactiveFormsModule } from "@angular/forms"
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog"
+import { MatFormFieldModule } from "@angular/material/form-field"
+import { MatInputModule } from "@angular/material/input"
+import { MatSelectModule } from "@angular/material/select"
+import { MatCheckboxModule } from "@angular/material/checkbox"
+import { MatButtonModule } from "@angular/material/button"
+import { MatAutocompleteModule } from "@angular/material/autocomplete"
+import { type Observable, map, startWith } from "rxjs"
+
+export interface Cliente {
+  id: number
+  nome: string
+}
 
 export interface DialogGerenciarMesasData {
-  modo: 'criar' | 'editar';
-  mesa?: any; // Replace 'any' with a proper Mesa interface later
-  areas: string[];
+  modo: "criar" | "editar"
+  mesa?: any // Replace 'any' with a proper Mesa interface later
+  areas: string[]
+  clientesDoDia: Cliente[]
 }
 
 @Component({
-  selector: 'app-dialog-gerenciar-mesas',
+  selector: "app-dialog-gerenciar-mesas",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatCheckboxModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    MatAutocompleteModule,
+  ],
   template: `
     <mat-dialog-content class="dialog-content">
       <h2 mat-dialog-title>
@@ -55,6 +73,16 @@ export interface DialogGerenciarMesasData {
             <mat-option value="circular">Circular</mat-option>
           </mat-select>
            <mat-error *ngIf="form.get('tipo')?.hasError('required')">O tipo é obrigatório.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cliente (Opcional)</mat-label>
+          <input type="text" matInput formControlName="cliente" [matAutocomplete]="auto">
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+            <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+              {{ cliente.nome }}
+            </mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <div class="toggle-row">
@@ -189,35 +217,56 @@ export interface DialogGerenciarMesasData {
              color: rgba(59, 34, 27, 0.6) !important;
         }
       }
-    `
-  ]
+    `,
+  ],
 })
 export class DialogGerenciarMesasComponent implements OnInit {
-  form!: FormGroup;
+  form!: FormGroup
+  filteredClientes!: Observable<Cliente[]>;
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>,
     @Inject(MAT_DIALOG_DATA) public data: DialogGerenciarMesasData
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      numero: [this.data.modo === 'editar' ? this.data.mesa.numero : '', Validators.required],
-      area: [this.data.modo === 'editar' ? this.data.mesa.area : '', Validators.required],
-      capacidade: [this.data.modo === 'editar' ? this.data.mesa.capacidade : null, [Validators.required, Validators.min(1)]],
-      tipo: [this.data.modo === 'editar' ? this.data.mesa.tipo : 'retangular', Validators.required],
-      vip: [this.data.modo === 'editar' ? this.data.mesa.vip : false]
-    });
+      numero: [this.data.modo === "editar" ? this.data.mesa.numero : "", Validators.required],
+      area: [this.data.modo === "editar" ? this.data.mesa.area : "", Validators.required],
+      capacidade: [
+        this.data.modo === "editar" ? this.data.mesa.capacidade : null,
+        [Validators.required, Validators.min(1)],
+      ],
+      tipo: [this.data.modo === "editar" ? this.data.mesa.tipo : "retangular", Validators.required],
+      vip: [this.data.modo === "editar" ? this.data.mesa.vip : false],
+      cliente: [null],
+    })
+
+    this.filteredClientes = this.form.get("cliente")!.valueChanges.pipe(
+      startWith(""),
+      map((value) => (typeof value === "string" ? value : value.nome)),
+      map((nome) => (nome ? this._filter(nome) : this.data.clientesDoDia.slice())),
+    )
+  }
+
+  displayFn(cliente: Cliente): string {
+    return cliente && cliente.nome ? cliente.nome : ""
+  }
+
+  private _filter(nome: string): Cliente[] {
+    const filterValue = nome.toLowerCase()
+
+    return this.data.clientesDoDia.filter((cliente) => cliente.nome.toLowerCase().includes(filterValue))
   }
 
   cancelar(): void {
-    this.dialogRef.close();
+    this.dialogRef.close()
   }
 
   salvar(): void {
     if (this.form.valid) {
-      this.dialogRef.close({ ...this.form.value, id: this.data.modo === 'editar' ? this.data.mesa.id : undefined }); // Include ID for editing
+      this.dialogRef.close({ ...this.form.value, id: this.data.modo === "editar" ? this.data.mesa.id : undefined }) // Include ID for editing
     }
   }
 }

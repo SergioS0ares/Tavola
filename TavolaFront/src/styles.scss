@@ -2,6 +2,7 @@
 @include mat.elevation-classes();
 @include mat.app-background();
 @import 'ngx-toastr/toastr';
+@import 'styles/variables';
 @import 'ng-zorro-antd/ng-zorro-antd.min.css'; // Certifique-se que está importado
 
 :root {
@@ -119,6 +120,54 @@ $dark-theme: mat.m2-define-dark-theme((
 ));
 
 @include mat.all-component-themes($dark-theme);
+
+// Estilo customizado para os Tooltips do Angular Material
+.tavola-tooltip {
+  // Para versões mais recentes do Material (MDC)
+  // Inspecione o elemento no navegador para confirmar as classes exatas.
+  // A classe .mdc-tooltip__surface é geralmente o alvo principal.
+  &.mdc-tooltip .mdc-tooltip__surface,
+  &.mdc-tooltip--rich .mdc-tooltip__surface {
+    background-color: #3B221B;     // $tavola-marrom-escuro ou sua variável SASS
+    color: #FFFFFF;                // $texto-principal-sobre-escuro ou sua variável SASS
+    border-radius: 4px;            // Mais quadrado, similar ao NG-Zorro (ajuste de 6px para 4px se preferir)
+    font-size: 12px;               // Tamanho de fonte similar ao NG-Zorro (padrão do Zorro é 12px)
+    padding: 6px 8px;              // Padding similar ao NG-Zorro (padrão é 6px 8px)
+    box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 
+                0 6px 16px 0 rgba(0, 0, 0, 0.08), 
+                0 9px 28px 8px rgba(0, 0, 0, 0.05); // Sombra padrão do NG-Zorro
+    // Para garantir que sobrescreva, pode ser necessário !important, mas evite se possível.
+  }
+
+  // Se estiver usando uma versão mais antiga do Material, o seletor pode ser apenas:
+  // &.mat-tooltip {
+  //   background-color: #3B221B;
+  //   color: #FFFFFF;
+  //   border-radius: 4px;
+  //   font-size: 12px;
+  //   padding: 6px 8px;
+  // }
+}
+
+// Estilo customizado para os Tooltips do NG-Zorro (para garantir consistência se necessário)
+// Geralmente, o NG-Zorro já tem um estilo escuro por padrão que é bem similar.
+// Estas regras são para forçar o estilo Tavola se o padrão do Zorro não for exatamente o que você quer.
+::ng-deep .ant-tooltip-inner {
+  background-color: #3B221B !important; 
+  color: #FFFFFF !important;       
+  border-radius: 4px !important;    // NG-Zorro padrão é 2px ou 4px dependendo da versão.
+  font-size: 12px !important;       // Padrão do NG-Zorro
+  padding: 6px 8px !important;      // Padrão do NG-Zorro
+  min-height: 30px !important;      // Padrão do NG-Zorro
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 
+              0 6px 16px 0 rgba(0, 0, 0, 0.08), 
+              0 9px 28px 8px rgba(0, 0, 0, 0.05) !important; // Sombra padrão do NG-Zorro
+}
+
+::ng-deep .ant-tooltip-arrow-content {
+  background-color: #3B221B !important; // Cor da seta do tooltip NG-Zorro
+  // O NG-Zorro cuida da forma e posicionamento da seta.
+}
 
 // Customização do Material Design
 .mat-mdc-select-panel, .mat-mdc-autocomplete-panel {
