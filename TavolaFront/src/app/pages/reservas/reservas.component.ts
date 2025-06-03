@@ -99,14 +99,6 @@ interface Cliente {
   email: string
   telefone: string
   avatar: string
-  historico: {
-    proximas: number
-    negadas: number
-    canceladas: number
-    naoCompareceu: number
-    gastoMedio: number
-    gastoTotal: number
-  }
 }
 
 interface Reserva {
@@ -117,8 +109,7 @@ interface Reserva {
   horario: string
   periodo: "Almoço" | "Jantar"
   pessoas: number
-  status: "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente"
-  duracao: string
+  status: "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera"
   preferencias: string
   oferta?: string
   desconto?: string
@@ -177,6 +168,7 @@ export class ReservasComponent implements OnInit {
   reservaSelecionada: Reserva | null = null
   abaAtiva = "Reservas"
   pesquisa = ""
+  pesquisaEspera = ""
 
   // Mock data (como no seu código)
   clientes: Cliente[] = [
@@ -186,7 +178,6 @@ export class ReservasComponent implements OnInit {
       email: "ana.silva@email.com",
       telefone: "(11) 98765-4321",
       avatar: "assets/png/avatar-padrao-tavola-cordeirinho.png",
-      historico: { proximas: 1, negadas: 0, canceladas: 0, naoCompareceu: 0, gastoMedio: 150, gastoTotal: 300 },
     },
     {
       id: "c2",
@@ -194,7 +185,6 @@ export class ReservasComponent implements OnInit {
       email: "carlos.pereira@email.com",
       telefone: "(21) 91234-5678",
       avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      historico: { proximas: 2, negadas: 1, canceladas: 0, naoCompareceu: 1, gastoMedio: 120, gastoTotal: 600 },
     },
     {
       id: "c3",
@@ -202,7 +192,6 @@ export class ReservasComponent implements OnInit {
       email: "beatriz.costa@email.com",
       telefone: "(31) 95555-5555",
       avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-      historico: { proximas: 0, negadas: 0, canceladas: 2, naoCompareceu: 0, gastoMedio: 90, gastoTotal: 180 },
     },
     // Added new clients
     {
@@ -211,7 +200,6 @@ export class ReservasComponent implements OnInit {
       email: "fernando.rocha@email.com",
       telefone: "(41) 99888-7777",
       avatar: "https://randomuser.me/api/portraits/men/45.jpg",
-      historico: { proximas: 3, negadas: 0, canceladas: 1, naoCompareceu: 0, gastoMedio: 180, gastoTotal: 1080 },
     },
     {
       id: "c5",
@@ -219,7 +207,6 @@ export class ReservasComponent implements OnInit {
       email: "gabriela.lima@email.com",
       telefone: "(51) 97777-6666",
       avatar: "https://randomuser.me/api/portraits/women/21.jpg",
-      historico: { proximas: 1, negadas: 0, canceladas: 0, naoCompareceu: 0, gastoMedio: 220, gastoTotal: 220 },
     },
     {
       id: "c6",
@@ -227,7 +214,6 @@ export class ReservasComponent implements OnInit {
       email: "eduardo.gomes@email.com",
       telefone: "(61) 96666-5555",
       avatar: "https://randomuser.me/api/portraits/men/60.jpg",
-      historico: { proximas: 0, negadas: 0, canceladas: 0, naoCompareceu: 3, gastoMedio: 80, gastoTotal: 240 },
     },
   ]
 
@@ -241,7 +227,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Almoço",
       pessoas: 4,
       status: "confirmada",
-      duracao: "2h",
       preferencias: "Mesa perto da janela, por favor.",
     },
     {
@@ -253,7 +238,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Jantar",
       pessoas: 2,
       status: "pendente",
-      duracao: "1h30",
       preferencias: "Sem cebola.",
     },
     // Added new reservations for various dates, times, and statuses
@@ -266,7 +250,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Almoço",
       pessoas: 6,
       status: "confirmada",
-      duracao: "2h30",
       preferencias: "Reunião de negócios.",
     },
     {
@@ -278,7 +261,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Jantar",
       pessoas: 2,
       status: "pendente",
-      duracao: "1h45",
       preferencias: "",
     },
     {
@@ -290,7 +272,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Jantar",
       pessoas: 3,
       status: "cancelada",
-      duracao: "1h30",
       preferencias: "Problema familiar.",
     },
     {
@@ -302,7 +283,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Jantar",
       pessoas: 8,
       status: "confirmada",
-      duracao: "3h",
       preferencias: "Aniversário.",
     },
     {
@@ -314,7 +294,6 @@ export class ReservasComponent implements OnInit {
       periodo: "Almoço",
       pessoas: 2,
       status: "confirmada",
-      duracao: "1h30",
       preferencias: "Mesa externa.",
     },
     {
@@ -326,8 +305,21 @@ export class ReservasComponent implements OnInit {
       periodo: "Jantar",
       pessoas: 10,
       status: "pendente",
-      duracao: "2h",
       preferencias: "Evento corporativo.",
+    },
+  ]
+
+  reservasEspera: Reserva[] = [
+    {
+      id: "re1",
+      clienteId: "c1",
+      mesaIds: ["m1", "m2", "m3"],
+      data: new Date(2025, 4, 28), // May 28, 2025
+      horario: "19:00",
+      periodo: "Jantar",
+      pessoas: 8,
+      status: "espera",
+      preferencias: "Aniversário.",
     },
   ]
 
@@ -355,6 +347,7 @@ export class ReservasComponent implements OnInit {
   reservasVisiveis: Reserva[] = []
   reservasAlmocoVisiveis: Reserva[] = []
   reservasJantarVisiveis: Reserva[] = []
+  reservasEsperaVisiveis: Reserva[] = []
 
   mesaEditando: Mesa = this.criarMesaPadrao()
 
@@ -366,6 +359,7 @@ export class ReservasComponent implements OnInit {
 
   ngOnInit(): void {
     this.aplicarFiltros()
+    this.aplicarFiltrosEspera()
     this.nzDatePickerChange(this.dataAtual)
   }
 
@@ -450,6 +444,55 @@ export class ReservasComponent implements OnInit {
     }
     this.atualizarStatusMesas()
     this.cdr.detectChanges()
+  }
+
+  aplicarFiltrosEspera(): void {
+    let tempReservas = [...this.reservasEspera]
+
+    if (this.pesquisaEspera && this.pesquisaEspera.trim() !== "") {
+      const termoBusca = this.pesquisaEspera.toLowerCase().trim()
+      tempReservas = tempReservas.filter((reserva: Reserva) => {
+        const cliente = this.getClientePorId(reserva.clienteId)
+        return cliente && cliente.nome.toLowerCase().includes(termoBusca)
+      })
+    }
+
+    this.reservasEsperaVisiveis = [...tempReservas]
+    this.cdr.detectChanges()
+  }
+
+  limparPesquisaEspera(): void {
+    this.pesquisaEspera = ""
+    this.aplicarFiltrosEspera()
+  }
+
+  reatribuirReserva(reserva: Reserva, event: Event): void {
+    event.stopPropagation()
+
+    this.modalService.confirm({
+      nzTitle: "Reatribuir Reserva",
+      nzContent: `Deseja reatribuir a reserva de ${this.getClientePorId(reserva.clienteId)?.nome} para ${this.dataAtual.toLocaleDateString("pt-BR")}?`,
+      nzOkText: "Sim, reatribuir",
+      nzOkType: "primary",
+      nzCancelText: "Cancelar",
+      nzOnOk: () => {
+        // Remover da lista de espera
+        this.reservasEspera = this.reservasEspera.filter((r) => r.id !== reserva.id)
+
+        // Atualizar data e status
+        reserva.data = new Date(this.dataAtual)
+        reserva.status = "pendente"
+
+        // Adicionar às reservas normais
+        this.reservas.push(reserva)
+
+        // Atualizar filtros
+        this.aplicarFiltros()
+        this.aplicarFiltrosEspera()
+
+        console.log("Reserva reatribuída:", reserva)
+      },
+    })
   }
 
   getTooltipStatus(status: string): string {
@@ -682,35 +725,67 @@ export class ReservasComponent implements OnInit {
     const dialogRef = this.dialog.open(DialogGerenciarMesasComponent, {
       data: {
         modo: mesa ? "editar" : "criar",
-        mesa: mesa,
+        mesa: mesa || null,
         areas: this.areasMesa,
         clientesDoDia: this.getClientesDodia(),
       },
       width: "500px",
+      disableClose: true,
     })
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
+      if (result && result.mesa) {
         if (result.modo === "criar") {
-          const novaMesa = { id: uuidv4(), ...result.mesa }
+          const novaMesa: Mesa = {
+            id: uuidv4(),
+            numero: result.mesa.numero,
+            area: result.mesa.area,
+            capacidade: result.mesa.capacidade,
+            tipo: result.mesa.tipo,
+            vip: result.mesa.vip,
+            ocupada: false,
+          }
           this.mesas.push(novaMesa)
-          console.log("Nova mesa adicionada:", novaMesa)
+
+          // Vincular ao cliente/reserva do dia se selecionado
+          if (result.mesa.cliente && result.mesa.cliente.id) {
+            const reservaDoCliente = this.reservas.find(
+              (r) =>
+                r.clienteId === result.mesa.cliente.id &&
+                new Date(r.data).toLocaleDateString("pt-BR") === this.dataAtual.toLocaleDateString("pt-BR"),
+            )
+            if (reservaDoCliente && !reservaDoCliente.mesaIds.includes(novaMesa.id)) {
+              reservaDoCliente.mesaIds.push(novaMesa.id)
+            }
+          }
         } else if (result.modo === "editar") {
           const index = this.mesas.findIndex((m) => m.id === result.mesa.id)
           if (index > -1) {
-            this.mesas[index] = result.mesa
-            console.log("Mesa atualizada:", result.mesa)
-            const reservaOcupando = this.reservas.find((r) => r.mesaIds.includes(result.mesa.id))
-            if (reservaOcupando) {
-              const mesaAtualizadaNaReserva = reservaOcupando.mesaIds.find((mesaId) => mesaId === result.mesa.id)
-              if (!mesaAtualizadaNaReserva) {
-                reservaOcupando.mesaIds = reservaOcupando.mesaIds.filter((mesaId) => mesaId !== result.mesa.id)
+            this.mesas[index] = {
+              ...this.mesas[index],
+              numero: result.mesa.numero,
+              area: result.mesa.area,
+              capacidade: result.mesa.capacidade,
+              tipo: result.mesa.tipo,
+              vip: result.mesa.vip,
+            }
+
+            // Atualizar vínculo com cliente/reserva se necessário
+            if (result.mesa.cliente && result.mesa.cliente.id) {
+              const reservaDoCliente = this.reservas.find(
+                (r) =>
+                  r.clienteId === result.mesa.cliente.id &&
+                  new Date(r.data).toLocaleDateString("pt-BR") === this.dataAtual.toLocaleDateString("pt-BR"),
+              )
+              if (reservaDoCliente && !reservaDoCliente.mesaIds.includes(result.mesa.id)) {
+                reservaDoCliente.mesaIds.push(result.mesa.id)
               }
             }
           }
         }
+        this.atualizarStatusMesas()
         this.cdr.detectChanges()
-        console.log("Dados recebidos do modal:", result)
+        console.log("Mesa salva:", result)
       }
     })
   }
@@ -727,7 +802,7 @@ export class ReservasComponent implements OnInit {
   }
 
   editarMesa(mesa: Mesa): void {
-    this.abrirModalAdicionarMesa(mesa)
+    this.abrirModalGerenciarMesas(mesa)
   }
 
   confirmarRemocaoMesa(mesa: Mesa): void {
@@ -750,5 +825,42 @@ export class ReservasComponent implements OnInit {
 
     const clienteIds = [...new Set(reservasDoDia.map((r) => r.clienteId))]
     return this.clientes.filter((cliente) => clienteIds.includes(cliente.id))
+  }
+
+  atualizarStatusReserva(novoStatus: string): void {
+    if (this.reservaSelecionada) {
+      this.reservaSelecionada.status = novoStatus as any
+      // Atualizar no array principal
+      const reservaOriginal = this.reservas.find((r) => r.id === this.reservaSelecionada!.id)
+      if (reservaOriginal) {
+        reservaOriginal.status = novoStatus as any
+        // Se mudou para espera, mover para lista de espera
+        if (novoStatus === "espera") {
+          this.reservasEspera.push(reservaOriginal)
+          this.reservas = this.reservas.filter((r) => r.id !== reservaOriginal.id)
+          this.reservaSelecionada = null
+          this.aplicarFiltros()
+          this.aplicarFiltrosEspera()
+        }
+      }
+    }
+  }
+
+  atualizarMesasReserva(novasMesas: string[]): void {
+    if (this.reservaSelecionada) {
+      this.reservaSelecionada.mesaIds = novasMesas
+      // Atualizar no array principal
+      const reservaOriginal = this.reservas.find((r) => r.id === this.reservaSelecionada!.id)
+      if (reservaOriginal) {
+        reservaOriginal.mesaIds = novasMesas
+      }
+      this.atualizarStatusMesas()
+    }
+  }
+
+  getMesasDisponiveis(): Mesa[] {
+    return this.mesas.filter(
+      (mesa) => !mesa.ocupada || (this.reservaSelecionada && this.reservaSelecionada.mesaIds.includes(mesa.id)),
+    )
   }
 }

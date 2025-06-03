@@ -106,7 +106,56 @@
           </div>
         </mat-tab>
         <mat-tab label="Lista de Espera">
-           <div class="tab-content-placeholder"> <nz-empty nzDescription="Lista de espera vazia"></nz-empty>
+          <div class="search-bar">
+            <mat-form-field appearance="outline">
+              <input matInput placeholder="Buscar por nome do cliente" [(ngModel)]="pesquisaEspera" (input)="aplicarFiltrosEspera()">
+              <button mat-icon-button matSuffix *ngIf="pesquisaEspera" (click)="limparPesquisaEspera()" aria-label="Limpar pesquisa">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button mat-icon-button matSuffix *ngIf="!pesquisaEspera" aria-label="Buscar">
+                <mat-icon>search</mat-icon>
+              </button>
+            </mat-form-field>
+          </div>
+          
+          <div class="tab-content-placeholder" *ngIf="reservasEsperaVisiveis.length === 0">
+            <nz-empty nzDescription="Lista de espera vazia"></nz-empty>
+          </div>
+          <div class="reservas-list" *ngIf="reservasEsperaVisiveis.length > 0">
+            <div class="reserva-cards">
+              <mat-card *ngFor="let reserva of reservasEsperaVisiveis" class="reserva-card" [class.selected]="reservaSelecionada?.id === reserva.id" (click)="selecionarReserva(reserva)">
+                <div class="reserva-info">
+                  <div class="cliente-info">
+                    <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
+                    <div class="reserva-detalhes">
+                      <span class="pessoas-info">
+                        <mat-icon>person</mat-icon>
+                        {{ reserva.pessoas }} Pessoa(s)
+                      </span>
+                      <span class="mesa-info">
+                        <mat-icon>table_restaurant</mat-icon>
+                        {{ getMesasFormatadas(reserva) }}
+                      </span>
+                      <span class="data-info">
+                        <mat-icon>calendar_today</mat-icon>
+                        {{ formatarData(reserva.data) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="reserva-acoes">
+                    <span class="horario">{{ reserva.horario }}</span>
+                    <button mat-icon-button 
+                      class="reatribuir-btn"
+                      (click)="reatribuirReserva(reserva, $event)"
+                      matTooltip="Reatribuir para data atual" 
+                      matTooltipClass="tavola-tooltip"
+                      aria-label="Reatribuir reserva">
+                      <mat-icon>event_available</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-card>
+            </div>
           </div>
         </mat-tab>
         <mat-tab label="Garçons">
@@ -141,7 +190,7 @@
               aria-label="Gerenciar Mesas"
               matTooltip="Adicionar, Editar ou Remover Mesas"
               matTooltipClass="tavola-tooltip"
-              (click)="abrirModalAdicionarMesa()">
+              (click)="abrirModalGerenciarMesas()">
               <mat-icon>add</mat-icon>
             </button>
           </div>
@@ -210,27 +259,53 @@
                           <div class="info-label">Pessoas</div>
                           <div class="info-valor">{{ reservaSelecionada.pessoas }}</div>
                         </div>
-                         <div class="info-row">
+                        
+                        <div class="info-row-centered">
                           <div class="info-label">Status</div>
                           <div class="info-valor">
-                            <nz-tag [nzColor]="reservaSelecionada.status === 'confirmada' ? 'green' : (reservaSelecionada.status === 'pendente' ? 'gold' : 'red')">{{ reservaSelecionada.status | titlecase }}</nz-tag>
+                            <mat-form-field appearance="outline" class="status-dropdown">
+                              <mat-select [(value)]="reservaSelecionada.status" (selectionChange)="atualizarStatusReserva($event.value)"
+                                [ngClass]="{
+                                  'status-confirmada': reservaSelecionada.status === 'confirmada',
+                                  'status-pendente': reservaSelecionada.status === 'pendente',
+                                  'status-cancelada': reservaSelecionada.status === 'cancelada',
+                                  'status-finalizada': reservaSelecionada.status === 'finalizada',
+                                  'status-ausente': reservaSelecionada.status === 'ausente',
+                                  'status-espera': reservaSelecionada.status === 'espera'
+                                }">
+                                <mat-option value="pendente">Pendente</mat-option>
+                                <mat-option value="confirmada">Confirmada</mat-option>
+                                <mat-option value="cancelada">Cancelada</mat-option>
+                                <mat-option value="finalizada">Finalizada</mat-option>
+                                <mat-option value="ausente">Ausente</mat-option>
+                                <mat-option value="espera">Espera</mat-option>
+                              </mat-select>
+                            </mat-form-field>
                           </div>
                         </div>
-                        <div class="info-row">
-                          <div class="info-label">Duração</div>
-                          <div class="info-valor">{{ reservaSelecionada.duracao }}</div>
+
+                        <div class="info-row-centered">
+                          <div class="info-label">Associar Mesas</div>
+                          <div class="info-valor">
+                            <mat-form-field appearance="outline" class="mesas-dropdown">
+                              <mat-select multiple [(value)]="reservaSelecionada.mesaIds" (selectionChange)="atualizarMesasReserva($event.value)">
+                                <mat-option *ngFor="let mesa of getMesasDisponiveis()" [value]="mesa.id">
+                                  {{ mesa.numero }} - {{ mesa.area }} ({{ mesa.capacidade }}P)
+                                </mat-option>
+                              </mat-select>
+                            </mat-form-field>
+                          </div>
                         </div>
                        </div>
  
                        <div class="secao-header mesas-atribuidas-header">
                            <h4>Mesas Atribuídas</h4>
                        </div>
-                       <div class="mesas-atribuidas-lista" *ngIf="reservaSelecionada.mesaIds.length > 0; else nenhumaMesaAtribuida">
-                           <div *ngFor="let mesaId of reservaSelecionada.mesaIds" class="mesa-atribuida-item">
-                               <mat-icon class="mesa-atribuida-icone">table_restaurant</mat-icon>
-                               <span class="mesa-atribuida-nome">{{ getMesaPorId(mesaId)?.numero }}</span>
-                               <button mat-icon-button color="warn" (click)="removerMesaDaReserva(reservaSelecionada!.id, mesaId)" matTooltip="Desassociar mesa" 
-                               matTooltipClass="tavola-tooltip" aria-label="Desassociar mesa">
+                       <div class="mesas-atribuidas-chips" *ngIf="reservaSelecionada.mesaIds.length > 0; else nenhumaMesaAtribuida">
+                           <div class="mesa-chip" *ngFor="let mesaId of reservaSelecionada.mesaIds">
+                               <span class="mesa-nome">{{ getMesaPorId(mesaId)?.numero }}</span>
+                               <button mat-icon-button class="remove-mesa-btn" (click)="removerMesaDaReserva(reservaSelecionada!.id, mesaId)" 
+                                       matTooltip="Desassociar mesa" matTooltipClass="tavola-tooltip" aria-label="Desassociar mesa">
                                    <mat-icon>close</mat-icon>
                                </button>
                            </div>

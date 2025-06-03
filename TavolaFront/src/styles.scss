@@ -496,3 +496,23 @@ $dark-theme: mat.m2-define-dark-theme((
   100% { transform: rotate(360deg); }
 }
 
+// Checkbox Tavola amarelo global
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__background {
+  border-color: #3B221B !important;
+  background-color: transparent !important;
+  transition: background 0.2s, border 0.2s;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__checkmark-path {
+  stroke: #3B221B !important;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+  background-color: #F6BD38 !important;
+  border-color: #F6BD38 !important;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark-path {
+  stroke: #3B221B !important;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary:hover .mdc-checkbox__background {
+  border-color: #F6BD38 !important;
+}
+

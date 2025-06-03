@@ -1,6 +1,6 @@
 import { Component, Inject, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import {  FormBuilder, type FormGroup, Validators, ReactiveFormsModule } from "@angular/forms"
+import { FormBuilder, type FormGroup, Validators, ReactiveFormsModule } from "@angular/forms"
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog"
 import { MatFormFieldModule } from "@angular/material/form-field"
 import { MatInputModule } from "@angular/material/input"
@@ -17,7 +17,7 @@ export interface Cliente {
 
 export interface DialogGerenciarMesasData {
   modo: "criar" | "editar"
-  mesa?: any // Replace 'any' with a proper Mesa interface later
+  mesa?: any
   areas: string[]
   clientesDoDia: Cliente[]
 }
@@ -101,16 +101,17 @@ export interface DialogGerenciarMesasData {
   styles: [
     `
       .dialog-content {
-        background: #FFF8EE; /* Tavola dialog background color */
+        background: #FFFFFF;
         padding: 20px;
         border-radius: 12px 12px 0 0;
         max-height: 80vh;
         overflow-y: auto;
-        min-width: 400px;
+        min-width: 500px;
 
         h2 {
           color: #3B221B;
           font-size: 24px;
+          font-weight: 500;
           margin: 0 0 24px 0;
         }
       }
@@ -132,22 +133,23 @@ export interface DialogGerenciarMesasData {
         margin: 8px 0;
 
         .toggle-label {
-          color: #3B221B; /* Brown color for label */
+          color: #3B221B;
           font-size: 14px;
         }
       }
 
-      mat-dialog-actions {
-        padding: 16px 20px 20px;
-        margin: 0;
-        background: #FFF8EE; /* Tavola dialog background color */
-        border-top: 1px solid #e0e0e0;
+      .dialog-actions {
+        padding: 16px 24px;
+        background: #FFFFFF;
         border-radius: 0 0 12px 12px;
+        gap: 8px;
 
         button {
           &[color="primary"] {
-            background-color: #F6BD38; /* Primary button color */
-            color: #3B221B; /* Text color for primary button */
+            background-color: #F6BD38;
+            color: #3B221B;
+            font-weight: 500;
+            border-radius: 8px;
 
             &:hover {
               background-color: darken(#F6BD38, 5%);
@@ -160,8 +162,10 @@ export interface DialogGerenciarMesasData {
           }
 
           &[color="warn"] {
-            color: #DA4A24; /* Warn button text color */
-            border-color: #DA4A24; /* Warn button border color */
+            color: #DA4A24;
+            border-color: #DA4A24;
+            font-weight: 500;
+            border-radius: 8px;
             
             &:hover {
               background-color: rgba(218, 74, 36, 0.1);
@@ -170,51 +174,73 @@ export interface DialogGerenciarMesasData {
         }
       }
 
-      /* Styles for Angular Material components to match theme */
       ::ng-deep {
-        .mdc-text-field--outlined {
-          --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2); /* Default border color */
-          --mdc-outlined-text-field-focus-outline-color: #DA4A24; /* Accent color */
-          --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
-          --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6); /* Label color */
-          --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
+        // Estilo dos inputs outline - bordas marrons
+        .mat-mdc-form-field-appearance-outline {
+          .mdc-notched-outline__leading,
+          .mdc-notched-outline__notch,
+          .mdc-notched-outline__trailing {
+            border-color: #3B221B !important;
+            border-width: 1px !important;
+          }
+
+          &:hover .mdc-notched-outline__leading,
+          &:hover .mdc-notched-outline__notch,
+          &:hover .mdc-notched-outline__trailing {
+            border-color: #F6BD38 !important;
+          }
+
+          &.mat-focused .mdc-notched-outline__leading,
+          &.mat-focused .mdc-notched-outline__notch,
+          &.mat-focused .mdc-notched-outline__trailing {
+            border-color: #3B221B !important;
+            border-width: 2px !important;
+          }
         }
 
+        // Força cores do texto
         .mat-mdc-input-element,
         .mat-mdc-select-value-text,
         .mdc-floating-label,
         .mat-mdc-form-field-label {
-          color: #3B221B !important; /* Text color for inputs and labels */
+          color: #3B221B !important;
         }
 
-         .mat-mdc-checkbox .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
-           border-color: #3B221B !important; /* Unchecked checkbox border */
-         }
-         .mat-mdc-checkbox.mat-accent .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
-         .mat-mdc-checkbox.mat-accent .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
-           background-color: #F6BD38 !important; /* Checked checkbox background (Primary) */
-           border-color: #F6BD38 !important; /* Checked checkbox border */
-         }
-
-        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
-        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
-        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
-          border-color: rgba(59, 34, 27, 0.2) !important; /* Default border color */
-        }
-
-        &:hover .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
-        &:hover .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
-        &:hover .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
-          border-color: #F6BD38 !important; /* Hover border color (Primary) */
-        }
-
-         .mat-mdc-select-arrow {
-           color: #3B221B; /* Select arrow color */
-         }
-
-        /* Ensure placeholder color is correct */
+        // Placeholder
         .mat-mdc-form-field-infix::placeholder {
-             color: rgba(59, 34, 27, 0.6) !important;
+          color: rgba(59, 34, 27, 0.6) !important;
+        }
+
+        // Checkbox amarelo
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
+          border-color: #3B221B !important;
+        }
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
+          background-color: #F6BD38 !important;
+          border-color: #F6BD38 !important;
+        }
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__checkmark {
+          color: #3B221B !important;
+        }
+
+        // Select arrow
+        .mat-mdc-select-arrow {
+          color: #3B221B;
+        }
+
+        // Autocomplete
+        .mat-mdc-autocomplete-panel {
+          background-color: #FFFFFF !important;
+          border: 1px solid rgba(246, 189, 56, 0.3);
+
+          .mat-mdc-option {
+            color: #3B221B !important;
+
+            &:hover {
+              background-color: rgba(246, 189, 56, 0.1) !important;
+            }
+          }
         }
       }
     `,
@@ -226,26 +252,29 @@ export class DialogGerenciarMesasComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogGerenciarMesasData
-  ) { }
+    @Inject(MAT_DIALOG_DATA) public data: DialogGerenciarMesasData,
+    public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>
+  ) {
+    // Remover o X de fechar
+    dialogRef.disableClose = true
+  }
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      numero: [this.data.modo === "editar" ? this.data.mesa.numero : "", Validators.required],
-      area: [this.data.modo === "editar" ? this.data.mesa.area : "", Validators.required],
+      numero: [this.data.modo === "editar" ? this.data.mesa?.numero || "" : "", Validators.required],
+      area: [this.data.modo === "editar" ? this.data.mesa?.area || "" : "", Validators.required],
       capacidade: [
-        this.data.modo === "editar" ? this.data.mesa.capacidade : null,
+        this.data.modo === "editar" ? this.data.mesa?.capacidade || null : null,
         [Validators.required, Validators.min(1)],
       ],
-      tipo: [this.data.modo === "editar" ? this.data.mesa.tipo : "retangular", Validators.required],
-      vip: [this.data.modo === "editar" ? this.data.mesa.vip : false],
+      tipo: [this.data.modo === "editar" ? this.data.mesa?.tipo || "retangular" : "retangular", Validators.required],
+      vip: [this.data.modo === "editar" ? this.data.mesa?.vip || false : false],
       cliente: [null],
     })
 
     this.filteredClientes = this.form.get("cliente")!.valueChanges.pipe(
       startWith(""),
-      map((value) => (typeof value === "string" ? value : value.nome)),
+      map((value) => (typeof value === "string" ? value : value?.nome || "")),
       map((nome) => (nome ? this._filter(nome) : this.data.clientesDoDia.slice())),
     )
   }
@@ -256,7 +285,6 @@ export class DialogGerenciarMesasComponent implements OnInit {
 
   private _filter(nome: string): Cliente[] {
     const filterValue = nome.toLowerCase()
-
     return this.data.clientesDoDia.filter((cliente) => cliente.nome.toLowerCase().includes(filterValue))
   }
 
@@ -266,7 +294,14 @@ export class DialogGerenciarMesasComponent implements OnInit {
 
   salvar(): void {
     if (this.form.valid) {
-      this.dialogRef.close({ ...this.form.value, id: this.data.modo === "editar" ? this.data.mesa.id : undefined }) // Include ID for editing
+      const resultado = {
+        modo: this.data.modo,
+        mesa: {
+          ...this.form.value,
+          id: this.data.modo === "editar" ? this.data.mesa?.id : undefined,
+        },
+      }
+      this.dialogRef.close(resultado)
     }
   }
 }
