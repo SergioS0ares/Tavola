@@ -27,26 +27,7 @@ public class RestauranteController {
     @Autowired
     private RestauranteService servRestaurante;
 
-    @Autowired
-    private ReservaService servReserva;
-    
-    private Restaurante getSelfRestauranteEntity() { //
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return servRestaurante.getByEmail(email);
-    }
-
     // GET - self
-    @GetMapping("/reservas") //
-    public ResponseEntity<List<Reserva>> findAllByRestaurante(
-            @RequestParam(defaultValue = "latest") String ordem,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "20") int tamanho) {
-
-        Restaurante restaurante = getSelfRestauranteEntity(); 
-        List<Reserva> reservas = servReserva.findAllByRestauranteOrdered(restaurante.getId(), ordem, pagina, tamanho); 
-        return ResponseEntity.ok(reservas);
-    }
-
     @GetMapping("/self") //
     public ResponseEntity<RestauranteResponse> findSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

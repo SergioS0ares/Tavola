@@ -31,9 +31,6 @@ public class ClienteController {
     private ClienteService serv;
 
     @Autowired
-    private ReservaService servReserva;
-    
-    @Autowired
     private AvaliacaoService servAvaliacao;
 
     @Autowired
@@ -62,18 +59,6 @@ public class ClienteController {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<Cliente> cliente = serv.findByEmail(email);
         return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/reservas")
-    public ResponseEntity<List<Reserva>> findAllByClient(
-            @RequestParam(defaultValue = "latest") String ordem,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "20") int tamanho) {
-
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UUID id = serv.getIdByEmail(email);
-        List<Reserva> reservas = servReserva.findAllByClienteOrdered(id, ordem, pagina, tamanho);
-        return ResponseEntity.ok(reservas);
     }
 
     // GET - all
