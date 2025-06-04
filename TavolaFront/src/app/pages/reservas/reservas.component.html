@@ -181,6 +181,9 @@
             <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
               <mat-icon>chevron_right</mat-icon>
             </button>
+            <button mat-icon-button (click)="mostrarCalendario = true" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+              <mat-icon>calendar_month</mat-icon>
+            </button>
           </div>
           <div class="table-actions">
             <button
@@ -260,41 +263,51 @@
                           <div class="info-valor">{{ reservaSelecionada.pessoas }}</div>
                         </div>
                         
-                        <div class="info-row-centered">
-                          <div class="info-label">Status</div>
-                          <div class="info-valor">
-                            <mat-form-field appearance="outline" class="status-dropdown">
-                              <mat-select [(value)]="reservaSelecionada.status" (selectionChange)="atualizarStatusReserva($event.value)"
-                                [ngClass]="{
-                                  'status-confirmada': reservaSelecionada.status === 'confirmada',
-                                  'status-pendente': reservaSelecionada.status === 'pendente',
-                                  'status-cancelada': reservaSelecionada.status === 'cancelada',
-                                  'status-finalizada': reservaSelecionada.status === 'finalizada',
-                                  'status-ausente': reservaSelecionada.status === 'ausente',
-                                  'status-espera': reservaSelecionada.status === 'espera'
-                                }">
-                                <mat-option value="pendente">Pendente</mat-option>
-                                <mat-option value="confirmada">Confirmada</mat-option>
-                                <mat-option value="cancelada">Cancelada</mat-option>
-                                <mat-option value="finalizada">Finalizada</mat-option>
-                                <mat-option value="ausente">Ausente</mat-option>
-                                <mat-option value="espera">Espera</mat-option>
-                              </mat-select>
-                            </mat-form-field>
+                        <!-- Status e Associar Mesas apenas para reservas normais, não para lista de espera -->
+                        <ng-container *ngIf="reservaSelecionada.status !== 'espera'">
+                          <div class="info-row-centered">
+                            <div class="info-label">Status</div>
+                            <div class="info-valor">
+                              <mat-form-field appearance="outline" class="status-dropdown">
+                                <mat-select [(value)]="reservaSelecionada.status" (selectionChange)="atualizarStatusReserva($event.value)"
+                                  [ngClass]="{
+                                    'status-confirmada': reservaSelecionada.status === 'confirmada',
+                                    'status-pendente': reservaSelecionada.status === 'pendente',
+                                    'status-cancelada': reservaSelecionada.status === 'cancelada',
+                                    'status-finalizada': reservaSelecionada.status === 'finalizada',
+                                    'status-ausente': reservaSelecionada.status === 'ausente'
+                                  }">
+                                  <mat-option value="pendente">Pendente</mat-option>
+                                  <mat-option value="confirmada">Confirmada</mat-option>
+                                  <mat-option value="cancelada">Cancelada</mat-option>
+                                  <mat-option value="finalizada">Finalizada</mat-option>
+                                  <mat-option value="ausente">Ausente</mat-option>
+                                  <mat-option value="espera">Espera</mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                            </div>
                           </div>
-                        </div>
 
-                        <div class="info-row-centered">
-                          <div class="info-label">Associar Mesas</div>
-                          <div class="info-valor">
-                            <mat-form-field appearance="outline" class="mesas-dropdown">
-                              <mat-select multiple [(value)]="reservaSelecionada.mesaIds" (selectionChange)="atualizarMesasReserva($event.value)">
-                                <mat-option *ngFor="let mesa of getMesasDisponiveis()" [value]="mesa.id">
-                                  {{ mesa.numero }} - {{ mesa.area }} ({{ mesa.capacidade }}P)
-                                </mat-option>
-                              </mat-select>
-                            </mat-form-field>
+                          <div class="info-row-centered">
+                            <div class="info-label">Associar Mesas</div>
+                            <div class="info-valor">
+                              <mat-form-field appearance="outline" class="mesas-dropdown">
+                                <mat-select multiple [(value)]="reservaSelecionada.mesaIds" (selectionChange)="atualizarMesasReserva($event.value)">
+                                  <mat-option *ngFor="let mesa of getMesasDisponiveis()" [value]="mesa.id">
+                                    {{ mesa.numero }} - {{ mesa.area }} ({{ mesa.capacidade }}P)
+                                  </mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                            </div>
                           </div>
+                        </ng-container>
+                        
+                        <!-- Botão de reatribuir para lista de espera -->
+                        <div class="info-row-centered" *ngIf="reservaSelecionada.status === 'espera'">
+                          <button mat-flat-button class="reatribuir-btn-grande" (click)="reatribuirReserva(reservaSelecionada, $event)">
+                            <mat-icon>event_available</mat-icon>
+                            Reatribuir para {{ formatarDataSimples(dataAtual) }}
+                          </button>
                         </div>
                        </div>
  
@@ -378,5 +391,15 @@
         </div>
       </ng-template>
     </div>
+  </div>
+  
+  <!-- Modal do Calendário -->
+  <div class="calendario-modal" *ngIf="mostrarCalendario">
+    <div class="calendario-overlay" (click)="mostrarCalendario = false"></div>
+    <app-calendario-reservas 
+      [reservas]="getReservasParaCalendario()" 
+      (dataSeleccionada)="selecionarDataDoCalendario($event)"
+      (fechar)="mostrarCalendario = false">
+    </app-calendario-reservas>
   </div>
 </div>

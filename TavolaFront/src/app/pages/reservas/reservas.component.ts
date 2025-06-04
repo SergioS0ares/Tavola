@@ -5,6 +5,7 @@ import localePt from "@angular/common/locales/pt"
 import { MatDialog } from "@angular/material/dialog"
 import { DialogGerenciarMesasComponent } from "./dialog-gerenciar-mesas/dialog-gerenciar-mesas.component"
 import { v4 as uuidv4 } from "uuid"
+import { CalendarioReservasComponent } from "./calendario-reservas/calendario-reservas.component"
 
 // Angular Material (imports existentes)
 import { MatTabsModule } from "@angular/material/tabs"
@@ -56,6 +57,9 @@ import {
   EditOutline,
 } from "@ant-design/icons-angular/icons"
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker"
+import { IReserva } from '../../Interfaces/IReserva.interface';
+import { IMesa } from '../../Interfaces/IMesa.interface';
+import { ICliente } from '../../Interfaces/ICliente.interface';
 
 registerLocaleData(localePt)
 
@@ -80,40 +84,6 @@ const antIcons: IconDefinition[] = [
   DeleteOutline,
   EditOutline,
 ]
-
-// Definições de Interface (Mesa, Cliente, Reserva - como no seu código)
-interface Mesa {
-  id: string
-  numero: string
-  tipo: "retangular" | "circular"
-  area: string
-  vip: boolean
-  ocupada: boolean
-  reservaId?: string
-  capacidade?: number
-}
-
-interface Cliente {
-  id: string
-  nome: string
-  email: string
-  telefone: string
-  avatar: string
-}
-
-interface Reserva {
-  id: string
-  clienteId: string
-  mesaIds: string[]
-  data: Date
-  horario: string
-  periodo: "Almoço" | "Jantar"
-  pessoas: number
-  status: "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera"
-  preferencias: string
-  oferta?: string
-  desconto?: string
-}
 
 @Component({
   selector: "app-reservas",
@@ -146,6 +116,7 @@ interface Reserva {
     NzDatePickerModule,
     MatMenuModule,
     MatAutocompleteModule,
+    CalendarioReservasComponent,
   ],
   templateUrl: "./reservas.component.html",
   styleUrls: ["./reservas.component.scss"],
@@ -165,13 +136,14 @@ export class ReservasComponent implements OnInit {
   areasMesa: string[] = ["Salão Principal", "Deck", "Mezanino", "Área Externa"]
   areaAtiva: string = this.areasMesa[0]
   periodoFiltro: "todos" | "Almoço" | "Jantar" = "todos"
-  reservaSelecionada: Reserva | null = null
+  reservaSelecionada: IReserva | null = null
   abaAtiva = "Reservas"
   pesquisa = ""
   pesquisaEspera = ""
+  mostrarCalendario = false
 
   // Mock data (como no seu código)
-  clientes: Cliente[] = [
+  clientes: ICliente[] = [
     {
       id: "c1",
       nome: "Ana Silva",
@@ -217,10 +189,11 @@ export class ReservasComponent implements OnInit {
     },
   ]
 
-  reservas: Reserva[] = [
+  reservas: IReserva[] = [
     {
       id: "r1",
       clienteId: "c1",
+      clienteNome: this.getClienteNomeById("c1"),
       mesaIds: ["m1", "m2"],
       data: new Date(),
       horario: "12:30",
@@ -232,6 +205,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r2",
       clienteId: "c2",
+      clienteNome: this.getClienteNomeById("c2"),
       mesaIds: ["m5"],
       data: new Date(),
       horario: "20:00",
@@ -244,6 +218,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r3",
       clienteId: "c4",
+      clienteNome: this.getClienteNomeById("c4"),
       mesaIds: ["m4"],
       data: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
       horario: "13:00",
@@ -255,6 +230,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r4",
       clienteId: "c5",
+      clienteNome: this.getClienteNomeById("c5"),
       mesaIds: ["m8"],
       data: new Date(new Date().setDate(new Date().getDate() + 2)), // Day after tomorrow
       horario: "19:30",
@@ -266,6 +242,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r5",
       clienteId: "c6",
+      clienteNome: this.getClienteNomeById("c6"),
       mesaIds: [], // No table assigned yet
       data: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
       horario: "21:00",
@@ -277,6 +254,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r6",
       clienteId: "c1",
+      clienteNome: this.getClienteNomeById("c1"),
       mesaIds: ["m1", "m2", "m3"],
       data: new Date(2025, 4, 30), // May 30, 2025
       horario: "19:00",
@@ -288,6 +266,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r7",
       clienteId: "c2",
+      clienteNome: this.getClienteNomeById("c2"),
       mesaIds: ["m5"],
       data: new Date(2025, 4, 31), // May 31, 2025
       horario: "13:00",
@@ -299,6 +278,7 @@ export class ReservasComponent implements OnInit {
     {
       id: "r8",
       clienteId: "c4",
+      clienteNome: this.getClienteNomeById("c4"),
       mesaIds: ["m6", "m7"],
       data: new Date(2025, 4, 31), // May 31, 2025
       horario: "20:30",
@@ -309,10 +289,11 @@ export class ReservasComponent implements OnInit {
     },
   ]
 
-  reservasEspera: Reserva[] = [
+  reservasEspera: IReserva[] = [
     {
       id: "re1",
       clienteId: "c1",
+      clienteNome: this.getClienteNomeById("c1"),
       mesaIds: ["m1", "m2", "m3"],
       data: new Date(2025, 4, 28), // May 28, 2025
       horario: "19:00",
@@ -323,7 +304,7 @@ export class ReservasComponent implements OnInit {
     },
   ]
 
-  mesas: Mesa[] = [
+  mesas: IMesa[] = [
     { id: "m1", numero: "01", tipo: "retangular", area: "Salão Principal", vip: false, ocupada: false, capacidade: 4 },
     { id: "m2", numero: "02", tipo: "retangular", area: "Salão Principal", vip: false, ocupada: false, capacidade: 4 },
     { id: "m3", numero: "03", tipo: "retangular", area: "Salão Principal", vip: false, ocupada: false, capacidade: 2 },
@@ -344,12 +325,12 @@ export class ReservasComponent implements OnInit {
 
   areas = ["Salão Principal", "Área Externa", "Terraço"]
 
-  reservasVisiveis: Reserva[] = []
-  reservasAlmocoVisiveis: Reserva[] = []
-  reservasJantarVisiveis: Reserva[] = []
-  reservasEsperaVisiveis: Reserva[] = []
+  reservasVisiveis: IReserva[] = []
+  reservasAlmocoVisiveis: IReserva[] = []
+  reservasJantarVisiveis: IReserva[] = []
+  reservasEsperaVisiveis: IReserva[] = []
 
-  mesaEditando: Mesa = this.criarMesaPadrao()
+  mesaEditando: IMesa = this.criarMesaPadrao()
 
   constructor(
     private modalService: NzModalService,
@@ -363,7 +344,7 @@ export class ReservasComponent implements OnInit {
     this.nzDatePickerChange(this.dataAtual)
   }
 
-  criarMesaPadrao(): Mesa {
+  criarMesaPadrao(): IMesa {
     return { id: "", numero: "", tipo: "retangular", area: this.areaAtiva, vip: false, ocupada: false, capacidade: 2 }
   }
 
@@ -391,7 +372,7 @@ export class ReservasComponent implements OnInit {
 
     if (reservasDoPeriodo.length === 0) return false
 
-    return reservasDoPeriodo.some((reserva: Reserva) => {
+    return reservasDoPeriodo.some((reserva: IReserva) => {
       const cliente = this.getClientePorId(reserva.clienteId)
       return cliente && cliente.nome.toLowerCase().includes(termoBusca)
     })
@@ -405,7 +386,7 @@ export class ReservasComponent implements OnInit {
   existemReservasParaDataAtual(): boolean {
     const dataFormatada = this.dataAtual.toLocaleDateString("pt-BR")
     return this.reservas.some(
-      (reserva: Reserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
+      (reserva: IReserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
     )
   }
 
@@ -413,12 +394,12 @@ export class ReservasComponent implements OnInit {
     const dataFormatada = this.dataAtual.toLocaleDateString("pt-BR")
 
     let tempReservas = this.reservas.filter(
-      (reserva: Reserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
+      (reserva: IReserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
     )
 
     if (this.pesquisa && this.pesquisa.trim() !== "") {
       const termoBusca = this.pesquisa.toLowerCase().trim()
-      tempReservas = tempReservas.filter((reserva: Reserva) => {
+      tempReservas = tempReservas.filter((reserva: IReserva) => {
         const cliente = this.getClientePorId(reserva.clienteId)
         return cliente && cliente.nome.toLowerCase().includes(termoBusca)
       })
@@ -451,7 +432,7 @@ export class ReservasComponent implements OnInit {
 
     if (this.pesquisaEspera && this.pesquisaEspera.trim() !== "") {
       const termoBusca = this.pesquisaEspera.toLowerCase().trim()
-      tempReservas = tempReservas.filter((reserva: Reserva) => {
+      tempReservas = tempReservas.filter((reserva: IReserva) => {
         const cliente = this.getClientePorId(reserva.clienteId)
         return cliente && cliente.nome.toLowerCase().includes(termoBusca)
       })
@@ -466,7 +447,7 @@ export class ReservasComponent implements OnInit {
     this.aplicarFiltrosEspera()
   }
 
-  reatribuirReserva(reserva: Reserva, event: Event): void {
+  reatribuirReserva(reserva: IReserva, event: Event): void {
     event.stopPropagation()
 
     this.modalService.confirm({
@@ -512,7 +493,7 @@ export class ReservasComponent implements OnInit {
     }
   }
 
-  getClasseMesa(mesa: Mesa): string {
+  getClasseMesa(mesa: IMesa): string {
     const classes = []
 
     if (mesa.tipo === "circular") {
@@ -534,7 +515,7 @@ export class ReservasComponent implements OnInit {
     return classes.join(" ")
   }
 
-  getTooltipMesa(mesa: Mesa): string {
+  getTooltipMesa(mesa: IMesa): string {
     if (this.isMesaOcupadaPorOutraReserva(mesa.id)) {
       const reserva = this.getReservaPorId(mesa.reservaId!)
       const cliente = reserva ? this.getClientePorId(reserva.clienteId) : null
@@ -561,7 +542,7 @@ export class ReservasComponent implements OnInit {
     })
   }
 
-  selecionarReserva(reserva: Reserva): void {
+  selecionarReserva(reserva: IReserva): void {
     this.reservaSelecionada = this.reservaSelecionada?.id === reserva.id ? null : reserva
     if (this.reservaSelecionada && this.reservaSelecionada.mesaIds.length > 0) {
       const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0])
@@ -588,7 +569,7 @@ export class ReservasComponent implements OnInit {
     return new Date(data).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })
   }
 
-  getMesasPorArea(area: string): Mesa[] {
+  getMesasPorArea(area: string): IMesa[] {
     return this.mesas.filter((mesa) => mesa.area === area)
   }
 
@@ -608,7 +589,7 @@ export class ReservasComponent implements OnInit {
     return !!this.reservaSelecionada && this.reservaSelecionada.mesaIds.includes(mesaId)
   }
 
-  toggleMesaParaReserva(mesa: Mesa): void {
+  toggleMesaParaReserva(mesa: IMesa): void {
     if (!this.reservaSelecionada || this.isMesaOcupadaPorOutraReserva(mesa.id)) {
       return // Cannot assign if no reservation is selected or if the table is occupied by another reservation
     }
@@ -635,20 +616,20 @@ export class ReservasComponent implements OnInit {
     })
   }
 
-  getMesaPorId(id: string): Mesa | undefined {
+  getMesaPorId(id: string): IMesa | undefined {
     return this.mesas.find((mesa) => mesa.id === id)
   }
 
-  getClientePorId(id: string): Cliente | undefined {
+  getClientePorId(id: string): ICliente | undefined {
     return this.clientes.find((cliente) => cliente.id === id)
   }
 
-  getReservaPorId(id: string | undefined): Reserva | undefined {
+  getReservaPorId(id: string | undefined): IReserva | undefined {
     if (!id) return undefined
     return this.reservas.find((reserva) => reserva.id === id)
   }
 
-  getMesasFormatadas(reserva: Reserva | null): string {
+  getMesasFormatadas(reserva: IReserva | null): string {
     if (!reserva || !reserva.mesaIds || reserva.mesaIds.length === 0) {
       return "N/A"
     }
@@ -671,7 +652,7 @@ export class ReservasComponent implements OnInit {
     }
   }
 
-  abrirModalAdicionarMesa(mesa?: Mesa): void {
+  abrirModalAdicionarMesa(mesa?: IMesa): void {
     this.mesaEditando = mesa ? { ...mesa } : this.criarMesaPadrao()
     this.modalService.create({
       nzTitle: this.mesaEditando.id ? "Editar Mesa" : "Adicionar Nova Mesa",
@@ -721,7 +702,7 @@ export class ReservasComponent implements OnInit {
     this.mesaEditando = this.criarMesaPadrao()
   }
 
-  abrirModalGerenciarMesas(mesa?: Mesa): void {
+  abrirModalGerenciarMesas(mesa?: IMesa): void {
     const dialogRef = this.dialog.open(DialogGerenciarMesasComponent, {
       data: {
         modo: mesa ? "editar" : "criar",
@@ -736,7 +717,7 @@ export class ReservasComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result && result.mesa) {
         if (result.modo === "criar") {
-          const novaMesa: Mesa = {
+          const novaMesa: IMesa = {
             id: uuidv4(),
             numero: result.mesa.numero,
             area: result.mesa.area,
@@ -801,11 +782,11 @@ export class ReservasComponent implements OnInit {
     this.cdr.detectChanges()
   }
 
-  editarMesa(mesa: Mesa): void {
+  editarMesa(mesa: IMesa): void {
     this.abrirModalGerenciarMesas(mesa)
   }
 
-  confirmarRemocaoMesa(mesa: Mesa): void {
+  confirmarRemocaoMesa(mesa: IMesa): void {
     this.modalService.confirm({
       nzTitle: "Tem certeza?",
       nzContent: `Deseja remover a mesa "${mesa.numero}"?`,
@@ -817,7 +798,7 @@ export class ReservasComponent implements OnInit {
     })
   }
 
-  getClientesDodia(): Cliente[] {
+  getClientesDodia(): ICliente[] {
     const dataFormatada = this.dataAtual.toLocaleDateString("pt-BR")
     const reservasDoDia = this.reservas.filter(
       (reserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
@@ -858,9 +839,35 @@ export class ReservasComponent implements OnInit {
     }
   }
 
-  getMesasDisponiveis(): Mesa[] {
+  getMesasDisponiveis(): IMesa[] {
     return this.mesas.filter(
       (mesa) => !mesa.ocupada || (this.reservaSelecionada && this.reservaSelecionada.mesaIds.includes(mesa.id)),
     )
+  }
+
+  getReservasParaCalendario(): any[] {
+    return [...this.reservas, ...this.reservasEspera].map((reserva) => ({
+      data: reserva.data,
+      clienteId: reserva.clienteId,
+      clienteNome: this.getClientePorId(reserva.clienteId)?.nome || "Cliente não encontrado",
+      status: reserva.status,
+      pessoas: reserva.pessoas,
+    }))
+  }
+
+  selecionarDataDoCalendario(data: Date): void {
+    this.dataAtual = data
+    this.aplicarFiltros()
+    this.limparSelecao()
+    this.mostrarCalendario = false
+  }
+
+  formatarDataSimples(data: Date): string {
+    return data.toLocaleDateString("pt-BR")
+  }
+
+  getClienteNomeById(id: string): string {
+    const cliente = this.clientes?.find((c) => c.id === id)
+    return cliente ? cliente.nome : ''
   }
 }

@@ -9,18 +9,9 @@ import { MatCheckboxModule } from "@angular/material/checkbox"
 import { MatButtonModule } from "@angular/material/button"
 import { MatAutocompleteModule } from "@angular/material/autocomplete"
 import { type Observable, map, startWith } from "rxjs"
-
-export interface Cliente {
-  id: number
-  nome: string
-}
-
-export interface DialogGerenciarMesasData {
-  modo: "criar" | "editar"
-  mesa?: any
-  areas: string[]
-  clientesDoDia: Cliente[]
-}
+import { ICliente } from "../../../Interfaces/ICliente.interface"
+import { IMesa } from "../../../Interfaces/IMesa.interface"
+import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarMesasData.interface" 
 
 @Component({
   selector: "app-dialog-gerenciar-mesas",
@@ -175,27 +166,17 @@ export interface DialogGerenciarMesasData {
       }
 
       ::ng-deep {
-        // Estilo dos inputs outline - bordas marrons
-        .mat-mdc-form-field-appearance-outline {
-          .mdc-notched-outline__leading,
-          .mdc-notched-outline__notch,
-          .mdc-notched-outline__trailing {
-            border-color: #3B221B !important;
-            border-width: 1px !important;
-          }
+        // Estilo dos inputs outline - bordas marrons sempre visíveis
+        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+          border-color: #3B221B !important;
+        }
 
-          &:hover .mdc-notched-outline__leading,
-          &:hover .mdc-notched-outline__notch,
-          &:hover .mdc-notched-outline__trailing {
-            border-color: #F6BD38 !important;
-          }
-
-          &.mat-focused .mdc-notched-outline__leading,
-          &.mat-focused .mdc-notched-outline__notch,
-          &.mat-focused .mdc-notched-outline__trailing {
-            border-color: #3B221B !important;
-            border-width: 2px !important;
-          }
+        .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+        .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+        .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+          border-color: #F6BD38 !important;
         }
 
         // Força cores do texto
@@ -207,7 +188,7 @@ export interface DialogGerenciarMesasData {
         }
 
         // Placeholder
-        .mat-mdc-form-field-infix::placeholder {
+        .mat-mdc-input-element::placeholder {
           color: rgba(59, 34, 27, 0.6) !important;
         }
 
@@ -248,11 +229,11 @@ export interface DialogGerenciarMesasData {
 })
 export class DialogGerenciarMesasComponent implements OnInit {
   form!: FormGroup
-  filteredClientes!: Observable<Cliente[]>;
+  filteredClientes!: Observable<ICliente[]>;
 
   constructor(
     private fb: FormBuilder,
-    @Inject(MAT_DIALOG_DATA) public data: DialogGerenciarMesasData,
+    @Inject(MAT_DIALOG_DATA) public data: IDialogGerenciarMesasData,
     public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>
   ) {
     // Remover o X de fechar
@@ -279,11 +260,11 @@ export class DialogGerenciarMesasComponent implements OnInit {
     )
   }
 
-  displayFn(cliente: Cliente): string {
+  displayFn(cliente: ICliente): string {
     return cliente && cliente.nome ? cliente.nome : ""
   }
 
-  private _filter(nome: string): Cliente[] {
+  private _filter(nome: string): ICliente[] {
     const filterValue = nome.toLowerCase()
     return this.data.clientesDoDia.filter((cliente) => cliente.nome.toLowerCase().includes(filterValue))
   }

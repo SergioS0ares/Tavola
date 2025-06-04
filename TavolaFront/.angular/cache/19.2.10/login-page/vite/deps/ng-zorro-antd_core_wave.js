@@ -5,24 +5,25 @@ import {
   NzWaveModule,
   NzWaveRenderer,
   provideNzWave
-} from "./chunk-4BZXXO42.js";
-import "./chunk-5ZV73UG7.js";
-import "./chunk-VIBAY5QN.js";
-import "./chunk-NCBG67EV.js";
-import "./chunk-IZBEIZLW.js";
-import "./chunk-MP5B2SRU.js";
+} from "./chunk-J3YJWUR3.js";
+import "./chunk-KQFSDE6G.js";
+import "./chunk-CFDOYK2C.js";
+import "./chunk-LTFONGIH.js";
+import "./chunk-OR6GKNDZ.js";
+import "./chunk-RVY4T34D.js";
 import "./chunk-OHWI2S6G.js";
 import "./chunk-7N4PRWGB.js";
 import "./chunk-WY2VMIPC.js";
-import "./chunk-B5GAWAR3.js";
 import "./chunk-IJ3KGSPX.js";
-import "./chunk-USHARBCX.js";
-import "./chunk-GAMILAFO.js";
-import "./chunk-O3MZQZIU.js";
-import "./chunk-CR2THLZV.js";
-import "./chunk-QCX4XGGK.js";
-import "./chunk-3LZ7TQJT.js";
-import "./chunk-3SRVZXQZ.js";
+import "./chunk-PFIWAADK.js";
+import "./chunk-PMIAPSRT.js";
+import "./chunk-36X7EITQ.js";
+import "./chunk-3PSR4HGC.js";
+import "./chunk-EIP5WKTM.js";
+import "./chunk-5KXDAEEK.js";
+import "./chunk-VMI3K6GE.js";
+import "./chunk-WD6C567C.js";
+import "./chunk-HM5YLMWO.js";
 import "./chunk-WDMUDEB6.js";
 export {
   NZ_WAVE_GLOBAL_CONFIG,

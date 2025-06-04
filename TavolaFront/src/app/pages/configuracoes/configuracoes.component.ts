@@ -14,38 +14,10 @@ import { MatDividerModule } from '@angular/material/divider';
 // NG-Zorro
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzMessageModule } from 'ng-zorro-antd/message';
-import { NzMessageService } from 'ng-zorro-antd/message';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
-
-interface Endereco {
-  pais: string;
-  estado: string;
-  cidade: string;
-  bairro: string;
-  rua: string;
-  numero: string;
-  complemento?: string;
-}
-
-interface HoraFuncionamento {
-  diaSemana: string;
-  abertura: string;
-  fechamento: string;
-}
-
-interface UserData {
-  nome: string;
-  email: string;
-  senha: string;
-  endereco: Endereco;
-  tipo: string;
-  telefone: string;
-  tipoCozinha?: string;
-  quantidadeMesas?: number;
-  horaFuncionamento?: HoraFuncionamento[];
-}
+import { IUserData, IEndereco, IHoraFuncionamento } from '../../Interfaces/IUserData.interface';
 
 @Component({
   selector: 'app-configuracoes',
@@ -92,7 +64,7 @@ export class ConfiguracoesComponent implements OnInit {
   restaurantForm!: FormGroup;
   
   // Dados do usuário
-  userData: UserData = {
+  userData: IUserData = {
     nome: "adm_restaurante",
     email: "jujuba.com@arrouba.com",
     senha: "senha",
