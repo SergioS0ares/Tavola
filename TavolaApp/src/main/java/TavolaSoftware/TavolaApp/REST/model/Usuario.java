@@ -1,7 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
 import java.util.UUID;
-
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import jakarta.persistence.Column;
@@ -36,22 +35,19 @@ public class Usuario {
     @Column(name = "user_type", nullable = false)
     private TipoUsuario tipo;
 
+    @Column(name = "user_phone") // <<< NOVO CAMPO: Telefone
+    private String telefone;
+
     @Column(name = "user_image")
     private String imagem;
 
     @Column(name = "user_background_image")
     private String imagemBackground;
 
-    private UUID idImagem;
+    @Column(name = "user_id_imagem_repository") // Explicitando o nome da coluna
+    private UUID idImagem; // Este campo parece ser um identificador para uma imagem num repositório externo
 
     // Getters e Setters
-    public UUID getIdImagem(){
-        return idImagem;
-    }
-
-    public void setIdImagem(UUID id){
-        this.idImagem = id;
-    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -71,9 +67,16 @@ public class Usuario {
     public TipoUsuario getTipo() { return tipo; }
     public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 
+    // Getter e Setter para o novo campo telefone
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+
     public String getImagem() { return imagem; }
     public void setImagem(String imagem) { this.imagem = imagem; }
 
     public String getImagemBackground() { return imagemBackground; }
     public void setImagemBackground(String imagemBackground) { this.imagemBackground = imagemBackground; }
+    
+    public UUID getIdImagem() { return idImagem; }
+    public void setIdImagem(UUID idImagem) { this.idImagem = idImagem; }
 }

@@ -19,8 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections; // <<< NOVO IMPORT
 import java.util.List;
 import java.util.Map;         // <<< NOVO IMPORT
+import java.util.Optional;
 import java.util.UUID;
 // Removido collectors se não for mais usado aqui
 
@@ -34,9 +36,6 @@ public class RestauranteController {
     @Autowired
     private UsuarioRepository usuarioRepository; // <<< INJETAR UsuarioRepository
 
-    
-    
-    
     // === NOVO ENDPOINT DE PESQUISA ===
     @GetMapping("/pesquisar")
     public ResponseEntity<?> pesquisarRestaurantes(
@@ -66,9 +65,6 @@ public class RestauranteController {
         return ResponseEntity.ok(resultados);
     }
 
-    
-    
-    
     // === SEUS MÉTODOS EXISTENTES (mantidos como no seu arquivo RestauranteController versão 1) ===
     @GetMapping("/self")
     public ResponseEntity<RestauranteResponse> findSelf() { //

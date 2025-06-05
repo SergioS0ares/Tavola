@@ -1,14 +1,19 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import TavolaSoftware.TavolaApp.REST.dto.ClienteUpdateRequest; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Usuario; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository; // <<< NOVO IMPORT
+import TavolaSoftware.TavolaApp.tools.UploadUtils; // <<< NOVO IMPORT
 
-// import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository; // Opcional: para validar se o restaurante existe
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt; // <<< NOVO IMPORT
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importante para operações de escrita
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException; // <<< NOVO IMPORT
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,99 +25,45 @@ public class ClienteService {
     @Autowired
     private ClienteRepository repo;
 
-    // Opcional: injetar se for validar a existência do restaurante
     @Autowired
     private RestauranteRepository repoRestaurante;
 
-    public Cliente save(Cliente client) {
-        return repo.save(client);
-    }
+    @Autowired
+    private UsuarioRepository repoUsuario; // <<< INJETAR UsuarioRepository
 
-    public List<Cliente> findAll() {
-        return repo.findAll();
-    }
-
-    public Optional<Cliente> findById(UUID id) {
-        return repo.findById(id);
-    }
-
-    public Optional<Cliente> findByEmail(String email) {
-        return Optional.ofNullable(repo.findByUsuarioEmail(email));
-    }
-
-    public UUID getIdByEmail(String email) {
+    @Autowired
+    private UploadUtils uplUtil; // <<< INJETAR UploadUtils
+    
+    // ... (Seus métodos save, findAll, findById, findByEmail, getIdByEmail, delete, toggleFavorito, getFavoritos permanecem iguais) ...
+    public Cliente save(Cliente client) { return repo.save(client); }
+    public List<Cliente> findAll() { return repo.findAll(); }
+    public Optional<Cliente> findById(UUID id) { return repo.findById(id); }
+    public Optional<Cliente> findByEmail(String email) { return Optional.ofNullable(repo.findByUsuarioEmail(email)); }
+    public UUID getIdByEmail(String email) { /* ...código... */ 
         Cliente cliente = repo.findByUsuarioEmail(email);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado para email: " + email);
         }
         return cliente.getId();
     }
-
-    public Cliente updateByEmail(String email, Cliente atualizacao) {
-        Cliente cliente = repo.findByUsuarioEmail(email);
-        if (cliente == null) {
-            throw new RuntimeException("Cliente não encontrado!");
-        }
-
-        // É importante garantir que o objeto 'usuario' dentro de 'atualizacao' não seja nulo
-        // antes de tentar acessar seus campos, ou tratar caso a caso.
-        // Esta implementação assume que 'atualizacao.getUsuario()' não é nulo.
-        if (atualizacao.getUsuario() != null) {
-            if (atualizacao.getUsuario().getNome() != null) {
-                cliente.getUsuario().setNome(atualizacao.getUsuario().getNome());
-            }
-            if (atualizacao.getUsuario().getEmail() != null) {
-                cliente.getUsuario().setEmail(atualizacao.getUsuario().getEmail());
-            }
-            if (atualizacao.getUsuario().getSenha() != null) { // Senha deve ser tratada com encoding na prática
-                cliente.getUsuario().setSenha(atualizacao.getUsuario().getSenha());
-            }
-            if (atualizacao.getUsuario().getEndereco() != null) {
-                cliente.getUsuario().setEndereco(atualizacao.getUsuario().getEndereco());
-            }
-            // Adicionar aqui a lógica para imagem de perfil e background, se necessário no service.
-        }
-        // Se houver outros campos específicos do Cliente para atualizar, adicione-os aqui.
-        // Ex: cliente.setAlgumCampoDoCliente(atualizacao.getAlgumCampoDoCliente());
-
-
-        return repo.save(cliente);
-    }
-
-    public void deleteByEmail(String email) {
+    public void deleteByEmail(String email) { /* ...código... */
         Cliente cliente = repo.findByUsuarioEmail(email);
         if (cliente != null) {
             repo.delete(cliente);
         }
     }
-
-    public void delete(UUID id) {
-        repo.deleteById(id);
-    }
-
-    // --- NOVOS MÉTODOS PARA FAVORITOS ---
-
-    /**
-     * Adiciona ou remove um restaurante da lista de favoritos de um cliente.
-     * @param emailCliente O email do cliente.
-     * @param restauranteId O ID do restaurante a ser favoritado/desfavoritado.
-     * @return Uma mensagem indicando a ação realizada.
-     */
-    @Transactional // Garante que a operação seja atômica
-    public String toggleFavorito(String emailCliente, UUID restauranteId) {
+    public void delete(UUID id) { repo.deleteById(id); }
+    @Transactional
+    public String toggleFavorito(String emailCliente, UUID restauranteId) { /* ...código... */
         Cliente cliente = repo.findByUsuarioEmail(emailCliente);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
         }
-
-        // Opcional: Validar se o restauranteId existe na base de dados de restaurantes
         if (!repoRestaurante.existsById(restauranteId)) {
         throw new RuntimeException("Restaurante com ID " + restauranteId + " não encontrado.");
         }
-
-        List<UUID> favoritos = cliente.getFavoritos(); // Usa o getter que inicializa se necessário
+        List<UUID> favoritos = cliente.getFavoritos(); 
         String mensagem;
-
         if (favoritos.contains(restauranteId)) {
             favoritos.remove(restauranteId);
             mensagem = "Restaurante removido dos favoritos.";
@@ -120,23 +71,79 @@ public class ClienteService {
             favoritos.add(restauranteId);
             mensagem = "Restaurante adicionado aos favoritos.";
         }
-        
-        repo.save(cliente); // Salva o cliente com a lista de favoritos atualizada
+        repo.save(cliente); 
         return mensagem;
     }
-
-    /**
-     * Retorna a lista de IDs de restaurantes favoritos de um cliente.
-     * @param emailCliente O email do cliente.
-     * @return Lista de UUIDs dos restaurantes favoritos.
-     */
-    public List<UUID> getFavoritos(String emailCliente) {
+    public List<UUID> getFavoritos(String emailCliente) { /* ...código... */
         Cliente cliente = repo.findByUsuarioEmail(emailCliente);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
         }
-        // Retorna uma nova lista para evitar modificações externas diretas na lista da entidade, se desejado.
-        // Ou simplesmente: return cliente.getFavoritos();
-        return new ArrayList<>(cliente.getFavoritos()); 
+        return new ArrayList<>(cliente.getFavoritos());
+    }
+
+    /**
+     * Atualiza os dados de um cliente (e seu usuário associado) com base em um DTO.
+     * @param email O email do cliente a ser atualizado.
+     * @param request O DTO com os novos dados.
+     * @return A entidade Cliente atualizada.
+     */
+    @Transactional // Garante que todas as operações de salvamento ocorram em uma única transação
+    public Cliente updateFromRequest(String email, ClienteUpdateRequest request) {
+        Cliente clienteExistente = findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Cliente não encontrado para atualização com email: " + email));
+
+        Usuario usuarioParaAtualizar = clienteExistente.getUsuario();
+        boolean algumaAlteracaoFeita = false;
+
+        // Atualiza Nome
+        if (request.getNome() != null && !request.getNome().isBlank()) {
+            usuarioParaAtualizar.setNome(request.getNome());
+            algumaAlteracaoFeita = true;
+        }
+        // Atualiza Endereço
+        if (request.getEndereco() != null) {
+            usuarioParaAtualizar.setEndereco(request.getEndereco());
+            algumaAlteracaoFeita = true;
+        }
+        // Atualiza Telefone
+        if (request.getTelefone() != null && !request.getTelefone().isBlank()) {
+            usuarioParaAtualizar.setTelefone(request.getTelefone());
+            algumaAlteracaoFeita = true;
+        }
+        // Atualiza Senha (opcional)
+        if (request.getSenha() != null && !request.getSenha().isBlank()) {
+             usuarioParaAtualizar.setSenha(BCrypt.hashpw(request.getSenha(), BCrypt.gensalt()));
+             algumaAlteracaoFeita = true;
+        }
+        // Atualiza Imagem de Perfil
+        if (request.getImagemPerfilBase64() != null && uplUtil.isBase64Image(request.getImagemPerfilBase64())) {
+            try {
+                String caminhoImagemPerfil = uplUtil.processUsuarioImagem(request.getImagemPerfilBase64(), usuarioParaAtualizar.getId(), "perfil");
+                usuarioParaAtualizar.setImagem(caminhoImagemPerfil);
+                algumaAlteracaoFeita = true;
+            } catch (IOException e) {
+                throw new RuntimeException("Erro ao processar imagem de perfil: " + e.getMessage(), e);
+            }
+        }
+        // Atualiza Imagem de Background
+        if (request.getImagemBackgroundBase64() != null && uplUtil.isBase64Image(request.getImagemBackgroundBase64())) {
+             try {
+                String caminhoImagemBg = uplUtil.processUsuarioImagem(request.getImagemBackgroundBase64(), usuarioParaAtualizar.getId(), "background");
+                usuarioParaAtualizar.setImagemBackground(caminhoImagemBg);
+                algumaAlteracaoFeita = true;
+            } catch (IOException e) {
+                 throw new RuntimeException("Erro ao processar imagem de background: " + e.getMessage(), e);
+            }
+        }
+        
+        if (!algumaAlteracaoFeita) {
+            // Se nenhuma alteração foi feita, apenas retorna o cliente existente sem salvar
+            return clienteExistente;
+        }
+        
+        // Salva a entidade Cliente. Devido ao relacionamento @OneToOne e cascata (se houver),
+        // o JPA/Hibernate salvará também as alterações na entidade Usuario associada.
+        return repo.save(clienteExistente);
     }
 }

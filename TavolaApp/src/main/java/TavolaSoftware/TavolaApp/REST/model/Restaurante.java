@@ -1,24 +1,11 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*; // Import genérico
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 
@@ -27,184 +14,130 @@ import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 public class Restaurante {
 
     @Id
-    private UUID id;
+    private UUID id; // OK, vem do Usuario via @MapsId
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "usuario_id") // OK
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "restaurante",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    private List<Mesas> mesas = new ArrayList<>();
+    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Mesas> mesas = new ArrayList<>(); // OK
 
-    @ElementCollection
-    private List<HorarioFuncionamento> horariosFuncionamento;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "restaurante_horarios_funcionamento",
+                     joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id")) // OK
+    private List<HorarioFuncionamento> horariosFuncionamento = new ArrayList<>();
 
-    @Column(name = "establishment_service")
+    @Column(name = "establishment_cuisine_type") // OK, seu tipoCozinha
     private String tipoCozinha = "Outro";
     
-    @Column(name = "establishment_images", length = 1000)
-    private List<String> imagens;
+    @Lob
+    @Column(name = "establishment_description") // OK, sua descrição
+    private String descricao;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "restaurante_imagens_urls", 
+                     joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id")) // << PEQUENO AJUSTE AQUI
+    @Column(name = "imagem_url")
+    private List<String> imagens = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    private List<Cardapio> cardapio;
-    
-    @Column(name = "establishment_average_score")
-    private double mediaAvaliacao = 0; // Campo para armazenar a média das avaliações
-    
-    @Column(name = "establishment_total_reviews") // Nome da coluna no banco
-    private int totalDeAvaliacoes = 0; // Campo para armazenar o total de avaliações
+    private List<Cardapio> cardapio = new ArrayList<>(); // OK
 
+    @Column(name = "establishment_average_score") // OK
+    private double mediaAvaliacao = 0;
+    
+    @Column(name = "establishment_total_reviews") // OK
+    private int totalDeAvaliacoes = 0;
+
+    @Column(name = "establishment_id_imagem_repository") // OK
     private UUID idImagemRepository;
     
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Avaliacao> avaliacoes = new ArrayList<>();
+    private List<Avaliacao> avaliacoes = new ArrayList<>(); // OK
     
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) // Cascata para persistir e mesclar serviços
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "restaurante_servicos_associacao", // Nome da tabela de junção
-        joinColumns = @JoinColumn(name = "restaurante_id"), // Coluna que referencia o Restaurante
-        inverseJoinColumns = @JoinColumn(name = "servico_id") // Coluna que referencia o Servico
+        name = "restaurante_servicos_associacao", // OK
+        joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"), // << PEQUENO AJUSTE AQUI
+        inverseJoinColumns = @JoinColumn(name = "servico_id") // OK
     )
-    private Set<Servico> servicos = new HashSet<>(); // Conjunto de serviços que o restaurante oferece
+    private Set<Servico> servicos = new HashSet<>();
 
+    // Getters e Setters (como você os tem)
+    // ... (seus getters e setters estão bons, incluindo os delegados para Usuario) ...
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    // métodos de restaurante para retornar informações de usuario - coisa de register...
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     
-    public String getEmail() { return usuario.getEmail(); }
-    
-    public String getNome() { return usuario.getNome(); }
-    
-	public void setEndereco(Endereco endereco) { usuario.setEndereco(endereco); }
-
-	public void setNome(String nome) { usuario.setNome(nome); }
-
-	public Endereco getEndereco() { return usuario.getEndereco(); }
-    
-    // fim dos métodos de usuario
-	
-	public int getTotalDeAvaliacoes() {
-	    return totalDeAvaliacoes;
-	}
-
-	public void setTotalDeAvaliacoes(int totalDeAvaliacoes) {
-	    this.totalDeAvaliacoes = totalDeAvaliacoes;
-	}
-	
-	public double getMediaAvaliacao() {
-        return mediaAvaliacao;
+    public List<Mesas> getMesas() { return mesas; }
+    public void setMesas(List<Mesas> mesas) { 
+        this.mesas.clear();
+        if (mesas != null) {
+            this.mesas.addAll(mesas);
+            this.mesas.forEach(m -> m.setRestaurante(this));
+        }
     }
 
-    public void setMediaAvaliacao(double mediaAvaliacao) {
-        this.mediaAvaliacao = mediaAvaliacao;
-    }
+    public List<HorarioFuncionamento> getHorariosFuncionamento() { return horariosFuncionamento; }
+    public void setHorariosFuncionamento(List<HorarioFuncionamento> horariosFuncionamento) { this.horariosFuncionamento = horariosFuncionamento; }
 
-    public List<Avaliacao> getAvaliacoes() {
-        return avaliacoes;
-    }
+    public String getTipoCozinha() { return tipoCozinha; }
+    public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
 
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public List<String> getImagens() { return imagens; }
+    public void setImagens(List<String> imagens) { this.imagens = imagens; }
+
+    public List<Cardapio> getCardapio() { return cardapio; }
+    public void setCardapio(List<Cardapio> cardapio) { this.cardapio = cardapio; }
+
+    public double getMediaAvaliacao() { return mediaAvaliacao; }
+    public void setMediaAvaliacao(double mediaAvaliacao) { this.mediaAvaliacao = mediaAvaliacao; }
+
+    public int getTotalDeAvaliacoes() { return totalDeAvaliacoes; }
+    public void setTotalDeAvaliacoes(int totalDeAvaliacoes) { this.totalDeAvaliacoes = totalDeAvaliacoes; }
+
+    public UUID getIdImagemRepository() { return idImagemRepository; }
+    public void setIdImagemRepository(UUID idImagemRepository) { this.idImagemRepository = idImagemRepository; }
+
+    public List<Avaliacao> getAvaliacoes() { return avaliacoes; }
     public void setAvaliacoes(List<Avaliacao> avaliacoes) {
-        this.avaliacoes = avaliacoes;
+        this.avaliacoes.clear();
+        if (avaliacoes != null) {
+            this.avaliacoes.addAll(avaliacoes);
+            this.avaliacoes.forEach(a -> a.setRestaurante(this));
+        }
     }
-
+    
     public void addAvaliacao(Avaliacao avaliacao) {
+        if (this.avaliacoes == null) {
+            this.avaliacoes = new ArrayList<>();
+        }
         this.avaliacoes.add(avaliacao);
         avaliacao.setRestaurante(this);
     }
-
-    public UUID getIdImagem(){
-        return idImagemRepository;
-    }
-
-    public void setIdImagem(UUID id){
-        this.idImagemRepository = id;
-    }
-	
-	public void addMesa(Mesas mesa) {
-        mesas.add(mesa);
+    
+    public void addMesa(Mesas mesa) {
+        if (this.mesas == null) {
+            this.mesas = new ArrayList<>();
+        }
+        this.mesas.add(mesa);
         mesa.setRestaurante(this);
     }
 
-	public UUID getId() {
-		return id;
-	}
-	
-	public void setID(UUID id) {
-		this.id = id;
-	}
-    
-    public Usuario getUsuario() {
-    	return usuario;
-    }
-    
-    public void setUsuario(Usuario usuario) {
-    	this.usuario = usuario;
-    }
-    
-    public List<Mesas> getMesas() { return mesas; }
-    
-    
-    public void setMesas(List<Mesas> mesas) { 
-        this.mesas = mesas;
-        mesas.forEach(m -> m.setRestaurante(this));
-    }
+    public Set<Servico> getServicos() { return servicos; }
+    public void setServicos(Set<Servico> servicos) { this.servicos = servicos; }
 
-    public List<HorarioFuncionamento> getHoraFuncionamento() {
-        return horariosFuncionamento;
-    }
-
-    public void setHoraFuncionamento(List<HorarioFuncionamento> horaFuncionamento) {
-        this.horariosFuncionamento = horaFuncionamento;
-    }
-
-    public List<Cardapio> getCardapio() {
-        return cardapio;
-    }
-
-    public void setCardapio(List<Cardapio> cardapio) {
-        this.cardapio = cardapio;
-    }
-
-    public String getTipoCozinha() {
-        return tipoCozinha;
-    }
-
-    public void setTipoCozinha(String tipoCozinha) {
-        this.tipoCozinha = tipoCozinha;
-    }
-
-	public List<String> getImagem() {
-		return imagens;
-	}
-	
-	public void setImagem(List<String> imagens) {
-		this.imagens = imagens;
-	}
-
-	public Set<Servico> getServicos() {
-		return servicos;
-	}
-
-	public void setServicos(Set<Servico> servicos) {
-		this.servicos = servicos;
-	}
-	
+    // Métodos delegados
+    public String getEmail() { return usuario != null ? usuario.getEmail() : null; }
+    public String getNome() { return usuario != null ? usuario.getNome() : null; }
+    public Endereco getEndereco() { return usuario != null ? usuario.getEndereco() : null; }
+    public void setEndereco(Endereco endereco) { if (usuario != null) { usuario.setEndereco(endereco); } }
+    public void setNome(String nome) { if (usuario != null) { usuario.setNome(nome); } }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
