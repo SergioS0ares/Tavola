@@ -267,3 +267,40 @@ mat-error {
         }
     }
 }
+
+.login-error-card {
+    background: #D1495B;
+    color: #fff;
+    border-radius: 8px;
+    padding: 18px 24px;
+    margin: 18px auto 0 auto;
+    max-width: 500px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(209,73,91,0.08);
+    mat-icon {
+        color: #fff;
+        font-size: 2rem;
+    }
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    background-color: #F6BD38;
+    color: #3B221B;
+    transition: all 0.3s ease;
+    margin-top: 16px;
+}
+.btn-primary:disabled {
+    background-color: rgba(246, 189, 56, 0.5);
+    cursor: not-allowed;
+}

@@ -63,10 +63,10 @@
 
     <div class="scrollable-restaurants" #scrollContainer [attr.data-cuisine]="cuisine" (scroll)="onRestaurantScroll($event, cuisine)">
       <div class="restaurants-grid">
-        <div class="restaurant-card" *ngFor="let r of groupedRestaurants[cuisine]" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
+        <div class="restaurant-card" *ngFor="let r of groupedRestaurants[cuisine]" (click)="navigateToRestaurante(r)">
           <img [src]="r.imagem" [alt]="r.nome" class="restaurant-img" />
           <div class="restaurant-info">
-            <div class="restaurant-address">{{ r.endereco }}</div>
+            <div class="restaurant-address">{{ r.enderecoFormatado }}</div>
             <div class="restaurant-name">{{ r.nome }}</div>
             <div class="restaurant-rating">
               <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r.avaliacao)}">star</mat-icon>

@@ -31,6 +31,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginComponent {
   loginForm: FormGroup<ILoginForm>;
   showForgotInfo = false;
+  showLoginError = false;
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
@@ -72,6 +73,7 @@ export class LoginComponent {
     if (email && senha) {
       this.loginService.login(email, senha).subscribe({
         next: (res) => {
+          this.showLoginError = false;
           // Centraliza o armazenamento no AuthService
           this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
           
@@ -84,11 +86,13 @@ export class LoginComponent {
           }
         },
         error: (err) => {
-          const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
+          this.showLoginError = true;
+          const errorMessage = err.error?.message || "Não foi possível acessar sua conta. Verifique seu e-mail e senha e tente novamente.";
           this.toastService.error(errorMessage);
         }
       });
     } else {
+      this.showLoginError = true;
       this.toastService.error("Email ou senha inválidos.");
     }
   }

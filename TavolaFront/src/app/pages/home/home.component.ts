@@ -9,7 +9,9 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable, startWith, map, Subscription } from 'rxjs';
 import { SearchBarComponent } from './search-bar/search-bar.component';
 import { StickySearchService } from '../../core/services/sticky-search.service';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { RestauranteService } from '../../core/services/restaurante.service';
+import { MapsService } from '../../core/services/maps.service';
 
 @Component({
   selector: 'app-home',
@@ -60,19 +62,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   cidade = 'Paris';
   query = '';
 
-  restaurants: any[] = [
-    { id: '1', nome: 'L\'Osteria Paris Chatelet', tipo: 'Italiano', avaliacao: 8.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua das Flores, 123, Paris' },
-    { id: '2', nome: 'Café Terry', tipo: 'Italiano', avaliacao: 5.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Avenida Principal, 456, Paris' },
-    { id: '3', nome: 'Les Rupins', tipo: 'Italiano', avaliacao: 3.8, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Praça Central, 789, Paris' },
-    { id: '4', nome: 'Le Gourmet Burger', tipo: 'Hamburgueria', avaliacao: 4.5, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua do Sabor, 101, Paris' },
-    { id: '5', nome: 'Sushi Place', tipo: 'Italiano', avaliacao: 4.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Alameda dos Peixes, 202, Paris' },
-    { id: '6', nome: 'La Dolce Vita', tipo: 'Italiano', avaliacao: 4.7, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Via Roma, 303, Paris' },
-    { id: '7', nome: 'Bistro Parisian', tipo: 'Italiano', avaliacao: 4.1, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rue de la Paix, 404, Paris' },
-    { id: '8', nome: 'Cantina da Nonna', tipo: 'Italiano', avaliacao: 9.2, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Travessa da Massa, 505, Paris' },
-    { id: '9', nome: 'Temaki Express', tipo: 'Italiano', avaliacao: 3.5, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua do Sushi, 606, Paris' },
-    { id: '10', nome: 'El Fuego Mexicano', tipo: 'Italiano', avaliacao: 4.9, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Calle del Sol, 707, Paris' },
-  ];
-
+  restaurants: any[] = [];
   groupedRestaurants: { [cuisine: string]: any[] } = {};
 
   @ViewChild('searchBarHome', { static: false }) searchBarHome!: ElementRef;
@@ -89,7 +79,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private stickyService: StickySearchService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private restauranteService: RestauranteService,
+    private mapsService: MapsService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -105,11 +98,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       map(val => this._filter(val ?? '', this.allQueries))
     );
 
-    this.groupedRestaurants = this.groupRestaurantsByCuisine(this.restaurants);
-
-    this.getCuisineTypes().forEach(cuisine => {
-      this.scrollStates[cuisine] = { canScrollLeft: false, canScrollRight: false };
+    // Buscar restaurantes do backend
+    this.restauranteService.getRestaurantes().subscribe({
+      next: (restaurants) => {
+        this.setRestaurants(restaurants);
+      },
+      error: (err) => {
+        // Pode exibir erro se quiser
+      }
     });
+
+    const cuisineTypes = this.getCuisineTypes();
+    if (Array.isArray(cuisineTypes)) {
+      cuisineTypes.forEach(cuisine => {
+        this.scrollStates[cuisine] = { canScrollLeft: false, canScrollRight: false };
+      });
+    }
 
     this.sidebarSubscription = this.stickyService.sidebarAberta$.subscribe(isOpen => {
       this.isSidebarOpen = isOpen;
@@ -222,6 +226,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   groupRestaurantsByCuisine(restaurants: any[]): { [cuisine: string]: any[] } {
+    if (!Array.isArray(restaurants)) return {};
     return restaurants.reduce((acc, restaurant) => {
       const type = restaurant.tipo || 'Outros';
       if (!acc[type]) {
@@ -233,7 +238,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCuisineTypes(): string[] {
-    return Object.keys(this.groupedRestaurants);
+    return this.groupedRestaurants ? Object.keys(this.groupedRestaurants) : [];
   }
 
   onRestaurantScroll(event: Event, cuisine: string): void {
@@ -277,5 +282,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       container.scrollLeft += scrollAmount;
     }
+  }
+
+  setRestaurants(restaurants: any[]) {
+    if (JSON.stringify(this.restaurants) !== JSON.stringify(restaurants)) {
+      this.restaurants = restaurants;
+      this.groupedRestaurants = this.groupRestaurantsByCuisine(restaurants);
+    }
+  }
+
+  navigateToRestaurante(r: any) {
+    this.router.navigate(['/home/agendamento-reservas-restaurante', r.id]);
   }
 }

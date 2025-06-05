@@ -218,3 +218,22 @@ mat-error {
         }
     }
 }
+
+.horario-row-flex {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.add-horario-btn {
+    margin-top: 12px;
+    color: #3B221B !important;
+    border-color: #F6BD38 !important;
+    background: #F6BD38 !important;
+    font-weight: 600;
+}
+
+.add-horario-btn mat-icon {
+    color: #3B221B !important;
+}

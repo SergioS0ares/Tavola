@@ -48,7 +48,15 @@ export class SignUpComponent {
   tiposCozinha = [
     'Italiana', 'Brasileira', 'Japonesa', 'Hamburgueria', 'Chinesa', 'Mexicana', 'Árabe', 'Francesa', 'Indiana', 'Outros'
   ];
-  diasSemana = ['DOM','SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+  diasSemana = [
+    { value: 'DOMINGO', label: 'Domingo' },
+    { value: 'SEGUNDA', label: 'Segunda-feira' },
+    { value: 'TERCA', label: 'Terça-feira' },
+    { value: 'QUARTA', label: 'Quarta-feira' },
+    { value: 'QUINTA', label: 'Quinta-feira' },
+    { value: 'SEXTA', label: 'Sexta-feira' },
+    { value: 'SABADO', label: 'Sábado' }
+  ];
 
   // Formulário Cliente (igual ao atual)
   clienteForm: FormGroup<ISignupForm>;
@@ -137,24 +145,18 @@ export class SignUpComponent {
       telefone: ['', Validators.required],
       descricao: ['', [Validators.required, Validators.maxLength(500)]],
       quantidadeMesas: [1, [Validators.required, Validators.min(1)]],
-      horariosFuncionamento: this.fb.array(this.diasSemana.map(() => this.fb.group({
-        ativo: [false],
-        abertura: [''],
-        fechamento: ['']
-      })))
+      horariosFuncionamento: this.fb.array([])
     }, { validators: this.passwordMatchValidatorRestaurante });
-
-    // Adicionar listener para mudanças nos checkboxes
-    this.horariosFuncionamento.controls.forEach(control => {
-      control.get('ativo')?.valueChanges.subscribe(() => {
-        this.validateHorarios();
-      });
-    });
   }
 
   // Getter para FormArray de horários
   get horariosFuncionamento() {
     return this.restauranteForm.get('horariosFuncionamento') as FormArray;
+  }
+
+  // Getter para o formGroup de endereço do restaurante
+  get enderecoFormGroup(): FormGroup {
+    return this.restauranteForm.get('endereco') as FormGroup;
   }
 
   // Validação de senha forte (igual ao atual)
@@ -198,52 +200,39 @@ export class SignUpComponent {
     return null;
   }
 
-  // Busca CEP para Cliente
-  buscarCep() {
-    const cep: string = this.clienteForm.value.cep ?? '';
-    if (!cep || cep.length !== 8) return;
-    this.http.get(`https://viacep.com.br/ws/${cep}/json/`).subscribe({
+  // Substituir buscarCep e buscarCepRestaurante por uma função única
+  buscarCepGenerico(formGroup: FormGroup, mensagemProperty: 'mensagemCepInvalido' | 'mensagemCepInvalidoRestaurante') {
+    const cep = formGroup.get('cep')?.value || formGroup.get('endereco.cep')?.value || '';
+    const mensagemKey = mensagemProperty;
+    if (!cep || cep.replace(/\D/g, '').length !== 8) return;
+    this.http.get(`https://viacep.com.br/ws/${cep.replace(/\D/g, '')}/json/`).subscribe({
       next: (res: any) => {
         if (res.erro) {
-          this.mensagemCepInvalido = 'CEP não encontrado.';
+          this[mensagemKey] = 'CEP não encontrado.';
           return;
         }
-        this.mensagemCepInvalido = '';
-        this.clienteForm.patchValue({
-          estado: res.uf,
-          cidade: res.localidade,
-          bairro: res.bairro,
-          rua: res.logradouro
-        });
-      },
-      error: () => {
-        this.mensagemCepInvalido = 'Erro ao buscar CEP.';
-      }
-    });
-  }
-
-  // Busca CEP para Restaurante
-  buscarCepRestaurante() {
-    const cep: string = this.restauranteForm.get('endereco.cep')?.value ?? '';
-    if (!cep || cep.length !== 8) return;
-    this.http.get(`https://viacep.com.br/ws/${cep}/json/`).subscribe({
-      next: (res: any) => {
-        if (res.erro) {
-          this.mensagemCepInvalidoRestaurante = 'CEP não encontrado.';
-          return;
-        }
-        this.mensagemCepInvalidoRestaurante = '';
-        this.restauranteForm.patchValue({
-          endereco: {
+        this[mensagemKey] = '';
+        // Atualiza os campos do form
+        if (formGroup.get('cep')) {
+          formGroup.patchValue({
             estado: res.uf,
             cidade: res.localidade,
             bairro: res.bairro,
             rua: res.logradouro
-          }
-        });
+          });
+        } else if (formGroup.get('endereco.cep')) {
+          formGroup.patchValue({
+            endereco: {
+              estado: res.uf,
+              cidade: res.localidade,
+              bairro: res.bairro,
+              rua: res.logradouro
+            }
+          });
+        }
       },
       error: () => {
-        this.mensagemCepInvalidoRestaurante = 'Erro ao buscar CEP.';
+        this[mensagemKey] = 'Erro ao buscar CEP.';
       }
     });
   }
@@ -292,12 +281,11 @@ export class SignUpComponent {
     }
     const form = this.restauranteForm.value;
     const horariosFuncionamento = form.horariosFuncionamento
-      .map((h: any, idx: number) => h.ativo ? {
-        diaSemana: this.diasSemana[idx],
+      .map((h: any) => ({
+        diaSemana: h.diaSemana,
         abertura: h.abertura,
         fechamento: h.fechamento
-      } : null)
-      .filter((h: any) => h !== null);
+      }));
     const payload = {
       nome: form.nomeCompleto,
       email: form.email,
@@ -305,13 +293,17 @@ export class SignUpComponent {
       tipo: 'RESTAURANTE',
       tipoCozinha: form.tipoCozinha,
       quantidadeMesas: form.quantidadeMesas,
+      telefone: form.telefone,
+      descricao: form.descricao,
       endereco: {
+        cep: form.endereco.cep,
         pais: 'Brasil',
         estado: form.endereco.estado,
         cidade: form.endereco.cidade,
         bairro: form.endereco.bairro,
         rua: form.endereco.rua,
-        numero: form.endereco.numero
+        numero: form.endereco.numero,
+        complemento: form.endereco.complemento
       },
       horarioFuncionamento: horariosFuncionamento
     };
@@ -339,25 +331,16 @@ export class SignUpComponent {
     }
   }
 
-  // Validação dos horários quando o checkbox está ativo
-  private validateHorarios() {
-    const horarios = this.horariosFuncionamento.controls;
-    horarios.forEach(horario => {
-      const ativo = horario.get('ativo');
-      const abertura = horario.get('abertura');
-      const fechamento = horario.get('fechamento');
+  addHorario() {
+    this.horariosFuncionamento.push(this.fb.group({
+      diaSemana: ['', Validators.required],
+      abertura: ['', Validators.required],
+      fechamento: ['', Validators.required]
+    }));
+  }
 
-      if (ativo?.value) {
-        abertura?.setValidators([Validators.required]);
-        fechamento?.setValidators([Validators.required]);
-      } else {
-        abertura?.clearValidators();
-        fechamento?.clearValidators();
-      }
-      
-      abertura?.updateValueAndValidity();
-      fechamento?.updateValueAndValidity();
-    });
+  removeHorario(index: number) {
+    this.horariosFuncionamento.removeAt(index);
   }
 
   // Validação para habilitar/desabilitar botão de submit
