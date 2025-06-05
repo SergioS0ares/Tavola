@@ -1,23 +1,32 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonModule } from '@angular/material/button';
-
-export interface DialogGerenciarMesasData {
-  modo: 'criar' | 'editar';
-  mesa?: any; // Replace 'any' with a proper Mesa interface later
-  areas: string[];
-}
+import { Component, Inject, type OnInit } from "@angular/core"
+import { CommonModule } from "@angular/common"
+import { FormBuilder, type FormGroup, Validators, ReactiveFormsModule } from "@angular/forms"
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from "@angular/material/dialog"
+import { MatFormFieldModule } from "@angular/material/form-field"
+import { MatInputModule } from "@angular/material/input"
+import { MatSelectModule } from "@angular/material/select"
+import { MatCheckboxModule } from "@angular/material/checkbox"
+import { MatButtonModule } from "@angular/material/button"
+import { MatAutocompleteModule } from "@angular/material/autocomplete"
+import { type Observable, map, startWith } from "rxjs"
+import { ICliente } from "../../../Interfaces/ICliente.interface"
+import { IMesa } from "../../../Interfaces/IMesa.interface"
+import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarMesasData.interface" 
 
 @Component({
-  selector: 'app-dialog-gerenciar-mesas',
+  selector: "app-dialog-gerenciar-mesas",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatCheckboxModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    MatAutocompleteModule,
+  ],
   template: `
     <mat-dialog-content class="dialog-content">
       <h2 mat-dialog-title>
@@ -57,6 +66,16 @@ export interface DialogGerenciarMesasData {
            <mat-error *ngIf="form.get('tipo')?.hasError('required')">O tipo é obrigatório.</mat-error>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cliente (Opcional)</mat-label>
+          <input type="text" matInput formControlName="cliente" [matAutocomplete]="auto">
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+            <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
+              {{ cliente.nome }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
         <div class="toggle-row">
           <span class="toggle-label">Mesa VIP</span>
           <mat-checkbox formControlName="vip" color="primary"></mat-checkbox>
@@ -73,16 +92,17 @@ export interface DialogGerenciarMesasData {
   styles: [
     `
       .dialog-content {
-        background: #FFF8EE; /* Tavola dialog background color */
+        background: #FFFFFF;
         padding: 20px;
         border-radius: 12px 12px 0 0;
         max-height: 80vh;
         overflow-y: auto;
-        min-width: 400px;
+        min-width: 500px;
 
         h2 {
           color: #3B221B;
           font-size: 24px;
+          font-weight: 500;
           margin: 0 0 24px 0;
         }
       }
@@ -104,22 +124,23 @@ export interface DialogGerenciarMesasData {
         margin: 8px 0;
 
         .toggle-label {
-          color: #3B221B; /* Brown color for label */
+          color: #3B221B;
           font-size: 14px;
         }
       }
 
-      mat-dialog-actions {
-        padding: 16px 20px 20px;
-        margin: 0;
-        background: #FFF8EE; /* Tavola dialog background color */
-        border-top: 1px solid #e0e0e0;
+      .dialog-actions {
+        padding: 16px 24px;
+        background: #FFFFFF;
         border-radius: 0 0 12px 12px;
+        gap: 8px;
 
         button {
           &[color="primary"] {
-            background-color: #F6BD38; /* Primary button color */
-            color: #3B221B; /* Text color for primary button */
+            background-color: #F6BD38;
+            color: #3B221B;
+            font-weight: 500;
+            border-radius: 8px;
 
             &:hover {
               background-color: darken(#F6BD38, 5%);
@@ -132,8 +153,10 @@ export interface DialogGerenciarMesasData {
           }
 
           &[color="warn"] {
-            color: #DA4A24; /* Warn button text color */
-            border-color: #DA4A24; /* Warn button border color */
+            color: #DA4A24;
+            border-color: #DA4A24;
+            font-weight: 500;
+            border-radius: 8px;
             
             &:hover {
               background-color: rgba(218, 74, 36, 0.1);
@@ -142,82 +165,124 @@ export interface DialogGerenciarMesasData {
         }
       }
 
-      /* Styles for Angular Material components to match theme */
       ::ng-deep {
-        .mdc-text-field--outlined {
-          --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2); /* Default border color */
-          --mdc-outlined-text-field-focus-outline-color: #DA4A24; /* Accent color */
-          --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
-          --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6); /* Label color */
-          --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
+        // Estilo dos inputs outline - bordas marrons sempre visíveis
+        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+          border-color: #3B221B !important;
         }
 
+        .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+        .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+        .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+          border-color: #F6BD38 !important;
+        }
+
+        // Força cores do texto
         .mat-mdc-input-element,
         .mat-mdc-select-value-text,
         .mdc-floating-label,
         .mat-mdc-form-field-label {
-          color: #3B221B !important; /* Text color for inputs and labels */
+          color: #3B221B !important;
         }
 
-         .mat-mdc-checkbox .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
-           border-color: #3B221B !important; /* Unchecked checkbox border */
-         }
-         .mat-mdc-checkbox.mat-accent .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
-         .mat-mdc-checkbox.mat-accent .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
-           background-color: #F6BD38 !important; /* Checked checkbox background (Primary) */
-           border-color: #F6BD38 !important; /* Checked checkbox border */
-         }
-
-        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
-        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
-        .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
-          border-color: rgba(59, 34, 27, 0.2) !important; /* Default border color */
+        // Placeholder
+        .mat-mdc-input-element::placeholder {
+          color: rgba(59, 34, 27, 0.6) !important;
         }
 
-        &:hover .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
-        &:hover .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
-        &:hover .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
-          border-color: #F6BD38 !important; /* Hover border color (Primary) */
+        // Checkbox amarelo
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
+          border-color: #3B221B !important;
+        }
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background,
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:indeterminate ~ .mdc-checkbox__background {
+          background-color: #F6BD38 !important;
+          border-color: #F6BD38 !important;
+        }
+        .mat-mdc-checkbox.mat-primary .mdc-checkbox__checkmark {
+          color: #3B221B !important;
         }
 
-         .mat-mdc-select-arrow {
-           color: #3B221B; /* Select arrow color */
-         }
+        // Select arrow
+        .mat-mdc-select-arrow {
+          color: #3B221B;
+        }
 
-        /* Ensure placeholder color is correct */
-        .mat-mdc-form-field-infix::placeholder {
-             color: rgba(59, 34, 27, 0.6) !important;
+        // Autocomplete
+        .mat-mdc-autocomplete-panel {
+          background-color: #FFFFFF !important;
+          border: 1px solid rgba(246, 189, 56, 0.3);
+
+          .mat-mdc-option {
+            color: #3B221B !important;
+
+            &:hover {
+              background-color: rgba(246, 189, 56, 0.1) !important;
+            }
+          }
         }
       }
-    `
-  ]
+    `,
+  ],
 })
 export class DialogGerenciarMesasComponent implements OnInit {
-  form!: FormGroup;
+  form!: FormGroup
+  filteredClientes!: Observable<ICliente[]>;
 
   constructor(
     private fb: FormBuilder,
-    public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogGerenciarMesasData
-  ) {}
+    @Inject(MAT_DIALOG_DATA) public data: IDialogGerenciarMesasData,
+    public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>
+  ) {
+    // Remover o X de fechar
+    dialogRef.disableClose = true
+  }
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      numero: [this.data.modo === 'editar' ? this.data.mesa.numero : '', Validators.required],
-      area: [this.data.modo === 'editar' ? this.data.mesa.area : '', Validators.required],
-      capacidade: [this.data.modo === 'editar' ? this.data.mesa.capacidade : null, [Validators.required, Validators.min(1)]],
-      tipo: [this.data.modo === 'editar' ? this.data.mesa.tipo : 'retangular', Validators.required],
-      vip: [this.data.modo === 'editar' ? this.data.mesa.vip : false]
-    });
+      numero: [this.data.modo === "editar" ? this.data.mesa?.numero || "" : "", Validators.required],
+      area: [this.data.modo === "editar" ? this.data.mesa?.area || "" : "", Validators.required],
+      capacidade: [
+        this.data.modo === "editar" ? this.data.mesa?.capacidade || null : null,
+        [Validators.required, Validators.min(1)],
+      ],
+      tipo: [this.data.modo === "editar" ? this.data.mesa?.tipo || "retangular" : "retangular", Validators.required],
+      vip: [this.data.modo === "editar" ? this.data.mesa?.vip || false : false],
+      cliente: [null],
+    })
+
+    this.filteredClientes = this.form.get("cliente")!.valueChanges.pipe(
+      startWith(""),
+      map((value) => (typeof value === "string" ? value : value?.nome || "")),
+      map((nome) => (nome ? this._filter(nome) : this.data.clientesDoDia.slice())),
+    )
+  }
+
+  displayFn(cliente: ICliente): string {
+    return cliente && cliente.nome ? cliente.nome : ""
+  }
+
+  private _filter(nome: string): ICliente[] {
+    const filterValue = nome.toLowerCase()
+    return this.data.clientesDoDia.filter((cliente) => cliente.nome.toLowerCase().includes(filterValue))
   }
 
   cancelar(): void {
-    this.dialogRef.close();
+    this.dialogRef.close()
   }
 
   salvar(): void {
     if (this.form.valid) {
-      this.dialogRef.close({ ...this.form.value, id: this.data.modo === 'editar' ? this.data.mesa.id : undefined }); // Include ID for editing
+      const resultado = {
+        modo: this.data.modo,
+        mesa: {
+          ...this.form.value,
+          id: this.data.modo === "editar" ? this.data.mesa?.id : undefined,
+        },
+      }
+      this.dialogRef.close(resultado)
     }
   }
 }

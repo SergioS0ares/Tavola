@@ -11,6 +11,7 @@
       class="fab-add"
       aria-label="Adicionar item"
       matTooltip="Adicionar novo item ao cardápio"
+      matTooltipClass="tavola-tooltip"
       (click)="adicionar()">
       <mat-icon>add</mat-icon>
     </button>
@@ -42,7 +43,8 @@
                 [checked]="item.disponivel"
                 (change)="toggleDisponibilidade(item)"
                 color="primary"
-                [matTooltip]="item.disponivel ? 'Item disponível' : 'Item indisponível'">
+                [matTooltip]="item.disponivel ? 'Item disponível' : 'Item indisponível'"
+                matTooltipClass="tavola-tooltip">
               </mat-slide-toggle>
             </div>
             <p class="descricao" *ngIf="item.descricao">{{ item.descricao }}</p>
@@ -50,7 +52,8 @@
               <p class="preco">R$ {{ item.preco | number:'1.2-2' }}</p>
             </div>
           </mat-card-content>
-          <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" matTooltip="Mais opções">
+          <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" matTooltip="Mais opções"
+          matTooltipClass="tavola-tooltip">
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu">

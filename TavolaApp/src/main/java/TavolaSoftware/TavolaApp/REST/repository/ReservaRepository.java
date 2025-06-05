@@ -18,10 +18,10 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
         SELECT r FROM Reserva r
         WHERE r.cliente.id = :clienteId
         ORDER BY
-            CASE WHEN :ordem = 'latest' THEN r.dataReserva END DESC, 
-            CASE WHEN :ordem = 'newest' THEN r.dataReserva END ASC, 
-            CASE WHEN :ordem = 'placescrescent' THEN r.quantidadePessoas END ASC, 
-            CASE WHEN :ordem = 'placesdecrescent' THEN r.quantidadePessoas END DESC, 
+            CASE WHEN :ordem = 'latest' THEN r.data END DESC,
+            CASE WHEN :ordem = 'newest' THEN r.data END ASC,
+            CASE WHEN :ordem = 'placescrescent' THEN r.pessoas END ASC,
+            CASE WHEN :ordem = 'placesdecrescent' THEN r.pessoas END DESC,
             CASE WHEN :ordem = 'mesacrescent' THEN r.mesa.nome END ASC,
             CASE WHEN :ordem = 'mesadecrescent' THEN r.mesa.nome END DESC
     """)
@@ -35,10 +35,10 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
         SELECT r FROM Reserva r
         WHERE r.restaurante.id = :restauranteId
         ORDER BY
-            CASE WHEN :ordem = 'latest' THEN r.dataReserva END DESC, 
-            CASE WHEN :ordem = 'newest' THEN r.dataReserva END ASC, 
-            CASE WHEN :ordem = 'placescrescent' THEN r.quantidadePessoas END ASC, 
-            CASE WHEN :ordem = 'placesdecrescent' THEN r.quantidadePessoas END DESC, 
+            CASE WHEN :ordem = 'latest' THEN r.data END DESC,
+            CASE WHEN :ordem = 'newest' THEN r.data END ASC,
+            CASE WHEN :ordem = 'placescrescent' THEN r.pessoas END ASC,
+            CASE WHEN :ordem = 'placesdecrescent' THEN r.pessoas END DESC,
             CASE WHEN :ordem = 'clientcrescent' THEN r.cliente.usuario.nome END ASC,
             CASE WHEN :ordem = 'clientdecrescent' THEN r.cliente.usuario.nome END DESC
     """)

@@ -1,14 +1,10 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.Date;
 import java.util.UUID;
 
-import TavolaSoftware.TavolaApp.tools.StatusReserva;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType; // <<< NOVO IMPORT
-import jakarta.persistence.Enumerated; // <<< NOVO IMPORT
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,33 +28,17 @@ public class Reserva {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
-    @Column(name = "data_reserva", nullable = false)
-    private LocalDate dataReserva;
+    @Column(name = "reserve_establishment", nullable = false)
+    private Date data;
     
-    @Column(name = "hora_reserva", nullable = false)
-    private LocalTime horaReserva;
-
     @ManyToOne
-    @JoinColumn(name = "mesa_id", nullable = true)
+    @JoinColumn(name = "mesa_id", nullable = false)
     private Mesas mesa;
 
-    @Column(name = "quantidade_pessoas", nullable = false)
-    private int quantidadePessoas;
+    @Column(name = "reserve_places", nullable = false)
+    private int pessoas;
 
-    @Column(name = "observacoes", length = 500)
-    private String observacoes;
-
-    // <<< NOVO CAMPO: Status da Reserva >>>
-    @Enumerated(EnumType.STRING) // Grava o nome do enum como string no banco
-    @Column(name = "status", nullable = false)
-    private StatusReserva status;
-
-
-    public Reserva() {
-        this.status = StatusReserva.ATIVA; // Define um status padrão ao criar uma nova reserva
-    }
-
-    // Getters e Setters (incluindo para o novo campo status)
+    // Getters e Setters
     public UUID getId() {
         return id;
     }
@@ -67,12 +47,12 @@ public class Reserva {
         this.id = id;
     }
 
-    public Restaurante getRestaurante() {
-        return restaurante;
+    public Date getData() {
+        return data;
     }
 
-    public void setRestaurante(Restaurante restaurante) {
-        this.restaurante = restaurante;
+    public void setData(Date data) {
+        this.data = data;
     }
 
     public Cliente getCliente() {
@@ -83,20 +63,12 @@ public class Reserva {
         this.cliente = cliente;
     }
 
-    public LocalDate getDataReserva() {
-        return dataReserva;
+    public Restaurante getRestaurante() {
+        return restaurante;
     }
 
-    public void setDataReserva(LocalDate dataReserva) {
-        this.dataReserva = dataReserva;
-    }
-
-    public LocalTime getHoraReserva() {
-        return horaReserva;
-    }
-
-    public void setHoraReserva(LocalTime horaReserva) {
-        this.horaReserva = horaReserva;
+    public void setRestaurante(Restaurante restaurante) {
+        this.restaurante = restaurante;
     }
 
     public Mesas getMesa() {
@@ -107,27 +79,11 @@ public class Reserva {
         this.mesa = mesa;
     }
 
-    public int getQuantidadePessoas() {
-        return quantidadePessoas;
+    public int getPessoas() {
+        return pessoas;
     }
 
-    public void setQuantidadePessoas(int quantidadePessoas) {
-        this.quantidadePessoas = quantidadePessoas;
-    }
-
-    public String getObservacoes() {
-        return observacoes;
-    }
-
-    public void setObservacoes(String observacoes) {
-        this.observacoes = observacoes;
-    }
-
-    public StatusReserva getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusReserva status) {
-        this.status = status;
+    public void setPessoas(int pessoas) {
+        this.pessoas = pessoas;
     }
 }
