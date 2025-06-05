@@ -250,7 +250,7 @@ public class AccessController {
                     restaurante.addMesa(m);
                 });
             }
-            restaurante.setHoraFuncionamento(request.getHoraFuncionamento());
+            restaurante.setHorariosFuncionamento(request.getHoraFuncionamento());
             repoRestaurante.save(restaurante); // Salva o restaurante com as mesas associadas
 
             return ResponseEntity.ok(new LoginResponse(

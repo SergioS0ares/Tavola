@@ -55,7 +55,7 @@ public class RestauranteService {
 
                 // 2. Modifica a lista 'imagens' do DTO para conter APENAS a imagem principal do RESTAURANTE
                 List<String> principalImageOnly = new ArrayList<>();
-                List<String> imagensDoRestaurante = restaurante.getImagem(); // Pega a lista original de imagens do restaurante
+                List<String> imagensDoRestaurante = restaurante.getImagens(); // Pega a lista original de imagens do restaurante
                 
                 if (imagensDoRestaurante != null && !imagensDoRestaurante.isEmpty()) {
                     principalImageOnly.add(imagensDoRestaurante.get(0)); // Adiciona apenas a primeira (principal)
@@ -86,7 +86,7 @@ public class RestauranteService {
         restaurante.setTipoCozinha(request.getTipoCozinha()); 
         
         if (request.getHorariosFuncionamento() != null) {
-            restaurante.setHoraFuncionamento(request.getHorariosFuncionamento()); 
+            restaurante.setHorariosFuncionamento(request.getHorariosFuncionamento()); 
         }
         
         if (request.getNomesServicos() != null && !request.getNomesServicos().isEmpty()) { 
@@ -102,7 +102,7 @@ public class RestauranteService {
         if (request.getImagens() != null && !request.getImagens().isEmpty()) { 
             try {
                 List<String> caminhosImagens = uplUtil.processRestauranteImagens(request.getImagens(), usuarioSalvo.getId()); //
-                restaurante.setImagem(caminhosImagens); // A imagem principal será a primeira aqui
+                restaurante.setImagens(caminhosImagens); // A imagem principal será a primeira aqui
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao processar imagens do restaurante: " + e.getMessage(), e);
             }
@@ -142,7 +142,7 @@ public class RestauranteService {
             restauranteExistente.setTipoCozinha(request.getTipoCozinha()); 
         }
         if (request.getHorariosFuncionamento() != null) { 
-            restauranteExistente.setHoraFuncionamento(request.getHorariosFuncionamento()); 
+            restauranteExistente.setHorariosFuncionamento(request.getHorariosFuncionamento()); 
         }
 
         if (request.getNomesServicos() != null) { 
@@ -160,7 +160,7 @@ public class RestauranteService {
         if (request.getImagens() != null && !request.getImagens().isEmpty()) { 
             try {
                 List<String> caminhosImagens = uplUtil.processRestauranteImagens(request.getImagens(), restauranteExistente.getId()); //
-                restauranteExistente.setImagem(caminhosImagens); // A imagem principal será a primeira
+                restauranteExistente.setImagens(caminhosImagens); // A imagem principal será a primeira
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao processar imagens do restaurante durante atualização: " + e.getMessage(), e);
             }

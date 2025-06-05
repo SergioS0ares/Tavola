@@ -40,7 +40,7 @@ public class RestauranteResponse {
             this.endereco = usuario.getEndereco();
         }
         this.tipoCozinha = restaurante.getTipoCozinha();
-        this.imagens = restaurante.getImagem() != null ? new ArrayList<>(restaurante.getImagem()) : new ArrayList<>();
+        this.imagens = restaurante.getImagens() != null ? new ArrayList<>(restaurante.getImagens()) : new ArrayList<>();
         this.mediaAvaliacao = restaurante.getMediaAvaliacao();
         this.totalDeAvaliacoes = restaurante.getTotalDeAvaliacoes(); // Popular o novo campo
 
@@ -52,8 +52,8 @@ public class RestauranteResponse {
             this.avaliacoes = new ArrayList<>();
         }
 
-        if (restaurante.getHoraFuncionamento() != null) {
-            this.horariosFuncionamento = restaurante.getHoraFuncionamento().stream()
+        if (restaurante.getHorariosFuncionamento() != null) {
+            this.horariosFuncionamento = restaurante.getHorariosFuncionamento().stream()
                                             .map(HorarioFuncionamentoDTO::new)
                                             .collect(Collectors.toList());
         } else {
