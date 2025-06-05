@@ -9,6 +9,4 @@ export interface IReserva {
   pessoas: number;
   status: "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera";
   preferencias: string;
-  oferta?: string;
-  desconto?: string;
 } 

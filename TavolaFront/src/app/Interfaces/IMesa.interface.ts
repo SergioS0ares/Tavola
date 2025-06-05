@@ -7,5 +7,4 @@ export interface IMesa {
   ocupada: boolean;
   reservaId?: string;
   capacidade?: number;
-  cliente?: any; // Para uso opcional em dialogs
 } 
