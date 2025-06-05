@@ -1,27 +1,11 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.Lob; // Importar Lob para campos TEXT
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*; // Import genérico
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 
@@ -30,64 +14,61 @@ import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 public class Restaurante {
 
     @Id
-    // O ID é mapeado a partir do ID do Usuario associado
-    private UUID id;
+    private UUID id; // OK, vem do Usuario via @MapsId
 
     @OneToOne
-    @MapsId // Esta anotação indica que a chave primária desta entidade (id) é também uma chave estrangeira para Usuario.
-    @JoinColumn(name = "usuario_id") // Mapeia para a coluna usuario_id que será a PK e FK.
+    @MapsId
+    @JoinColumn(name = "usuario_id") // OK
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "restaurante",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    private List<Mesas> mesas = new ArrayList<>();
-    
+    @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Mesas> mesas = new ArrayList<>(); // OK
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "restaurante_horarios_funcionamento",
-                     joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"))
+                     joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id")) // OK
     private List<HorarioFuncionamento> horariosFuncionamento = new ArrayList<>();
 
-    @Column(name = "establishment_cuisine_type") // Renomeado para maior clareza, antes "establishment_service"
-    private String tipoCozinha = "Outro"; // Campo para tipo de cozinha já existia
+    @Column(name = "establishment_cuisine_type") // OK, seu tipoCozinha
+    private String tipoCozinha = "Outro";
     
-    @Lob // Recomendado para campos TEXT longos, mais portável que columnDefinition
-    @Column(name = "establishment_description") // <<< NOVO CAMPO: Descrição (Sobre)
+    @Lob
+    @Column(name = "establishment_description") // OK, sua descrição
     private String descricao;
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "restaurante_imagens_urls", joinColumns = @JoinColumn(name = "restaurante_id"))
-    @Column(name = "imagem_url") // Cada URL de imagem será uma linha nesta tabela associada ao restaurante_id
-    private List<String> imagens = new ArrayList<>(); // Alterado para ElementCollection para lista de URLs
+    @CollectionTable(name = "restaurante_imagens_urls", 
+                     joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id")) // << PEQUENO AJUSTE AQUI
+    @Column(name = "imagem_url")
+    private List<String> imagens = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
-    private List<Cardapio> cardapio = new ArrayList<>();
-    
-    @Column(name = "establishment_average_score")
+    private List<Cardapio> cardapio = new ArrayList<>(); // OK
+
+    @Column(name = "establishment_average_score") // OK
     private double mediaAvaliacao = 0;
     
-    @Column(name = "establishment_total_reviews")
+    @Column(name = "establishment_total_reviews") // OK
     private int totalDeAvaliacoes = 0;
 
-    @Column(name = "establishment_id_imagem_repository") // Explicitando o nome da coluna
-    private UUID idImagemRepository; // Este campo se refere a pasta que representará a pasta em que ficará armazenada as imagens de Restaurante
+    @Column(name = "establishment_id_imagem_repository") // OK
+    private UUID idImagemRepository;
     
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Avaliacao> avaliacoes = new ArrayList<>();
+    private List<Avaliacao> avaliacoes = new ArrayList<>(); // OK
     
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "restaurante_servicos_associacao",
-        joinColumns = @JoinColumn(name = "restaurante_id"),
-        inverseJoinColumns = @JoinColumn(name = "servico_id")
+        name = "restaurante_servicos_associacao", // OK
+        joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"), // << PEQUENO AJUSTE AQUI
+        inverseJoinColumns = @JoinColumn(name = "servico_id") // OK
     )
     private Set<Servico> servicos = new HashSet<>();
 
-
-    // Getters e Setters para os campos existentes e novos
-
+    // Getters e Setters (como você os tem)
+    // ... (seus getters e setters estão bons, incluindo os delegados para Usuario) ...
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; } // Setter para ID, usado por @MapsId
+    public void setId(UUID id) { this.id = id; }
 
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
@@ -107,7 +88,6 @@ public class Restaurante {
     public String getTipoCozinha() { return tipoCozinha; }
     public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
 
-    // Getter e Setter para o novo campo descricao
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
 
@@ -154,7 +134,7 @@ public class Restaurante {
     public Set<Servico> getServicos() { return servicos; }
     public void setServicos(Set<Servico> servicos) { this.servicos = servicos; }
 
-    // Métodos delegados para informações do Usuario (conforme já existiam)
+    // Métodos delegados
     public String getEmail() { return usuario != null ? usuario.getEmail() : null; }
     public String getNome() { return usuario != null ? usuario.getNome() : null; }
     public Endereco getEndereco() { return usuario != null ? usuario.getEndereco() : null; }

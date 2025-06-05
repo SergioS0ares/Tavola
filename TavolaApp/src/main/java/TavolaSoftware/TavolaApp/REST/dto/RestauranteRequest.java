@@ -1,87 +1,54 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
 import TavolaSoftware.TavolaApp.tools.Endereco;
-import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento; // Garanta que esta classe tenha getters
+import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 
 import java.util.List;
 import java.util.Set;
 
 public class RestauranteRequest {
     // Campos do Usuario associado
-    private String nomeUsuario; // Nome para o Usuario
-    private String emailUsuario; // Email para o Usuario
-    private String senhaUsuario; // Senha para o Usuario (obrigatório na criação, opcional na atualização)
-    private Endereco enderecoUsuario; // Endereço para o Usuario
+    private String nomeUsuario;
+    private String emailUsuario;
+    private String senhaUsuario;
+    private Endereco enderecoUsuario;
+    private String telefoneUsuario; // <<< NOVO CAMPO
 
     // Campos específicos do Restaurante
     private String tipoCozinha;
-    private List<String> imagens; // Lista de strings Base64 para novas imagens ou URLs de imagens existentes
-    private List<HorarioFuncionamento> horariosFuncionamento; // Lista de objetos HorarioFuncionamento
-    private Set<String> nomesServicos; // Apenas os nomes dos serviços a serem associados/atualizados
+    private String descricao; // <<< NOVO CAMPO
+    private List<String> imagens;
+    private List<HorarioFuncionamento> horariosFuncionamento;
+    private Set<String> nomesServicos;
 
-    // Getters
-    public String getNomeUsuario() {
-        return nomeUsuario;
-    }
+    // Getters e Setters para TODOS os campos...
+    public String getNomeUsuario() { return nomeUsuario; }
+    public void setNomeUsuario(String nomeUsuario) { this.nomeUsuario = nomeUsuario; }
 
-    public String getEmailUsuario() {
-        return emailUsuario;
-    }
+    public String getEmailUsuario() { return emailUsuario; }
+    public void setEmailUsuario(String emailUsuario) { this.emailUsuario = emailUsuario; }
 
-    public String getSenhaUsuario() {
-        return senhaUsuario;
-    }
+    public String getSenhaUsuario() { return senhaUsuario; }
+    public void setSenhaUsuario(String senhaUsuario) { this.senhaUsuario = senhaUsuario; }
 
-    public Endereco getEnderecoUsuario() {
-        return enderecoUsuario;
-    }
+    public Endereco getEnderecoUsuario() { return enderecoUsuario; }
+    public void setEnderecoUsuario(Endereco enderecoUsuario) { this.enderecoUsuario = enderecoUsuario; }
 
-    public String getTipoCozinha() {
-        return tipoCozinha;
-    }
+    public String getTelefoneUsuario() { return telefoneUsuario; } // <<< GETTER
+    public void setTelefoneUsuario(String telefoneUsuario) { this.telefoneUsuario = telefoneUsuario; } // <<< SETTER
 
-    public List<String> getImagens() {
-        return imagens;
-    }
+    public String getTipoCozinha() { return tipoCozinha; }
+    public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
 
-    public List<HorarioFuncionamento> getHorariosFuncionamento() {
-        return horariosFuncionamento;
-    }
+    public String getDescricao() { return descricao; } // <<< GETTER
+    public void setDescricao(String descricao) { this.descricao = descricao; } // <<< SETTER
 
-    public Set<String> getNomesServicos() {
-        return nomesServicos;
-    }
+    public List<String> getImagens() { return imagens; }
+    public void setImagens(List<String> imagens) { this.imagens = imagens; }
 
-    // Setters
-    public void setNomeUsuario(String nomeUsuario) {
-        this.nomeUsuario = nomeUsuario;
-    }
+    public List<HorarioFuncionamento> getHorariosFuncionamento() { return horariosFuncionamento; }
+    public void setHorariosFuncionamento(List<HorarioFuncionamento> horariosFuncionamento) { this.horariosFuncionamento = horariosFuncionamento; }
 
-    public void setEmailUsuario(String emailUsuario) {
-        this.emailUsuario = emailUsuario;
-    }
-
-    public void setSenhaUsuario(String senhaUsuario) {
-        this.senhaUsuario = senhaUsuario;
-    }
-
-    public void setEnderecoUsuario(Endereco enderecoUsuario) {
-        this.enderecoUsuario = enderecoUsuario;
-    }
-
-    public void setTipoCozinha(String tipoCozinha) {
-        this.tipoCozinha = tipoCozinha;
-    }
-
-    public void setImagens(List<String> imagens) {
-        this.imagens = imagens;
-    }
-
-    public void setHorariosFuncionamento(List<HorarioFuncionamento> horariosFuncionamento) {
-        this.horariosFuncionamento = horariosFuncionamento;
-    }
-
-    public void setNomesServicos(Set<String> nomesServicos) {
-        this.nomesServicos = nomesServicos;
-    }
+    public Set<String> getNomesServicos() { return nomesServicos; }
+    public void setNomesServicos(Set<String> nomesServicos) { this.nomesServicos = nomesServicos; }
 }
