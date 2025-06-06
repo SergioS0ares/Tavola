@@ -2,9 +2,9 @@ package TavolaSoftware.TavolaApp.REST.dto;
 
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.model.Usuario; // Importar Usuario
+import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.tools.Endereco;
-import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento; // Para o DTO de Horário
+import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -14,23 +14,23 @@ import java.util.stream.Collectors;
 
 public class RestauranteResponse {
 
-    private UUID id; // Adicionado para identificar o restaurante
+    private UUID id;
     private String nome;
-    private String email; // Do usuário associado
-    private Endereco endereco; // Do usuário associado
+    private String email;
+    private String telefone; // <<< NOVO CAMPO
+    private Endereco endereco;
     private String tipoCozinha;
+    private String descricao; // <<< NOVO CAMPO
     private List<String> imagens;
     private double mediaAvaliacao;
     private int totalDeAvaliacoes;
     private List<SimpleAvaliacaoResponse> avaliacoes;
-    private List<HorarioFuncionamentoDTO> horariosFuncionamento; // DTO para Horário
-    private Set<String> servicos; // Nomes dos serviços
+    private List<HorarioFuncionamentoDTO> horariosFuncionamento;
+    private Set<String> servicos;
 
-    // Construtor padrão
     public RestauranteResponse() {
     }
 
-    // Construtor que aceita a entidade Restaurante
     public RestauranteResponse(Restaurante restaurante) {
         this.id = restaurante.getId();
         if (restaurante.getUsuario() != null) {
@@ -38,11 +38,13 @@ public class RestauranteResponse {
             this.nome = usuario.getNome();
             this.email = usuario.getEmail();
             this.endereco = usuario.getEndereco();
+            this.telefone = usuario.getTelefone(); // <<< ADICIONADO AQUI
         }
         this.tipoCozinha = restaurante.getTipoCozinha();
+        this.descricao = restaurante.getDescricao(); // <<< ADICIONADO AQUI
         this.imagens = restaurante.getImagens() != null ? new ArrayList<>(restaurante.getImagens()) : new ArrayList<>();
         this.mediaAvaliacao = restaurante.getMediaAvaliacao();
-        this.totalDeAvaliacoes = restaurante.getTotalDeAvaliacoes(); // Popular o novo campo
+        this.totalDeAvaliacoes = restaurante.getTotalDeAvaliacoes();
 
         if (restaurante.getAvaliacoes() != null) {
             this.avaliacoes = restaurante.getAvaliacoes().stream()
@@ -62,63 +64,15 @@ public class RestauranteResponse {
         
         if (restaurante.getServicos() != null) {
             this.servicos = restaurante.getServicos().stream()
-                                .map(servico -> servico.getNome()) // Supondo que Servico tem getNome()
+                                .map(servico -> servico.getNome())
                                 .collect(Collectors.toSet());
         } else {
             this.servicos = Set.of();
         }
     }
 
-    // Classe estática interna para representar a avaliação de forma simples
-    public static class SimpleAvaliacaoResponse {
-        private int score;
-        private String comentario;
-        private String nomeCliente; // Para identificar quem avaliou
+    // --- Getters e Setters ---
 
-        public SimpleAvaliacaoResponse(Avaliacao avaliacao) {
-            this.score = avaliacao.getScore(); //
-            this.comentario = avaliacao.getComentario(); //
-            if (avaliacao.getCliente() != null && avaliacao.getCliente().getUsuario() != null) {
-                this.nomeCliente = avaliacao.getCliente().getUsuario().getNome(); //
-            } else {
-                this.nomeCliente = "Anônimo";
-            }
-        }
-
-        // Getters
-        public int getScore() { return score; }
-        public String getComentario() { return comentario; }
-        public String getNomeCliente() { return nomeCliente; }
-    }
-    
-    // Classe estática interna para HorarioFuncionamento
-    public static class HorarioFuncionamentoDTO {
-        private String diaSemana;
-        private String abertura;
-        private String fechamento;
-
-        public HorarioFuncionamentoDTO(HorarioFuncionamento hf) {
-            this.diaSemana = hf.getDiaSemana();
-            this.abertura = hf.getAbertura();
-            this.fechamento = hf.getFechamento();
-        }
-        
-        // Getters
-        public String getDiaSemana() { return diaSemana; }
-        public String getAbertura() { return abertura; }
-        public String getFechamento() { return fechamento; }
-    }
-
-
-    // Getters e Setters para RestauranteResponse
-    public int getTotalDeAvaliacoes() {
-        return totalDeAvaliacoes;
-    }
-
-    public void setTotalDeAvaliacoes(int totalDeAvaliacoes) {
-        this.totalDeAvaliacoes = totalDeAvaliacoes;
-    }
-    
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
@@ -128,17 +82,26 @@ public class RestauranteResponse {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+
     public Endereco getEndereco() { return endereco; }
     public void setEndereco(Endereco endereco) { this.endereco = endereco; }
 
     public String getTipoCozinha() { return tipoCozinha; }
     public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
 
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
     public List<String> getImagens() { return imagens; }
     public void setImagens(List<String> imagens) { this.imagens = imagens; }
 
     public double getMediaAvaliacao() { return mediaAvaliacao; }
     public void setMediaAvaliacao(double mediaAvaliacao) { this.mediaAvaliacao = mediaAvaliacao; }
+
+    public int getTotalDeAvaliacoes() { return totalDeAvaliacoes; }
+    public void setTotalDeAvaliacoes(int totalDeAvaliacoes) { this.totalDeAvaliacoes = totalDeAvaliacoes; }
 
     public List<SimpleAvaliacaoResponse> getAvaliacoes() { return avaliacoes; }
     public void setAvaliacoes(List<SimpleAvaliacaoResponse> avaliacoes) { this.avaliacoes = avaliacoes; }
@@ -148,4 +111,37 @@ public class RestauranteResponse {
 
     public Set<String> getServicos() { return servicos; }
     public void setServicos(Set<String> servicos) { this.servicos = servicos; }
+
+    // ... (as classes internas SimpleAvaliacaoResponse e HorarioFuncionamentoDTO permanecem iguais) ...
+    public static class SimpleAvaliacaoResponse {
+        private int score;
+        private String comentario;
+        private String nomeCliente;
+        public SimpleAvaliacaoResponse(Avaliacao avaliacao) {
+            this.score = avaliacao.getScore();
+            this.comentario = avaliacao.getComentario();
+            if (avaliacao.getCliente() != null && avaliacao.getCliente().getUsuario() != null) {
+                this.nomeCliente = avaliacao.getCliente().getUsuario().getNome();
+            } else {
+                this.nomeCliente = "Anônimo";
+            }
+        }
+        public int getScore() { return score; }
+        public String getComentario() { return comentario; }
+        public String getNomeCliente() { return nomeCliente; }
+    }
+    
+    public static class HorarioFuncionamentoDTO {
+        private String diaSemana;
+        private String abertura;
+        private String fechamento;
+        public HorarioFuncionamentoDTO(HorarioFuncionamento hf) {
+            this.diaSemana = hf.getDiaSemana();
+            this.abertura = hf.getAbertura();
+            this.fechamento = hf.getFechamento();
+        }
+        public String getDiaSemana() { return diaSemana; }
+        public String getAbertura() { return abertura; }
+        public String getFechamento() { return fechamento; }
+    }
 }
