@@ -6,22 +6,23 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "mesas")
+@Table(name = "restaurante_mesas")
 public class Mesa {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (name = "mesa_id")
     private UUID id;
 
-    @Column(name = "nome", nullable = false, length = 50)
+    @Column(name = "nome_mesa", nullable = false, length = 50)
     private String nome;
 
-    @Column(name = "tipo", length = 100)
+    @Column(name = "tipo_mesa", length = 100)
     private String tipo;
 
-    @Column(name = "capacidade", nullable = false)
+    @Column(name = "capacidade_mesa", nullable = false)
     private int capacidade;
 
-    @Column(name = "vip", nullable = false)
+    @Column(name = "vip_mesa", nullable = false)
     private boolean vip;
 
     @ManyToOne(fetch = FetchType.LAZY)

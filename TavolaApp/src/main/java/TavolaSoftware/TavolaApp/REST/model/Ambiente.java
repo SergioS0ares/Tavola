@@ -10,16 +10,17 @@ import java.util.UUID;
  * Cada ambiente contém um conjunto de mesas.
  */
 @Entity
-@Table(name = "ambientes")
+@Table(name = "ambientes_table")
 public class Ambiente {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "ambientes_id")
     private UUID id;
 
-    @Column(name = "nome", nullable = false, length = 100)
+    @Column(name = "nome_ambientes", nullable = false, length = 100)
     private String nome;
 
-    @Column(name = "descricao", columnDefinition = "TEXT")
+    @Column(name = "descricao_ambientes", columnDefinition = "TEXT")
     private String descricao;
 
     // Relacionamento: Um Restaurante pode ter vários Ambientes.
@@ -36,8 +37,8 @@ public class Ambiente {
 
     // Coleção de URLs das imagens do ambiente.
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "ambiente_imagens", joinColumns = @JoinColumn(name = "ambiente_id"))
-    @Column(name = "imagem_url", length = 1000)
+    @CollectionTable(name = "ambiente_imagens", joinColumns = @JoinColumn(name = "ambientes_id"))
+    @Column(name = "imagens_ambientes", length = 1000)
     private List<String> imagens = new ArrayList<>();
 
     // Getters e Setters

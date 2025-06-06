@@ -6,14 +6,15 @@ import TavolaSoftware.TavolaApp.REST.dto.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.REST.model.Servico;
+import TavolaSoftware.TavolaApp.REST.model.Servico; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
+import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import io.jsonwebtoken.Claims;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,8 +25,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashSet; // <<< NOVO IMPORT
+import java.util.List;
+import java.util.Set; // <<< NOVO IMPORT
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -41,23 +45,80 @@ public class AccessController {
     private RestauranteRepository repoRestaurante;
 
     @Autowired
-    private ServicoRepository repoServico;
+    private ServicoRepository repoServico; // <<< INJETAR ServicoRepository
 
     @Autowired
     private JwtUtil jwt;
 
-    // ... métodos login() e refreshToken() permanecem os mesmos ...
+    // ... (método login e refreshToken permanecem os mesmos) ...
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-        //...
-        return null;
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) { 
+        String email = loginRequest.getEmail();
+        String senha = loginRequest.getSenha();
+        Usuario usuario = repo.findByEmail(email);
+
+        if (usuario != null && BCrypt.checkpw(senha, usuario.getSenha())) {
+            String accessToken = jwt.generateAccessToken(usuario.getEmail());
+            String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
+            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshTokenString);
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(false); 
+            refreshTokenCookie.setPath("/auth"); 
+            refreshTokenCookie.setMaxAge(30 * 60 * 60); 
+            response.addCookie(refreshTokenCookie);
+            String tipoUsuarioStr = "";
+            UUID entidadeId = usuario.getId(); 
+            if (usuario.getTipo() == TipoUsuario.CLIENTE) {
+                tipoUsuarioStr = "CLIENTE";
+            } else if (usuario.getTipo() == TipoUsuario.RESTAURANTE) {
+                tipoUsuarioStr = "RESTAURANTE";
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Tipo de usuário não configurado corretamente.");
+            }
+            return ResponseEntity.ok(new LoginResponse(
+                accessToken, null, usuario.getNome(), tipoUsuarioStr, entidadeId, usuario.getEmail()
+            ));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas.");
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
-        //...
-        return null;
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) { 
+        try {
+            String refreshToken = null;
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if (cookie.getName().equals("refreshToken")) {
+                        refreshToken = cookie.getValue();
+                        break; 
+                    }
+                }
+            }
+            if (refreshToken == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token não encontrado no cookie.");
+            }
+            if (!jwt.isTokenValid(refreshToken)) { 
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido ou expirado.");
+            }
+            Claims claims = jwt.parseToken(refreshToken); 
+            String email = claims.getSubject();
+            String idStr = claims.get("id", String.class); 
+            UUID usuarioId = UUID.fromString(idStr);
+            Usuario usuario = repo.findById(usuarioId).orElse(null);
+            if (usuario != null && usuario.getEmail().equals(email)) {
+                String novoAccessToken = jwt.generateAccessToken(usuario.getEmail());
+                String tipoUsuarioStr = usuario.getTipo() == TipoUsuario.CLIENTE ? "CLIENTE" : "RESTAURANTE";
+                return ResponseEntity.ok(new LoginResponse(
+                        novoAccessToken, null, usuario.getNome(), tipoUsuarioStr, usuario.getId(), usuario.getEmail()
+                ));
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado ou dados do token inconsistentes.");
+        } catch (Exception e) { 
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido ou expirado.");
+        }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest request, HttpServletResponse responseHttp) {
@@ -123,8 +184,6 @@ public class AccessController {
             if (request.getDescricao() != null && !request.getDescricao().isBlank()) {
                 restaurante.setDescricao(request.getDescricao());
             }
-
-            // <<< TODA A LÓGICA DE CRIAÇÃO DE MESAS PADRÃO FOI REMOVIDA DAQUI >>>
 
             if (request.getHoraFuncionamento() != null) {
                 restaurante.setHorariosFuncionamento(request.getHoraFuncionamento());

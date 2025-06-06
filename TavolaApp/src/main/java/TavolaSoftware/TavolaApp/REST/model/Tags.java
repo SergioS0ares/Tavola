@@ -13,18 +13,19 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "tags", uniqueConstraints = @UniqueConstraint(columnNames = "tag_name"))
+@Table(name = "tags_table", uniqueConstraints = @UniqueConstraint(columnNames = "nome_tags"))
 public class Tags {
     
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "tags_id")
     private UUID id;
 
-    @Column(name = "tag_name", nullable = false, unique = true, length = 100)
+    @Column(name = "nome_tags", nullable = false, unique = true, length = 100)
     private String tag;
 
     @ManyToMany(mappedBy = "tags")
-    @Column(name = "tag_ref", nullable = false)
+    @Column(name = "referencia_tags", nullable = false)
     private Set<Cardapio> cardapios;
 
     public Tags() {}

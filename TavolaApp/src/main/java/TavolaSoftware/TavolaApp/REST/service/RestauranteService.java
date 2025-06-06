@@ -7,6 +7,7 @@ import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.model.Tags;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
+import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,16 +55,27 @@ public class RestauranteService {
 
     @Autowired
     private BCryptPasswordEncoder encoder;
+    
+ // <<< INJETAR O NOVO SERVIÇO DE RECOMENDAÇÃO >>>
+    @Autowired
+    private RecomendacaoService recomendacaoService;
+    
+    // <<< INJETAR O REPOSITÓRIO DE CLIENTE >>>
+    @Autowired
+    private ClienteRepository clienteRepository;
 
+    
+    
+    
     // === CONSTANTES PARA A PESQUISA POR RELEVÂNCIA ===
     // Ajuste estes valores para calibrar a relevância da sua busca
     private static final double MEDIA_GERAL_AVALIACAO_APP = 3.5;
     private static final int C_CONFIANCA = 10;
     private static final double PESO_FTS_BASE = 0.45;    // Relevância do nome e tipo de cozinha
     private static final double PESO_SERVICOS = 0.10;    // Relevância dos serviços oferecidos
-    private static final double PESO_CARDAPIO = 0.15;    // Relevância do nome dos pratos
+    private static final double PESO_CARDAPIO = 0.20;    // Relevância do nome dos pratos
     private static final double PESO_TAGS = 0.10;        // Relevância das tags dos pratos
-    private static final double PESO_QUALIDADE = 0.20;   // Relevância da avaliação/popularidade
+    private static final double PESO_QUALIDADE = 0.15;   // Relevância da avaliação/popularidade
 
     /**
      * Realiza uma busca completa por restaurantes, ordenando por relevância.
@@ -187,10 +200,61 @@ public class RestauranteService {
         return BigDecimal.valueOf(scorePonderado).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
     
+    /**
+     * Busca restaurantes filtrando pela cidade.
+     * @param cidade O nome da cidade.
+     * @return Uma lista de RestauranteResponse.
+     */
+    @Transactional(readOnly = true)
+    public List<RestauranteResponse> findByCidade(String cidade) {
+        if (cidade == null || cidade.trim().isEmpty()) {
+            return new ArrayList<>(); // Retorna lista vazia se a cidade for nula ou em branco
+        }
+
+        List<Restaurante> restaurantes = repoRestaurante.findByUsuarioEnderecoCidadeIgnoreCase(cidade.trim());
+        
+        // Converte a lista de entidades para uma lista de DTOs de resposta
+        return restaurantes.stream()
+            .map(restaurante -> {
+                // Reutiliza a mesma lógica do seu método findAll para consistência na resposta
+                RestauranteResponse responseDto = new RestauranteResponse(restaurante);
+                List<String> principalImageOnly = new ArrayList<>();
+                List<String> imagensDoRestaurante = restaurante.getImagens();
+                if (imagensDoRestaurante != null && !imagensDoRestaurante.isEmpty()) {
+                    principalImageOnly.add(imagensDoRestaurante.get(0));
+                }
+                responseDto.setImagens(principalImageOnly);
+                return responseDto;
+            })
+            .collect(Collectors.toList());
+    }
+    
+    
+    
     // === MÉTODOS CRUD EXISTENTES (AJUSTADOS) ===
 
+ // === MÉTODO FINDALL MODIFICADO PARA USAR A IA ===
     public List<RestauranteResponse> findAll() {
+        // 1. Busca todos os restaurantes, como antes.
         List<Restaurante> restaurantes = repoRestaurante.findAll();
+        
+        try {
+            // 2. Pega o e-mail do usuário logado
+            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Usuario usuario = repoUsuario.findByEmail(emailUsuarioLogado);
+            
+            // Verifica se o usuário é um cliente para poder ter um perfil
+            if (usuario != null && usuario.getTipo() == TipoUsuario.CLIENTE) {
+                // 3. Pede ao serviço de recomendação para ORDENAR a lista
+                restaurantes = recomendacaoService.ordenarRestaurantesPorRecomendacao(restaurantes, usuario.getId());
+            }
+        } catch (Exception e) {
+            // Se o usuário não estiver logado ou não for um cliente, a lista não será ordenada.
+            // Isso permite que o método funcione para usuários não autenticados ou de outros tipos.
+            System.err.println("Não foi possível ordenar por recomendação: " + e.getMessage());
+        }
+
+        // 4. Mapeia a lista (agora ordenada) para a resposta, como antes.
         return restaurantes.stream()
             .map(restaurante -> {
                 RestauranteResponse responseDto = new RestauranteResponse(restaurante);

@@ -12,7 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "dish_category")
+@Table(name = "restaurante_categoria")
 public class Categoria {
 
     @Id
@@ -20,7 +20,7 @@ public class Categoria {
     @Column(name = "categoria_id")
     private UUID id;
 
-    @Column(name = "nome", nullable = false, length = 500)
+    @Column(name = "nome_categoria", nullable = false, length = 500)
     private String nome;
 
     @ManyToOne

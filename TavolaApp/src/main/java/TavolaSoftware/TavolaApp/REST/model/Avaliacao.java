@@ -13,13 +13,14 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint; // Importe esta classe
 
 @Entity
-@Table(name = "reviewscore_table", uniqueConstraints = {
+@Table(name = "cliente_avaliacao_table", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"cliente_id", "restaurante_id"}) // Garante que a combinação cliente-restaurante seja única
 })
 public class Avaliacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column (name = "avaliacao_id")
     private UUID id; // Essa será sua id
 
     @ManyToOne // Muitas avaliações para um restaurante
@@ -30,10 +31,10 @@ public class Avaliacao {
     @JoinColumn(name = "cliente_id", nullable = false) // Coluna da chave estrangeira para Cliente
     private Cliente cliente;
 
-    @Column(nullable = false)
+    @Column(name = "score_avaliacao", nullable = false)
     private int score;
 
-    @Column(length = 500)
+    @Column(name = "comentario_avaliacao", length = 500)
     private String comentario;
 
     // Construtores (vazio e com todos os campos)

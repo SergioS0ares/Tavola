@@ -15,23 +15,24 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "servicos", uniqueConstraints = @UniqueConstraint(columnNames = "servico_nome")) // Tabela 'servicos'
+@Table(name = "servicos_table", uniqueConstraints = @UniqueConstraint(columnNames = "servico_nome")) // Tabela 'servicos'
 public class Servico { // Renomeado de Tags para Servico
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column (name = "servicos_id")
     private UUID id;
 
-    @Column(name = "servico_nome", nullable = false, unique = true, length = 100)
+    @Column(name = "nome_servicos", nullable = false, unique = true, length = 100)
     private String nome; // Renomeado de 'tag' para 'nome'
 
-    @Column(name = "servico_descricao", length = 255) // Adicione uma descrição opcional
+    @Column(name = "descricao_servicos", length = 255) // Adicione uma descrição opcional
     private String descricao;
 
     // Relacionamento ManyToMany com Restaurante
     // mappedBy indica que a entidade Restaurante é dona do relacionamento
     @ManyToMany(mappedBy = "servicos")
-    private Set<Restaurante> restaurantes = new HashSet<>(); // Para mapear restaurantes que oferecem este serviço
+    private Set<Restaurante> restaurantes = new HashSet<>();
 
     public Servico() {}
 

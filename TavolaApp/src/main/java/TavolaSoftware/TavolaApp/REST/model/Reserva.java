@@ -17,11 +17,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "histroy_table") // O ideal seria renomear esta tabela para "reservas" no futuro (history_table)
+@Table(name = "reserva_table") // O ideal seria renomear esta tabela para "reservas" no futuro (history_table)
 public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "reserva_id")
     private UUID id;
 
     @ManyToOne
@@ -43,14 +44,14 @@ public class Reserva {
     @JoinColumn(name = "mesa_id", nullable = true)
     private Mesa mesa; // <<< MUDANÇA
 
-    @Column(name = "quantidade_pessoas", nullable = false)
+    @Column(name = "pessoas_reserva", nullable = false)
     private int quantidadePessoas;
 
-    @Column(name = "observacoes", length = 500)
+    @Column(name = "observacoes_reserva", length = 500)
     private String observacoes;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status_reserva", nullable = false)
     private StatusReserva status;
 
     public Reserva() {

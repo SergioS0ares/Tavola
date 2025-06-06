@@ -10,7 +10,7 @@ import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 
 @Entity
-@Table(name = "establishment_table")
+@Table(name = "restaurante_table")
 public class Restaurante {
 
     @Id
@@ -30,29 +30,29 @@ public class Restaurante {
                      joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"))
     private List<HorarioFuncionamento> horariosFuncionamento = new ArrayList<>();
 
-    @Column(name = "establishment_cuisine_type")
-    private String tipoCozinha = "Outro";
+    @Column(name = "cozinha_restaurante")
+    private String tipoCozinha;
     
     @Lob
-    @Column(name = "establishment_description")
+    @Column(name = "descricao_restaurante")
     private String descricao;
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "restaurante_imagens_urls", 
+    @CollectionTable(name = "restaurante_imagens", 
                      joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"))
-    @Column(name = "imagem_url")
+    @Column(name = "imagens_restaurante")
     private List<String> imagens = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio = new ArrayList<>();
 
-    @Column(name = "establishment_average_score")
+    @Column(name = "media_avaliacao_restaurante")
     private double mediaAvaliacao = 0;
     
-    @Column(name = "establishment_total_reviews")
+    @Column(name = "total_avaliacao_restaurante")
     private int totalDeAvaliacoes = 0;
 
-    @Column(name = "establishment_id_imagem_repository")
+    @Column(name = "imagens_id_restaurante")
     private UUID idImagemRepository;
     
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -60,7 +60,7 @@ public class Restaurante {
     
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "restaurante_servicos_associacao",
+        name = "restaurante_servicos",
         joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"),
         inverseJoinColumns = @JoinColumn(name = "servico_id")
     )

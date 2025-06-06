@@ -12,39 +12,39 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "user_table")
+@Table(name = "usuario_table")
 public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "user_id")
+    @Column(name = "usuario_id")
     private UUID id;
 
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "nome_usuario", nullable = false)
     private String nome;
 
     @Embedded
     private Endereco endereco;
 
-    @Column(name = "user_email", nullable = false, unique = true)
+    @Column(name = "email_usuario", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "user_password", nullable = false)
+    @Column(name = "senha_usuario", nullable = false)
     private String senha;
 
-    @Column(name = "user_type", nullable = false)
+    @Column(name = "tipo_usuario", nullable = false)
     private TipoUsuario tipo;
 
-    @Column(name = "user_phone") // <<< NOVO CAMPO: Telefone
+    @Column(name = "telefone_usuario") // <<< NOVO CAMPO: Telefone
     private String telefone;
 
-    @Column(name = "user_image")
+    @Column(name = "imagem_usuario")
     private String imagem;
 
-    @Column(name = "user_background_image")
+    @Column(name = "background_usuario")
     private String imagemBackground;
 
-    @Column(name = "user_id_imagem_repository") // Explicitando o nome da coluna
+    @Column(name = "imagem_repositorio_usuario") // Explicitando o nome da coluna
     private UUID idImagem; // Este campo parece ser um identificador para uma imagem num repositório externo
 
     // Getters e Setters
