@@ -1,9 +1,4 @@
 import {
-  CdkScrollableModule,
-  ScrollDispatcher,
-  ViewportRuler
-} from "./chunk-W4FUT5FM.js";
-import {
   isFakeMousedownFromScreenReader,
   isFakeTouchstartFromScreenReader
 } from "./chunk-52CXO2VH.js";
@@ -24,12 +19,17 @@ import {
   _bindEventWithOptions
 } from "./chunk-B5GAWAR3.js";
 import {
-  coerceElement,
-  coerceNumberProperty
-} from "./chunk-HPCFBG3Q.js";
+  CdkScrollableModule,
+  ScrollDispatcher,
+  ViewportRuler
+} from "./chunk-EDUYFCL7.js";
 import {
   Directionality
 } from "./chunk-SLO47O37.js";
+import {
+  coerceElement,
+  coerceNumberProperty
+} from "./chunk-HPCFBG3Q.js";
 import {
   DOCUMENT
 } from "./chunk-O3MZQZIU.js";
@@ -4136,4 +4136,4 @@ export {
   CdkDragHandle,
   CdkDrag
 };
-//# sourceMappingURL=chunk-LB5TRGKY.js.map
+//# sourceMappingURL=chunk-EAKQYTLC.js.map

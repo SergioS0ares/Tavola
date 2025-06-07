@@ -11,11 +11,11 @@ import {
 } from "./chunk-SKGPHRCM.js";
 import "./chunk-37JVYMH4.js";
 import "./chunk-UWI5G4WL.js";
-import "./chunk-HPCFBG3Q.js";
 import {
   BidiModule,
   Directionality
 } from "./chunk-SLO47O37.js";
+import "./chunk-HPCFBG3Q.js";
 import {
   NgTemplateOutlet
 } from "./chunk-GAMILAFO.js";

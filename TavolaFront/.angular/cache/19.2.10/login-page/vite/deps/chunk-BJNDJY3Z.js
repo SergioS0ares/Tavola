@@ -12,7 +12,7 @@ import {
   NzOverlayModule,
   POSITION_MAP,
   getPlacementName
-} from "./chunk-7KDIQXR3.js";
+} from "./chunk-ZEQ5Z5KE.js";
 import {
   NzNoAnimationDirective
 } from "./chunk-RMYNG7YU.js";
@@ -52,7 +52,7 @@ import {
   CdkConnectedOverlay,
   CdkOverlayOrigin,
   OverlayModule
-} from "./chunk-FP636QGB.js";
+} from "./chunk-BDTLI736.js";
 import {
   COMPOSITION_BUFFER_MODE,
   DefaultValueAccessor,
@@ -61,11 +61,6 @@ import {
   NgControlStatus,
   NgModel
 } from "./chunk-2ZAX7M67.js";
-import {
-  CdkFixedSizeVirtualScroll,
-  CdkVirtualForOf,
-  CdkVirtualScrollViewport
-} from "./chunk-W4FUT5FM.js";
 import {
   FocusMonitor
 } from "./chunk-CKIU65T3.js";
@@ -82,11 +77,16 @@ import {
   _getEventTarget
 } from "./chunk-7N4PRWGB.js";
 import {
-  Platform
-} from "./chunk-USHARBCX.js";
+  CdkFixedSizeVirtualScroll,
+  CdkVirtualForOf,
+  CdkVirtualScrollViewport
+} from "./chunk-EDUYFCL7.js";
 import {
   Directionality
 } from "./chunk-SLO47O37.js";
+import {
+  Platform
+} from "./chunk-USHARBCX.js";
 import {
   NgTemplateOutlet
 } from "./chunk-GAMILAFO.js";
@@ -3396,4 +3396,4 @@ export {
   NzSelectComponent,
   NzSelectModule
 };
-//# sourceMappingURL=chunk-T4H5CS2N.js.map
+//# sourceMappingURL=chunk-BJNDJY3Z.js.map

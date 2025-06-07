@@ -23,7 +23,7 @@ import {
   DEFAULT_DATE_PICKER_POSITIONS,
   NzConnectedOverlayDirective,
   NzOverlayModule
-} from "./chunk-7KDIQXR3.js";
+} from "./chunk-ZEQ5Z5KE.js";
 import {
   NzNoAnimationDirective
 } from "./chunk-RMYNG7YU.js";
@@ -73,7 +73,7 @@ import {
 import {
   CdkConnectedOverlay,
   OverlayModule
-} from "./chunk-FP636QGB.js";
+} from "./chunk-BDTLI736.js";
 import {
   DefaultValueAccessor,
   FormsModule,
@@ -88,11 +88,11 @@ import {
   _getEventTarget
 } from "./chunk-7N4PRWGB.js";
 import {
-  Platform
-} from "./chunk-USHARBCX.js";
-import {
   Directionality
 } from "./chunk-SLO47O37.js";
+import {
+  Platform
+} from "./chunk-USHARBCX.js";
 import {
   AsyncPipe,
   DecimalPipe,
@@ -8914,4 +8914,4 @@ export {
   NzYearPickerComponent,
   NzDatePickerModule
 };
-//# sourceMappingURL=chunk-BIOHZPM2.js.map
+//# sourceMappingURL=chunk-NTXYS2RE.js.map

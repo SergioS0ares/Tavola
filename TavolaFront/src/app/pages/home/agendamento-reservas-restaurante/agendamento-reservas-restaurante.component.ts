@@ -360,24 +360,19 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   disabledDate = (current: Date): boolean => {
-    // Desabilitar datas anteriores a hoje
-    return current && current < new Date(new Date().setHours(0, 0, 0, 0))
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (current && current < today) || !this.isDiaHabilitado(current);
   }
 
   // Método para mostrar como chegar - simplificado
   async mostrarComoChegar(): Promise<void> {
     this.carregandoRota = true
-
     try {
-      const restaurantLocation = {
-        lat: this.restaurante?.coordenadas?.latitude || -23.5505,
-        lng: this.restaurante?.coordenadas?.longitude || -46.6333,
-      }
-
-      await this.mapsService.mostrarRotaNoGoogleMaps(restaurantLocation)
+      const destino = this.markerPosition || this.center;
+      await this.mapsService.mostrarRotaNoGoogleMaps(destino)
       this.message.success("Abrindo rota no Google Maps...")
     } catch (error) {
-      console.error("Erro ao abrir rota:", error)
       this.message.error("Erro ao abrir a rota")
     } finally {
       this.carregandoRota = false
@@ -483,24 +478,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
           ? restaurante.servicos.map(s => ({ nome: s, icone: 'check_circle' }))
           : []
         // Centralizar mapa pelo endereço formatado
-        const enderecoStr = this.getEnderecoFormatado()
-        if (enderecoStr) {
-          this.mapsService.getCoordinatesFromAddress(enderecoStr).subscribe({
-            next: coords => {
-              this.center = { lat: coords.lat, lng: coords.lng }
-              this.markerPosition = this.center
-            },
-            error: () => {
-              if (this.restaurante?.coordenadas) {
-                this.center = {
-                  lat: this.restaurante.coordenadas.latitude,
-                  lng: this.restaurante.coordenadas.longitude,
-                }
-                this.markerPosition = this.center
-              }
-            }
-          })
-        }
+        this.atualizarLocalizacaoMapa();
         this.checkIfFavorite()
         this.isLoading = false
         this.spinnerService.ocultar()
@@ -824,7 +802,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     console.log('Componente AgendamentoReservasRestauranteComponent sendo destruído.')
   }
 
-  // Formata o endereço completo para exibição e uso no MapsService
+  // Função para exibir endereço formatado
   getEnderecoFormatado(): string {
     if (!this.restaurante?.endereco) return '';
     const e = this.restaurante.endereco;
@@ -832,24 +810,73 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     return partes.filter(Boolean).join(', ');
   }
 
-  // Exibe o nome do dia da semana em português
+  // Função para exibir endereço resumido (rua, cidade - estado)
+  getEnderecoResumido(): string {
+    if (!this.restaurante?.endereco) return '';
+    const e = this.restaurante.endereco;
+    let partes = [e.rua, e.numero, e.cidade, e.estado];
+    return partes.filter(Boolean).join(', ');
+  }
+
+  // Função para exibir preço médio mock
+  getPrecoMedio(): number {
+    return 80; // valor mock
+  }
+
+  // Função para exibir nome do dia da semana em PT
   getDiaSemanaPt(dia: string): string {
     return this.DIAS_PT[dia] || dia;
   }
 
-  // Descrição formatada para quebra de linha
+  // Função para exibir descrição com quebra de linha
   getDescricaoFormatada(): string {
     return this.restaurante?.descricao || '';
   }
 
-  // Corrigir exibição do total de avaliações
-  getTotalAvaliacoes(): number {
-    return this.restaurante?.totalDeAvaliacoes ?? 0;
+  // Função para desabilitar dias no calendário que não estão em horariosFuncionamento
+  isDiaHabilitado = (date: Date): boolean => {
+    if (!this.horariosFuncionamento || this.horariosFuncionamento.length === 0) return false;
+    const diasApi = this.horariosFuncionamento.map(h => h.diaSemana);
+    const diasSemana = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    const diaApi = diasSemana[date.getDay()];
+    return diasApi.includes(diaApi);
   }
 
   // Ordena os horários de funcionamento por ordem dos dias da semana
   ordenarHorarios(horarios: { diaSemana: string; abertura: string; fechamento: string }[]): any[] {
     const ordem = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
     return horarios.slice().sort((a, b) => ordem.indexOf(a.diaSemana) - ordem.indexOf(b.diaSemana));
+  }
+
+  // Função para agrupar horários por dia e período (almoço/jantar)
+  getHorariosPorDia(): any[] {
+    // Agrupa por diaSemana e retorna todos os períodos daquele dia
+    const diasSemana = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    return diasSemana.map(dia => {
+      const horarios = (this.horariosFuncionamento || []).filter(h => h.diaSemana === dia);
+      return horarios.length > 0 ? { dia, horarios } : null;
+    }).filter(Boolean);
+  }
+
+  // Atualizar localização do mapa após carregar restaurante
+  private atualizarLocalizacaoMapa(): void {
+    const enderecoStr = this.getEnderecoFormatado();
+    if (enderecoStr) {
+      this.mapsService.getCoordinatesFromAddress(enderecoStr).subscribe({
+        next: coords => {
+          this.center = { lat: coords.lat, lng: coords.lng };
+          this.markerPosition = this.center;
+        },
+        error: () => {
+          if (this.restaurante?.coordenadas) {
+            this.center = {
+              lat: this.restaurante.coordenadas.latitude,
+              lng: this.restaurante.coordenadas.longitude,
+            };
+            this.markerPosition = this.center;
+          }
+        }
+      });
+    }
   }
 }

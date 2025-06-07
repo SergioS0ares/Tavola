@@ -32,18 +32,18 @@
     <div class="restaurant-info">
       <div class="info-item">
         <i nz-icon nzType="environment" nzTheme="outline"></i>
-        <span>{{ restaurante?.endereco }}, {{ restaurante?.cidade }} - {{ restaurante?.estado }}</span>
+        <span>{{ getEnderecoResumido() }}</span>
       </div>
       
       <div class="info-item">
         <i nz-icon nzType="flag" nzTheme="outline"></i>
-        <span>{{ restaurante?.tipoCozinha }} · Preço médio {{ restaurante?.precoMedio | currency:'BRL' }}</span>
+        <span>{{ restaurante?.tipoCozinha }} · Preço médio {{ getPrecoMedio() | currency:'BRL' }}</span>
       </div>
       
       <div class="info-item rating">
-        <nz-rate [ngModel]="restaurante?.avaliacao" nzDisabled [nzCount]="5"></nz-rate>
-        <span class="rating-value">{{ restaurante?.avaliacao }}</span>
-        <span class="reviews-count" *ngIf="restaurante?.totalAvaliacoes">({{ restaurante?.totalAvaliacoes }} avaliações)</span>
+        <nz-rate [ngModel]="restaurante?.mediaAvaliacao" nzDisabled [nzCount]="5"></nz-rate>
+        <span class="rating-value">{{ restaurante?.mediaAvaliacao }}</span>
+        <span class="reviews-count" *ngIf="restaurante?.totalDeAvaliacoes">({{ restaurante?.totalDeAvaliacoes }} avaliações)</span>
       </div>
     </div>
   </div>
@@ -101,7 +101,7 @@
         <!-- Descrição do Restaurante -->
         <div class="descricao-section">
           <h2>Sobre o restaurante</h2>
-          <p>{{ restaurante?.descricao }}</p>
+          <p class="descricao-restaurante">{{ getDescricaoFormatada() }}</p>
         </div>
         
         <!-- Localização -->
@@ -109,6 +109,7 @@
           <h2>Localização</h2>
           <div class="mapa-container">
             <google-map 
+              *ngIf="markerPosition"
               [center]="center" 
               [zoom]="zoom" 
               height="300px" 
@@ -123,7 +124,7 @@
           </div>
           <div class="endereco-completo">
             <div class="endereco-copy">
-              <p> <i nz-icon nzType="environment" nzTheme="outline"></i> {{ restaurante?.endereco }}, {{ restaurante?.cidade }} - {{ restaurante?.estado }}, {{ restaurante?.cep }}</p>
+              <p> <i nz-icon nzType="environment" nzTheme="outline"></i> {{ getEnderecoFormatado() }}</p>
               <button 
                 nz-button 
                 nzType="text" 
@@ -156,7 +157,7 @@
             <h3>Horário de funcionamento</h3>
             <div class="horarios-lista">
               <div *ngFor="let horario of horariosFuncionamento.slice(0, 3)" class="horario-item">
-                <span class="dia">{{ horario.dia }}</span>
+                <span class="dia">{{ getDiaSemanaPt(horario.diaSemana) }}</span>
                 <span class="horas">{{ horario.abertura }} - {{ horario.fechamento }}</span>
               </div>
             </div>
@@ -513,7 +514,7 @@
       <p class="horarios-descricao">Verifique a disponibilidade e reserve já a sua mesa para garantir o seu lugar.</p>
       <div class="horarios-lista-completa">
         <div *ngFor="let horario of horariosFuncionamento" class="horario-item">
-          <span class="dia">{{ horario.dia }}</span>
+          <span class="dia">{{ getDiaSemanaPt(horario.diaSemana) }}</span>
           <span class="horas">{{ horario.abertura }} - {{ horario.fechamento }}</span>
         </div>
       </div>

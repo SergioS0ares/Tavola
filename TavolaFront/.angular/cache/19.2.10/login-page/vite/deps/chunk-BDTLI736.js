@@ -10,14 +10,6 @@ import {
   coerceCssPixelValue
 } from "./chunk-37JVYMH4.js";
 import {
-  ScrollDispatcher,
-  ScrollingModule,
-  ViewportRuler
-} from "./chunk-W4FUT5FM.js";
-import {
-  supportsScrollBehavior
-} from "./chunk-IJ3KGSPX.js";
-import {
   ESCAPE,
   _IdGenerator,
   hasModifierKey
@@ -35,12 +27,20 @@ import {
   _bindEventWithOptions
 } from "./chunk-B5GAWAR3.js";
 import {
-  Platform
-} from "./chunk-USHARBCX.js";
+  ScrollDispatcher,
+  ScrollingModule,
+  ViewportRuler
+} from "./chunk-EDUYFCL7.js";
+import {
+  supportsScrollBehavior
+} from "./chunk-IJ3KGSPX.js";
 import {
   BidiModule,
   Directionality
 } from "./chunk-SLO47O37.js";
+import {
+  Platform
+} from "./chunk-USHARBCX.js";
 import {
   Location
 } from "./chunk-GAMILAFO.js";
@@ -2927,4 +2927,4 @@ export {
   CdkConnectedOverlay,
   OverlayModule
 };
-//# sourceMappingURL=chunk-FP636QGB.js.map
+//# sourceMappingURL=chunk-BDTLI736.js.map
