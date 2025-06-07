@@ -13,4 +13,5 @@ export interface ISignupForm {
   rua: FormControl<string>;
   numero: FormControl<string>;
   complemento: FormControl<string>;
+  telefone: FormControl<string>;
 }

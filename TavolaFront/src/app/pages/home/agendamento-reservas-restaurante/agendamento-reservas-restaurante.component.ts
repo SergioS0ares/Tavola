@@ -7,6 +7,7 @@ import {
   HostListener,
   LOCALE_ID,
   OnDestroy,
+  Inject,
 } from "@angular/core"
 import { ActivatedRoute, Router } from "@angular/router"
 import { RestauranteService } from "../../../core/services/restaurante.service"
@@ -18,9 +19,9 @@ import { GoogleMapsModule } from "@angular/google-maps"
 import { GoogleMap } from "@angular/google-maps"
 import localePt from "@angular/common/locales/pt"
 import { GlobalSpinnerService } from "../../../core/services/global-spinner.service"
-import { forkJoin, fromEvent, Subscription } from 'rxjs'
-import { MatTabGroup } from '@angular/material/tabs'
-import { MapMarker } from '@angular/google-maps'
+import { MatCommonModule } from '@angular/material/core';
+import { IRestaurante } from '../../../Interfaces/IRestaurante.interface';
+
 
 // Registrar locale português
 registerLocaleData(localePt)
@@ -144,18 +145,13 @@ const icons: IconDefinition[] = [
   ],
   templateUrl: "./agendamento-reservas-restaurante.component.html",
   styleUrls: ["./agendamento-reservas-restaurante.component.scss"],
-  providers: [
-    { provide: NZ_ICONS, useValue: icons },
-    { provide: NZ_I18N, useValue: pt_BR },
-    { provide: LOCALE_ID, useValue: "pt-BR" },
-  ],
 })
 export class AgendamentoReservasRestauranteComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("tabsContainer") tabsContainer!: ElementRef
   @ViewChild("categoriasScrollContainer") categoriasScrollContainer!: ElementRef
   @ViewChild("categoriasNavContainer") categoriasNavContainer!: ElementRef
 
-  restaurante: any
+  restaurante: IRestaurante | null = null
   isFavorite = false
   isGalleryVisible = false
   isHorariosVisible = false
@@ -215,36 +211,17 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   userLocation: google.maps.LatLngLiteral | null = null
 
   // Imagens principais para a galeria
-  restaurantImages = [
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-  ]
+  restaurantImages: string[] = []
 
   // Todas as imagens para o modal de galeria
   allImages: string[] = []
   totalPhotos = 0
 
   // Horários de funcionamento
-  horariosFuncionamento = [
-    { dia: "Segunda-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Terça-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Quarta-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Quinta-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Sexta-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Sábado", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Domingo", abertura: "12:00", fechamento: "00:00" },
-  ]
+  horariosFuncionamento: { diaSemana: string; abertura: string; fechamento: string }[] = []
 
   // Recursos e serviços
-  recursos = [
-    { nome: "Wi-Fi gratuito", icone: "wifi" },
-    { nome: "Aceita cartões", icone: "credit_card" },
-    { nome: "Acessível para cadeirantes", icone: "accessible" },
-    { nome: "Estacionamento", icone: "local_parking" },
-  ]
+  recursos: { nome: string; icone: string }[] = []
 
   // Propriedades do menu
   itensMenu: any[] = []
@@ -263,7 +240,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   restauranteId!: string
 
   constructor(
-    private route: ActivatedRoute,
+    @Inject(ActivatedRoute) private route: ActivatedRoute,
     private restauranteService: RestauranteService,
     private mapsService: MapsService,
     private message: NzMessageService,
@@ -271,8 +248,33 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private router: Router,
     private spinnerService: GlobalSpinnerService
   ) {}
+  public agendamentoId: string | null = null;
+  public agendamentoDetails: any; // Replace 'any' with a proper interface
+
+  // Dicionário para exibir o nome do dia da semana em português
+  private readonly DIAS_PT: { [key: string]: string } = {
+    'DOMINGO': 'Domingo',
+    'SEGUNDA': 'Segunda-feira',
+    'TERCA': 'Terça-feira',
+    'QUARTA': 'Quarta-feira',
+    'QUINTA': 'Quinta-feira',
+    'SEXTA': 'Sexta-feira',
+    'SABADO': 'Sábado',
+  };
 
   ngOnInit() {
+    this.agendamentoId = this.route.snapshot.paramMap.get('id');
+    if (this.agendamentoId) {
+      // Example: Fetch data using this.agendamentoId and restaurante.service
+      // this.restauranteService.getAgendamentoById(this.agendamentoId).subscribe(details => {
+      //   this.agendamentoDetails = details;
+      // });
+      console.log('Agendamento ID:', this.agendamentoId);
+    } else {
+      console.error('Agendamento ID not found in route parameters.');
+      // Handle missing ID, perhaps navigate away or show an error
+    }
+
     window.scrollTo(0, 0)
     this.selectedDate = new Date()
     this.selectedDate.setHours(0, 0, 0, 0) // Zerando hora para evitar problemas na comparação
@@ -282,7 +284,6 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         this.carregarDadosRestaurante()
       }
     })
-    this.gerarImagens()
     this.carregarItensMenu()
     this.generateAvailableSlots()
   }
@@ -397,7 +398,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     ]
     const dayName = dayNames[dayOfWeek]
 
-    const horario = this.horariosFuncionamento.find((h) => h.dia === dayName)
+    const horario = this.horariosFuncionamento.find((h) => h.diaSemana === dayName)
     if (!horario) {
       this.availableSlots = []
       return
@@ -464,13 +465,42 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   carregarDadosRestaurante(): void {
     this.spinnerService.mostrar(0)
     this.isLoading = true
-
     this.restauranteService.findById(this.restauranteId).subscribe({
-      next: (restaurante: any) => {
+      next: (restaurante: IRestaurante) => {
         this.restaurante = restaurante
-        this.allImages = [...this.restaurantImages]
-        this.totalPhotos = this.allImages.length
-        this.definirDadosEstaticos()
+        // Imagens: garantir pelo menos 4
+        let imgs = restaurante.imagens && restaurante.imagens.length > 0
+          ? restaurante.imagens.map(img => img.startsWith('/') ? img : `/${img}`)
+          : []
+        while (imgs.length < 4) imgs.push('assets/jpg/restauranteModelo.jpg')
+        this.restaurantImages = imgs.slice(0, 5) // até 5 para o botão de galeria
+        this.allImages = [...imgs]
+        this.totalPhotos = imgs.length > 4 ? imgs.length - 4 : 0
+        // Horários de funcionamento ordenados
+        this.horariosFuncionamento = this.ordenarHorarios(restaurante.horariosFuncionamento || [])
+        // Serviços
+        this.recursos = restaurante.servicos && restaurante.servicos.length > 0
+          ? restaurante.servicos.map(s => ({ nome: s, icone: 'check_circle' }))
+          : []
+        // Centralizar mapa pelo endereço formatado
+        const enderecoStr = this.getEnderecoFormatado()
+        if (enderecoStr) {
+          this.mapsService.getCoordinatesFromAddress(enderecoStr).subscribe({
+            next: coords => {
+              this.center = { lat: coords.lat, lng: coords.lng }
+              this.markerPosition = this.center
+            },
+            error: () => {
+              if (this.restaurante?.coordenadas) {
+                this.center = {
+                  lat: this.restaurante.coordenadas.latitude,
+                  lng: this.restaurante.coordenadas.longitude,
+                }
+                this.markerPosition = this.center
+              }
+            }
+          })
+        }
         this.checkIfFavorite()
         this.isLoading = false
         this.spinnerService.ocultar()
@@ -500,7 +530,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   openGallery() {
-    this.isGalleryVisible = true
+    if (this.restaurantImages.length > 4) {
+      this.isGalleryVisible = true
+    }
   }
 
   closeGallery() {
@@ -532,7 +564,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   copiarEndereco(): void {
-    const endereco = `${this.restaurante?.endereco}, ${this.restaurante?.cidade} - ${this.restaurante?.estado}, ${this.restaurante?.cep}`
+    const endereco = this.getEnderecoFormatado()
     if (endereco) {
       navigator.clipboard.writeText(endereco).then(() => {
         this.copiado = true
@@ -772,25 +804,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   definirDadosEstaticos(): void {
-    if (this.restaurante?.endereco) {
-      this.mapsService.getCoordinatesFromAddress(this.restaurante.endereco).subscribe({
-        next: (coords) => {
-          this.center = { lat: coords.lat, lng: coords.lng }
-          this.markerPosition = this.center
-        },
-        error: (err) => {
-          console.error('Geocoding error:', err)
-          if (this.restaurante?.coordenadas) {
-            this.center = {
-              lat: this.restaurante.coordenadas.latitude,
-              lng: this.restaurante.coordenadas.longitude,
-            }
-            this.markerPosition = this.center
-          }
-          this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.')
-        }
-      })
-    } else if (this.restaurante?.coordenadas) {
+    if (this.restaurante?.coordenadas) {
       this.center = {
         lat: this.restaurante.coordenadas.latitude,
         lng: this.restaurante.coordenadas.longitude,
@@ -808,5 +822,34 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   ngOnDestroy(): void {
     console.log('Componente AgendamentoReservasRestauranteComponent sendo destruído.')
+  }
+
+  // Formata o endereço completo para exibição e uso no MapsService
+  getEnderecoFormatado(): string {
+    if (!this.restaurante?.endereco) return '';
+    const e = this.restaurante.endereco;
+    let partes = [e.rua, e.numero, e.bairro, e.cidade, e.estado, e.cep, e.complemento];
+    return partes.filter(Boolean).join(', ');
+  }
+
+  // Exibe o nome do dia da semana em português
+  getDiaSemanaPt(dia: string): string {
+    return this.DIAS_PT[dia] || dia;
+  }
+
+  // Descrição formatada para quebra de linha
+  getDescricaoFormatada(): string {
+    return this.restaurante?.descricao || '';
+  }
+
+  // Corrigir exibição do total de avaliações
+  getTotalAvaliacoes(): number {
+    return this.restaurante?.totalDeAvaliacoes ?? 0;
+  }
+
+  // Ordena os horários de funcionamento por ordem dos dias da semana
+  ordenarHorarios(horarios: { diaSemana: string; abertura: string; fechamento: string }[]): any[] {
+    const ordem = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    return horarios.slice().sort((a, b) => ordem.indexOf(a.diaSemana) - ordem.indexOf(b.diaSemana));
   }
 }

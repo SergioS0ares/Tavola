@@ -12,6 +12,7 @@ import { StickySearchService } from '../../core/services/sticky-search.service';
 import { RouterModule, Router } from '@angular/router';
 import { RestauranteService } from '../../core/services/restaurante.service';
 import { MapsService } from '../../core/services/maps.service';
+import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
 
 @Component({
   selector: 'app-home',
@@ -62,8 +63,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   cidade = 'Paris';
   query = '';
 
-  restaurants: any[] = [];
-  groupedRestaurants: { [cuisine: string]: any[] } = {};
+  restaurants: IRestaurante[] = [];
+  groupedRestaurants: Record<string, IRestaurante[]> = {};
 
   @ViewChild('searchBarHome', { static: false }) searchBarHome!: ElementRef;
   @ViewChild('banner', { static: false }) bannerRef!: ElementRef;
@@ -101,7 +102,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     // Buscar restaurantes do backend
     this.restauranteService.getRestaurantes().subscribe({
       next: (restaurants) => {
-        this.setRestaurants(restaurants);
+        // Para cada restaurante, buscar coordenadas se não houver
+        const coordPromises = restaurants.map(async (r) => {
+          if (!r.coordenadas) {
+            const endereco = `${r.endereco.rua}, ${r.endereco.numero}, ${r.endereco.bairro}, ${r.endereco.cidade} - ${r.endereco.estado}, ${r.endereco.cep}`;
+            try {
+              const coords = await this.mapsService.getCoordinatesFromAddress(endereco).toPromise();
+              if (coords) {
+                r.coordenadas = { latitude: coords.lat, longitude: coords.lng };
+              }
+            } catch {}
+          }
+          return r;
+        });
+        Promise.all(coordPromises).then(rests => {
+          this.setRestaurants(rests);
+        });
       },
       error: (err) => {
         // Pode exibir erro se quiser
@@ -136,25 +152,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.scrollContainers.changes.subscribe((list: QueryList<ElementRef>) => {
-        list.forEach(containerRef => {
-            const cuisine = containerRef.nativeElement.dataset.cuisine;
-            if (cuisine && !containerRef.nativeElement._hasScrollListener) {
-                containerRef.nativeElement.addEventListener('scroll', (event: Event) => this.onRestaurantScroll(event, cuisine));
-                containerRef.nativeElement._hasScrollListener = true;
-            }
-            this.checkScrollArrows(containerRef.nativeElement, cuisine || 'default');
+    if (this.scrollContainers) {
+      this.scrollContainers.changes.subscribe((list: QueryList<ElementRef>) => {
+          list.forEach(containerRef => {
+              const cuisine = containerRef.nativeElement.dataset.cuisine;
+              if (cuisine && !containerRef.nativeElement._hasScrollListener) {
+                  containerRef.nativeElement.addEventListener('scroll', (event: Event) => this.onRestaurantScroll(event, cuisine));
+                  containerRef.nativeElement._hasScrollListener = true;
+              }
+              this.checkScrollArrows(containerRef.nativeElement, cuisine || 'default');
+          });
+          this.cdr.detectChanges();
+      });
+
+      setTimeout(() => {
+        this.scrollContainers.forEach(containerRef => {
+          const cuisine = containerRef.nativeElement.dataset.cuisine;
+          if (cuisine) this.checkScrollArrows(containerRef.nativeElement, cuisine);
         });
         this.cdr.detectChanges();
-    });
-
-    setTimeout(() => {
-      this.scrollContainers.forEach(containerRef => {
-        const cuisine = containerRef.nativeElement.dataset.cuisine;
-        if (cuisine) this.checkScrollArrows(containerRef.nativeElement, cuisine);
-      });
-      this.cdr.detectChanges();
-    }, 0);
+      }, 0);
+    }
   }
 
   ngOnDestroy() {
@@ -172,19 +190,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- CORREÇÃO: Ajustar a lógica do IntersectionObserver ---
   initStickyObserver(elementToObserve: HTMLElement) {
     const observer = new IntersectionObserver(entries => {
-      // isIntersecting é true quando o elemento está visível (seja entrando ou saindo)
-      // Queremos que stickySearch seja true QUANDO o elemento NÃO ESTÁ visível (sumiu da tela)
+     
       this.stickySearch = !entries[0].isIntersecting;
       this.stickyService.setSticky(this.stickySearch);
       this.cdr.detectChanges(); // Força detecção de mudanças
     }, {
-      // rootMargin permite expandir ou encolher a área de observação
-      // '0px 0px -100% 0px' significa que a observação ocorre 100% abaixo do elemento raiz
-      // Isso faz com que isIntersecting seja false quando o elemento está TOTALMENTE acima do viewport
-      // ou totalmente abaixo do viewport.
-      // Para o seu caso, queremos que ele se torne sticky quando a barra de pesquisa original
-      // some da parte superior da tela.
-      // Um threshold de 0.0 (0%) ou uma pequena margem superior negativa pode ser mais adequado.
       threshold: [0, 1] // Observa quando 0% ou 100% do elemento está visível
     });
     observer.observe(elementToObserve);
@@ -215,8 +225,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showQueryDropdown = false;
   }
 
-  public getStarCount(avaliacao: number): number {
-    return Math.round(avaliacao / 2);
+  public getStarCount(r: IRestaurante): number {
+    return Math.round((r.mediaAvaliacao || 0) / 2);
   }
 
   public selectCity(city: string) {
@@ -225,16 +235,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showCityDropdown = false;
   }
 
-  groupRestaurantsByCuisine(restaurants: any[]): { [cuisine: string]: any[] } {
+  groupRestaurantsByCuisine(restaurants: IRestaurante[]): Record<string, IRestaurante[]> {
     if (!Array.isArray(restaurants)) return {};
-    return restaurants.reduce((acc, restaurant) => {
-      const type = restaurant.tipo || 'Outros';
+    return restaurants.reduce((acc: Record<string, IRestaurante[]>, restaurant) => {
+      const type = restaurant.tipoCozinha || 'Outros';
       if (!acc[type]) {
         acc[type] = [];
       }
       acc[type].push(restaurant);
       return acc;
     }, {});
+  }
+
+  formatarEndereco(endereco: IRestaurante['endereco']): string {
+    if (!endereco) return 'Endereço não informado';
+    return `${endereco.rua}, ${endereco.numero} - ${endereco.bairro}, ${endereco.cidade}`;
   }
 
   getCuisineTypes(): string[] {
@@ -284,14 +299,31 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  setRestaurants(restaurants: any[]) {
+  setRestaurants(restaurants: IRestaurante[]) {
     if (JSON.stringify(this.restaurants) !== JSON.stringify(restaurants)) {
       this.restaurants = restaurants;
       this.groupedRestaurants = this.groupRestaurantsByCuisine(restaurants);
     }
   }
 
-  navigateToRestaurante(r: any) {
+  navigateToRestaurante(r: IRestaurante) {
     this.router.navigate(['/home/agendamento-reservas-restaurante', r.id]);
+  }
+
+  getImagemRestaurante(r: IRestaurante): string {
+    if (r.imagens && r.imagens.length > 0 && r.imagens[0]) {
+      return r.imagens[0].startsWith('/') ? 'http://localhost:8080' + r.imagens[0] : r.imagens[0];
+    }
+    return 'assets/jpg/restauranteOsso.jpg';
+  }
+
+  getEnderecoFormatado(r: IRestaurante): string {
+    if (!r.endereco) return 'Endereço não informado';
+    const { rua, numero, bairro, cidade, estado } = r.endereco;
+    return `${rua}, ${numero} - ${bairro}, ${cidade} - ${estado}`;
+  }
+
+  getTotalAvaliacoes(r: IRestaurante): number {
+    return r.totalDeAvaliacoes || 0;
   }
 }

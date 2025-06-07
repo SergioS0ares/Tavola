@@ -35,6 +35,15 @@
           </div>
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Telefone</mat-label>
+              <input matInput formControlName="telefone" mask="(00) 00000-0000">
+              <mat-error *ngIf="clienteForm.get('telefone')?.hasError('required')">
+                Este campo é obrigatório
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>Senha</mat-label>
               <input matInput formControlName="senha" type="password">
               <mat-error *ngIf="clienteForm.get('senha')?.hasError('required')">
@@ -286,8 +295,8 @@
 
         <div class="form-section">
           <h3 class="section-title">Horário de Funcionamento</h3>
-          <div formArrayName="horariosFuncionamento">
-            <div *ngFor="let horario of horariosFuncionamento.controls; let i = index" [formGroupName]="i" class="horario-row-flex">
+          <div formArrayName="horaFuncionamento">
+            <div *ngFor="let horario of horaFuncionamento.controls; let i = index" [formGroupName]="i" class="horario-row-flex">
               <mat-form-field appearance="outline">
                 <mat-label>Dia da Semana</mat-label>
                 <mat-select formControlName="diaSemana">
@@ -302,7 +311,7 @@
                 <mat-label>Fechamento</mat-label>
                 <input matInput type="time" formControlName="fechamento">
               </mat-form-field>
-              <button mat-icon-button color="warn" (click)="removeHorario(i)" *ngIf="horariosFuncionamento.length > 1">
+              <button mat-icon-button color="warn" (click)="removeHorario(i)" *ngIf="horaFuncionamento.length > 1">
                 <mat-icon>delete</mat-icon>
               </button>
             </div>
