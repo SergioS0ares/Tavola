@@ -12,7 +12,6 @@ import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
-import TavolaSoftware.TavolaApp.REST.model.Mesas;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import io.jsonwebtoken.Claims;
@@ -77,7 +76,7 @@ public class AccessController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Tipo de usuário não configurado corretamente.");
             }
             return ResponseEntity.ok(new LoginResponse(
-                accessToken, null, usuario.getNome(), tipoUsuarioStr, entidadeId, usuario.getEmail()
+                accessToken, usuario.getNome(), tipoUsuarioStr, entidadeId, usuario.getEmail()
             ));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas.");
@@ -110,7 +109,7 @@ public class AccessController {
                 String novoAccessToken = jwt.generateAccessToken(usuario.getEmail());
                 String tipoUsuarioStr = usuario.getTipo() == TipoUsuario.CLIENTE ? "CLIENTE" : "RESTAURANTE";
                 return ResponseEntity.ok(new LoginResponse(
-                        novoAccessToken, null, usuario.getNome(), tipoUsuarioStr, usuario.getId(), usuario.getEmail()
+                        novoAccessToken, usuario.getNome(), tipoUsuarioStr, usuario.getId(), usuario.getEmail()
                 ));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado ou dados do token inconsistentes.");
@@ -125,16 +124,15 @@ public class AccessController {
     public ResponseEntity<?> register(@RequestBody RegistroRequest request, HttpServletResponse responseHttp) {
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
+        // Validações...
         handler.checkEmptyStrting("nome", request.getNome());
         handler.checkEmptyStrting("email", request.getEmail());
         handler.checkEmptyStrting("senha", request.getSenha());
         handler.checkEmptyObject("endereco", request.getEndereco());
         handler.checkEmptyObject("tipo", request.getTipo());
-        // Adicionar validação para telefone se for obrigatório
         if (request.getTelefone() == null || request.getTelefone().isBlank()) {
             handler.checkCondition("O campo 'telefone' é obrigatório.", true);
         }
-
         if (repo.findByEmail(request.getEmail()) != null) {
             handler.checkCondition("O e-mail informado já está em uso.", true);
         }
@@ -150,11 +148,11 @@ public class AccessController {
         usuario.setSenha(senhaCriptografada);
         usuario.setEndereco(request.getEndereco());
         usuario.setTipo(request.getTipo());
-        usuario.setTelefone(request.getTelefone()); // <<< SALVAR TELEFONE NO USUARIO
+        usuario.setTelefone(request.getTelefone());
         
-        // Salva o usuário ANTES de tentar usá-lo para imagens ou outras associações
         usuario = repo.save(usuario); 
 
+        // Geração de Tokens...
         String accessToken = jwt.generateAccessToken(usuario.getEmail());
         String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
 
@@ -171,55 +169,31 @@ public class AccessController {
             repoClient.save(cliente);
             
             return ResponseEntity.ok(new LoginResponse(
-                    accessToken, null, usuario.getNome(), "CLIENTE", usuario.getId(), usuario.getEmail()
+                    accessToken, usuario.getNome(), "CLIENTE", usuario.getId(), usuario.getEmail()
             ));
 
         } else { // TipoUsuario.RESTAURANTE
             Restaurante restaurante = new Restaurante();
             restaurante.setUsuario(usuario);
             
-            // <<< SETAR TIPO DE COZINHA E DESCRIÇÃO >>>
             if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) {
                 restaurante.setTipoCozinha(request.getTipoCozinha());
             } else {
-                restaurante.setTipoCozinha("Outro"); // Ou deixe nulo se a entidade permitir e não tiver valor padrão
+                restaurante.setTipoCozinha("Outro");
             }
             if (request.getDescricao() != null && !request.getDescricao().isBlank()) {
                 restaurante.setDescricao(request.getDescricao());
             }
 
-            // Lógica de Mesas (como você já tinha)
-            List<Mesas> mesas = request.getMesas();
-            if ((mesas == null || mesas.isEmpty()) && request.getQuantidadeMesas() != null && request.getQuantidadeMesas() > 0) {
-                Mesas padrao = new Mesas();
-                padrao.setNome("Área Principal"); // Nome mais descritivo
-                padrao.setDescricao("Mesas na área principal do restaurante");
-                padrao.setImagem(new ArrayList<>()); // Lista vazia se não houver imagem
-                padrao.setQuantidadeTotal(request.getQuantidadeMesas());
-                padrao.setQuantidadeDisponivel(request.getQuantidadeMesas());
-                padrao.setDisponivel(1);
-                mesas = List.of(padrao);
-            }
-            if (mesas != null && !mesas.isEmpty()) {
-            	mesas.forEach(m -> {
-                    m.setRestaurante(restaurante); 
-                    // restaurante.addMesa(m); // Se o Restaurante.setMesas já cuida disso, não precisa do addMesa individual
-                });
-                restaurante.setMesas(mesas); // Usa o setter que gerencia a bidirecionalidade
-            }
-
-            // Horários de Funcionamento (como você já tinha)
             if (request.getHoraFuncionamento() != null) {
                 restaurante.setHorariosFuncionamento(request.getHoraFuncionamento());
             }
 
-            // <<< PROCESSAR NOMES DE SERVIÇOS >>>
             if (request.getNomesServicos() != null && !request.getNomesServicos().isEmpty()) {
                 Set<Servico> servicosParaAssociar = new HashSet<>();
                 for (String nomeServico : request.getNomesServicos()) {
-                    // Busca o serviço pelo nome, ou cria um novo se não existir
                     Servico serv = repoServico.findByNome(nomeServico)
-                                    .orElseGet(() -> repoServico.save(new Servico(nomeServico, ""))); // Salva o novo serviço
+                                    .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
                     servicosParaAssociar.add(serv);
                 }
                 restaurante.setServicos(servicosParaAssociar);
@@ -228,7 +202,7 @@ public class AccessController {
             repoRestaurante.save(restaurante); 
 
             return ResponseEntity.ok(new LoginResponse(
-                    accessToken, null, usuario.getNome(), "RESTAURANTE", usuario.getId(), usuario.getEmail()
+                    accessToken, usuario.getNome(), "RESTAURANTE", usuario.getId(), usuario.getEmail()
             ));
         }
     }

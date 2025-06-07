@@ -37,9 +37,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",    
                     "/swagger-ui/**",    
                     "/swagger-ui.html",  
-                    "/upl/**" //,  // Path para uploads de cardápios já estava como permitAll
-//                    "/upl/restaurante/**",
-//                    "/upl/cliente/**"
+                    "/upl/**" 
                 ).permitAll() 
                 .anyRequest().authenticated() 
             )

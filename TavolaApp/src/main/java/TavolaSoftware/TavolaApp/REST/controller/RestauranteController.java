@@ -36,7 +36,33 @@ public class RestauranteController {
     @Autowired
     private UsuarioRepository usuarioRepository; // <<< INJETAR UsuarioRepository
 
-    // === NOVO ENDPOINT DE PESQUISA ===
+    
+
+    // === NOVO ENDPOINT DE PESQUISA POR CIDADE ===
+    @GetMapping("/por-cidade")
+    public ResponseEntity<?> findByCity(@RequestParam String cidade) {
+        // Validação de permissão (consistente com o endpoint /pesquisar)
+        String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+
+        if (usuarioLogado == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado ou não encontrado."));
+        }
+        if (usuarioLogado.getTipo() != TipoUsuario.CLIENTE) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                 .body(Map.of("erro", "Apenas clientes podem realizar esta busca."));
+        }
+        
+        // Validação do parâmetro de entrada
+        if (cidade == null || cidade.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                 .body(Map.of("erro", "O parâmetro 'cidade' não pode ser vazio."));
+        }
+
+        List<RestauranteResponse> resultados = servRestaurante.findByCidade(cidade.trim());
+        return ResponseEntity.ok(resultados);
+    }
+    // === NOVO ENDPOINT DE PESQUISA ===    
     @GetMapping("/pesquisar")
     public ResponseEntity<?> pesquisarRestaurantes(
             @RequestParam String termo,
@@ -65,6 +91,9 @@ public class RestauranteController {
         return ResponseEntity.ok(resultados);
     }
 
+    
+    
+    
     // === SEUS MÉTODOS EXISTENTES (mantidos como no seu arquivo RestauranteController versão 1) ===
     @GetMapping("/self")
     public ResponseEntity<RestauranteResponse> findSelf() { //

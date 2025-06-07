@@ -16,44 +16,44 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "menu_establishment")
+@Table(name = "restaurante_cardapio")
 public class Cardapio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "dish_id")
+    @Column(name = "cardapio_id")
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "categoria_id", nullable = false)
+    @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
-    @Column(name = "dish_available")
+    @Column(name = "disponivel_cardapio")
     private boolean disponivel;
 
-    @Column(name = "dish_name", nullable = false, length = 500)
+    @Column(name = "nome_cardapio", nullable = false, length = 500)
     private String nome;
 
-    @Column(name = "dish_value")
+    @Column(name = "valor_cardapio")
     private Double preco;
 
-    @Column(name = "dish_image", length = 1000)
+    @Column(name = "imagem_cardapio", length = 1000)
     private String imagem;
 
     @Lob
-    @Column(name = "dish_description")
+    @Column(name = "descricao_cardapio")
     private String descricao;
 
     @ManyToMany
     @JoinTable(
-        name = "dish_tags",
-        joinColumns = @JoinColumn(name = "dish_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
+        name = "tags_cardapio",
+        joinColumns = @JoinColumn(name = "cardapio_id"),
+        inverseJoinColumns = @JoinColumn(name = "tags_id")
     )
     private Set<Tags> tags;
 
     @ManyToOne
-    @JoinColumn(name = "establishment_id", nullable = false)
+    @JoinColumn(name = "restaurante_id", nullable = false)
     private Restaurante restaurante;	 
 
     public UUID getId() {
