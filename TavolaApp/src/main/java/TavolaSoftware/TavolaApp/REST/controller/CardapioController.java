@@ -29,16 +29,8 @@ public class CardapioController {
     private CardapioService serv;
 
     @Autowired
-    private CategoriaService categoriaServ;
-
-    @Autowired
-    private TagsService tagsServ;
-
-    @Autowired
     private RestauranteService restauranteServ;
 
-    @Autowired
-    private UploadUtils uplUtil;
 
     // GET - self
     @GetMapping 
@@ -50,12 +42,21 @@ public class CardapioController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/disponiveis") 
-    public ResponseEntity<List<CardapioResponse>> findAllSelfByDisponivel() {
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteServ.getByEmail(email);
-        List<Cardapio> cardapios = serv.findAllByDisponivel(restaurante.getId());
-        List<CardapioResponse> response = cardapios.stream().map(CardapioResponse::new).collect(Collectors.toList());
+    /**
+     * Endpoint PÚBLICO para um CLIENTE ver os itens disponíveis no cardápio de um restaurante específico.
+     * @param restauranteId O ID do restaurante a ser consultado (vindo da URL).
+     * @return Uma lista de itens de cardápio disponíveis.
+     */
+    @GetMapping("/disponiveis/{restauranteId}")
+    public ResponseEntity<List<CardapioResponse>> findAllByDisponivel(@PathVariable UUID restauranteId) {
+        // 1. A lógica agora usa o 'restauranteId' que vem diretamente da URL.
+        List<Cardapio> cardapios = serv.findAllByDisponivel(restauranteId);
+
+        // 2. O restante da lógica para converter o resultado para o DTO de resposta permanece o mesmo.
+        List<CardapioResponse> response = cardapios.stream()
+                                                    .map(CardapioResponse::new)
+                                                    .collect(Collectors.toList());
+                                                    
         return ResponseEntity.ok(response);
     }
 
