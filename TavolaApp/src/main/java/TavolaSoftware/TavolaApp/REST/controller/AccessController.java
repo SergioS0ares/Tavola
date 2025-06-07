@@ -76,7 +76,7 @@ public class AccessController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Tipo de usuário não configurado corretamente.");
             }
             return ResponseEntity.ok(new LoginResponse(
-                accessToken, null, usuario.getNome(), tipoUsuarioStr, entidadeId, usuario.getEmail()
+                accessToken, usuario.getNome(), tipoUsuarioStr, entidadeId, usuario.getEmail()
             ));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas.");
@@ -109,7 +109,7 @@ public class AccessController {
                 String novoAccessToken = jwt.generateAccessToken(usuario.getEmail());
                 String tipoUsuarioStr = usuario.getTipo() == TipoUsuario.CLIENTE ? "CLIENTE" : "RESTAURANTE";
                 return ResponseEntity.ok(new LoginResponse(
-                        novoAccessToken, null, usuario.getNome(), tipoUsuarioStr, usuario.getId(), usuario.getEmail()
+                        novoAccessToken, usuario.getNome(), tipoUsuarioStr, usuario.getId(), usuario.getEmail()
                 ));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado ou dados do token inconsistentes.");
@@ -169,7 +169,7 @@ public class AccessController {
             repoClient.save(cliente);
             
             return ResponseEntity.ok(new LoginResponse(
-                    accessToken, null, usuario.getNome(), "CLIENTE", usuario.getId(), usuario.getEmail()
+                    accessToken, usuario.getNome(), "CLIENTE", usuario.getId(), usuario.getEmail()
             ));
 
         } else { // TipoUsuario.RESTAURANTE
@@ -202,7 +202,7 @@ public class AccessController {
             repoRestaurante.save(restaurante); 
 
             return ResponseEntity.ok(new LoginResponse(
-                    accessToken, null, usuario.getNome(), "RESTAURANTE", usuario.getId(), usuario.getEmail()
+                    accessToken, usuario.getNome(), "RESTAURANTE", usuario.getId(), usuario.getEmail()
             ));
         }
     }
