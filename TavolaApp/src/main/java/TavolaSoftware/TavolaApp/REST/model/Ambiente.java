@@ -20,8 +20,7 @@ public class Ambiente {
     @Column(name = "nome_ambientes", nullable = false, length = 100)
     private String nome;
 
-    @Column(name = "descricao_ambientes", columnDefinition = "TEXT")
-    private String descricao;
+    // removemos a descrição
 
     // Relacionamento: Um Restaurante pode ter vários Ambientes.
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,12 +34,8 @@ public class Ambiente {
     @OneToMany(mappedBy = "ambiente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Mesa> mesas = new ArrayList<>();
 
-    // Coleção de URLs das imagens do ambiente.
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "ambiente_imagens", joinColumns = @JoinColumn(name = "ambientes_id"))
-    @Column(name = "imagens_ambientes", length = 1000)
-    private List<String> imagens = new ArrayList<>();
-
+    // removemos a imagem
+    
     // Getters e Setters
     public UUID getId() {
         return id;
@@ -58,14 +53,6 @@ public class Ambiente {
         this.nome = nome;
     }
 
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
     public Restaurante getRestaurante() {
         return restaurante;
     }
@@ -80,13 +67,5 @@ public class Ambiente {
 
     public void setMesas(List<Mesa> mesas) {
         this.mesas = mesas;
-    }
-
-    public List<String> getImagens() {
-        return imagens;
-    }
-
-    public void setImagens(List<String> imagens) {
-        this.imagens = imagens;
     }
 }

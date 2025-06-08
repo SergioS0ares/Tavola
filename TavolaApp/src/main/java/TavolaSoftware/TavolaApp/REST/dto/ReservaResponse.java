@@ -1,11 +1,14 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.tools.StatusReserva;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ReservaResponse {
     private UUID id;
@@ -17,49 +20,37 @@ public class ReservaResponse {
     private String observacoes;
     private UUID idCliente;
     private UUID idRestaurante;
-    private String nomeMesa;
-    private StatusReserva status; // <<< NOVO CAMPO
+    private List<String> nomesMesas; // <<< CAMPO ATUALIZADO
+    private StatusReserva status;
 
     public ReservaResponse() {}
-
-    // Construtor para uso geral (opcional, se o construtor de entidade for suficiente)
-    public ReservaResponse(UUID id, LocalDate data, LocalTime hora, int quantidadePessoas, String nomeCliente, String nomeRestaurante, String observacoes, UUID idCliente, UUID idRestaurante, String nomeMesa, StatusReserva status) {
-        this.id = id;
-        this.data = data;
-        this.hora = hora;
-        this.pessoas = quantidadePessoas;
-        this.cliente = nomeCliente;
-        this.restaurante = nomeRestaurante;
-        this.observacoes = observacoes;
-        this.idCliente = idCliente;
-        this.idRestaurante = idRestaurante;
-        this.nomeMesa = nomeMesa;
-        this.status = status;
-    }
 
     public ReservaResponse(Reserva reserva) {
         this.id = reserva.getId();
         this.data = reserva.getDataReserva();
         this.hora = reserva.getHoraReserva();
         this.pessoas = reserva.getQuantidadePessoas();
+        this.status = reserva.getStatus();
+        this.observacoes = reserva.getObservacoes();
+
         if (reserva.getCliente() != null && reserva.getCliente().getUsuario() != null) {
             this.cliente = reserva.getCliente().getUsuario().getNome();
             this.idCliente = reserva.getCliente().getId();
         }
         if (reserva.getRestaurante() != null && reserva.getRestaurante().getUsuario() != null) {
-            this.restaurante = reserva.getRestaurante().getUsuario().getNome(); // Nome do usuário do restaurante
+            this.restaurante = reserva.getRestaurante().getUsuario().getNome();
             this.idRestaurante = reserva.getRestaurante().getId();
         }
-        this.observacoes = reserva.getObservacoes();
-        if (reserva.getMesa() != null) {
-            this.nomeMesa = reserva.getMesa().getNome();
-        } else {
-            this.nomeMesa = null;
+        
+        // <<< LÓGICA ATUALIZADA PARA LISTA DE MESAS >>>
+        if (reserva.getMesas() != null && !reserva.getMesas().isEmpty()) {
+            this.nomesMesas = reserva.getMesas().stream()
+                                     .map(Mesa::getNome) // Supondo que Mesa tem um getNome()
+                                     .collect(Collectors.toList());
         }
-        this.status = reserva.getStatus(); // <<< ADICIONADO MAPEAMENTO DO STATUS
     }
 
-    // Getters e Setters (incluindo para status)
+    // Getters e Setters
 
     public UUID getId() {
         return id;
@@ -132,13 +123,13 @@ public class ReservaResponse {
     public void setIdRestaurante(UUID idRestaurante) {
         this.idRestaurante = idRestaurante;
     }
-    
-    public String getNomeMesa() {
-        return nomeMesa;
+
+    public List<String> getNomesMesas() {
+        return nomesMesas;
     }
 
-    public void setNomeMesa(String nomeMesa) {
-        this.nomeMesa = nomeMesa;
+    public void setNomesMesas(List<String> nomesMesas) {
+        this.nomesMesas = nomesMesas;
     }
 
     public StatusReserva getStatus() {

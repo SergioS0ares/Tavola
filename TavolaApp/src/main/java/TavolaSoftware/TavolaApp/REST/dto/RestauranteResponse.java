@@ -17,10 +17,10 @@ public class RestauranteResponse {
     private UUID id;
     private String nome;
     private String email;
-    private String telefone; // <<< NOVO CAMPO
+    private String telefone;
     private Endereco endereco;
     private String tipoCozinha;
-    private String descricao; // <<< NOVO CAMPO
+    private String descricao;
     private List<String> imagens;
     private double mediaAvaliacao;
     private int totalDeAvaliacoes;
@@ -28,6 +28,10 @@ public class RestauranteResponse {
     private List<HorarioFuncionamentoDTO> horariosFuncionamento;
     private Set<String> servicos;
 
+    // >>> NOVOS CAMPOS ADICIONADOS <<<
+    private boolean favorito;
+    private double valorMedioPorPessoa;
+    
     public RestauranteResponse() {
     }
 
@@ -72,6 +76,12 @@ public class RestauranteResponse {
     }
 
     // --- Getters e Setters ---
+    
+    public boolean isFavorito() {return favorito;}
+    public void setFavorito(boolean favorito) {this.favorito = favorito;}
+
+    public double getValorMedioPorPessoa() {return valorMedioPorPessoa;}
+    public void setValorMedioPorPessoa(double valorMedioPorPessoa) {this.valorMedioPorPessoa = valorMedioPorPessoa;}
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

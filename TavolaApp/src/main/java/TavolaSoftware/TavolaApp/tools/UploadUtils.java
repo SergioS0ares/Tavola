@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -115,33 +116,6 @@ public class UploadUtils {
         return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo; //
     }
 
-    /**
-     * Processa uma lista de imagens (Base64 ou URLs existentes) para um Ambiente.
-     * Salva as novas imagens em disco e retorna a lista de URLs atualizada.
-     * @param ambiente O ambiente cujas imagens estão sendo processadas.
-     * @param restauranteId O ID do restaurante ao qual o ambiente pertence.
-     * @return Uma lista de strings com os caminhos relativos para as imagens.
-     * @throws IOException Se ocorrer um erro ao salvar os arquivos.
-     */
-    public List<String> processAmbienteImagens(Ambiente ambiente, UUID restauranteId) throws IOException { // <<< MÉTODO RENOMEADO E ATUALIZADO
-        List<String> caminhosImagens = new ArrayList<>();
-        // Define uma estrutura de pasta clara para as imagens do ambiente
-        String pasta = "upl/ambientes/" + restauranteId + "/" + ambiente.getId(); // <<< CAMINHO ATUALIZADO
-        
-        for (String imagem : ambiente.getImagens()) { // Itera sobre as imagens do ambiente
-            if (isBase64Image(imagem)) {
-            	String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-                // Adiciona o caminho completo e padronizado
-            	caminhosImagens.add("/upl/ambientes/" + restauranteId + "/" + ambiente.getId() + "/" + nomeArquivo);
-            } else if (imagem != null && !imagem.isEmpty()) {
-                // Mantém a URL da imagem se ela já for um caminho e não um Base64
-                caminhosImagens.add(imagem);
-            }
-        }
-        
-        return caminhosImagens;
-    }
-
     public String processCardapioImagem(String imagem, UUID restauranteId, UUID cardapioId) throws IOException {
         if (!isBase64Image(imagem)) {
             throw new IOException("A string fornecida não é uma imagem Base64 válida");
@@ -152,6 +126,25 @@ public class UploadUtils {
         return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo; //
     }
 
+    /**
+     * Deleta um diretório e todo o seu conteúdo recursivamente.
+     * @param caminhoPasta O caminho para a pasta a ser deletada.
+     */
+    public void deletarPasta(String caminhoPasta) {
+        Path diretorio = Paths.get(caminhoPasta);
+        if (Files.exists(diretorio)) {
+            try {
+                Files.walk(diretorio)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+                System.out.println("Pasta deletada com sucesso: " + caminhoPasta);
+            } catch (IOException e) {
+                System.err.println("Erro ao deletar a pasta " + caminhoPasta + ": " + e.getMessage());
+            }
+        }
+    }
+    
     public void removeOrfans(String pasta, Set<String> arquivosParaManter) {
         File directory = new File(pasta);
         if (directory.exists() && directory.isDirectory()) {
