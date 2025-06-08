@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -152,6 +153,25 @@ public class UploadUtils {
         return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo; //
     }
 
+    /**
+     * Deleta um diretório e todo o seu conteúdo recursivamente.
+     * @param caminhoPasta O caminho para a pasta a ser deletada.
+     */
+    public void deletarPasta(String caminhoPasta) {
+        Path diretorio = Paths.get(caminhoPasta);
+        if (Files.exists(diretorio)) {
+            try {
+                Files.walk(diretorio)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+                System.out.println("Pasta deletada com sucesso: " + caminhoPasta);
+            } catch (IOException e) {
+                System.err.println("Erro ao deletar a pasta " + caminhoPasta + ": " + e.getMessage());
+            }
+        }
+    }
+    
     public void removeOrfans(String pasta, Set<String> arquivosParaManter) {
         File directory = new File(pasta);
         if (directory.exists() && directory.isDirectory()) {

@@ -502,7 +502,13 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
     @Transactional
     public void deleteById(UUID id) {
         if (repoRestaurante.existsById(id)) {
+            // Deleta a entidade do banco
             repoRestaurante.deleteById(id);
+            
+            // Deleta a pasta de imagens associada
+            String pastaImagens = "upl/restaurantes/" + id.toString();
+            uplUtil.deletarPasta(pastaImagens);
+            
         } else {
             throw new RuntimeException("Restaurante não encontrado para deleção com ID: " + id);
         }
