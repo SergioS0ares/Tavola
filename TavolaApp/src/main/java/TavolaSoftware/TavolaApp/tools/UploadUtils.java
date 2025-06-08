@@ -116,33 +116,6 @@ public class UploadUtils {
         return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo; //
     }
 
-    /**
-     * Processa uma lista de imagens (Base64 ou URLs existentes) para um Ambiente.
-     * Salva as novas imagens em disco e retorna a lista de URLs atualizada.
-     * @param ambiente O ambiente cujas imagens estão sendo processadas.
-     * @param restauranteId O ID do restaurante ao qual o ambiente pertence.
-     * @return Uma lista de strings com os caminhos relativos para as imagens.
-     * @throws IOException Se ocorrer um erro ao salvar os arquivos.
-     */
-    public List<String> processAmbienteImagens(Ambiente ambiente, UUID restauranteId) throws IOException { // <<< MÉTODO RENOMEADO E ATUALIZADO
-        List<String> caminhosImagens = new ArrayList<>();
-        // Define uma estrutura de pasta clara para as imagens do ambiente
-        String pasta = "upl/ambientes/" + restauranteId + "/" + ambiente.getId(); // <<< CAMINHO ATUALIZADO
-        
-        for (String imagem : ambiente.getImagens()) { // Itera sobre as imagens do ambiente
-            if (isBase64Image(imagem)) {
-            	String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-                // Adiciona o caminho completo e padronizado
-            	caminhosImagens.add("/upl/ambientes/" + restauranteId + "/" + ambiente.getId() + "/" + nomeArquivo);
-            } else if (imagem != null && !imagem.isEmpty()) {
-                // Mantém a URL da imagem se ela já for um caminho e não um Base64
-                caminhosImagens.add(imagem);
-            }
-        }
-        
-        return caminhosImagens;
-    }
-
     public String processCardapioImagem(String imagem, UUID restauranteId, UUID cardapioId) throws IOException {
         if (!isBase64Image(imagem)) {
             throw new IOException("A string fornecida não é uma imagem Base64 válida");

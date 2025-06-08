@@ -2,6 +2,8 @@ package TavolaSoftware.TavolaApp.REST.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import TavolaSoftware.TavolaApp.tools.StatusReserva;
@@ -9,10 +11,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -32,17 +37,19 @@ public class Reserva {
     @ManyToOne
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "reserva_mesas", // Nome da tabela de ligação que será criada
+        joinColumns = @JoinColumn(name = "reserva_id"), inverseJoinColumns = @JoinColumn(name = "mesa_id"))
+    private List<Mesa> mesas = new ArrayList<>(); // << O campo agora é uma LISTA de Mesas
+
 
     @Column(name = "data_reserva", nullable = false)
     private LocalDate dataReserva;
     
     @Column(name = "hora_reserva", nullable = false)
     private LocalTime horaReserva;
-
-    // A relação agora é com a mesa individual (Mesa), não com o agrupamento (Mesas)
-    @ManyToOne
-    @JoinColumn(name = "mesa_id", nullable = true)
-    private Mesa mesa; // <<< MUDANÇA
 
     @Column(name = "pessoas_reserva", nullable = false)
     private int quantidadePessoas;
@@ -61,13 +68,8 @@ public class Reserva {
     // Getters e Setters
 
     // O getter e setter de 'mesa' agora usam o tipo correto 'Mesa'
-    public Mesa getMesa() { // <<< MUDANÇA
-        return mesa;
-    }
-
-    public void setMesa(Mesa mesa) { // <<< MUDANÇA
-        this.mesa = mesa;
-    }
+    public List<Mesa> getMesas() {return mesas;}
+    public void setMesas(List<Mesa> mesas) {this.mesas = mesas;}
     
     // ... O restante dos getters e setters permanece igual ...
     public UUID getId() { return id; }

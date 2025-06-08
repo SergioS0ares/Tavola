@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+import java.util.List;
 import java.util.UUID;
 
 // Não é estritamente necessário usar as anotações do Jackson aqui
@@ -12,6 +13,7 @@ public class ReservaRequest {
     private UUID idRestaurante;
     private String dataReserva; // Formato "YYYY-MM-DD"
     private String horarioReserva; // Formato "HH:MM"
+    private List<UUID> idsMesas;
     private int quantidadePessoasReserva;
     private String comentariosPreferenciaReserva; // Opcional
 
@@ -20,6 +22,14 @@ public class ReservaRequest {
     }
 
     // Getters e Setters
+    public List<UUID> getIdsMesas() {
+        return idsMesas;
+    }
+
+    public void setIdsMesas(List<UUID> idsMesas) {
+        this.idsMesas = idsMesas;
+    }
+    
     public UUID getIdRestaurante() {
         return idRestaurante;
     }

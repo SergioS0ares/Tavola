@@ -39,7 +39,7 @@ public class AmbienteController {
          return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
      }
 
-     ambienteService.delete(id, restaurante.getId());
+     ambienteService.delete(id); // Apenas o ID do ambiente é necessário
      return ResponseEntity.noContent().build();
  }
  

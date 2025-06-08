@@ -1,7 +1,10 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,9 +31,9 @@ public class Mesa {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ambiente_id", nullable = false)
     private Ambiente ambiente;
-    
-    @OneToMany(mappedBy = "mesa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Reserva> reservas = new HashSet<>();
+
+    @ManyToMany(mappedBy = "mesas") // "mappedBy" diz ao Hibernate que a tabela de ligação já foi definida em Reserva.java
+    private List<Reserva> reservas = new ArrayList<>();
 
     // Getters e Setters
     public UUID getId() { return id; }
@@ -45,6 +48,6 @@ public class Mesa {
     public void setVip(boolean vip) { this.vip = vip; }
     public Ambiente getAmbiente() { return ambiente; }
     public void setAmbiente(Ambiente ambiente) { this.ambiente = ambiente; }
-    public Set<Reserva> getReservas() { return reservas; }
-    public void setReservas(Set<Reserva> reservas) { this.reservas = reservas; }
+    public List<Reserva> getReservas() { return reservas; }
+    public void setReservas(List<Reserva> reservas) { this.reservas = reservas; }
 }

@@ -17,12 +17,6 @@ public class AmbienteService {
 
     @Autowired
     private AmbienteRepository ambienteRepository;
-    
-    @Autowired
-    private RestauranteRepository restauranteRepository; // Para buscar o restaurante
-
-    @Autowired
-    private UploadUtils uploadUtils; // Para deletar imagens
 
     public Ambiente findById(UUID id) {
         return ambienteRepository.findById(id).orElse(null);
@@ -40,13 +34,9 @@ public class AmbienteService {
     }
 
     @Transactional
-    public void delete(UUID ambienteId, UUID restauranteId) {
+    public void delete(UUID ambienteId) { // Não precisamos mais do restauranteId aqui
         if (ambienteRepository.existsById(ambienteId)) {
             ambienteRepository.deleteById(ambienteId);
-            
-            // Deleta a pasta de imagens do ambiente
-            String pastaImagens = "upl/ambientes/" + restauranteId + "/" + ambienteId;
-            uploadUtils.deletarPasta(pastaImagens);
         }
     }
 }
