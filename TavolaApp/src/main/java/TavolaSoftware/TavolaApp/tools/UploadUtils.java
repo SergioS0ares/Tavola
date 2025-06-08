@@ -2,8 +2,6 @@ package TavolaSoftware.TavolaApp.tools;
 
 import org.springframework.stereotype.Component;
 
-import TavolaSoftware.TavolaApp.REST.model.Ambiente;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,55 +20,38 @@ public class UploadUtils {
 
     public boolean isPrincipalBase64Image(String input) {
         if (input == null || input.trim().isEmpty()) {
-            System.out.println("String para verificação de 'principal' base64 está nula ou vazia.");
             return false;
         }
-        // CORREÇÃO: "data:prncipal/" para "data:principal/"
-        boolean isValid = input.startsWith("data:principal/") && input.contains(";base64,"); //
-        if (isValid) {
-            System.out.println("Imagem principal base64 válida detectada. Tamanho: " + input.length() + " bytes");
-        } else {
-            System.out.println("String não é uma imagem principal base64 válida: " + input.substring(0, Math.min(input.length(), 50)) + "...");
-        }
-        return isValid;
+        return input.startsWith("data:principal/") && input.contains(";base64,");
     }
     
     public boolean isBase64Image(String input) {
         if (input == null || input.trim().isEmpty()) {
-            System.out.println("Base64 está nulo ou vazio");
             return false;
         }
-        boolean isValid = input.startsWith("data:image/") && input.contains(";base64,"); //
-        if (isValid) {
-            System.out.println("Imagem base64 válida. Tamanho: " + input.length() + " bytes");
-        } else {
-            System.out.println("Imagem base64 inválida");
-        }
-        return isValid;
+        return input.startsWith("data:image/") && input.contains(";base64,");
     }
 
     public String processBase64(String base64StringComCabecalho, String pasta, String extensao, String tipoDeDadoPrefixo) throws IOException {
         if (tipoDeDadoPrefixo == null || tipoDeDadoPrefixo.trim().isEmpty() || !tipoDeDadoPrefixo.matches("^[a-zA-Z0-9]+$")) {
-            System.out.println("Prefixo do tipo de dado inválido fornecido: " + tipoDeDadoPrefixo);
             throw new IllegalArgumentException("Prefixo do tipo de dado inválido: " + tipoDeDadoPrefixo);
         }
 
-        String base64Data = base64StringComCabecalho.replaceFirst("^data:" + tipoDeDadoPrefixo + "/[^;]+;base64,", ""); //
+        String base64Data = base64StringComCabecalho.replaceFirst("^data:" + tipoDeDadoPrefixo + "/[^;]+;base64,", "");
         byte[] decodedBytes = Base64.getDecoder().decode(base64Data);
 
         Path pastaPath = Paths.get(pasta);
         if (!Files.exists(pastaPath)) {
-            Files.createDirectories(pastaPath); 
+            Files.createDirectories(pastaPath);
         }
 
-        String nomeArquivo = UUID.randomUUID().toString() + "." + extensao; //
+        String nomeArquivo = UUID.randomUUID().toString() + "." + extensao;
         Path filePath = pastaPath.resolve(nomeArquivo);
 
         try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
-            fos.write(decodedBytes); 
+            fos.write(decodedBytes);
         }
-        System.out.println("Arquivo salvo com sucesso em: " + filePath.toString());
-        return nomeArquivo; 
+        return nomeArquivo;
     }
 
     public List<String> processRestauranteImagens(List<String> imagensInput, UUID restauranteId) throws IOException {
@@ -80,21 +61,15 @@ public class UploadUtils {
         
         String pasta = "upl/restaurantes/" + restauranteId.toString();
         
-        for (String imagem : imagensInput) { //
-            if (isPrincipalBase64Image(imagem)) { 
-                System.out.println("Processando imagem principal para o restaurante: " + restauranteId);
-                // CORREÇÃO: "prncipal" para "principal" no tipoDeDadoPrefixo
-                String nomeArquivo = processBase64(imagem, pasta, "jpg", "principal"); //
-                caminhoPrincipal = "/upl/restaurantes/" + restauranteId + "/" + nomeArquivo; //
-            } else if (isBase64Image(imagem)) { 
-                System.out.println("Processando imagem de galeria para o restaurante: " + restauranteId);
-                String nomeArquivo = processBase64(imagem, pasta, "jpg", "image"); //
-                caminhosOutras.add("/upl/restaurantes/" + restauranteId + "/" + nomeArquivo); //
+        for (String imagem : imagensInput) {
+            if (isPrincipalBase64Image(imagem)) {
+                String nomeArquivo = processBase64(imagem, pasta, "jpg", "principal");
+                caminhoPrincipal = "/upl/restaurantes/" + restauranteId + "/" + nomeArquivo;
+            } else if (isBase64Image(imagem)) {
+                String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
+                caminhosOutras.add("/upl/restaurantes/" + restauranteId + "/" + nomeArquivo);
             } else if (imagem != null && !imagem.isEmpty()) {
-                System.out.println("Adicionando caminho de imagem existente (não principal): " + imagem);
-                caminhosOutras.add(imagem); //
-            } else {
-                System.out.println("Item nulo ou vazio na lista de imagens ignorado.");
+                caminhosOutras.add(imagem);
             }
         }
         
@@ -106,14 +81,18 @@ public class UploadUtils {
         return caminhosProcessados;
     }
 
-    public String processUsuarioImagem(String imagem, UUID usuarioId, String tipo) throws IOException {
+    // <<< MÉTODO ATUALIZADO >>>
+    // A assinatura foi simplificada para não precisar mais do parâmetro "tipo".
+    public String processUsuarioImagem(String imagem, UUID usuarioId) throws IOException {
         if (!isBase64Image(imagem)) { 
             throw new IOException("A string fornecida não é uma imagem Base64 válida (deve começar com data:image/)");
         }
 
         String pasta = "upl/usuarios/" + usuarioId.toString();
-        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image"); //
-        return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo; //
+        // O "tipo" da imagem é sempre "image" para o prefixo do Base64
+        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
+        // Retorna o caminho completo para ser salvo no banco de dados
+        return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo;
     }
 
     public String processCardapioImagem(String imagem, UUID restauranteId, UUID cardapioId) throws IOException {
@@ -121,15 +100,11 @@ public class UploadUtils {
             throw new IOException("A string fornecida não é uma imagem Base64 válida");
         }
 
-        String pasta = "upl/cardapios/" + restauranteId.toString(); //
-        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image"); //
-        return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo; //
+        String pasta = "upl/cardapios/" + restauranteId.toString();
+        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
+        return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo;
     }
 
-    /**
-     * Deleta um diretório e todo o seu conteúdo recursivamente.
-     * @param caminhoPasta O caminho para a pasta a ser deletada.
-     */
     public void deletarPasta(String caminhoPasta) {
         Path diretorio = Paths.get(caminhoPasta);
         if (Files.exists(diretorio)) {
@@ -138,10 +113,30 @@ public class UploadUtils {
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
-                System.out.println("Pasta deletada com sucesso: " + caminhoPasta);
             } catch (IOException e) {
                 System.err.println("Erro ao deletar a pasta " + caminhoPasta + ": " + e.getMessage());
             }
+        }
+    }
+    
+    // <<< NOVO MÉTODO >>>
+    /**
+     * Deleta um arquivo específico pelo seu caminho relativo (URL).
+     * @param caminhoRelativo O caminho do arquivo como salvo no banco (ex: /upl/usuarios/...).
+     */
+    public void deletarArquivoPeloCaminho(String caminhoRelativo) {
+        if (caminhoRelativo == null || caminhoRelativo.isBlank()) {
+            return;
+        }
+        try {
+            // Remove a barra inicial, se houver, para criar um caminho relativo ao projeto
+            String caminhoNoSistema = caminhoRelativo.startsWith("/") ? caminhoRelativo.substring(1) : caminhoRelativo;
+            Path pathArquivo = Paths.get(caminhoNoSistema);
+            
+            Files.deleteIfExists(pathArquivo);
+            
+        } catch (IOException e) {
+            System.err.println("Erro ao tentar deletar o arquivo " + caminhoRelativo + ": " + e.getMessage());
         }
     }
     
@@ -152,7 +147,7 @@ public class UploadUtils {
             if (files != null) {
                 for (File file : files) {
                     if (!arquivosParaManter.contains(file.getName())) {
-                        file.delete(); //
+                        file.delete();
                     }
                 }
             }
@@ -164,6 +159,6 @@ public class UploadUtils {
             return null;
         }
         String[] parts = url.split("/");
-        return parts.length > 0 ? parts[parts.length - 1] : null; //
+        return parts.length > 0 ? parts[parts.length - 1] : null;
     }
 }

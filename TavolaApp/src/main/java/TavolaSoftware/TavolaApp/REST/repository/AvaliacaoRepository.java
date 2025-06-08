@@ -34,5 +34,7 @@ public interface AvaliacaoRepository extends JpaRepository<Avaliacao, UUID> {
      * @return Uma lista de avaliações positivas.
      */
     List<Avaliacao> findByClienteIdAndScoreGreaterThanEqual(UUID clienteId, int score);
+    
+    void deleteAllByClienteId(UUID clienteId); // Deleta todas as avaliações de um cliente
 
 }
