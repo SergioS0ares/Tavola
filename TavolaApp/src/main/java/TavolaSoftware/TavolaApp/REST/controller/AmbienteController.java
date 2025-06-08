@@ -1,58 +1,98 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import java.util.UUID;
-
+import TavolaSoftware.TavolaApp.REST.dto.AmbienteRequest;
+import TavolaSoftware.TavolaApp.REST.dto.AmbienteResponse;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.service.AmbienteService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import TavolaSoftware.TavolaApp.REST.model.Ambiente;
-import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.service.AmbienteService;
-import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
+import java.util.List;
+import java.util.UUID;
 
-//package...
 @RestController
 @RequestMapping("/auth/ambientes")
 public class AmbienteController {
-	
- @Autowired
- private AmbienteService ambienteService;
- 
- @Autowired
- private RestauranteService restauranteService;
 
- // Endpoint para deletar um ambiente
- @DeleteMapping("/{id}")
- public ResponseEntity<Void> deleteAmbiente(@PathVariable UUID id) {
-     String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-     Restaurante restaurante = restauranteService.getByEmail(email);
+    @Autowired
+    private AmbienteService ambienteService;
 
-     // Verifica se o ambiente pertence ao restaurante logado antes de deletar (BOA PRÁTICA)
-     Ambiente ambiente = ambienteService.findById(id);
-     if (ambiente == null || !ambiente.getRestaurante().getId().equals(restaurante.getId())) {
-         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-     }
+    @Autowired
+    private RestauranteService restauranteService;
 
-     ambienteService.delete(id); // Apenas o ID do ambiente é necessário
-     return ResponseEntity.noContent().build();
- }
- 
- // Você adicionaria aqui os outros endpoints (GET, POST, PUT)
+    /**
+     * GET /auth/ambientes
+     * Lista todos os ambientes do restaurante autenticado.
+     */
+    @GetMapping
+    public ResponseEntity<List<AmbienteResponse>> listarAmbientes() {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        List<AmbienteResponse> ambientes = ambienteService.findAllByRestaurante(restaurante.getId());
+        return ResponseEntity.ok(ambientes);
+    }
+
+    /**
+     * GET /auth/ambientes/{id}
+     * Busca um ambiente específico por ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<AmbienteResponse> getAmbientePorId(@PathVariable UUID id) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        return ambienteService.findByIdAndRestaurante(id, restaurante.getId())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * POST /auth/ambientes
+     * Cria um novo ambiente para o restaurante autenticado.
+     */
+    @PostMapping
+    public ResponseEntity<AmbienteResponse> criarAmbiente(@RequestBody AmbienteRequest request) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        AmbienteResponse ambienteCriado = ambienteService.create(request, restaurante);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ambienteCriado);
+    }
+
+    /**
+     * PUT /auth/ambientes/{id}
+     * Atualiza um ambiente existente.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<AmbienteResponse> atualizarAmbiente(@PathVariable UUID id, @RequestBody AmbienteRequest request) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        return ambienteService.update(id, request, restaurante.getId())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * DELETE /auth/ambientes/{id}
+     * Deleta um ambiente existente.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAmbiente(@PathVariable UUID id) {
+        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Restaurante restaurante = restauranteService.getByEmail(email);
+
+        boolean deletado = ambienteService.delete(id, restaurante.getId());
+
+        if (deletado) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        } else {
+            return ResponseEntity.notFound().build(); // HTTP 404
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-
-

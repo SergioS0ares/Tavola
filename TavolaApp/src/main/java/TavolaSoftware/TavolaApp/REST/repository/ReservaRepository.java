@@ -34,5 +34,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
            "CASE WHEN :ordem = 'placescrescent' THEN r.quantidadePessoas END ASC, " +
            "CASE WHEN :ordem = 'placesdecrescent' THEN r.quantidadePessoas END DESC")
     List<Reserva> findAllByRestauranteOrdered(@Param("restauranteId") UUID restauranteId, @Param("ordem") String ordem, Pageable pageable);
-
+    
+    void deleteAllByClienteId(UUID clienteId); // Deleta todas as reservas de um cliente
 }

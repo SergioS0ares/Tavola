@@ -101,23 +101,30 @@ public class ClienteController {
         }    
     }
 
-    // PUT
-    @PutMapping("/update")
-    public ResponseEntity<?> update(@RequestBody ClienteUpdateRequest request) {
+    /**
+     * PUT /auth/clientes/self/update
+     * Endpoint para o cliente autenticado atualizar seu próprio perfil.
+     */
+    @PutMapping("/self/update")
+    public ResponseEntity<?> updateSelf(@RequestBody ClienteUpdateRequest request) {
         try {
             String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            // Chama o novo método do service
+            
             Cliente clienteAtualizado = serv.updateFromRequest(email, request);
             
-            // Retorna o DTO de resposta atualizado
-            return ResponseEntity.ok(new ClienteResponse(clienteAtualizado));
-
+            // Retorna uma resposta de sucesso com os dados atualizados (sem a senha)
+            // Para isso, seria ideal ter um ClienteResponse DTO, similar ao que fizemos para Restaurante.
+            // Por simplicidade, retornaremos um Map por enquanto.
+            return ResponseEntity.ok(Map.of(
+                "id", clienteAtualizado.getId(),
+                "nome", clienteAtualizado.getUsuario().getNome(),
+                "email", clienteAtualizado.getUsuario().getEmail(),
+                "mensagem", "Perfil atualizado com sucesso."
+            ));
+            
         } catch (RuntimeException e) {
-            // Captura exceções como "Cliente não encontrado" ou erros de processamento de imagem
+            // Captura erros como "Cliente não encontrado" ou erros de processamento de imagem
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
-        } catch (Exception e) {
-            // Logar o erro aqui
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Ocorreu um erro inesperado."));
         }
     }
 
@@ -128,3 +135,28 @@ public class ClienteController {
         return ResponseEntity.noContent().build();
     }
 }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
