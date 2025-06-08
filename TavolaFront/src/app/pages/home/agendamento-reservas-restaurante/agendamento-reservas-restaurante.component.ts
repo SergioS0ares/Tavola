@@ -268,10 +268,12 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     { nome: "Música ao vivo", icone: "music_note" },
     { nome: "Permite animais", icone: "pets" },
     { nome: "Valet (serviço de manobrista)", icone: "hail" },
+    { nome: "Ar-condicionado", icone: "ac_unit" },
+    { nome: "Bar completo", icone: "local_bar" },
+    { nome: "Área externa", icone: "deck" },
   ];
 
   ngOnInit() {
-
     this.agendamentoId = this.route.snapshot.paramMap.get('id');
     if (this.agendamentoId) {
       // Example: Fetch data using this.agendamentoId and restaurante.service
@@ -443,11 +445,11 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         this.restaurante = restaurante
         // Imagens: garantir pelo menos 4
         let imgs = restaurante.imagens && restaurante.imagens.length > 0
-          ? restaurante.imagens.map(img => img.startsWith('/') ? img : `/${img}`)
+          ? restaurante.imagens.map(img => this.getImagemCompleta(img))
           : []
-        while (imgs.length < 4) imgs.push('assets/jpg/restauranteModelo.jpg')
-        this.restaurantImages = imgs.slice(0, 5) // até 5 para o botão de galeria
-        this.allImages = [...imgs]
+        while (imgs.length < 4) imgs.push('assets/jpg/restauranteModelo.jpg');
+        this.restaurantImages = imgs.slice(0, 5); // até 5 para o botão de galeria
+        this.allImages = [...imgs];
         this.totalPhotos = imgs.length > 4 ? imgs.length - 4 : 0
         // Horários de funcionamento ordenados
         this.horariosFuncionamento = this.ordenarHorarios(restaurante.horariosFuncionamento || [])
@@ -460,7 +462,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         // Centralizar mapa pelo endereço formatado
         this.atualizarLocalizacaoMapa();
         this.generateAvailableSlots();
-        this.checkIfFavorite()
+        this.isFavorite = restaurante.favorito ?? false;
         this.isLoading = false
         this.spinnerService.ocultar()
       },
@@ -740,9 +742,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     return partes.filter(Boolean).join(', ');
   }
 
-  // Função para exibir preço médio mock
+  // Função para exibir preço médio
   getPrecoMedio(): number {
-    return 80; // valor mock
+    return this.restaurante?.valorMedioPorPessoa ?? 0;
   }
 
   // Função para exibir nome do dia da semana em PT

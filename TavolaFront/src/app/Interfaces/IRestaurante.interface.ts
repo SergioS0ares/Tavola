@@ -20,4 +20,6 @@ export interface IRestaurante {
   horariosFuncionamento?: { diaSemana: string; abertura: string; fechamento: string }[];
   servicos?: string[];
   coordenadas?: { latitude: number; longitude: number };
+  favorito?: boolean;
+  valorMedioPorPessoa?: number;
 } 

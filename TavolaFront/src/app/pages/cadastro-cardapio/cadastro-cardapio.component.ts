@@ -14,6 +14,7 @@ import { DialogItemCardapioComponent } from './dialog-item-cardapio/dialog-item-
 import Swal from 'sweetalert2';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
+import { GlobalSpinnerComponent } from '../../spin/global-spinner/global-spinner.component';
 
 @Component({
   selector: 'app-cadastro-cardapio',
@@ -27,7 +28,8 @@ import { ToastrService } from 'ngx-toastr';
     MatDialogModule,
     MatSlideToggleModule,
     MatTooltipModule,
-    DialogItemCardapioComponent
+    DialogItemCardapioComponent,
+    GlobalSpinnerComponent
   ],
   templateUrl: './cadastro-cardapio.component.html',
   styleUrls: ['./cadastro-cardapio.component.scss']
@@ -39,6 +41,7 @@ export class CadastroCardapioComponent implements OnInit {
 
   itens: IItemCardapio[] = [];
   defaultImg = 'assets/png/placeholder.png';
+  isLoading = false;
 
   categorias = [
     { id: '1', nome: 'Entradas' },

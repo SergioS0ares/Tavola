@@ -5,6 +5,29 @@ import { environment } from '../../../environments/environment';
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
 import { map } from 'rxjs/operators';
 
+export interface IUpdateRestaurantePayload {
+  tipoCozinha?: string;
+  descricao?: string;
+  horariosFuncionamento?: { diaSemana: string; abertura: string; fechamento: string }[];
+  nomesServicos?: string[];
+  imagens?: string[];
+  
+  // Campos de usuário para atualização de restaurante
+  nomeUsuario?: string;
+  emailUsuario?: string;
+  senhaUsuario?: string;
+  telefoneUsuario?: string;
+  enderecoUsuario?: {
+    cep: string;
+    estado: string;
+    cidade: string;
+    bairro: string;
+    rua: string;
+    numero: string;
+    complemento?: string;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class RestauranteService {
   private http = inject(HttpClient);
@@ -32,7 +55,7 @@ export class RestauranteService {
     return this.http.post(`${this.apiUrl.replace('/auth/restaurantes','/auth/clientes/favoritar')}/${id}`, {});
   }
 
-  updateRestaurante(payload: any): Observable<any> {
+  updateRestaurante(payload: IUpdateRestaurantePayload): Observable<any> {
     return this.http.put(`${this.apiUrl}/update`, payload);
   }
 

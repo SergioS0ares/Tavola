@@ -1,4 +1,5 @@
 export interface IEndereco {
+  cep: string;
   pais: string;
   estado: string;
   cidade: string;
@@ -24,4 +25,7 @@ export interface IUserData {
   tipoCozinha?: string;
   quantidadeMesas?: number;
   horaFuncionamento?: IHoraFuncionamento[];
+  descricao?: string;
+  servicos?: string[];
+  imagens?: string[];
 } 
