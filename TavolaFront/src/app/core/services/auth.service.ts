@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 export interface Perfil {
   tipo: 'CLIENTE' | 'RESTAURANTE';
   nome: string;
+  id?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,11 +26,15 @@ export class AuthService {
     // console.log('[AuthService] Estado inicial:', { token: this._token, perfil: this._perfil });
   }
 
-  setAuthData(token: string, nome: string, tipoUsuario: 'CLIENTE' | 'RESTAURANTE') {
+  setAuthData(token: string, nome: string, tipoUsuario: 'CLIENTE' | 'RESTAURANTE', id?: string) {
     this.setToken(token);
-    this.setPerfil({ nome, tipo: tipoUsuario });
+    this.setPerfil({ nome, tipo: tipoUsuario, id });
+    localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_NAME_KEY, nome);
     localStorage.setItem(this.USER_TYPE_KEY, tipoUsuario);
+    if (id && tipoUsuario === 'RESTAURANTE') {
+      localStorage.setItem('idRestaurante', id);
+    }
   }
 
   setToken(token: string) {

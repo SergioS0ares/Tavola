@@ -75,11 +75,12 @@ export class LoginComponent {
         next: (res) => {
           this.showLoginError = false;
           // Centraliza o armazenamento no AuthService
-          this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+         
           
           this.toastService.success("Login feito com sucesso!");
           
           if (res.tipoUsuario === 'RESTAURANTE') {
+             this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id);
             this.router.navigate(['reserva']);
           } else {
             this.router.navigate(['home']);

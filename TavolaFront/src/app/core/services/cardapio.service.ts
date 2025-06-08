@@ -25,4 +25,8 @@ export class CardapioService {
   removerItem(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  listarItensPorRestaurante(idRestaurante: string) {
+    return this.http.get<IItemCardapio[]>(`${this.apiUrl}/disponiveis/${idRestaurante}`);
+  }
 }

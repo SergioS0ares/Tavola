@@ -332,6 +332,135 @@ export class ReservasComponent implements OnInit {
 
   mesaEditando: IMesa = this.criarMesaPadrao()
 
+  // Propriedades para o CRUD de áreas
+  editandoIndex: number | null = null;
+  valorEditado = '';
+  adicionandoArea = false;
+  nomeNovaArea = '';
+
+  // --- LÓGICA DE CONTROLE DAS ABAS (MAIS ROBUSTA) ---
+  get areaAtivaIndex(): number {
+    const index = this.areasMesa.indexOf(this.areaAtiva);
+    return index === -1 ? 0 : index;
+  }
+
+  set areaAtivaIndex(index: number) {
+    // Só altera a aba se não estiver no meio de uma edição
+    if (this.editandoIndex === null && index >= 0 && index < this.areasMesa.length) {
+      this.areaAtiva = this.areasMesa[index];
+    }
+  }
+
+  // --- MÉTODOS DO CRUD DE ÁREAS (REVISADOS E CORRIGIDOS) ---
+  iniciarEdicao(index: number, nomeAtual: string): void {
+    // Cancela qualquer outra edição ou adição antes de iniciar uma nova
+    this.cancelarAdicionar();
+    if (this.editandoIndex !== null) {
+      this.salvarEdicao(this.editandoIndex);
+    }
+    this.editandoIndex = index;
+    this.valorEditado = nomeAtual;
+  }
+
+  cancelarEdicao(): void {
+    this.editandoIndex = null;
+    this.valorEditado = '';
+  }
+
+  salvarEdicao(index: number): void {
+    if (this.editandoIndex === null || index !== this.editandoIndex) return;
+
+    const novoNome = this.valorEditado.trim();
+    const nomeAntigo = this.areasMesa[index];
+
+    if (novoNome && novoNome !== nomeAntigo) {
+      // Verifica se o novo nome já existe (ignorando o caso atual)
+      if (this.areasMesa.find((area, i) => area.toLowerCase() === novoNome.toLowerCase() && i !== index)) {
+        // Opcional: Adicionar uma notificação ao usuário de que o nome já existe
+        console.warn(`A área "${novoNome}" já existe.`);
+      } else {
+        this.areasMesa[index] = novoNome;
+        this.mesas.forEach(mesa => {
+          if (mesa.area === nomeAntigo) {
+            mesa.area = novoNome;
+          }
+        });
+        if (this.areaAtiva === nomeAntigo) {
+          this.areaAtiva = novoNome;
+        }
+      }
+    }
+    this.cancelarEdicao();
+  }
+
+  ativarModoAdicionar(): void {
+    this.cancelarEdicao(); // Garante que não estamos editando e adicionando ao mesmo tempo
+    this.adicionandoArea = true;
+  }
+
+  salvarNovaArea(): void {
+    if (!this.adicionandoArea) return; // Previne chamada dupla pelo blur
+
+    const novoNome = this.nomeNovaArea.trim();
+    if (novoNome && !this.areasMesa.find(a => a.toLowerCase() === novoNome.toLowerCase())) {
+      this.areasMesa.push(novoNome);
+      // Força a seleção da nova aba
+      setTimeout(() => {
+        this.areaAtivaIndex = this.areasMesa.length - 1;
+        this.cdr.detectChanges();
+      });
+    }
+    this.cancelarAdicionar();
+  }
+
+  cancelarAdicionar(): void {
+    this.adicionandoArea = false;
+    this.nomeNovaArea = '';
+  }
+
+  confirmarRemocaoArea(index: number): void {
+    const areaParaRemover = this.areasMesa[index];
+
+    if (!areaParaRemover) {
+      console.error("Erro: Tentativa de remover área com índice inválido:", index);
+      return;
+    }
+
+    const mesasNaArea = this.mesas.filter(m => m.area === areaParaRemover);
+    let conteudoModal = `Tem certeza que deseja remover a área "<b>${areaParaRemover}</b>"?`;
+    if (mesasNaArea.length > 0) {
+      conteudoModal += `<br><br><p class="aviso-remocao"><b>Atenção:</b> ${mesasNaArea.length} mesa(s) nesta área também serão removidas permanentemente.</p>`;
+    }
+
+    this.modalService.confirm({
+      nzTitle: 'Confirmar Remoção',
+      nzContent: conteudoModal,
+      nzOkText: 'Sim, remover',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Cancelar',
+      nzOnOk: () => this.removerArea(index)
+    });
+  }
+
+  private removerArea(index: number): void {
+    const areaRemovida = this.areasMesa[index];
+    
+    // Remove todas as mesas da área
+    this.mesas = this.mesas.filter(m => m.area !== areaRemovida);
+    
+    // Remove a área
+    this.areasMesa.splice(index, 1);
+    
+    // Se a área removida era a ativa, seleciona a primeira área disponível
+    if (this.areaAtiva === areaRemovida) {
+      this.areaAtiva = this.areasMesa[0] || '';
+    }
+    
+    // Força atualização da view
+    this.cdr.detectChanges();
+  }
+
   constructor(
     private modalService: NzModalService,
     private cdr: ChangeDetectorRef,

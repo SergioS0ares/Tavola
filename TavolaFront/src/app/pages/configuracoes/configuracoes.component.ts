@@ -1,6 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
+import { Router } from '@angular/router';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +20,8 @@ import { NzMessageModule } from 'ng-zorro-antd/message';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { IUserData, IEndereco, IHoraFuncionamento } from '../../Interfaces/IUserData.interface';
+import { RestauranteService } from '../../core/services/restaurante.service';
+import { ClienteService } from '../../core/services/cliente.service';
 
 @Component({
   selector: 'app-configuracoes',
@@ -44,6 +48,9 @@ export class ConfiguracoesComponent implements OnInit {
   private auth = inject(AuthService);
   private fb = inject(FormBuilder);
   private toastService = inject(ToastrService);
+  private restauranteService = inject(RestauranteService);
+  private clienteService = inject(ClienteService);
+  private router = inject(Router);
   
   // Estados de edição
   editingInfo = false;
@@ -96,7 +103,35 @@ export class ConfiguracoesComponent implements OnInit {
   };
 
   ngOnInit() {
-    this.initForms();
+    if (this.auth.hasRole('RESTAURANTE')) {
+      // Pegue o id do restaurante de localStorage ou de outro local confiável
+      const idRestaurante = localStorage.getItem('idRestaurante');
+      this.restauranteService.findById(idRestaurante!).subscribe(data => {
+        // Adapte o endereço para incluir 'pais'
+        const endereco = { pais: '', ...data.endereco };
+        this.userData = {
+          ...this.userData, // mantém os campos obrigatórios do IUserData
+          ...data,
+          endereco,
+          senha: '',
+          tipo: 'RESTAURANTE',
+          // Adicione campos extras em variáveis locais se precisar
+        };
+        this.initForms();
+      });
+    } else {
+      this.clienteService.getCliente().subscribe(data => {
+        const endereco = { pais: '', ...data.endereco };
+        this.userData = {
+          ...this.userData,
+          ...data,
+          endereco,
+          senha: '',
+          tipo: 'CLIENTE',
+        };
+        this.initForms();
+      });
+    }
   }
 
   initForms() {
@@ -232,17 +267,31 @@ export class ConfiguracoesComponent implements OnInit {
 
   saveInfo() {
     if (this.infoForm.valid) {
-      // Aqui você implementaria a lógica para salvar os dados
-      this.showInfoMessage = true;
-      this.editingInfo = false;
-      
-      // Mostrar mensagem de sucesso
-      this.toastService.success('Informações salvas com sucesso!');
-      
-      // Esconder a mensagem após 3 segundos
-      setTimeout(() => {
-        this.showInfoMessage = false;
-      }, 3000);
+      Swal.fire({
+        title: 'Atualizar informações?',
+        text: 'As informações da sua conta serão atualizadas.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#F6BD38',
+        cancelButtonColor: '#3B221B',
+        confirmButtonText: 'Sim, atualizar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const payload = this.montarPayload();
+          if (this.auth.hasRole('RESTAURANTE')) {
+            this.restauranteService.updateRestaurante(payload).subscribe(() => {
+              Swal.fire('Sucesso!', 'Informações atualizadas.', 'success');
+              this.editingInfo = false;
+            });
+          } else {
+            this.clienteService.updateCliente(payload).subscribe(() => {
+              Swal.fire('Sucesso!', 'Informações atualizadas.', 'success');
+              this.editingInfo = false;
+            });
+          }
+        }
+      });
     }
   }
 
@@ -323,6 +372,60 @@ export class ConfiguracoesComponent implements OnInit {
       setTimeout(() => {
         this.showRestaurantMessage = false;
       }, 3000);
+    }
+  }
+
+  deleteAccount() {
+    Swal.fire({
+      title: 'Tem certeza?',
+      text: 'Sua conta será apagada para sempre!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DA4A24',
+      cancelButtonColor: '#3B221B',
+      confirmButtonText: 'Sim, apagar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (this.auth.hasRole('RESTAURANTE')) {
+          this.restauranteService.deleteRestaurante().subscribe(() => {
+            this.auth.clearAuthData();
+            this.router.navigate(['/login']);
+          });
+        } else {
+          this.clienteService.deleteCliente().subscribe(() => {
+            this.auth.clearAuthData();
+            this.router.navigate(['/login']);
+          });
+        }
+      }
+    });
+  }
+
+  montarPayload() {
+    if (this.auth.hasRole('RESTAURANTE')) {
+      return {
+        nomeUsuario: this.infoForm.value.nome,
+        emailUsuario: this.infoForm.value.email,
+        senhaUsuario: this.userData.senha || '',
+        enderecoUsuario: {
+          ...this.addressForm.value
+        },
+        telefoneUsuario: this.infoForm.value.telefone,
+        tipoCozinha: this.userData.tipoCozinha,
+      };
+    } else {
+      return {
+        nome: this.infoForm.value.nome,
+        email: this.infoForm.value.email,
+        senha: this.userData.senha || '',
+        endereco: {
+          ...this.addressForm.value
+        },
+        telefone: this.infoForm.value.telefone,
+        imagemPerfilBase64: this.previewImage || null,
+        imagemBackgroundBase64: null,
+      };
     }
   }
 }

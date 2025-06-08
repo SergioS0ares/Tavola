@@ -1190,3 +1190,101 @@
     overflow: auto;
   }
 }
+
+.areas-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e8e8e8;
+  margin-bottom: 16px;
+
+  mat-tab-group {
+    flex-grow: 1;
+    border-bottom: none;
+  }
+
+  .add-area-btn {
+    margin-left: 8px;
+    color: $primary-color;
+  }
+}
+
+.custom-tab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+
+  .area-name {
+    margin-right: 4px;
+  }
+
+  .area-menu-trigger {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .area-menu-trigger {
+    opacity: 0.7;
+  }
+}
+
+#input-nova-area {
+  border-color: rgba(59, 34, 27, 0.4);
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 2px rgba(246, 189, 56, 0.2);
+  }
+}
+
+.add-area-tab-label {
+  .add-area-btn {
+    border-style: dashed;
+    border-radius: 8px;
+    color: rgba(59, 34, 27, 0.7);
+    border-color: rgba(59, 34, 27, 0.4);
+    height: 36px;
+    line-height: 34px;
+  }
+  .add-area-input {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+    .mat-mdc-form-field-flex {
+      height: 48px;
+      padding-top: 10px;
+      align-items: center;
+    }
+  }
+}
+
+::ng-deep .aviso-remocao {
+  color: #DA4A24;
+  background-color: #ffeaea;
+  border-left: 3px solid #DA4A24;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+// Adiciona scroll horizontal ao header das abas
+::ng-deep .areas-header .mat-mdc-tab-header {
+  // Esconde os botões de paginação padrão do Angular Material
+  .mat-mdc-tab-header-pagination {
+    display: none !important;
+  }
+
+  // Permite que a lista de abas role horizontalmente
+  .mat-mdc-tab-label-container {
+    overflow-x: auto !important;
+    
+    // Deixa a barra de rolagem mais bonita e com o tema Tavola
+    &::-webkit-scrollbar {
+      height: 4px;
+      background-color: #f0f0f0;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: $primary-color; // Amarelo Tavola
+      border-radius: 4px;
+    }
+  }
+}

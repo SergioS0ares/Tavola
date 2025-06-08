@@ -27,4 +27,16 @@ export class RestauranteService {
     console.log('Mock: Criando reserva com dados:', reservaData);
     return of({ success: true, message: 'Reserva mock criada com sucesso!' });
   }
+
+  favoritarRestaurante(id: string) {
+    return this.http.post(`${this.apiUrl.replace('/auth/restaurantes','/auth/clientes/favoritar')}/${id}`, {});
+  }
+
+  updateRestaurante(payload: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update`, payload);
+  }
+
+  deleteRestaurante(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}`);
+  }
 }

@@ -23,8 +23,7 @@
         class="favorite-button" 
         (click)="toggleFavorite()" 
         nz-tooltip 
-        [nzTooltipTitle]="isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
-      >
+        [nzTooltipTitle]="isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'">
         <i nz-icon [nzType]="'heart'" [nzTheme]="isFavorite ? 'fill' : 'outline'"></i>
       </button>
     </div>
@@ -241,7 +240,7 @@
                 <div *ngFor="let item of getItensPorCategoria(categoria)" class="item-card">
                   <div class="item-content">
                     <div class="item-image">
-                      <img nz-image [nzSrc]="item.imagem || 'assets/jpg/Comida.jpg'" [alt]="item.nome">
+                      <img nz-image [nzSrc]="getImagemCompleta(item.imagem)" [alt]="item.nome">
                     </div>
                     <div class="item-info">
                       <h4 class="item-nome">{{ item.nome }}</h4>
@@ -333,6 +332,7 @@
             <!-- Etapa 1: Seleção de Data -->
             <div *ngIf="bookingStep === 1" class="etapa-reserva">
               <nz-calendar 
+                *ngIf="!isLoading"
                 [(ngModel)]="selectedDate" 
                 [nzDisabledDate]="disabledDate"
                 (nzSelectChange)="onDateSelect($event)"
@@ -460,8 +460,7 @@
                   mat-raised-button
                   color="primary"
                   class="botao-confirmar mat-rounded-button"
-                  (click)="finalizarReserva()"
-                >
+                  (click)="finalizarReserva()">
                   <mat-icon>check</mat-icon>
                   Confirmar Reserva
                 </button>

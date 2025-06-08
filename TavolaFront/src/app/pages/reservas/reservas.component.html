@@ -346,9 +346,82 @@
 
       <ng-template #mapaDeMesas>
         <div class="mesas-container">
-          <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="mudarArea($event)">
-            <mat-tab *ngFor="let area of areas" [label]="area"></mat-tab>
-          </mat-tab-group>
+          <div class="areas-header">
+            <mat-tab-group
+              mat-stretch-tabs="false"
+              mat-align-tabs="start"
+              [(selectedIndex)]="areaAtivaIndex"
+            >
+              <mat-tab *ngFor="let area of areasMesa; let i = index">
+                <ng-template mat-tab-label>
+                  <div class="custom-tab-label">
+                    <span *ngIf="editandoIndex !== i" class="area-name">{{ area }}</span>
+
+                    <input
+                      *ngIf="editandoIndex === i"
+                      matInput
+                      [(ngModel)]="valorEditado"
+                      (keydown.enter)="salvarEdicao(i)"
+                      (keydown.escape)="cancelarEdicao()"
+                      (blur)="salvarEdicao(i)"
+                      (click)="$event.stopPropagation()"
+                      cdkFocusInitial
+                      class="edit-input"
+                    />
+
+                    <button
+                      mat-icon-button
+                      [matMenuTriggerFor]="areaMenu"
+                      (click)="$event.stopPropagation()"
+                      class="area-menu-trigger"
+                      *ngIf="editandoIndex !== i"
+                    >
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                  </div>
+                  
+                  <mat-menu #areaMenu="matMenu">
+                    <button mat-menu-item (click)="iniciarEdicao(i, area)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Editar Nome</span>
+                    </button>
+                    <button mat-menu-item (click)="confirmarRemocaoArea(i)">
+                      <mat-icon>delete</mat-icon>
+                      <span>Remover Área</span>
+                    </button>
+                  </mat-menu>
+                </ng-template>
+              </mat-tab>
+
+              <mat-tab [disabled]="false">
+                <ng-template mat-tab-label>
+                  <div class="add-area-tab-label">
+                    <button
+                      mat-stroked-button
+                      class="add-area-btn"
+                      (click)="ativarModoAdicionar()"
+                      *ngIf="!adicionandoArea"
+                    >
+                      <mat-icon>add</mat-icon>
+                      Nova Área
+                    </button>
+                    <mat-form-field appearance="outline" class="add-area-input" *ngIf="adicionandoArea">
+                      <input
+                        matInput
+                        placeholder="Nome da Área"
+                        [(ngModel)]="nomeNovaArea"
+                        (keydown.enter)="salvarNovaArea()"
+                        (keydown.escape)="cancelarAdicionar()"
+                        (blur)="salvarNovaArea()"
+                        cdkFocusInitial
+                      />
+                    </mat-form-field>
+                  </div>
+                </ng-template>
+              </mat-tab>
+            </mat-tab-group>
+          </div>
+
           <div class="mesas-grid">
             <div *ngFor="let mesa of getMesasPorArea(areaAtiva)"
                  class="mesa"

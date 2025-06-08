@@ -5,9 +5,6 @@ import {
   _MatInternalFormField
 } from "./chunk-FMURBE5J.js";
 import {
-  NG_VALUE_ACCESSOR
-} from "./chunk-2ZAX7M67.js";
-import {
   MatRippleModule
 } from "./chunk-CUGNFELP.js";
 import {
@@ -39,6 +36,9 @@ import "./chunk-IJ3KGSPX.js";
 import "./chunk-SLO47O37.js";
 import "./chunk-USHARBCX.js";
 import "./chunk-HPCFBG3Q.js";
+import {
+  NG_VALUE_ACCESSOR
+} from "./chunk-2ZAX7M67.js";
 import "./chunk-GAMILAFO.js";
 import "./chunk-O3MZQZIU.js";
 import {

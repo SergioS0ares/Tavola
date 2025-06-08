@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { GlobalSpinnerService } from '../../core/services/global-spinner.service';
 
 @Component({
   selector: 'app-global-spinner',
@@ -9,5 +10,8 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./global-spinner.component.scss'],
 })
 export class GlobalSpinnerComponent {
-  // Nenhuma lógica extra necessária para o novo spinner
+  visivel = false;
+  constructor(private spinnerService: GlobalSpinnerService) {
+    this.spinnerService.visibilidade$.subscribe(v => this.visivel = v);
+  }
 }
