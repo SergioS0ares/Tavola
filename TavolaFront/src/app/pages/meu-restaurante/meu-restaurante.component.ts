@@ -100,7 +100,7 @@ export class MeuRestauranteComponent implements OnInit {
   }
 
   carregarDadosDoRestaurante(): void {
-    const idRestaurante = localStorage.getItem("idRestaurante")
+    const idRestaurante = this.auth.perfil?.id;
     if (!idRestaurante) {
       this.toastr.error("ID do restaurante não encontrado. Faça login novamente.")
       this.isLoading = false

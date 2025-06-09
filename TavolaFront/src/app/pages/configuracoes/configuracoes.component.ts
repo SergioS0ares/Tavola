@@ -24,9 +24,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { IUserData, IEndereco, IHoraFuncionamento } from '../../Interfaces/IUserData.interface';
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
-import { RestauranteService } from '../../core/services/restaurante.service';
+import { RestauranteService, IUpdateRestaurantePayload } from '../../core/services/restaurante.service';
 import { ClienteService, IUpdateClientePayload } from '../../core/services/cliente.service';
-import { IUpdateRestaurantePayload } from '../../core/services/restaurante.service';
 
 @Component({
   selector: 'app-configuracoes',
@@ -35,7 +34,6 @@ import { IUpdateRestaurantePayload } from '../../core/services/restaurante.servi
     CommonModule,
     ReactiveFormsModule,
     GlobalSpinnerComponent,
-    // Angular Material
     MatCardModule,
     MatIconModule,
     MatButtonModule,
@@ -43,7 +41,6 @@ import { IUpdateRestaurantePayload } from '../../core/services/restaurante.servi
     MatInputModule,
     MatSelectModule,
     MatDividerModule,
-    // NG-Zorro
     NzUploadModule,
     NzMessageModule,
     NgxMaskDirective
@@ -59,21 +56,19 @@ export class ConfiguracoesComponent implements OnInit {
   private clienteService = inject(ClienteService);
   private router = inject(Router);
   private http = inject(HttpClient);
-  
+
   // Estados de edição
   editingInfo = false;
   editingAddress = false;
   editingRestaurant = false;
-  
-  // Estados de mensagem
+
+  // **CORREÇÃO 1: Propriedades re-declaradas**
   showInfoMessage = false;
   showAddressMessage = false;
   showRestaurantMessage = false;
-  
-  // Imagem de preview
+
   previewImage: string | null = null;
   
-  // Formulários
   infoForm!: FormGroup;
   addressForm!: FormGroup;
   restaurantForm!: FormGroup;
@@ -85,76 +80,74 @@ export class ConfiguracoesComponent implements OnInit {
 
   ngOnInit() {
     this.loading = true;
-    if (this.auth.hasRole('RESTAURANTE')) {
-      const idRestaurante = localStorage.getItem('idRestaurante');
+    const userRole = this.auth.perfil?.tipo;
+
+    if (userRole === 'RESTAURANTE') {
+      const idRestaurante = this.auth.perfil?.id;
       if (idRestaurante) {
         this.restauranteService.findById(idRestaurante).subscribe({
-          next: (data: IRestaurante) => {
-            this.userData = {
-              nome: data.nome,
-              email: data.email,
-              telefone: data.telefone,
-              endereco: {
-                ...data.endereco,
-                cep: data.endereco?.cep || '',
-                pais: 'Brasil'
-              },
-              tipo: 'RESTAURANTE',
-              senha: '', // Senha is not usually returned, so set as empty or handle appropriately
-              tipoCozinha: data.tipoCozinha,
-              horaFuncionamento: data.horariosFuncionamento,
-              descricao: data.descricao,
-              servicos: data.servicos,
-              imagens: data.imagens
-            };
-            this.initForms();
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao carregar dados do restaurante:', error);
-            this.toastr.error('Erro ao carregar dados do restaurante');
-            this.loading = false;
-          }
+          next: (data) => this.handleUserData(data, 'RESTAURANTE'),
+          error: (err) => this.handleError(err, 'restaurante')
         });
       } else {
         this.toastr.error('ID do restaurante não encontrado. Faça login novamente.');
         this.loading = false;
       }
-    } else {
+    } else if (userRole === 'CLIENTE') {
       this.clienteService.getCliente().subscribe({
-        next: (data: IUserData) => {
-          this.userData = {
-            ...data,
-            endereco: {
-              ...data.endereco,
-              pais: 'Brasil'
-            }
-          };
-          this.initForms();
-          this.loading = false;
-        },
-        error: (error: any) => {
-          console.error('Erro ao carregar dados do cliente:', error);
-          this.toastr.error('Erro ao carregar dados do cliente');
-          this.loading = false;
-        }
+        next: (data) => this.handleUserData(data, 'CLIENTE'),
+        error: (err) => this.handleError(err, 'cliente')
       });
     }
   }
 
+  private handleUserData(data: IUserData | IRestaurante, tipo: 'CLIENTE' | 'RESTAURANTE') {
+    if (tipo === 'RESTAURANTE') {
+      const restData = data as IRestaurante;
+      this.userData = {
+        nome: restData.nome,
+        email: restData.email,
+        telefone: restData.telefone,
+        endereco: { ...restData.endereco, cep: restData.endereco?.cep || '', pais: 'Brasil' },
+        tipo: 'RESTAURANTE',
+        senha: '',
+        tipoCozinha: restData.tipoCozinha,
+        horaFuncionamento: restData.horariosFuncionamento,
+        descricao: restData.descricao,
+        servicos: restData.servicos,
+        imagens: restData.imagens
+      };
+    } else {
+      // **CORREÇÃO 2: Adicionadas propriedades 'senha' e 'tipo' para conformidade com a interface IUserData**
+      this.userData = { 
+        ...data, 
+        endereco: { ...(data.endereco || {}), pais: 'Brasil' },
+        senha: '', // A API de cliente não retorna senha, então inicializamos como vazia.
+        tipo: 'CLIENTE' // O tipo é 'CLIENTE' neste bloco.
+      };
+    }
+    this.initForms();
+    this.loading = false;
+  }
+
+  private handleError(error: any, context: string) {
+    console.error(`Erro ao carregar dados do ${context}:`, error);
+    this.toastr.error(`Erro ao carregar dados do ${context}`);
+    this.loading = false;
+  }
+
+  // O restante do arquivo permanece igual ao que eu enviei anteriormente...
   initForms() {
-    // Formulário de informações
     this.infoForm = this.fb.group({
       nome: [this.userData.nome, Validators.required],
       email: [this.userData.email, [Validators.required, Validators.email]],
       telefone: [this.userData.telefone, Validators.required],
-      senha: [this.userData.senha, [Validators.required, this.validadorSenhaForte]]
+      senha: ['', this.validadorSenhaForte]
     });
 
-    // Formulário de endereço
     this.addressForm = this.fb.group({
       cep: [this.userData.endereco?.cep || '', Validators.required],
-      pais: [this.userData.endereco?.pais || '', Validators.required],
+      pais: [this.userData.endereco?.pais || 'Brasil', Validators.required],
       estado: [this.userData.endereco?.estado || '', Validators.required],
       cidade: [this.userData.endereco?.cidade || '', Validators.required],
       bairro: [this.userData.endereco?.bairro || '', Validators.required],
@@ -163,401 +156,203 @@ export class ConfiguracoesComponent implements OnInit {
       complemento: [this.userData.endereco?.complemento || '']
     });
 
-    // Formulário de restaurante
-    this.restaurantForm = this.fb.group({
-      nome: [this.userData.nome],
-      tipoCozinha: [this.userData.tipoCozinha],
-      quantidadeMesas: [this.userData.quantidadeMesas],
-      horaFuncionamento: this.fb.array(
-        this.userData.horaFuncionamento?.map(horario => 
-          this.fb.group({
-            diaSemana: [horario.diaSemana],
-            abertura: [horario.abertura],
-            fechamento: [horario.fechamento]
-          })
-        ) || []
-      )
+    if (this.isRestaurante) {
+      this.restaurantForm = this.fb.group({
+        nome: [this.userData.nome],
+        tipoCozinha: [this.userData.tipoCozinha],
+        quantidadeMesas: [this.userData.quantidadeMesas],
+        horaFuncionamento: this.fb.array(
+          this.userData.horaFuncionamento?.map(h => this.criarGrupoHorario(h)) || []
+        )
+      });
+    }
+  }
+  
+  saveInfo() {
+    if (this.infoForm.invalid) {
+      this.toastr.error('Por favor, preencha os campos de informação corretamente.');
+      return;
+    }
+    this.loading = true;
+
+    if (this.isRestaurante) {
+      this.saveRestaurant();
+      return;
+    }
+
+    const payload: IUpdateClientePayload = {
+      nome: this.infoForm.value.nome,
+      email: this.infoForm.value.email,
+      telefone: this.infoForm.value.telefone,
+      senha: this.infoForm.value.senha,
+      endereco: this.userData.endereco,
+      imagemPerfilBase64: this.previewImage || null,
+      imagemBackgroundBase64: null,
+    };
+
+    this.clienteService.updateCliente(payload).subscribe({
+      next: () => {
+        this.toastr.success('Informações atualizadas com sucesso!');
+        this.userData = { ...this.userData, ...this.infoForm.getRawValue() };
+        this.editingInfo = false;
+        this.loading = false;
+      },
+      error: (err) => this.handleError(err, 'salvar informações')
     });
   }
 
-  // Getter para o FormArray de horários
-  get horaFuncionamentoControls() {
-    return (this.restaurantForm.get('horaFuncionamento') as FormArray).controls;
-  }
-  
-  // Adicionar novo horário
-  addHorario() {
-    const horaFuncionamento = this.restaurantForm.get('horaFuncionamento') as FormArray;
-    horaFuncionamento.push(
-      this.fb.group({
-        diaSemana: [''],
-        abertura: [''],
-        fechamento: ['']
-      })
-    );
-  }
-  
-  // Remover horário
-  removeHorario(index: number) {
-    const horaFuncionamento = this.restaurantForm.get('horaFuncionamento') as FormArray;
-    horaFuncionamento.removeAt(index);
-  }
-
-  // Getters - Restaurados para usar auth.perfil
-  get isRestaurante(): boolean {
-    return this.auth.hasRole('RESTAURANTE');
-  }
-
-  get userName(): string {
-    return this.auth.perfil?.nome || '';
-  }
-
-  get userType(): string {
-    return this.auth.perfil?.tipo || '';
-  }
-
-  get userAvatar(): string {
-    if (this.auth.perfil?.tipo === 'RESTAURANTE') {
-      return 'assets/png/avatar-padrao-restaurante-tavola.png';
+  saveAddress() {
+    if (this.addressForm.invalid) {
+      this.toastr.error('Por favor, preencha os campos de endereço corretamente.');
+      return;
     }
-    return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
-  }
-  
-  // Método para selecionar arquivo de imagem
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    
-    if (input.files && input.files.length) {
-      const file = input.files[0];
-      
-      // Verificar se é uma imagem
-      if (!file.type.startsWith('image/')) {
-        this.toastr.error('Por favor, selecione apenas arquivos de imagem.');
-        return;
-      }
-      
-      // Criar URL para preview
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewImage = reader.result as string;
-        this.toastr.success('Imagem carregada com sucesso!');
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-  
-  // Converter código do dia da semana para texto
-  getDiaSemana(codigo: string): string {
-    const diasSemana: {[key: string]: string} = {
-      'SEGUNDA': 'Segunda-feira',
-      'TERCA': 'Terça-feira',
-      'QUARTA': 'Quarta-feira',
-      'QUINTA': 'Quinta-feira',
-      'SEXTA': 'Sexta-feira',
-      'SABADO': 'Sábado',
-      'DOMINGO': 'Domingo'
-    };
-    
-    return diasSemana[codigo] || codigo;
-  }
+    this.loading = true;
 
-  // Métodos para informações da conta
-  toggleEditInfo() {
-    this.editingInfo = !this.editingInfo;
-    if (!this.editingInfo) {
-      this.showInfoMessage = false;
-      this.toastr.info('Edição cancelada');
+    if (this.isRestaurante) {
+      this.saveRestaurant();
+      return;
     }
-  }
 
-  cancelEditInfo() {
-    this.editingInfo = false;
-    this.showInfoMessage = false;
-    this.infoForm.patchValue({
+    const payload: IUpdateClientePayload = {
       nome: this.userData.nome,
       email: this.userData.email,
       telefone: this.userData.telefone,
-      cep: this.userData.endereco.cep,
-      senha: this.userData.senha
+      senha: this.infoForm.value.senha,
+      endereco: this.addressForm.value,
+      imagemPerfilBase64: this.previewImage || null,
+      imagemBackgroundBase64: null,
+    };
+
+    this.clienteService.updateCliente(payload).subscribe({
+      next: () => {
+        this.toastr.success('Endereço atualizado com sucesso!');
+        this.userData.endereco = this.addressForm.value;
+        this.editingAddress = false;
+        this.loading = false;
+      },
+      error: (err) => this.handleError(err, 'salvar endereço')
     });
-    this.toastr.info('Edição cancelada');
   }
 
-  saveInfo() {
-    if (this.infoForm.valid) {
-      this.loading = true;
-      if (this.auth.hasRole('RESTAURANTE')) {
-        const payload = this.montarPayloadRestaurante();
-        this.restauranteService.updateRestaurante(payload).subscribe({
-          next: () => {
-            this.toastr.success('Informações atualizadas com sucesso!');
-            this.editingInfo = false;
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao atualizar informações:', error);
-            this.toastr.error('Erro ao atualizar informações. Tente novamente.');
-            this.loading = false;
-          }
-        });
-      } else {
-        const payload = this.montarPayload();
-        this.clienteService.updateCliente(payload).subscribe({
-          next: () => {
-            this.toastr.success('Informações atualizadas com sucesso!');
-            this.editingInfo = false;
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao atualizar informações:', error);
-            this.toastr.error('Erro ao atualizar informações. Tente novamente.');
-            this.loading = false;
-          }
-        });
-      }
-    } else {
-      this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
+  saveRestaurant() {
+    if (this.infoForm.invalid || this.addressForm.invalid || this.restaurantForm.invalid) {
+      this.toastr.error('Por favor, preencha todos os campos corretamente antes de salvar.');
+      return;
     }
+    this.loading = true;
+    
+    const payload = this.montarPayloadRestaurante();
+
+    this.restauranteService.updateRestaurante(payload).subscribe({
+      next: () => {
+        this.toastr.success('Dados do restaurante atualizados com sucesso!');
+        this.userData.nome = this.infoForm.value.nome;
+        this.userData.email = this.infoForm.value.email;
+        this.userData.telefone = this.infoForm.value.telefone;
+        this.userData.endereco = this.addressForm.value;
+        this.userData.tipoCozinha = this.restaurantForm.value.tipoCozinha;
+        this.userData.quantidadeMesas = this.restaurantForm.value.quantidadeMesas;
+        this.userData.horaFuncionamento = this.restaurantForm.value.horaFuncionamento;
+        
+        this.editingInfo = false;
+        this.editingAddress = false;
+        this.editingRestaurant = false;
+        this.loading = false;
+      },
+      error: (err) => this.handleError(err, 'salvar dados do restaurante')
+    });
+  }
+  
+  get isRestaurante(): boolean { return this.auth.hasRole('RESTAURANTE'); }
+  get userName(): string { return this.auth.perfil?.nome || ''; }
+  get userType(): string { return this.auth.perfil?.tipo || ''; }
+  get userAvatar(): string {
+    return this.isRestaurante
+      ? 'assets/png/avatar-padrao-restaurante-tavola.png'
+      : 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+  }
+  
+  get horaFuncionamentoControls() {
+    return (this.restaurantForm.get('horaFuncionamento') as FormArray).controls;
   }
 
-  // Métodos para endereço
-  toggleEditAddress() {
-    this.editingAddress = !this.editingAddress;
-    if (!this.editingAddress) {
-      this.showAddressMessage = false;
-      this.toastr.info('Edição cancelada');
-    }
+  toggleEditInfo() { this.editingInfo = !this.editingInfo; }
+  toggleEditAddress() { this.editingAddress = !this.editingAddress; }
+  toggleEditRestaurant() { this.editingRestaurant = !this.editingRestaurant; }
+  
+  cancelEditInfo() {
+    this.editingInfo = false;
+    this.infoForm.reset(this.userData);
+    this.toastr.info('Edição de informações cancelada');
   }
 
   cancelEditAddress() {
     this.editingAddress = false;
-    this.showAddressMessage = false;
-    this.addressForm.patchValue({
-      pais: this.userData.endereco.pais,
-      estado: this.userData.endereco.estado,
-      cidade: this.userData.endereco.cidade,
-      bairro: this.userData.endereco.bairro,
-      rua: this.userData.endereco.rua,
-      numero: this.userData.endereco.numero,
-      complemento: this.userData.endereco.complemento
-    });
-    this.toastr.info('Edição cancelada');
-  }
-
-  saveAddress() {
-    if (this.addressForm.valid) {
-      this.loading = true;
-      if (this.auth.hasRole('RESTAURANTE')) {
-        const payload = this.montarPayloadRestaurante();
-        this.restauranteService.updateRestaurante(payload).subscribe({
-          next: () => {
-            this.toastr.success('Endereço atualizado com sucesso!');
-            this.editingAddress = false;
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao atualizar endereço:', error);
-            this.toastr.error('Erro ao atualizar endereço. Tente novamente.');
-            this.loading = false;
-          }
-        });
-      } else {
-        const payload = this.montarPayload();
-        this.clienteService.updateCliente(payload).subscribe({
-          next: () => {
-            this.toastr.success('Endereço atualizado com sucesso!');
-            this.editingAddress = false;
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao atualizar endereço:', error);
-            this.toastr.error('Erro ao atualizar endereço. Tente novamente.');
-            this.loading = false;
-          }
-        });
-      }
-    } else {
-      this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
-    }
-  }
-
-  // Métodos para restaurante
-  toggleEditRestaurant() {
-    this.editingRestaurant = !this.editingRestaurant;
-    if (!this.editingRestaurant) {
-      this.showRestaurantMessage = false;
-      this.toastr.info('Edição cancelada');
-    }
+    this.addressForm.reset(this.userData.endereco);
+    this.toastr.info('Edição de endereço cancelada');
   }
 
   cancelEditRestaurant() {
     this.editingRestaurant = false;
-    this.showRestaurantMessage = false;
-    this.restaurantForm.patchValue({
-      nome: this.userData.nome,
-      tipoCozinha: this.userData.tipoCozinha,
-      quantidadeMesas: this.userData.quantidadeMesas,
-      horaFuncionamento: this.userData.horaFuncionamento
+    this.restaurantForm.reset({
+        nome: this.userData.nome,
+        tipoCozinha: this.userData.tipoCozinha,
+        quantidadeMesas: this.userData.quantidadeMesas,
+        horaFuncionamento: this.userData.horaFuncionamento
     });
-    this.toastr.info('Edição cancelada');
+    this.toastr.info('Edição do restaurante cancelada');
   }
 
-  saveRestaurant() {
-    if (this.restaurantForm.valid) {
-      this.loading = true;
-      const payload = this.montarPayloadRestaurante();
-      this.restauranteService.updateRestaurante(payload).subscribe({
-        next: () => {
-          this.toastr.success('Dados do restaurante atualizados com sucesso!');
-          this.editingRestaurant = false;
-          this.loading = false;
-        },
-        error: (error: any) => {
-          console.error('Erro ao atualizar dados do restaurante:', error);
-          this.toastr.error('Erro ao atualizar dados do restaurante. Tente novamente.');
-          this.loading = false;
-        }
-      });
-    } else {
-      this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
-    }
-  }
-
-  deleteAccount() {
-    Swal.fire({
-      title: 'Tem certeza?',
-      text: 'Sua conta será apagada para sempre!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#DA4A24',
-      cancelButtonColor: '#3B221B',
-      confirmButtonText: 'Sim, apagar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        if (this.auth.hasRole('RESTAURANTE')) {
-          this.restauranteService.deleteRestaurante().subscribe(() => {
-            this.auth.clearAuthData();
-            this.router.navigate(['/login']);
-          });
-        } else {
-          this.clienteService.deleteCliente().subscribe(() => {
-            this.auth.clearAuthData();
-            this.router.navigate(['/login']);
-          });
-        }
-      }
+  criarGrupoHorario(horario: IHoraFuncionamento): FormGroup {
+    return this.fb.group({
+      diaSemana: [horario.diaSemana, Validators.required],
+      abertura: [horario.abertura, Validators.required],
+      fechamento: [horario.fechamento, Validators.required],
     });
   }
-
-  montarPayload(): IUpdateClientePayload {
-    const infoFormValue = this.infoForm.value;
-    const addressFormValue = this.addressForm.value;
-
-    const enderecoPayload: IEndereco = {
-      cep: addressFormValue.cep ?? '',
-      pais: addressFormValue.pais ?? '',
-      estado: addressFormValue.estado ?? '',
-      cidade: addressFormValue.cidade ?? '',
-      bairro: addressFormValue.bairro ?? '',
-      rua: addressFormValue.rua ?? '',
-      numero: addressFormValue.numero ?? '',
-      complemento: addressFormValue.complemento ?? ''
-    };
-
-    return {
-      nome: infoFormValue.nome,
-      email: infoFormValue.email,
-      senha: infoFormValue.senha,
-      endereco: enderecoPayload,
-      telefone: infoFormValue.telefone,
-      imagemPerfilBase64: this.previewImage || null,
-      imagemBackgroundBase64: null,
-    };
+  addHorario() {
+    const horaFuncionamento = this.restaurantForm.get('horaFuncionamento') as FormArray;
+    horaFuncionamento.push(this.criarGrupoHorario({ diaSemana: '', abertura: '', fechamento: '' }));
+  }
+  removeHorario(index: number) {
+    (this.restaurantForm.get('horaFuncionamento') as FormArray).removeAt(index);
   }
 
   montarPayloadRestaurante(): IUpdateRestaurantePayload {
-    const infoFormValue = this.infoForm.getRawValue();
-    const addressFormValue = this.addressForm.getRawValue() as IEndereco;
-    const restaurantFormValue = this.restaurantForm.getRawValue();
-
+    const info = this.infoForm.getRawValue();
+    const address = this.addressForm.getRawValue();
+    const restaurant = this.restaurantForm.getRawValue();
     return {
-      // Restaurant specific data from restaurantForm or userData
-      tipoCozinha: restaurantFormValue.tipoCozinha || this.userData.tipoCozinha || '',
-      descricao: this.userData.descricao || '', // Assumed to come from userData as it's not in restaurantForm in configuracoes
-      horariosFuncionamento: restaurantFormValue.horaFuncionamento || this.userData.horaFuncionamento || [],
-      nomesServicos: this.userData.servicos || [], // Assumed to come from userData as it's not in restaurantForm in configuracoes
-      imagens: this.userData.imagens || [], // Assumed to come from userData as it's not in restaurantForm in configuracoes
-
-      // User specific data from infoForm and addressForm or userData
-      nomeUsuario: infoFormValue.nome || this.userData.nome,
-      emailUsuario: infoFormValue.email || this.userData.email,
-      senhaUsuario: infoFormValue.senha || '', // Password might not be in infoForm for update, using existing or empty
-      telefoneUsuario: infoFormValue.telefone || this.userData.telefone,
-      enderecoUsuario: {
-        cep: addressFormValue.cep || this.userData.endereco?.cep || '',
-        estado: addressFormValue.estado || this.userData.endereco?.estado || '',
-        cidade: addressFormValue.cidade || this.userData.endereco?.cidade || '',
-        bairro: addressFormValue.bairro || this.userData.endereco?.bairro || '',
-        rua: addressFormValue.rua || this.userData.endereco?.rua || '',
-        numero: addressFormValue.numero || this.userData.endereco?.numero || '',
-        complemento: addressFormValue.complemento || this.userData.endereco?.complemento || ''
-      }
+      tipoCozinha: restaurant.tipoCozinha,
+      descricao: this.userData.descricao || '',
+      horariosFuncionamento: restaurant.horaFuncionamento,
+      nomesServicos: this.userData.servicos || [],
+      imagens: this.userData.imagens || [],
+      nomeUsuario: info.nome,
+      emailUsuario: info.email,
+      senhaUsuario: info.senha,
+      telefoneUsuario: info.telefone,
+      enderecoUsuario: address,
     };
   }
 
-  save() {
-    if (this.infoForm.valid && this.addressForm.valid) {
-      this.loading = true;
-
-      if (this.auth.hasRole('RESTAURANTE')) {
-        const payload = this.montarPayloadRestaurante();
-        this.restauranteService.updateRestaurante(payload).subscribe({
-          next: () => {
-            this.toastr.success('Dados atualizados com sucesso!');
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao atualizar dados:', error);
-            this.toastr.error('Erro ao atualizar dados. Tente novamente.');
-            this.loading = false;
-          }
-        });
-      } else {
-        const payload = this.montarPayload();
-        this.clienteService.updateCliente(payload).subscribe({
-          next: () => {
-            this.toastr.success('Dados atualizados com sucesso!');
-            this.loading = false;
-          },
-          error: (error: any) => {
-            console.error('Erro ao atualizar dados:', error);
-            this.toastr.error('Erro ao atualizar dados. Tente novamente.');
-            this.loading = false;
-          }
-        });
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (!file.type.startsWith('image/')) {
+        this.toastr.error('Por favor, selecione apenas arquivos de imagem.');
+        return;
       }
-    } else {
-      this.toastr.error('Por favor, preencha todos os campos obrigatórios.');
+      const reader = new FileReader();
+      reader.onload = () => { this.previewImage = reader.result as string; };
+      reader.readAsDataURL(file);
     }
-  }
-
-  validadorSenhaForte(control: any) {
-    const valor = control.value;
-    if (!valor) return null;
-    const erros: any = {};
-    if (valor.length < 8) {
-      erros['minCaracteres'] = true;
-    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
-      erros['semCaractereEspecial'] = true;
-    }
-    return Object.keys(erros).length ? erros : null;
   }
 
   buscarCep() {
     const cep = this.addressForm.get('cep')?.value;
     if (!cep || cep.replace(/\D/g, '').length !== 8) return;
-
     this.http.get(`https://viacep.com.br/ws/${cep.replace(/\D/g, '')}/json/`).subscribe({
       next: (res: any) => {
         if (res.erro) {
@@ -572,8 +367,52 @@ export class ConfiguracoesComponent implements OnInit {
           rua: res.logradouro
         });
       },
-      error: () => {
-        this.mensagemCepInvalido = 'Erro ao buscar CEP.';
+      error: () => { this.mensagemCepInvalido = 'Erro ao buscar CEP.'; }
+    });
+  }
+
+  validadorSenhaForte(control: any) {
+    const valor = control.value;
+    if (!valor) return null;
+    const erros: any = {};
+    if (valor.length > 0 && valor.length < 8) {
+      erros['minCaracteres'] = 'A senha deve ter no mínimo 8 caracteres.';
+    } else if (valor.length > 0 && !/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
+      erros['semCaractereEspecial'] = 'A senha deve conter um caractere especial.';
+    }
+    return Object.keys(erros).length ? erros : null;
+  }
+  
+  deleteAccount() {
+    Swal.fire({
+      title: 'Tem certeza?',
+      text: 'Sua conta será apagada para sempre!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DA4A24',
+      cancelButtonColor: '#3B221B',
+      confirmButtonText: 'Sim, apagar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.loading = true;
+        const deleteObservable = this.isRestaurante
+          ? this.restauranteService.deleteRestaurante()
+          : this.clienteService.deleteCliente();
+        
+        deleteObservable.subscribe({
+          next: () => {
+            this.toastr.success('Conta apagada com sucesso.');
+            this.auth.clearAuthData();
+            this.router.navigate(['/login']);
+            this.loading = false;
+          },
+          error: (err) => {
+            this.toastr.error('Erro ao apagar a conta.');
+            console.error(err);
+            this.loading = false;
+          }
+        });
       }
     });
   }

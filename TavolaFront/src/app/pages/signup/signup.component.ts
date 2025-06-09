@@ -236,7 +236,7 @@ export class SignUpComponent {
 
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
+        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id);
         this.toastService.success("Cadastro realizado com sucesso!");
         this.router.navigate(['reserva']);
       },

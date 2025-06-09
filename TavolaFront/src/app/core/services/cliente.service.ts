@@ -31,7 +31,7 @@ export class ClienteService {
   }
 
   updateCliente(payload: IUpdateClientePayload): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update`, payload);
+    return this.http.put(`${this.apiUrl}/self/update`, payload);
   }
 
   deleteCliente(): Observable<any> {
