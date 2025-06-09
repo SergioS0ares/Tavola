@@ -1,7 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
 import java.util.UUID;
-
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import jakarta.persistence.Column;
@@ -13,45 +12,42 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "user_table")
+@Table(name = "usuario_table")
 public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "user_id")
+    @Column(name = "usuario_id")
     private UUID id;
 
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "nome_usuario", nullable = false)
     private String nome;
 
     @Embedded
     private Endereco endereco;
 
-    @Column(name = "user_email", nullable = false, unique = true)
+    @Column(name = "email_usuario", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "user_password", nullable = false)
+    @Column(name = "senha_usuario", nullable = false)
     private String senha;
 
-    @Column(name = "user_type", nullable = false)
+    @Column(name = "tipo_usuario", nullable = false)
     private TipoUsuario tipo;
 
-    @Column(name = "user_image")
+    @Column(name = "telefone_usuario") // <<< NOVO CAMPO: Telefone
+    private String telefone;
+
+    @Column(name = "imagem_usuario")
     private String imagem;
 
-    @Column(name = "user_background_image")
+    @Column(name = "background_usuario")
     private String imagemBackground;
 
-    private UUID idImagem;
+    @Column(name = "imagem_repositorio_usuario") // Explicitando o nome da coluna
+    private UUID idImagem; // Este campo parece ser um identificador para uma imagem num repositório externo
 
     // Getters e Setters
-    public UUID getIdImagem(){
-        return idImagem;
-    }
-
-    public void setIdImagem(UUID id){
-        this.idImagem = id;
-    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -71,9 +67,16 @@ public class Usuario {
     public TipoUsuario getTipo() { return tipo; }
     public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 
+    // Getter e Setter para o novo campo telefone
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+
     public String getImagem() { return imagem; }
     public void setImagem(String imagem) { this.imagem = imagem; }
 
     public String getImagemBackground() { return imagemBackground; }
     public void setImagemBackground(String imagemBackground) { this.imagemBackground = imagemBackground; }
+    
+    public UUID getIdImagem() { return idImagem; }
+    public void setIdImagem(UUID idImagem) { this.idImagem = idImagem; }
 }

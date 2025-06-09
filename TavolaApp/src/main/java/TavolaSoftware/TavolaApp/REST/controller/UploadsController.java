@@ -11,6 +11,7 @@ import java.util.Base64;
 @RequestMapping("/auth/uploads")
 public class UploadsController {
 	
+	// POST
 	@PostMapping("/teste-base64")
 	public ResponseEntity<String> testarImagemBase64(@RequestParam("imagem") MultipartFile imagem) {
 	    try {
@@ -26,5 +27,4 @@ public class UploadsController {
 	                .body("Erro ao processar a imagem: " + e.getMessage());
 	    }
 	}
-
 }

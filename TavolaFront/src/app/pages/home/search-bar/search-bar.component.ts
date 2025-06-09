@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, HostListener } from '@angular/core';
+import { Component, EventEmitter, Input, Output, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -24,7 +24,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
         animate('200ms cubic-bezier(.4,0,.2,1)', style({ opacity: 0, transform: 'translateY(-24px)' }))
       ])
     ])
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchBarComponent {
   @Input() cidade: string = '';

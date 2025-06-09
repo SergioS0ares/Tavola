@@ -32,8 +32,8 @@ public class ClienteHomeResponse {
         this.avaliacao = restaurante.getMediaAvaliacao();
 
         // Pega a primeira imagem da lista, se houver
-        if (restaurante.getImagem() != null && !restaurante.getImagem().isEmpty()) {
-            this.imagem = restaurante.getImagem().get(0);
+        if (restaurante.getImagens() != null && !restaurante.getImagens().isEmpty()) {
+            this.imagem = restaurante.getImagens().get(0);
         } else {
             this.imagem = null; // Ou uma URL de imagem placeholder, se preferir
         }

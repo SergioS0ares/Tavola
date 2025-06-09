@@ -109,16 +109,16 @@ $tavola-cinza: #F8F9FA;
     }
     
     .favorite-button {
-      color: $text-color;
+      color: $tavola-vermelho;
       border: 1px solid $medium-gray;
       
       &:hover {
-        color: $accent-color;
+        color: $tavola-vermelho;
         border-color: $accent-color;
       }
       
       i[nzTheme="fill"] {
-        color: $accent-color;
+        color: $tavola-vermelho;
       }
     }
   }
@@ -1165,7 +1165,7 @@ $tavola-cinza: #F8F9FA;
             .item-preco {
               padding: 16px;
               font-weight: 700;
-              color: $accent-color;
+              color: $tavola-vermelho;
               font-size: 18px;
               min-width: 100px;
               text-align: right;
@@ -1458,4 +1458,9 @@ $tavola-cinza: #F8F9FA;
   mat-icon {
     margin-right: 8px;
   }
+}
+
+.descricao-restaurante {
+  white-space: pre-line;
+  word-break: break-word;
 }

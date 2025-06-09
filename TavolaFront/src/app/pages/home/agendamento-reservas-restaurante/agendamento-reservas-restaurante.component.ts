@@ -7,6 +7,7 @@ import {
   HostListener,
   LOCALE_ID,
   OnDestroy,
+  Inject,
 } from "@angular/core"
 import { ActivatedRoute, Router } from "@angular/router"
 import { RestauranteService } from "../../../core/services/restaurante.service"
@@ -18,9 +19,12 @@ import { GoogleMapsModule } from "@angular/google-maps"
 import { GoogleMap } from "@angular/google-maps"
 import localePt from "@angular/common/locales/pt"
 import { GlobalSpinnerService } from "../../../core/services/global-spinner.service"
-import { forkJoin, fromEvent, Subscription } from 'rxjs'
-import { MatTabGroup } from '@angular/material/tabs'
-import { MapMarker } from '@angular/google-maps'
+import { MatCommonModule } from '@angular/material/core';
+import { IRestaurante } from '../../../Interfaces/IRestaurante.interface';
+import { CardapioService } from '../../../core/services/cardapio.service';
+import { ReservasService } from '../../../core/services/reservas.service';
+import { environment } from '../../../../environments/environment';
+
 
 // Registrar locale português
 registerLocaleData(localePt)
@@ -144,18 +148,13 @@ const icons: IconDefinition[] = [
   ],
   templateUrl: "./agendamento-reservas-restaurante.component.html",
   styleUrls: ["./agendamento-reservas-restaurante.component.scss"],
-  providers: [
-    { provide: NZ_ICONS, useValue: icons },
-    { provide: NZ_I18N, useValue: pt_BR },
-    { provide: LOCALE_ID, useValue: "pt-BR" },
-  ],
 })
 export class AgendamentoReservasRestauranteComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("tabsContainer") tabsContainer!: ElementRef
   @ViewChild("categoriasScrollContainer") categoriasScrollContainer!: ElementRef
   @ViewChild("categoriasNavContainer") categoriasNavContainer!: ElementRef
 
-  restaurante: any
+  restaurante: IRestaurante | null = null
   isFavorite = false
   isGalleryVisible = false
   isHorariosVisible = false
@@ -183,9 +182,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   isLoading = true
 
   // Propriedades do mapa e rotas
-  center: any = { lat: -23.5505, lng: -46.6333 }
+  center: any = { lat: -16.6869, lng: -49.2648 }
   zoom = 15
-  markerPosition: any = { lat: -23.5505, lng: -46.6333 }
+  markerPosition: any = { lat: -16.6869, lng: -49.2648 }
   markerOptions: any = {
     draggable: false,
     icon: {
@@ -215,64 +214,78 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   userLocation: google.maps.LatLngLiteral | null = null
 
   // Imagens principais para a galeria
-  restaurantImages = [
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-    "assets/jpg/restauranteModelo.jpg",
-  ]
+  restaurantImages: string[] = []
 
   // Todas as imagens para o modal de galeria
   allImages: string[] = []
   totalPhotos = 0
 
   // Horários de funcionamento
-  horariosFuncionamento = [
-    { dia: "Segunda-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Terça-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Quarta-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Quinta-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Sexta-Feira", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Sábado", abertura: "12:00", fechamento: "00:00" },
-    { dia: "Domingo", abertura: "12:00", fechamento: "00:00" },
-  ]
+  horariosFuncionamento: { diaSemana: string; abertura: string; fechamento: string }[] = []
 
   // Recursos e serviços
-  recursos = [
-    { nome: "Wi-Fi gratuito", icone: "wifi" },
-    { nome: "Aceita cartões", icone: "credit_card" },
-    { nome: "Acessível para cadeirantes", icone: "accessible" },
-    { nome: "Estacionamento", icone: "local_parking" },
-  ]
+  recursos: { nome: string; icone: string }[] = []
 
   // Propriedades do menu
   itensMenu: any[] = []
-  categorias: string[] = [
-    "Destaques",
-    "Entradas",
-    "Acompanhamentos",
-    "Pratos Principais",
-    "Sobremesas",
-    "Bebidas",
-    "Vinhos",
-  ]
+  categorias: string[] = []
+  dietOptions: string[] = []
   categoriaAtiva = "Destaques"
-  dietOptions: string[] = ["Sem glúten", "Halal", "Intolerância à lactose", "Vegano", "Vegetariano"]
 
   restauranteId!: string
 
   constructor(
-    private route: ActivatedRoute,
+    @Inject(ActivatedRoute) private route: ActivatedRoute,
     private restauranteService: RestauranteService,
     private mapsService: MapsService,
     private message: NzMessageService,
     private elementRef: ElementRef,
     private router: Router,
-    private spinnerService: GlobalSpinnerService
+    private spinnerService: GlobalSpinnerService,
+    private cardapioService: CardapioService,
+    private reservasService: ReservasService
   ) {}
+  public agendamentoId: string | null = null;
+  public agendamentoDetails: any; // Replace 'any' with a proper interface
+
+  // Dicionário para exibir o nome do dia da semana em português
+  private readonly DIAS_PT: { [key: string]: string } = {
+    'DOMINGO': 'Domingo',
+    'SEGUNDA': 'Segunda-feira',
+    'TERCA': 'Terça-feira',
+    'QUARTA': 'Quarta-feira',
+    'QUINTA': 'Quinta-feira',
+    'SEXTA': 'Sexta-feira',
+    'SABADO': 'Sábado',
+  };
+
+  servicosComIcone = [
+    { nome: "Wi-Fi gratuito", icone: "wifi" },
+    { nome: "Aceita cartões", icone: "credit_card" },
+    { nome: "Acessível para cadeirantes", icone: "accessible" },
+    { nome: "Estacionamento", icone: "local_parking" },
+    { nome: "Ideal para crianças", icone: "child_friendly" },
+    { nome: "Música ao vivo", icone: "music_note" },
+    { nome: "Permite animais", icone: "pets" },
+    { nome: "Valet (serviço de manobrista)", icone: "hail" },
+    { nome: "Ar-condicionado", icone: "ac_unit" },
+    { nome: "Bar completo", icone: "local_bar" },
+    { nome: "Área externa", icone: "deck" },
+  ];
 
   ngOnInit() {
+    this.agendamentoId = this.route.snapshot.paramMap.get('id');
+    if (this.agendamentoId) {
+      // Example: Fetch data using this.agendamentoId and restaurante.service
+      // this.restauranteService.getAgendamentoById(this.agendamentoId).subscribe(details => {
+      //   this.agendamentoDetails = details;
+      // });
+      console.log('Agendamento ID:', this.agendamentoId);
+    } else {
+      console.error('Agendamento ID not found in route parameters.');
+      // Handle missing ID, perhaps navigate away or show an error
+    }
+
     window.scrollTo(0, 0)
     this.selectedDate = new Date()
     this.selectedDate.setHours(0, 0, 0, 0) // Zerando hora para evitar problemas na comparação
@@ -282,7 +295,6 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         this.carregarDadosRestaurante()
       }
     })
-    this.gerarImagens()
     this.carregarItensMenu()
     this.generateAvailableSlots()
   }
@@ -359,24 +371,19 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   disabledDate = (current: Date): boolean => {
-    // Desabilitar datas anteriores a hoje
-    return current && current < new Date(new Date().setHours(0, 0, 0, 0))
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (current && current < today) || !this.isDiaHabilitado(current);
   }
 
   // Método para mostrar como chegar - simplificado
   async mostrarComoChegar(): Promise<void> {
     this.carregandoRota = true
-
     try {
-      const restaurantLocation = {
-        lat: this.restaurante?.coordenadas?.latitude || -23.5505,
-        lng: this.restaurante?.coordenadas?.longitude || -46.6333,
-      }
-
-      await this.mapsService.mostrarRotaNoGoogleMaps(restaurantLocation)
+      const destino = this.markerPosition || this.center;
+      await this.mapsService.mostrarRotaNoGoogleMaps(destino)
       this.message.success("Abrindo rota no Google Maps...")
     } catch (error) {
-      console.error("Erro ao abrir rota:", error)
       this.message.error("Erro ao abrir a rota")
     } finally {
       this.carregandoRota = false
@@ -384,44 +391,15 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   generateAvailableSlots(): void {
-    // Gerar slots baseados nos horários de funcionamento
-    const dayOfWeek = this.selectedDate.getDay()
-    const dayNames = [
-      "Domingo",
-      "Segunda-Feira",
-      "Terça-Feira",
-      "Quarta-Feira",
-      "Quinta-Feira",
-      "Sexta-Feira",
-      "Sábado",
-    ]
-    const dayName = dayNames[dayOfWeek]
-
-    const horario = this.horariosFuncionamento.find((h) => h.dia === dayName)
-    if (!horario) {
-      this.availableSlots = []
-      return
-    }
-
-    this.availableSlots = []
-
-    // Slots de almoço (12:00 - 16:00)
-    const lunchSlots = this.generateTimeSlots("12:00", "16:00", 15)
-    if (lunchSlots.length > 0) {
-      this.availableSlots.push({
-        period: "Almoço",
-        slots: lunchSlots,
-      })
-    }
-
-    // Slots de jantar (17:00 - 23:30)
-    const dinnerSlots = this.generateTimeSlots("17:00", "23:30", 15)
-    if (dinnerSlots.length > 0) {
-      this.availableSlots.push({
-        period: "Jantar",
-        slots: dinnerSlots,
-      })
-    }
+    const diasSemana = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    const diaApi = diasSemana[this.selectedDate.getDay()];
+    const horariosDoDia = (this.horariosFuncionamento || []).filter(h => h.diaSemana === diaApi);
+    this.availableSlots = horariosDoDia.map(horario => {
+      return {
+        period: `${horario.abertura} - ${horario.fechamento}`,
+        slots: this.generateTimeSlots(horario.abertura, horario.fechamento, 15)
+      };
+    });
   }
 
   generateTimeSlots(start: string, end: string, intervalMinutes: number): any[] {
@@ -431,12 +409,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
     for (let time = startTime; time <= endTime; time += intervalMinutes) {
       const timeString = this.minutesToTime(time)
-      const availability = Math.random() > 0.3 ? "available" : Math.random() > 0.5 ? "limited" : "unavailable"
-
       slots.push({
         time: timeString,
-        availability: availability,
-        percentage: availability === "limited" ? Math.floor(Math.random() * 50) + 20 : null,
+        availability: 'available',
+        percentage: null,
       })
     }
 
@@ -464,14 +440,29 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   carregarDadosRestaurante(): void {
     this.spinnerService.mostrar(0)
     this.isLoading = true
-
     this.restauranteService.findById(this.restauranteId).subscribe({
-      next: (restaurante: any) => {
+      next: (restaurante: IRestaurante) => {
         this.restaurante = restaurante
-        this.allImages = [...this.restaurantImages]
-        this.totalPhotos = this.allImages.length
-        this.definirDadosEstaticos()
-        this.checkIfFavorite()
+        // Imagens: garantir pelo menos 4
+        let imgs = restaurante.imagens && restaurante.imagens.length > 0
+          ? restaurante.imagens.map(img => this.getImagemCompleta(img))
+          : []
+        while (imgs.length < 4) imgs.push('assets/jpg/restauranteModelo.jpg');
+        this.restaurantImages = imgs.slice(0, 5); // até 5 para o botão de galeria
+        this.allImages = [...imgs];
+        this.totalPhotos = imgs.length > 4 ? imgs.length - 4 : 0
+        // Horários de funcionamento ordenados
+        this.horariosFuncionamento = this.ordenarHorarios(restaurante.horariosFuncionamento || [])
+        this.selectedDate = new Date(this.selectedDate);
+        // Serviços
+        this.recursos = (restaurante.servicos || []).map(nome => {
+          const found = this.servicosComIcone.find(s => s.nome === nome);
+          return { nome, icone: found?.icone || 'check_circle' };
+        });
+        // Centralizar mapa pelo endereço formatado
+        this.atualizarLocalizacaoMapa();
+        this.generateAvailableSlots();
+        this.isFavorite = restaurante.favorito ?? false;
         this.isLoading = false
         this.spinnerService.ocultar()
       },
@@ -496,11 +487,22 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   toggleFavorite() {
-    this.isFavorite = !this.isFavorite
+    if (!this.restauranteId) return;
+    this.restauranteService.favoritarRestaurante(this.restauranteId).subscribe({
+      next: () => {
+        this.isFavorite = !this.isFavorite;
+        this.message.success(this.isFavorite ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!');
+      },
+      error: () => {
+        this.message.error('Erro ao favoritar restaurante.');
+      }
+    });
   }
 
   openGallery() {
-    this.isGalleryVisible = true
+    if (this.restaurantImages.length > 4) {
+      this.isGalleryVisible = true
+    }
   }
 
   closeGallery() {
@@ -524,7 +526,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   onTabChange(index: number): void {
-    this.activeTabIndex = index
+    this.activeTabIndex = index;
+    if (index === 1) {
+      this.carregarItensMenu();
+    }
   }
 
   scrollToTop(): void {
@@ -532,7 +537,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   copiarEndereco(): void {
-    const endereco = `${this.restaurante?.endereco}, ${this.restaurante?.cidade} - ${this.restaurante?.estado}, ${this.restaurante?.cep}`
+    const endereco = this.getEnderecoFormatado()
     if (endereco) {
       navigator.clipboard.writeText(endereco).then(() => {
         this.copiado = true
@@ -578,75 +583,21 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   carregarItensMenu(): void {
-    this.itensMenu = [
-      {
-        id: "1",
-        nome: "Bruschetta Clássica",
-        preco: 18.9,
-        descricao: "Fatias de pão italiano grelhado com tomate, manjericão e azeite extra virgem",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Entradas",
-        tags: ["Vegetariano"],
+    if (!this.restauranteId) return;
+    this.cardapioService.listarItensPorRestaurante(this.restauranteId).subscribe({
+      next: (itens) => {
+        this.itensMenu = itens;
+        // Categorias dinâmicas
+        this.categorias = Array.from(new Set(itens.map(i => typeof i.categoria === 'string' ? i.categoria : i.categoria?.nome)));
+        // Opções dietéticas dinâmicas
+        this.dietOptions = Array.from(new Set(itens.flatMap(i => (i.tags || []).map((t: any) => typeof t === 'string' ? t : t.tag))));
       },
-      {
-        id: "2",
-        nome: "Carpaccio de Filé Mignon",
-        preco: 32.5,
-        descricao: "Finas fatias de filé mignon com alcaparras, parmesão e molho de mostarda e mel",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Entradas",
-        tags: ["Sem Glúten"],
-      },
-      {
-        id: "3",
-        nome: "Risoto de Funghi",
-        preco: 45.9,
-        descricao: "Arroz arbóreo cremoso com mix de cogumelos frescos e parmesão",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Pratos Principais",
-        tags: ["Vegetariano", "Sem Glúten"],
-      },
-      {
-        id: "4",
-        nome: "Spaghetti alla Carbonara",
-        preco: 39.9,
-        descricao: "Massa fresca com molho cremoso de ovos, pancetta, pimenta preta e queijo pecorino",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Pratos Principais",
-        tags: [],
-      },
-      {
-        id: "5",
-        nome: "Tiramisu",
-        preco: 22.9,
-        descricao: "Sobremesa italiana clássica com camadas de biscoito champagne, café e creme de mascarpone",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Sobremesas",
-        tags: ["Vegetariano"],
-      },
-      {
-        id: "6",
-        nome: "Batatas Rústicas",
-        preco: 18.5,
-        descricao: "Batatas assadas com ervas finas, alho e azeite",
-        imagem: "assets/jpg/Comida.jpg",
-        disponivel: true,
-        categoria: "Acompanhamentos",
-        tags: ["Vegano", "Sem Glúten"],
-      },
-    ]
-
-    const destaques = this.itensMenu.filter((item, index) => index % 3 === 0)
-    destaques.forEach((item) => {
-      const destaque = { ...item }
-      destaque.categoria = "Destaques"
-      this.itensMenu.push(destaque)
-    })
+      error: () => {
+        this.itensMenu = [];
+        this.categorias = [];
+        this.dietOptions = [];
+      }
+    });
   }
 
   getItensPorCategoria(categoria: string): any[] {
@@ -739,64 +690,29 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   finalizarReserva(): void {
     if (!this.selectedDate || !this.selectedTime || !this.selectedGuests) {
-      console.log('Por favor, selecione a data, horário e número de pessoas.')
-      return
+      this.message.error('Por favor, selecione a data, horário e número de pessoas.');
+      return;
     }
-
-    this.spinnerService.mostrar(0)
-
+    this.spinnerService.mostrar(0);
     const reservaData = {
-      restaurantId: this.restauranteId,
-      date: this.selectedDate.toISOString().split('T')[0],
-      time: this.selectedTime,
-      guests: this.selectedGuests,
-      comments: this.selectedComments
-    }
-
-    // Simulação de sucesso/erro para demonstração com o mock atual
-    console.log('Simulando finalização de reserva:', reservaData)
-    setTimeout(() => {
-      const sucesso = Math.random() > 0.2 // 80% de chance de sucesso
-      if (sucesso) {
-        console.log('Reserva simulada com sucesso!')
-        this.spinnerService.ocultar()
-        this.message.success("Reserva realizada com sucesso (simulado)!")
-        this.resetBooking()
-        this.router.navigate(['/home'])
-      } else {
-        console.error('Erro simulado ao criar reserva.')
-        this.spinnerService.ocultar()
-        this.message.error("Erro ao criar reserva (simulado)")
+      idRestaurante: this.restauranteId,
+      dataReserva: this.selectedDate.toISOString().split('T')[0],
+      horarioReserva: this.selectedTime,
+      quantidadePessoasReserva: this.selectedGuests,
+      comentariosPreferenciaReserva: this.selectedComments
+    };
+    this.reservasService.criarReserva(reservaData).subscribe({
+      next: () => {
+        this.spinnerService.ocultar();
+        this.message.success('Reserva realizada com sucesso!');
+        this.resetBooking();
+        this.router.navigate(['/home']);
+      },
+      error: () => {
+        this.spinnerService.ocultar();
+        this.message.error('Erro ao criar reserva.');
       }
-    }, 2000) // Simula um delay de 2 segundos
-  }
-
-  definirDadosEstaticos(): void {
-    if (this.restaurante?.endereco) {
-      this.mapsService.getCoordinatesFromAddress(this.restaurante.endereco).subscribe({
-        next: (coords) => {
-          this.center = { lat: coords.lat, lng: coords.lng }
-          this.markerPosition = this.center
-        },
-        error: (err) => {
-          console.error('Geocoding error:', err)
-          if (this.restaurante?.coordenadas) {
-            this.center = {
-              lat: this.restaurante.coordenadas.latitude,
-              lng: this.restaurante.coordenadas.longitude,
-            }
-            this.markerPosition = this.center
-          }
-          this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.')
-        }
-      })
-    } else if (this.restaurante?.coordenadas) {
-      this.center = {
-        lat: this.restaurante.coordenadas.latitude,
-        lng: this.restaurante.coordenadas.longitude,
-      }
-      this.markerPosition = this.center
-    }
+    });
   }
 
   checkIfFavorite(): void {
@@ -808,5 +724,92 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
 
   ngOnDestroy(): void {
     console.log('Componente AgendamentoReservasRestauranteComponent sendo destruído.')
+  }
+
+  // Função para exibir endereço formatado
+  getEnderecoFormatado(): string {
+    if (!this.restaurante?.endereco) return '';
+    const e = this.restaurante.endereco;
+    let partes = [e.rua, e.numero, e.bairro, e.cidade, e.estado, e.cep, e.complemento];
+    return partes.filter(Boolean).join(', ');
+  }
+
+  // Função para exibir endereço resumido (rua, cidade - estado)
+  getEnderecoResumido(): string {
+    if (!this.restaurante?.endereco) return '';
+    const e = this.restaurante.endereco;
+    let partes = [e.rua, e.numero, e.cidade, e.estado];
+    return partes.filter(Boolean).join(', ');
+  }
+
+  // Função para exibir preço médio
+  getPrecoMedio(): number {
+    return this.restaurante?.valorMedioPorPessoa ?? 0;
+  }
+
+  // Função para exibir nome do dia da semana em PT
+  getDiaSemanaPt(dia: string): string {
+    return this.DIAS_PT[dia] || dia;
+  }
+
+  // Função para exibir descrição com quebra de linha
+  getDescricaoFormatada(): string {
+    return this.restaurante?.descricao || '';
+  }
+
+  // Função para desabilitar dias no calendário que não estão em horariosFuncionamento
+  isDiaHabilitado = (date: Date): boolean => {
+    if (!this.horariosFuncionamento || this.horariosFuncionamento.length === 0) return false;
+    const diasSemana = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    const diaApi = diasSemana[date.getDay()];
+    return this.horariosFuncionamento.some(h => h.diaSemana === diaApi);
+  }
+
+  // Ordena os horários de funcionamento por ordem dos dias da semana
+  ordenarHorarios(horarios: { diaSemana: string; abertura: string; fechamento: string }[]): any[] {
+    const ordem = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    return horarios.slice().sort((a, b) => ordem.indexOf(a.diaSemana) - ordem.indexOf(b.diaSemana));
+  }
+
+  // Função para agrupar horários por dia e período (almoço/jantar)
+  getHorariosPorDia(): any[] {
+    // Agrupa por diaSemana e retorna todos os períodos daquele dia
+    const diasSemana = ['DOMINGO','SEGUNDA','TERCA','QUARTA','QUINTA','SEXTA','SABADO'];
+    return diasSemana.map(dia => {
+      const horarios = (this.horariosFuncionamento || []).filter(h => h.diaSemana === dia);
+      return horarios.length > 0 ? { dia, horarios } : null;
+    }).filter(Boolean);
+  }
+
+  // Atualizar localização do mapa após carregar restaurante
+   private atualizarLocalizacaoMapa(): void {
+    const enderecoStr = this.getEnderecoFormatado(); // Usa sua função que já formata o endereço
+    if (enderecoStr) {
+      this.mapsService.getCoordinatesFromAddress(enderecoStr).subscribe({
+        next: coords => {
+          // Atualiza o centro do mapa e a posição do marcador
+          this.center = { lat: coords.lat, lng: coords.lng };
+          this.markerPosition = this.center;
+        },
+        error: () => {
+          // Fallback: Se a API do Google falhar, tenta usar coordenadas do banco de dados se existirem
+          if (this.restaurante?.coordenadas) {
+            this.center = {
+              lat: this.restaurante.coordenadas.latitude,
+              lng: this.restaurante.coordenadas.longitude,
+            };
+            this.markerPosition = this.center;
+          } else {
+             this.message.error('Não foi possível determinar a localização exata do restaurante a partir do endereço.');
+          }
+        }
+      });
+    }
+  }
+
+  getImagemCompleta(imagem: string): string {
+    if (!imagem) return 'assets/jpg/Comida.jpg';
+    if (imagem.startsWith('http')) return imagem;
+    return `${environment.apiUrl}${imagem}`;
   }
 }

@@ -7,7 +7,7 @@
     [disablePrimaryBtn]="!loginForm.valid">
 
     <div class="form-section">
-        <form [formGroup]="loginForm" class="login-form">
+        <form [formGroup]="loginForm" class="login-form" (ngSubmit)="submit()">
             <!-- Campo E-mail -->
             <mat-form-field class="largura-total" appearance="outline" >
                 <mat-label>E-mail</mat-label>
@@ -43,6 +43,10 @@
             <div class="forgot-password">
                 <a href="#" (click)="forgotPassword(); $event.preventDefault();">Esqueci minha senha</a>
                 <span *ngIf="showForgotInfo" class="not-ready">Funcionalidade ainda não implementada.</span>
+            </div>
+            <div *ngIf="showLoginError" class="login-error-card">
+                <mat-icon>error</mat-icon>
+                Não foi possível acessar sua conta. Verifique seu e-mail e senha e tente novamente.
             </div>
         </form>
     </div>

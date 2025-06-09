@@ -4,15 +4,13 @@ import java.util.UUID;
 
 public class LoginResponse {
     private String token;
-    private String refreshToken;
     private String nome;
     private String tipoUsuario;
     private UUID id;
     private String email;
 
-    public LoginResponse(String token, String refreshToken, String nome, String tipoUsuario, UUID id, String email) {
+    public LoginResponse(String token, String nome, String tipoUsuario, UUID id, String email) {
         this.token = token;
-        this.refreshToken = refreshToken;
         this.nome = nome;
         this.tipoUsuario = tipoUsuario;
         this.id = id;
@@ -20,7 +18,6 @@ public class LoginResponse {
     }
 
     public String getToken() { return token; }
-    public String getRefreshToken() { return refreshToken; }
     public String getName() { return nome; }
     public String getTipoUsuario() { return tipoUsuario; }
     public UUID getId() { return id; }

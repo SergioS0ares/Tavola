@@ -35,6 +35,15 @@
           </div>
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Telefone</mat-label>
+              <input matInput formControlName="telefone" mask="(00) 00000-0000">
+              <mat-error *ngIf="clienteForm.get('telefone')?.hasError('required')">
+                Este campo é obrigatório
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>Senha</mat-label>
               <input matInput formControlName="senha" type="password">
               <mat-error *ngIf="clienteForm.get('senha')?.hasError('required')">
@@ -67,7 +76,7 @@
           <div class="form-row two-columns">
             <mat-form-field appearance="outline">
               <mat-label>CEP</mat-label>
-              <input matInput formControlName="cep" mask="00000-000" (blur)="buscarCep()">
+              <input matInput formControlName="cep" mask="00000-000" (blur)="buscarCepGenerico(clienteForm, 'mensagemCepInvalido')">
               <mat-error *ngIf="clienteForm.get('cep')?.hasError('required')">
                 Este campo é obrigatório
               </mat-error>
@@ -183,7 +192,7 @@
             <div class="form-row two-columns">
               <mat-form-field appearance="outline">
                 <mat-label>CEP</mat-label>
-                <input matInput formControlName="cep" mask="00000-000" (blur)="buscarCepRestaurante()">
+                <input matInput formControlName="cep" mask="00000-000" (blur)="buscarCepGenerico(enderecoFormGroup, 'mensagemCepInvalidoRestaurante')">
                 <mat-error *ngIf="restauranteForm.get('endereco.cep')?.hasError('required')">
                   Este campo é obrigatório
                 </mat-error>
@@ -286,30 +295,29 @@
 
         <div class="form-section">
           <h3 class="section-title">Horário de Funcionamento</h3>
-          <div formArrayName="horariosFuncionamento" class="horarios-grid">
-            <div *ngFor="let horario of horariosFuncionamento.controls; let i = index" 
-                 [formGroupName]="i" 
-                 class="horario-row">
-              <mat-checkbox formControlName="ativo" class="dia-semana">
-                {{diasSemana[i]}}
-              </mat-checkbox>
-              <div class="horarios-inputs" *ngIf="horario.get('ativo')?.value">
-                <mat-form-field appearance="outline">
-                  <mat-label>Abertura</mat-label>
-                  <input matInput type="time" formControlName="abertura">
-                  <mat-error *ngIf="horario.get('abertura')?.hasError('required') && horario.get('ativo')?.value">
-                    Obrigatório
-                  </mat-error>
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                  <mat-label>Fechamento</mat-label>
-                  <input matInput type="time" formControlName="fechamento">
-                  <mat-error *ngIf="horario.get('fechamento')?.hasError('required') && horario.get('ativo')?.value">
-                    Obrigatório
-                  </mat-error>
-                </mat-form-field>
-              </div>
+          <div formArrayName="horaFuncionamento">
+            <div *ngFor="let horario of horaFuncionamento.controls; let i = index" [formGroupName]="i" class="horario-row-flex">
+              <mat-form-field appearance="outline">
+                <mat-label>Dia da Semana</mat-label>
+                <mat-select formControlName="diaSemana">
+                  <mat-option *ngFor="let dia of diasSemana" [value]="dia.value">{{ dia.label }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Abertura</mat-label>
+                <input matInput type="time" formControlName="abertura">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Fechamento</mat-label>
+                <input matInput type="time" formControlName="fechamento">
+              </mat-form-field>
+              <button mat-icon-button color="warn" (click)="removeHorario(i)" *ngIf="horaFuncionamento.length > 1">
+                <mat-icon>delete</mat-icon>
+              </button>
             </div>
+            <button mat-stroked-button color="primary" type="button" (click)="addHorario()" class="add-horario-btn">
+              <mat-icon>add</mat-icon> Adicionar Horário
+            </button>
           </div>
         </div>
       </form>

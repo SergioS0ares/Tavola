@@ -1,56 +1,42 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
-import TavolaSoftware.TavolaApp.REST.model.Mesas;
-import java.util.List;
+import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
- * DTO para responder dados de Mesas no API, evitando sobrecarga de dados do domínio.
+ * DTO para enviar dados de uma Mesa como resposta da API.
  */
 public class MesaResponse {
     private UUID id;
     private String nome;
-    private String descricao;
-    private int quantidadeTotal;
-    private int quantidadeDisponivel;
-    private int disponivel;
-    private List<String> imagem;
+    private String tipo;
+    private int capacidade;
+    private boolean vip;
+    private UUID ambienteId;
 
-    public MesaResponse() {}
-
-    public static MesaResponse fromEntity(Mesas mesa) {
+    public static MesaResponse fromEntity(Mesa mesa) {
         if (mesa == null) {
             return null;
         }
         
         MesaResponse response = new MesaResponse();
-        response.setId(mesa.getId());
-        response.setNome(mesa.getNome());
-        response.setDescricao(mesa.getDescricao());
-        response.setQuantidadeTotal(mesa.getQuantidadeTotal());
-        response.setQuantidadeDisponivel(mesa.getQuantidadeDisponivel());
-        response.setDisponivel(mesa.isDisponivel());
-        response.setImagens(mesa.getImagem() != null ? 
-            mesa.getImagem().stream().collect(Collectors.toList()) : 
-            List.of());
-            
+        response.id = mesa.getId();
+        response.nome = mesa.getNome();
+        response.tipo = mesa.getTipo();
+        response.capacidade = mesa.getCapacidade();
+        response.vip = mesa.isVip();
+        if (mesa.getAmbiente() != null) {
+            response.ambienteId = mesa.getAmbiente().getId();
+        }
+        
         return response;
     }
 
-    // Getters and setters
+    // Getters para todos os campos
     public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
     public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-    public int getQuantidadeTotal() { return quantidadeTotal; }
-    public void setQuantidadeTotal(int quantidadeTotal) { this.quantidadeTotal = quantidadeTotal; }
-    public int getQuantidadeDisponivel() { return quantidadeDisponivel; }
-    public void setQuantidadeDisponivel(int quantidadeDisponivel) { this.quantidadeDisponivel = quantidadeDisponivel; }
-    public int isDisponivel() { return disponivel; }
-    public void setDisponivel(int disponivel) { this.disponivel = disponivel; }
-    public List<String> getImagens() { return imagem; }
-    public void setImagens(List<String> imagens) { this.imagem = imagens; }
+    public String getTipo() { return tipo; }
+    public int getCapacidade() { return capacidade; }
+    public boolean isVip() { return vip; }
+    public UUID getAmbienteId() { return ambienteId; }
 }

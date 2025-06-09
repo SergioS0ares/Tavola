@@ -1,89 +1,25 @@
-<div class="global-spinner-overlay" *ngIf="visivel">
-  <div class="spinner-container">
-    <!-- Oven body -->
-    <div class="oven-body">
-      <!-- Control panel -->
-      <div class="control-panel">
-        <div class="controls-row">
-          <!-- Temperatura display -->
-          <div class="control-item">
-            <lucide-icon name="thermometer" [size]="8"></lucide-icon>
-            <span class="temperature-display-control">{{ temperaturaCelsius }}</span>
-          </div>
-
-          <!-- Power indicator -->
-          <div class="control-item">
-            <lucide-icon name="zap" [size]="8"></lucide-icon>
-            <div class="power-indicator" [class.active]="true"></div>
-          </div>
+<div *ngIf="visivel" class="chef-spinner-overlay">
+  <div class="chef-spinner-card">
+    <div class="chef-spinner-center">
+      <div class="chef-spinner-anim">
+        <div class="chef-spinner-circle chef-spinner-circle-1"></div>
+        <div class="chef-spinner-circle chef-spinner-circle-2"></div>
+        <div class="chef-spinner-hat">
+          <!-- SVG chapéu de chef -->
+          <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+            <ellipse cx="16" cy="13" rx="10" ry="7" fill="#FDE68A"/>
+            <ellipse cx="16" cy="13" rx="7" ry="5" fill="#FFF"/>
+            <path d="M12 13C12 11.3431 13.3431 10 15 10C16.6569 10 18 11.3431 18 13" stroke="#F59E42" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8 24C8 22.3431 9.34315 21 11 21H21C22.6569 21 24 22.3431 24 24V26C24 27.1046 23.1046 28 22 28H10C8.89543 28 8 27.1046 8 26V24Z" fill="#F59E42"/>
+          </svg>
         </div>
       </div>
-
-      <!-- Oven door -->
-      <div class="oven-door">
-        <!-- Door window -->
-        <div class="door-window" [class.light-on]="luzPortaAtiva" [ngStyle]="{'background-image': 'linear-gradient(to bottom, rgba(' + corJanela.slice(4, -1) + ', 0.8), rgba(' + corJanela.slice(4, -1) + ', 1))'}">
-          <!-- Heat elements inside -->
-          <div class="heat-elements">
-            <div
-              *ngFor="let active of elementosAquecimentoAtivos; let i = index"
-              class="heat-element"
-              [class.active]="active"
-            ></div>
-          </div>
-
-          <!-- Convection fan -->
-          <div class="convection-fan">
-            <div
-              class="fan-circle"
-              [style.transform]="'rotate(' + rotacaoVentoinha + 'deg)'"
-            >
-              <div class="fan-blade horizontal"></div>
-              <div class="fan-blade vertical"></div>
-            </div>
-          </div>
-
-          <!-- Food tray -->
-          <div class="food-tray">
-            <div class="food-on-tray"></div>
-          </div>
-
-          <!-- Steam puffs -->
-          <div
-            *ngFor="let puff of bolhasVapor; let i = index"
-            class="steam-puff"
-            [style.left.%]="puff.x"
-            [style.bottom.%]="puff.y"
-            [style.width.px]="puff.tamanho"
-            [style.height.px]="puff.tamanho"
-            [style.opacity]="puff.opacidade"
-          ></div>
-
-        </div>
-
-        <!-- Door handle -->
-        <div class="door-handle"></div>
-      </div>
-
-      <!-- Ventilation grilles -->
-      <div class="ventilation-grilles">
-        <div *ngFor="let _ of [].constructor(8); let i = index" class="grille"></div>
+      <p class="chef-spinner-text">Preparando sua experiência gastronômica...</p>
+      <div class="chef-spinner-dots">
+        <div class="chef-spinner-dot chef-spinner-dot-1"></div>
+        <div class="chef-spinner-dot chef-spinner-dot-2"></div>
+        <div class="chef-spinner-dot chef-spinner-dot-3"></div>
       </div>
     </div>
-
-    <!-- Heat indicator above oven -->
-    <div class="heat-indicator">
-      <div
-        *ngFor="let _ of [].constructor(5); let i = index"
-        class="heat-dot animate-ping"
-        [style.left.px]="-8 + i * 4"
-        [style.animationDelay.ms]="i * 200"
-      ></div>
-    </div>
-  </div>
-
-  <div class="text-info">
-    <div class="title">Forno Industrial</div>
-    <div class="status">{{ statusTexto }}</div>
   </div>
 </div>

@@ -1,0 +1,739 @@
+@import '../../../styles/variables.scss';
+
+// Variáveis
+$primary-color: #F6BD38; // Amarelo
+$accent-color: #DA4A24; // Laranja
+$text-color: #333333;
+$light-gray: #f5f5f5;
+$border-radius: 16px; // Bordas mais arredondadas
+
+.configuracoes-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  
+  h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: $text-color;
+    margin: 0;
+  }
+  
+  p {
+    font-size: 16px;
+    color: rgba(59, 34, 27, 0.7);
+    margin: 0;
+  }
+}
+
+mat-card {
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid transparent;
+  background-color: white;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+  
+  &:hover {
+    border-color: $primary-color;
+  }
+}
+
+::ng-deep {
+  .mat-mdc-card {
+    &:hover {
+      background-color: white !important;
+    }
+  }
+}
+
+.info-card {
+  padding: 0;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: #3B221B;
+    }
+    
+    .edit-icon {
+      color: #3B221B;
+    }
+  }
+
+  .card-content {
+    padding: 24px;
+    background: white;
+    
+    mat-form-field {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+  }
+}
+
+.gallery-section {
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+    gap: 16px;
+    border-radius: $border-radius;
+    overflow: hidden;
+    
+    .main-photo, .medium-photo, .small-photo-top, .small-photo-bottom, .gallery-item {
+      position: relative;
+      border-radius: $border-radius;
+      overflow: hidden;
+      height: 200px; 
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+      
+      .photo-tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: $primary-color;
+        color: #3B221B;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 1;
+      }
+      
+      .remove-img-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: white; 
+        color: $accent-color; 
+        border-radius: 50%; 
+        height: 32px; 
+        width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+        z-index: 1;
+
+        mat-icon {
+          font-size: 18px;
+          height: 18px;
+          width: 18px;
+        }
+        
+        &:hover {
+          background-color: $accent-color; 
+          color: white; 
+        }
+      }
+    }
+    
+    .more-photos {
+        cursor: pointer;
+        
+        .more-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 14px;
+          text-align: center;
+          transition: background 0.3s ease;
+          
+          &:hover {
+            background: rgba(0, 0, 0, 0.8);
+          }
+        }
+      }
+  }
+}
+
+.main-image-preview {
+  position: relative;
+  width: 100%;
+  height: 200px; /* Altura fixa para o card da imagem principal */
+  border-radius: $border-radius;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Garante que a imagem não seja esticada */
+    border-radius: $border-radius;
+  }
+
+  .photo-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: $primary-color;
+    color: #3B221B;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 1;
+  }
+
+  .remove-main-img-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: white; 
+    color: $accent-color; 
+    border-radius: 50%; 
+    height: 32px; 
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    z-index: 1;
+
+    mat-icon {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+
+    &:hover {
+      background-color: $accent-color; 
+      color: white; 
+    }
+  }
+}
+
+// Card estilo home para imagem principal
+.home-style-card {
+  margin-top: 16px;
+  
+  .restaurant-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    
+    .restaurant-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      
+      &:hover {
+        transform: scale(1.02);
+      }
+    }
+    
+    .image-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      
+      .photo-tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: $primary-color;
+        color: #3B221B;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 2;
+        pointer-events: none;
+      }
+      
+      .remove-main-img-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: white;
+        color: $accent-color;
+        border-radius: 50%;
+        height: 32px;
+        width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 2;
+        pointer-events: all;
+
+        mat-icon {
+          font-size: 18px;
+          height: 18px;
+          width: 18px;
+        }
+
+        &:hover {
+          background-color: $accent-color;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Galeria irregular estilo home
+.photo-gallery {
+  margin-top: 16px;
+  
+  .gallery-grid-irregular {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 400px;
+    
+    .main-photo {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      position: relative;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .medium-photo {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      position: relative;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .small-photo-top {
+      grid-column: 3;
+      grid-row: 1;
+      position: relative;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .small-photo-bottom {
+      grid-column: 3;
+      grid-row: 2;
+      position: relative;
+      border-radius: $border-radius;
+      overflow: hidden;
+      cursor: pointer;
+      
+      .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+      
+      .more-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        text-align: center;
+        transition: background 0.3s ease;
+        z-index: 1;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.8);
+        }
+      }
+    }
+    
+    .remove-img-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: white;
+      color: $accent-color;
+      border-radius: 50%;
+      height: 28px;
+      width: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 2;
+
+      mat-icon {
+        font-size: 16px;
+        height: 16px;
+        width: 16px;
+      }
+
+      &:hover {
+        background-color: $accent-color;
+        color: white;
+      }
+    }
+  }
+}
+
+// Modal de galeria com 3 colunas
+.full-gallery {
+  .gallery-grid-modal {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    
+    .gallery-item {
+      border-radius: $border-radius;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      
+      .modal-gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.02);
+        }
+      }
+    }
+  }
+}
+
+// Responsividade para galeria irregular
+@media (max-width: 768px) {
+  .photo-gallery {
+    .gallery-grid-irregular {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      height: 600px;
+      
+      .main-photo {
+        grid-column: 1 / span 2;
+        grid-row: 1;
+      }
+      
+      .medium-photo {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      
+      .small-photo-top {
+        grid-column: 2;
+        grid-row: 2;
+      }
+      
+      .small-photo-bottom {
+        grid-column: 1 / span 2;
+        grid-row: 3;
+      }
+    }
+  }
+  
+  .full-gallery {
+    .gallery-grid-modal {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .full-gallery {
+    .gallery-grid-modal {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.gallery-section {
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Ajustado para 6 imagens */
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr); /* 3 colunas em telas maiores para 6 imagens */
+    }
+  }
+}
+
+.upload-section {
+  margin-bottom: 24px;
+  
+  .upload-label {
+    display: block;
+    color: #3B221B;
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .upload-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 2px dashed #F6BD38;
+    border-radius: 12px;
+    background: #FFF9E6;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: #f4b942;
+      background: #FFF6D6;
+    }
+
+    button {
+      background: #F6BD38;
+      color: #3B221B;
+      border: none;
+      font-weight: 600;
+      
+      &:hover {
+        background: #f4b942;
+      }
+    }
+  }
+}
+
+.horario-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #FAFAFA;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+
+  .dia-semana-field {
+    flex: 1;
+  }
+
+  .horario-inputs {
+    display: flex;
+    gap: 16px;
+    flex: 2;
+  }
+
+  .remove-horario-btn {
+    color: #DA4A24;
+    background: white;
+    border: 1px solid #DA4A24;
+    border-radius: 8px;
+    
+    &:hover {
+      background: #DA4A24;
+      color: white;
+    }
+  }
+}
+
+.add-horario-btn {
+  background: white;
+  color: #F6BD38;
+  border: 2px dashed #F6BD38;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  
+  &:hover {
+    background: #FFF9E6;
+    border-color: #f4b942;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.save-btn {
+  background: #F6BD38 !important;
+  color: #3B221B !important;
+  font-weight: 600 !important;
+  padding: 12px 32px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  
+  &:hover {
+    background: #f4b942 !important;
+  }
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  color: #3B221B;
+}
+
+.gallery-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  .gallery-modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    cursor: default; // Reset cursor for content
+  }
+
+  .gallery-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h3 {
+      margin: 0;
+      color: #3B221B;
+    }
+
+    button {
+      color: #3B221B;
+    }
+  }
+
+  .gallery-grid-modal {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    
+    .gallery-item {
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .configuracoes-container {
+    margin: 12px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+  
+  .gallery-section {
+  .gallery-grid {
+      grid-template-columns: 1fr; /* Coluna única em telas menores */
+      height: auto;
+    }
+  }
+  
+  .horario-item {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .horario-inputs {
+      flex-direction: column;
+    }
+  }
+}

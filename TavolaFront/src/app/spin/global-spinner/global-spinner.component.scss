@@ -243,3 +243,199 @@
 
 /* Removido o estilo da temperatura interna */
 /* .temperature-display { ... } */
+
+.chef-spinner-container {
+  margin-top: 3rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.chef-spinner-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.chef-spinner-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+.chef-spinner-anim {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid #FDBA74;
+  border-top-color: transparent;
+  border-bottom-color: #F59E42;
+}
+.chef-spinner-circle-1 {
+  width: 80px;
+  height: 80px;
+  animation: chef-spin-1 3s linear infinite;
+}
+.chef-spinner-circle-2 {
+  width: 64px;
+  height: 64px;
+  border-color: #FDBA74 #FDBA74 transparent #F59E42;
+  animation: chef-spin-2 2s linear infinite;
+}
+.chef-spinner-hat {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.chef-spinner-text {
+  margin-top: 1.5rem;
+  font-size: 1.25rem;
+  color: #F59E42;
+  font-weight: 500;
+  text-align: center;
+  animation: chef-fadeInOut 2s infinite;
+}
+.chef-spinner-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+.chef-spinner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F59E42;
+  opacity: 0.5;
+  animation: chef-bounce 1.5s infinite;
+}
+.chef-spinner-dot-2 { animation-delay: 0.2s; }
+.chef-spinner-dot-3 { animation-delay: 0.4s; }
+@keyframes chef-spin-1 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes chef-spin-2 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+@keyframes chef-fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes chef-bounce {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+.chef-spinner-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 340px;
+}
+.chef-spinner-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-anim {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid #FDBA74;
+  border-top-color: transparent;
+  border-bottom-color: #F59E42;
+}
+.chef-spinner-circle-1 {
+  width: 80px;
+  height: 80px;
+  animation: chef-spin-1 3s linear infinite;
+}
+.chef-spinner-circle-2 {
+  width: 64px;
+  height: 64px;
+  border-color: #FDBA74 #FDBA74 transparent #F59E42;
+  animation: chef-spin-2 2s linear infinite;
+}
+.chef-spinner-hat {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.chef-spinner-text {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+  color: #F59E42;
+  font-weight: 600;
+  text-align: center;
+  animation: chef-fadeInOut 2s infinite;
+}
+.chef-spinner-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+.chef-spinner-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #F59E42;
+  opacity: 0.5;
+  animation: chef-bounce 1.5s infinite;
+}
+.chef-spinner-dot-2 { animation-delay: 0.2s; }
+.chef-spinner-dot-3 { animation-delay: 0.4s; }
+@keyframes chef-spin-1 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes chef-spin-2 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+@keyframes chef-fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes chef-bounce {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+}

@@ -9,7 +9,10 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable, startWith, map, Subscription } from 'rxjs';
 import { SearchBarComponent } from './search-bar/search-bar.component';
 import { StickySearchService } from '../../core/services/sticky-search.service';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { RestauranteService } from '../../core/services/restaurante.service';
+import { MapsService } from '../../core/services/maps.service';
+import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
 
 @Component({
   selector: 'app-home',
@@ -60,20 +63,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   cidade = 'Paris';
   query = '';
 
-  restaurants: any[] = [
-    { id: '1', nome: 'L\'Osteria Paris Chatelet', tipo: 'Italiano', avaliacao: 8.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua das Flores, 123, Paris' },
-    { id: '2', nome: 'Café Terry', tipo: 'Italiano', avaliacao: 5.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Avenida Principal, 456, Paris' },
-    { id: '3', nome: 'Les Rupins', tipo: 'Italiano', avaliacao: 3.8, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Praça Central, 789, Paris' },
-    { id: '4', nome: 'Le Gourmet Burger', tipo: 'Hamburgueria', avaliacao: 4.5, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua do Sabor, 101, Paris' },
-    { id: '5', nome: 'Sushi Place', tipo: 'Italiano', avaliacao: 4.0, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Alameda dos Peixes, 202, Paris' },
-    { id: '6', nome: 'La Dolce Vita', tipo: 'Italiano', avaliacao: 4.7, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Via Roma, 303, Paris' },
-    { id: '7', nome: 'Bistro Parisian', tipo: 'Italiano', avaliacao: 4.1, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rue de la Paix, 404, Paris' },
-    { id: '8', nome: 'Cantina da Nonna', tipo: 'Italiano', avaliacao: 9.2, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Travessa da Massa, 505, Paris' },
-    { id: '9', nome: 'Temaki Express', tipo: 'Italiano', avaliacao: 3.5, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Rua do Sushi, 606, Paris' },
-    { id: '10', nome: 'El Fuego Mexicano', tipo: 'Italiano', avaliacao: 4.9, imagem: 'assets/jpg/restauranteOsso.jpg', endereco: 'Calle del Sol, 707, Paris' },
-  ];
-
-  groupedRestaurants: { [cuisine: string]: any[] } = {};
+  restaurants: IRestaurante[] = [];
+  groupedRestaurants: Record<string, IRestaurante[]> = {};
 
   @ViewChild('searchBarHome', { static: false }) searchBarHome!: ElementRef;
   @ViewChild('banner', { static: false }) bannerRef!: ElementRef;
@@ -89,7 +80,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private stickyService: StickySearchService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private restauranteService: RestauranteService,
+    private mapsService: MapsService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -105,11 +99,37 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       map(val => this._filter(val ?? '', this.allQueries))
     );
 
-    this.groupedRestaurants = this.groupRestaurantsByCuisine(this.restaurants);
-
-    this.getCuisineTypes().forEach(cuisine => {
-      this.scrollStates[cuisine] = { canScrollLeft: false, canScrollRight: false };
+    // Buscar restaurantes do backend
+    this.restauranteService.getRestaurantes().subscribe({
+      next: (restaurants) => {
+        // Para cada restaurante, buscar coordenadas se não houver
+        const coordPromises = restaurants.map(async (r) => {
+          if (!r.coordenadas) {
+            const endereco = `${r.endereco.rua}, ${r.endereco.numero}, ${r.endereco.bairro}, ${r.endereco.cidade} - ${r.endereco.estado}, ${r.endereco.cep}`;
+            try {
+              const coords = await this.mapsService.getCoordinatesFromAddress(endereco).toPromise();
+              if (coords) {
+                r.coordenadas = { latitude: coords.lat, longitude: coords.lng };
+              }
+            } catch {}
+          }
+          return r;
+        });
+        Promise.all(coordPromises).then(rests => {
+          this.setRestaurants(rests);
+        });
+      },
+      error: (err) => {
+        // Pode exibir erro se quiser
+      }
     });
+
+    const cuisineTypes = this.getCuisineTypes();
+    if (Array.isArray(cuisineTypes)) {
+      cuisineTypes.forEach(cuisine => {
+        this.scrollStates[cuisine] = { canScrollLeft: false, canScrollRight: false };
+      });
+    }
 
     this.sidebarSubscription = this.stickyService.sidebarAberta$.subscribe(isOpen => {
       this.isSidebarOpen = isOpen;
@@ -132,25 +152,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.scrollContainers.changes.subscribe((list: QueryList<ElementRef>) => {
-        list.forEach(containerRef => {
-            const cuisine = containerRef.nativeElement.dataset.cuisine;
-            if (cuisine && !containerRef.nativeElement._hasScrollListener) {
-                containerRef.nativeElement.addEventListener('scroll', (event: Event) => this.onRestaurantScroll(event, cuisine));
-                containerRef.nativeElement._hasScrollListener = true;
-            }
-            this.checkScrollArrows(containerRef.nativeElement, cuisine || 'default');
+    if (this.scrollContainers) {
+      this.scrollContainers.changes.subscribe((list: QueryList<ElementRef>) => {
+          list.forEach(containerRef => {
+              const cuisine = containerRef.nativeElement.dataset.cuisine;
+              if (cuisine && !containerRef.nativeElement._hasScrollListener) {
+                  containerRef.nativeElement.addEventListener('scroll', (event: Event) => this.onRestaurantScroll(event, cuisine));
+                  containerRef.nativeElement._hasScrollListener = true;
+              }
+              this.checkScrollArrows(containerRef.nativeElement, cuisine || 'default');
+          });
+          this.cdr.detectChanges();
+      });
+
+      setTimeout(() => {
+        this.scrollContainers.forEach(containerRef => {
+          const cuisine = containerRef.nativeElement.dataset.cuisine;
+          if (cuisine) this.checkScrollArrows(containerRef.nativeElement, cuisine);
         });
         this.cdr.detectChanges();
-    });
-
-    setTimeout(() => {
-      this.scrollContainers.forEach(containerRef => {
-        const cuisine = containerRef.nativeElement.dataset.cuisine;
-        if (cuisine) this.checkScrollArrows(containerRef.nativeElement, cuisine);
-      });
-      this.cdr.detectChanges();
-    }, 0);
+      }, 0);
+    }
   }
 
   ngOnDestroy() {
@@ -168,19 +190,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- CORREÇÃO: Ajustar a lógica do IntersectionObserver ---
   initStickyObserver(elementToObserve: HTMLElement) {
     const observer = new IntersectionObserver(entries => {
-      // isIntersecting é true quando o elemento está visível (seja entrando ou saindo)
-      // Queremos que stickySearch seja true QUANDO o elemento NÃO ESTÁ visível (sumiu da tela)
+     
       this.stickySearch = !entries[0].isIntersecting;
       this.stickyService.setSticky(this.stickySearch);
       this.cdr.detectChanges(); // Força detecção de mudanças
     }, {
-      // rootMargin permite expandir ou encolher a área de observação
-      // '0px 0px -100% 0px' significa que a observação ocorre 100% abaixo do elemento raiz
-      // Isso faz com que isIntersecting seja false quando o elemento está TOTALMENTE acima do viewport
-      // ou totalmente abaixo do viewport.
-      // Para o seu caso, queremos que ele se torne sticky quando a barra de pesquisa original
-      // some da parte superior da tela.
-      // Um threshold de 0.0 (0%) ou uma pequena margem superior negativa pode ser mais adequado.
       threshold: [0, 1] // Observa quando 0% ou 100% do elemento está visível
     });
     observer.observe(elementToObserve);
@@ -211,8 +225,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showQueryDropdown = false;
   }
 
-  public getStarCount(avaliacao: number): number {
-    return Math.round(avaliacao / 2);
+  public getStarCount(r: IRestaurante): number {
+    return Math.round((r.mediaAvaliacao || 0) / 2);
   }
 
   public selectCity(city: string) {
@@ -221,9 +235,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showCityDropdown = false;
   }
 
-  groupRestaurantsByCuisine(restaurants: any[]): { [cuisine: string]: any[] } {
-    return restaurants.reduce((acc, restaurant) => {
-      const type = restaurant.tipo || 'Outros';
+  groupRestaurantsByCuisine(restaurants: IRestaurante[]): Record<string, IRestaurante[]> {
+    if (!Array.isArray(restaurants)) return {};
+    return restaurants.reduce((acc: Record<string, IRestaurante[]>, restaurant) => {
+      const type = restaurant.tipoCozinha || 'Outros';
       if (!acc[type]) {
         acc[type] = [];
       }
@@ -232,8 +247,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }, {});
   }
 
+  formatarEndereco(endereco: IRestaurante['endereco']): string {
+    if (!endereco) return 'Endereço não informado';
+    return `${endereco.rua}, ${endereco.numero} - ${endereco.bairro}, ${endereco.cidade}`;
+  }
+
   getCuisineTypes(): string[] {
-    return Object.keys(this.groupedRestaurants);
+    return this.groupedRestaurants ? Object.keys(this.groupedRestaurants) : [];
   }
 
   onRestaurantScroll(event: Event, cuisine: string): void {
@@ -277,5 +297,33 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       container.scrollLeft += scrollAmount;
     }
+  }
+
+  setRestaurants(restaurants: IRestaurante[]) {
+    if (JSON.stringify(this.restaurants) !== JSON.stringify(restaurants)) {
+      this.restaurants = restaurants;
+      this.groupedRestaurants = this.groupRestaurantsByCuisine(restaurants);
+    }
+  }
+
+  navigateToRestaurante(r: IRestaurante) {
+    this.router.navigate(['/home/agendamento-reservas-restaurante', r.id]);
+  }
+
+  getImagemRestaurante(r: IRestaurante): string {
+    if (r.imagens && r.imagens.length > 0 && r.imagens[0]) {
+      return r.imagens[0].startsWith('/') ? 'http://localhost:8080' + r.imagens[0] : r.imagens[0];
+    }
+    return 'assets/jpg/restauranteOsso.jpg';
+  }
+
+  getEnderecoFormatado(r: IRestaurante): string {
+    if (!r.endereco) return 'Endereço não informado';
+    const { rua, numero, bairro, cidade, estado } = r.endereco;
+    return `${rua}, ${numero} - ${bairro}, ${cidade} - ${estado}`;
+  }
+
+  getTotalAvaliacoes(r: IRestaurante): number {
+    return r.totalDeAvaliacoes || 0;
   }
 }

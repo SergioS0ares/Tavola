@@ -26,11 +26,14 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const isApiRequest = request.url.startsWith('http://localhost:8080');
     const token = this.auth.getToken();
-    const authReq = request.clone({
-      setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-      withCredentials: true
-    });
+    const authReq = isApiRequest
+      ? request.clone({
+          setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+          withCredentials: true
+        })
+      : request.clone({ withCredentials: false });
 
     return next.handle(authReq).pipe(
       catchError(err => {

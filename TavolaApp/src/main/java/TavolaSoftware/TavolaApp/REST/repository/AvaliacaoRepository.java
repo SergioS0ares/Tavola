@@ -18,4 +18,23 @@ public interface AvaliacaoRepository extends JpaRepository<Avaliacao, UUID> {
 
     // Método para encontrar uma avaliação específica por cliente e restaurante
     Optional<Avaliacao> findByClienteAndRestaurante(Cliente cliente, Restaurante restaurante);
+    
+    /**
+     * Encontra todas as avaliações de um cliente específico.
+     * @param clienteId O ID do cliente.
+     * @return Uma lista de avaliações.
+     */
+    List<Avaliacao> findByClienteId(UUID clienteId);
+
+    /**
+     * Encontra todas as avaliações de um cliente com nota maior ou igual a um valor.
+     * Essencial para descobrirmos do que o cliente realmente gosta.
+     * @param clienteId O ID do cliente.
+     * @param score A nota mínima (ex: 4).
+     * @return Uma lista de avaliações positivas.
+     */
+    List<Avaliacao> findByClienteIdAndScoreGreaterThanEqual(UUID clienteId, int score);
+    
+    void deleteAllByClienteId(UUID clienteId); // Deleta todas as avaliações de um cliente
+
 }

@@ -14,7 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { LayoutPrincipalComponent } from '../layout-principal/layout-principal.component';
 import { NgxMaskDirective} from 'ngx-mask';
 import { ISignupForm } from '../../Interfaces/ISignupForm.interface';
@@ -24,20 +24,9 @@ import { AuthService } from '../../core/services/auth.service';
   selector: 'app-signup',
   standalone: true,
   imports: [
-    CommonModule,
-    DefaultLoginLayoutComponent,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatSelectModule,
-    MatRadioModule,
-    MatTabsModule,
-    MatCheckboxModule,
-    LayoutPrincipalComponent,
-    NgxMaskDirective
+    CommonModule, DefaultLoginLayoutComponent, ReactiveFormsModule, MatFormFieldModule,
+    MatInputModule, MatIconModule, MatButtonModule, MatDividerModule, MatSelectModule,
+    MatRadioModule, MatTabsModule, MatCheckboxModule, LayoutPrincipalComponent, NgxMaskDirective
   ],
   providers: [],
   templateUrl: './signup.component.html',
@@ -48,12 +37,14 @@ export class SignUpComponent {
   tiposCozinha = [
     'Italiana', 'Brasileira', 'Japonesa', 'Hamburgueria', 'Chinesa', 'Mexicana', 'Árabe', 'Francesa', 'Indiana', 'Outros'
   ];
-  diasSemana = ['DOM','SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+  diasSemana = [
+    { label: 'Domingo', value: 'DOMINGO' }, { label: 'Segunda', value: 'SEGUNDA' },
+    { label: 'Terça', value: 'TERCA' }, { label: 'Quarta', value: 'QUARTA' },
+    { label: 'Quinta', value: 'QUINTA' }, { label: 'Sexta', value: 'SEXTA' },
+    { label: 'Sábado', value: 'SABADO' }
+  ];
 
-  // Formulário Cliente (igual ao atual)
   clienteForm: FormGroup<ISignupForm>;
-
-  // Formulário Restaurante
   restauranteForm: FormGroup;
 
   private router = inject(Router);
@@ -67,58 +58,22 @@ export class SignUpComponent {
   mensagemCepInvalidoRestaurante = '';
 
   constructor() {
-    // Cliente
     this.clienteForm = new FormGroup<ISignupForm>({
-      nome: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      email: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required, Validators.email]
-      }),
-      senha: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required, this.validadorSenhaForte]
-      }),
-      passwordConfirm: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      tipo: new FormControl<'CLIENTE' | 'RESTAURANTE'>('CLIENTE', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      cep: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      estado: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      cidade: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      bairro: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      rua: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      numero: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [Validators.required]
-      }),
-      complemento: new FormControl<string>('', {
-        nonNullable: true
-      })
+        nome: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+        senha: new FormControl('', { nonNullable: true, validators: [Validators.required, this.validadorSenhaForte] }),
+        passwordConfirm: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        tipo: new FormControl<'CLIENTE' | 'RESTAURANTE'>('CLIENTE', { nonNullable: true, validators: [Validators.required] }),
+        cep: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        estado: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        cidade: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        bairro: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        rua: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        numero: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+        complemento: new FormControl('', { nonNullable: true }),
+        telefone: new FormControl('', { nonNullable: true, validators: [Validators.required] })
     }, { validators: this.passwordMatchValidator });
 
-    // Restaurante
     this.restauranteForm = this.fb.group({
       nomeCompleto: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -137,28 +92,21 @@ export class SignUpComponent {
       telefone: ['', Validators.required],
       descricao: ['', [Validators.required, Validators.maxLength(500)]],
       quantidadeMesas: [1, [Validators.required, Validators.min(1)]],
-      horariosFuncionamento: this.fb.array(this.diasSemana.map(() => this.fb.group({
-        ativo: [false],
-        abertura: [''],
-        fechamento: ['']
-      })))
-    }, { validators: this.passwordMatchValidatorRestaurante });
-
-    // Adicionar listener para mudanças nos checkboxes
-    this.horariosFuncionamento.controls.forEach(control => {
-      control.get('ativo')?.valueChanges.subscribe(() => {
-        this.validateHorarios();
-      });
-    });
+      horaFuncionamento: this.fb.array([], Validators.required)
+    // CORREÇÃO: Usamos a mesma função validadora para ambos os forms
+    }, { validators: this.passwordMatchValidator });
   }
 
-  // Getter para FormArray de horários
-  get horariosFuncionamento() {
-    return this.restauranteForm.get('horariosFuncionamento') as FormArray;
+  get horaFuncionamento(): FormArray {
+    return this.restauranteForm.get('horaFuncionamento') as FormArray;
   }
 
-  // Validação de senha forte (igual ao atual)
-  validadorSenhaForte(control: AbstractControl): ValidationErrors | null {
+  get enderecoFormGroup(): FormGroup {
+    return this.restauranteForm.get('endereco') as FormGroup;
+  }
+
+  // CORREÇÃO: Validadores definidos como arrow functions para manter o contexto do 'this'.
+  validadorSenhaForte = (control: AbstractControl): ValidationErrors | null => {
     const valor = control.value;
     if (!valor) return null;
     const erros: ValidationErrors = {};
@@ -170,110 +118,75 @@ export class SignUpComponent {
     return Object.keys(erros).length ? erros : null;
   }
 
-  // Validação de confirmação de senha (cliente)
-  passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
+  passwordMatchValidator = (group: AbstractControl): ValidationErrors | null => {
     const password = group.get('senha')?.value;
     const passwordConfirm = group.get('passwordConfirm');
     if (password !== passwordConfirm?.value) {
       passwordConfirm?.setErrors({ passwordMismatch: true });
     } else {
-      const errors = { ...passwordConfirm?.errors };
-      delete errors['passwordMismatch'];
-      passwordConfirm?.setErrors(Object.keys(errors).length ? errors : null);
+      const currentErrors = { ...passwordConfirm?.errors };
+      delete currentErrors['passwordMismatch'];
+      passwordConfirm?.setErrors(Object.keys(currentErrors).length ? currentErrors : null);
     }
     return null;
   }
 
-  // Validação de confirmação de senha (restaurante)
-  passwordMatchValidatorRestaurante(group: AbstractControl): ValidationErrors | null {
-    const password = group.get('senha')?.value;
-    const passwordConfirm = group.get('passwordConfirm');
-    if (password !== passwordConfirm?.value) {
-      passwordConfirm?.setErrors({ passwordMismatch: true });
-    } else {
-      const errors = { ...passwordConfirm?.errors };
-      delete errors['passwordMismatch'];
-      passwordConfirm?.setErrors(Object.keys(errors).length ? errors : null);
-    }
-    return null;
-  }
+  // A função 'passwordMatchValidatorRestaurante' era redundante e foi removida.
 
-  // Busca CEP para Cliente
-  buscarCep() {
-    const cep: string = this.clienteForm.value.cep ?? '';
-    if (!cep || cep.length !== 8) return;
-    this.http.get(`https://viacep.com.br/ws/${cep}/json/`).subscribe({
+  buscarCepGenerico(formGroup: FormGroup, mensagemProperty: 'mensagemCepInvalido' | 'mensagemCepInvalidoRestaurante') {
+    const isRestaurante = !!formGroup.get('endereco.cep');
+    const cepControl = isRestaurante ? formGroup.get('endereco.cep') : formGroup.get('cep');
+    const cep = cepControl?.value || '';
+    
+    if (!cep || cep.replace(/\D/g, '').length !== 8) return;
+
+    this.http.get(`https://viacep.com.br/ws/${cep.replace(/\D/g, '')}/json/`).subscribe({
       next: (res: any) => {
         if (res.erro) {
-          this.mensagemCepInvalido = 'CEP não encontrado.';
+          this[mensagemProperty] = 'CEP não encontrado.';
           return;
         }
-        this.mensagemCepInvalido = '';
-        this.clienteForm.patchValue({
+        this[mensagemProperty] = '';
+        const addressData = {
           estado: res.uf,
           cidade: res.localidade,
           bairro: res.bairro,
           rua: res.logradouro
-        });
+        };
+        formGroup.patchValue(isRestaurante ? { endereco: addressData } : addressData);
       },
       error: () => {
-        this.mensagemCepInvalido = 'Erro ao buscar CEP.';
+        this[mensagemProperty] = 'Erro ao buscar CEP.';
       }
     });
   }
 
-  // Busca CEP para Restaurante
-  buscarCepRestaurante() {
-    const cep: string = this.restauranteForm.get('endereco.cep')?.value ?? '';
-    if (!cep || cep.length !== 8) return;
-    this.http.get(`https://viacep.com.br/ws/${cep}/json/`).subscribe({
-      next: (res: any) => {
-        if (res.erro) {
-          this.mensagemCepInvalidoRestaurante = 'CEP não encontrado.';
-          return;
-        }
-        this.mensagemCepInvalidoRestaurante = '';
-        this.restauranteForm.patchValue({
-          endereco: {
-            estado: res.uf,
-            cidade: res.localidade,
-            bairro: res.bairro,
-            rua: res.logradouro
-          }
-        });
-      },
-      error: () => {
-        this.mensagemCepInvalidoRestaurante = 'Erro ao buscar CEP.';
-      }
-    });
-  }
-
-  // Submit Cliente
   submitCliente() {
     if (this.clienteForm.invalid) {
       this.clienteForm.markAllAsTouched();
       return;
     }
+    const formValue = this.clienteForm.getRawValue();
     const payload = {
-      nome: this.clienteForm.value.nome,
-      email: this.clienteForm.value.email,
-      senha: this.clienteForm.value.senha,
+      nome: formValue.nome,
+      email: formValue.email,
+      senha: formValue.senha,
+      telefone: formValue.telefone,
       endereco: {
-        cep: this.clienteForm.value.cep,
-        estado: this.clienteForm.value.estado,
-        cidade: this.clienteForm.value.cidade,
-        bairro: this.clienteForm.value.bairro,
-        rua: this.clienteForm.value.rua,
-        numero: this.clienteForm.value.numero,
-        complemento: this.clienteForm.value.complemento,
+        pais: 'Brasil',
+        cep: formValue.cep,
+        estado: formValue.estado,
+        cidade: formValue.cidade,
+        bairro: formValue.bairro,
+        rua: formValue.rua,
+        numero: formValue.numero,
+        complemento: formValue.complemento,
       },
       tipo: 'CLIENTE'
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        // Centraliza o armazenamento no AuthService
         this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
-        
         this.toastService.success("Cadastro realizado com sucesso!");
         this.router.navigate(['home']);
       },
@@ -284,20 +197,21 @@ export class SignUpComponent {
     });
   }
 
-  // Submit Restaurante
   submitRestaurante() {
     if (this.restauranteForm.invalid) {
       this.restauranteForm.markAllAsTouched();
       return;
     }
-    const form = this.restauranteForm.value;
-    const horariosFuncionamento = form.horariosFuncionamento
-      .map((h: any, idx: number) => h.ativo ? {
-        diaSemana: this.diasSemana[idx],
+    const form = this.restauranteForm.getRawValue();
+    
+    const horaFuncionamento = form.horaFuncionamento
+      .filter((h: any) => h.diaSemana && h.abertura && h.fechamento)
+      .map((h: any) => ({
+        diaSemana: h.diaSemana,
         abertura: h.abertura,
         fechamento: h.fechamento
-      } : null)
-      .filter((h: any) => h !== null);
+      }));
+
     const payload = {
       nome: form.nomeCompleto,
       email: form.email,
@@ -305,23 +219,26 @@ export class SignUpComponent {
       tipo: 'RESTAURANTE',
       tipoCozinha: form.tipoCozinha,
       quantidadeMesas: form.quantidadeMesas,
+      telefone: form.telefone,
+      descricao: form.descricao,
       endereco: {
+        cep: form.endereco.cep,
         pais: 'Brasil',
         estado: form.endereco.estado,
         cidade: form.endereco.cidade,
         bairro: form.endereco.bairro,
         rua: form.endereco.rua,
-        numero: form.endereco.numero
+        numero: form.endereco.numero,
+        complemento: form.endereco.complemento
       },
-      horarioFuncionamento: horariosFuncionamento
+      horaFuncionamento
     };
+
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        // Centraliza o armazenamento no AuthService
-        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE');
-
+        this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id);
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['reserva']); // Ou para onde o restaurante deve ir
+        this.router.navigate(['reserva']);
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
@@ -330,7 +247,6 @@ export class SignUpComponent {
     });
   }
 
-  // Submit baseado na tab atual
   submitForm() {
     if (this.selectedTabIndex === 0) {
       this.submitCliente();
@@ -339,28 +255,18 @@ export class SignUpComponent {
     }
   }
 
-  // Validação dos horários quando o checkbox está ativo
-  private validateHorarios() {
-    const horarios = this.horariosFuncionamento.controls;
-    horarios.forEach(horario => {
-      const ativo = horario.get('ativo');
-      const abertura = horario.get('abertura');
-      const fechamento = horario.get('fechamento');
-
-      if (ativo?.value) {
-        abertura?.setValidators([Validators.required]);
-        fechamento?.setValidators([Validators.required]);
-      } else {
-        abertura?.clearValidators();
-        fechamento?.clearValidators();
-      }
-      
-      abertura?.updateValueAndValidity();
-      fechamento?.updateValueAndValidity();
-    });
+  addHorario() {
+    this.horaFuncionamento.push(this.fb.group({
+      diaSemana: ['', Validators.required],
+      abertura: ['', Validators.required],
+      fechamento: ['', Validators.required]
+    }));
   }
 
-  // Validação para habilitar/desabilitar botão de submit
+  removeHorario(index: number) {
+    this.horaFuncionamento.removeAt(index);
+  }
+
   isCurrentFormValid(): boolean {
     return this.selectedTabIndex === 0 ? this.clienteForm.valid : this.restauranteForm.valid;
   }
