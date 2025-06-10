@@ -1,24 +1,33 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
 import TavolaSoftware.TavolaApp.REST.model.Ambiente;
-import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * DTO para enviar os dados de um Ambiente.
+ * Agora inclui a lista completa de detalhes de cada Mesa.
+ */
 public class AmbienteResponse {
 
     private UUID id;
     private String nome;
-    private List<MesaSimpleResponse> mesas;
+    
+    // <<< ALTERAÇÃO 1: A lista agora é de MesaResponse completos.
+    private List<MesaResponse> mesas;
 
-    // Construtor que converte a entidade Ambiente para o DTO de resposta
+    /**
+     * Construtor que converte a entidade Ambiente para este DTO de resposta.
+     * @param ambiente A entidade JPA a ser convertida.
+     */
     public AmbienteResponse(Ambiente ambiente) {
         this.id = ambiente.getId();
         this.nome = ambiente.getNome();
         if (ambiente.getMesas() != null) {
+            // <<< ALTERAÇÃO 2: Mapeando para MesaResponse usando o método fromEntity.
             this.mesas = ambiente.getMesas().stream()
-                               .map(MesaSimpleResponse::new)
+                               .map(MesaResponse::fromEntity)
                                .collect(Collectors.toList());
         }
     }
@@ -26,31 +35,14 @@ public class AmbienteResponse {
     // Getters e Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
-    public List<MesaSimpleResponse> getMesas() { return mesas; }
-    public void setMesas(List<MesaSimpleResponse> mesas) { this.mesas = mesas; }
 
-    /**
-     * DTO interno para representar uma mesa de forma simplificada.
-     */
-    public static class MesaSimpleResponse {
-        private UUID id;
-        private String nome;
-        private int capacidade;
+    // <<< ALTERAÇÃO 3: Getter e Setter atualizados para o novo tipo da lista.
+    public List<MesaResponse> getMesas() { return mesas; }
+    public void setMesas(List<MesaResponse> mesas) { this.mesas = mesas; }
 
-        public MesaSimpleResponse(Mesa mesa) {
-            this.id = mesa.getId();
-            this.nome = mesa.getNome();
-            this.capacidade = mesa.getCapacidade(); // Supondo que Mesa tem um getCapacidade()
-        }
-
-        // Getters e Setters
-        public UUID getId() { return id; }
-        public void setId(UUID id) { this.id = id; }
-        public String getNome() { return nome; }
-        public void setNome(String nome) { this.nome = nome; }
-        public int getCapacidade() { return capacidade; }
-        public void setCapacidade(int capacidade) { this.capacidade = capacidade; }
-    }
+    // <<< ALTERAÇÃO 4: A classe interna MesaSimpleResponse foi REMOVIDA.
+    // Não precisamos mais dela aqui.
 }
