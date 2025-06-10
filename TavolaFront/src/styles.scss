@@ -1,0 +1,518 @@
+@use '@angular/material' as mat;
+@include mat.elevation-classes();
+@include mat.app-background();
+@import 'ngx-toastr/toastr';
+@import 'styles/variables';
+@import 'ng-zorro-antd/ng-zorro-antd.min.css'; // Certifique-se que está importado
+
+:root {
+  // Cores base do seu tema Tavola (reutilize ou defina conforme sua paleta)
+  --tavola-amarelo: #F6BD38;
+  --tavola-vermelho: #DA4A24;
+  --tavola-marrom-escuro: #3B221B;
+  --tavola-marrom-medio: #4e2e22; // Ex: scrollbar thumb
+  --tavola-marrom-claro: #5C7028; // Ex: card image bg
+  --tavola-fundo-componente-claro: #FFFFFF; // Para cards e modais em fundo #ebe8e2
+  --tavola-fundo-componente-dialog: #FFF8EE; // Usado em .dialog-cardapio
+  --tavola-fundo-pagina: #ebe8e2;
+  --tavola-texto-sobre-escuro: #FFFFFF;
+  --tavola-texto-sobre-claro: var(--tavola-marrom-escuro);
+  --tavola-erro: #D1495B; // Consistent with mat-error
+
+  // === Variáveis Globais NG-ZORRO ===
+
+  // Cor Primária (principal para ações, botões, links ativos, foco)
+  --ant-primary-color: var(--tavola-amarelo);
+  --ant-primary-color-hover: darken(var(--tavola-amarelo), 5%);
+  --ant-primary-color-active: darken(var(--tavola-amarelo), 10%);
+  --ant-primary-color-outline: fade(var(--tavola-amarelo), 20%); // Para outlines e sombras de foco
+
+  // Links
+  --ant-link-color: var(--tavola-vermelho); // Ou var(--tavola-amarelo) se preferir
+  --ant-link-hover-color: darken(var(--ant-link-color), 10%);
+  --ant-link-active-color: darken(var(--ant-link-color), 20%);
+
+  // Cores de Texto
+  --ant-text-color: var(--tavola-texto-sobre-claro); // Para texto em fundos claros (padrão de componentes Zorro)
+  --ant-text-color-secondary: rgba(59, 34, 27, 0.7); // Um pouco mais claro que o principal
+  --ant-heading-color: var(--tavola-texto-sobre-claro); // Cor dos títulos
+
+  // Cores de Fundo
+  --ant-component-background: var(--tavola-fundo-componente-claro); // Fundo de la maioria dos componentes: modais, cards, popovers, datepickers
+  --ant-body-background: var(--tavola-fundo-pagina); // Fundo principal da página
+  --ant-background-color-light: var(--tavola-amarelo-claro); // Usado em destaques, hovers sutis
+
+  // Bordas e Divisores
+  --ant-border-color-base: rgba(59, 34, 27, 0.2); // Cor base para bordas (ex: inputs, cards) - como em dialog-item-cardapio
+  --ant-border-color-split: rgba(59, 34, 27, 0.1);  // Cor para divisores internos
+  --ant-border-radius-base: 8px; // Consistente com seus cards e botões Material
+
+  // Inputs e Form Fields (para alinhar com seus MatFormField customizados)
+  --ant-input-placeholder-color: rgba(59, 34, 27, 0.6);
+  --ant-input-bg: var(--tavola-fundo-componente-claro);
+  --ant-input-border-color: var(--ant-border-color-base);
+  --ant-input-hover-border-color: var(--tavola-amarelo); // Similar ao MatFormField hover
+  // Para foco, NG-Zorro usa --ant-primary-color por padrão, que já definimos como amarelo.
+
+  // Botões (para alinhar com seus botões Material customizados)
+  --ant-btn-primary-bg: var(--tavola-amarelo);
+  --ant-btn-default-bg: var(--tavola-fundo-componente-claro);
+  --ant-btn-default-color: var(--tavola-texto-sobre-claro);
+  --ant-btn-default-border: var(--ant-border-color-base);
+  --ant-btn-border-radius-base: 8px;
+
+  // Alertas e Mensagens
+  --ant-error-color: var(--tavola-erro);
+  --ant-success-color: #52c41a; // Cor de sucesso (pode ajustar)
+  --ant-warning-color: #faad14; // Cor de aviso (pode ajustar)
+
+  // Modais (para alinhar com Material Dialogs customizados)
+  --ant-modal-content-bg: var(--tavola-fundo-componente-dialog); // Se quiser o fundo creme para modais Zorro
+  --ant-modal-header-bg: var(--tavola-fundo-componente-dialog);
+  --ant-modal-mask-bg: rgba(0,0,0,0.7); // Fundo do overlay (já usado no seu spinner)
+
+  // Outros componentes que você usa bastante (ex: DatePicker, Select)
+  --ant-picker-bg: var(--tavola-fundo-componente-claro);
+  --ant-select-bg: var(--tavola-fundo-componente-claro);
+
+  --ant-card-background: var(--tavola-fundo-componente-claro); 
+  --ant-card-head-background: transparent;
+
+  // Isso é um ponto de partida. Você pode precisar adicionar mais variáveis
+  // específicas do NG-Zorro conforme for usando mais componentes.
+  // Consulte a documentação do NG-Zorro sobre "Customize Theme" para a lista completa.
+
+  // Suas variáveis existentes (para referência, pode ser que algumas do MDC não sejam mais necessárias ou precisem de ajuste)
+  --mdc-outlined-text-field-focus-outline-color: #32CD32 !important; // Esta parece ser uma cor diferente do seu tema principal
+  --mdc-outlined-text-field-focus-label-text-color: #32CD32 !important; // Esta parece ser uma cor diferente
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+html, body {
+    height: 100%;
+}
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+
+// Define as paletas de cores
+$primary-palette: mat.m2-define-palette(mat.$m2-indigo-palette);
+$accent-palette: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
+$warn-palette: mat.m2-define-palette(mat.$m2-red-palette);
+
+// Define o tema escuro
+$dark-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+    warn: $warn-palette,
+  )
+));
+
+@include mat.all-component-themes($dark-theme);
+
+// Estilo customizado para os Tooltips do Angular Material
+.tavola-tooltip {
+  // Para versões mais recentes do Material (MDC)
+  // Inspecione o elemento no navegador para confirmar as classes exatas.
+  // A classe .mdc-tooltip__surface é geralmente o alvo principal.
+  &.mdc-tooltip .mdc-tooltip__surface,
+  &.mdc-tooltip--rich .mdc-tooltip__surface {
+    background-color: #3B221B;     // $tavola-marrom-escuro ou sua variável SASS
+    color: #FFFFFF;                // $texto-principal-sobre-escuro ou sua variável SASS
+    border-radius: 4px;            // Mais quadrado, similar ao NG-Zorro (ajuste de 6px para 4px se preferir)
+    font-size: 12px;               // Tamanho de fonte similar ao NG-Zorro (padrão do Zorro é 12px)
+    padding: 6px 8px;              // Padding similar ao NG-Zorro (padrão é 6px 8px)
+    box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 
+                0 6px 16px 0 rgba(0, 0, 0, 0.08), 
+                0 9px 28px 8px rgba(0, 0, 0, 0.05); // Sombra padrão do NG-Zorro
+    // Para garantir que sobrescreva, pode ser necessário !important, mas evite se possível.
+  }
+
+  // Se estiver usando uma versão mais antiga do Material, o seletor pode ser apenas:
+  // &.mat-tooltip {
+  //   background-color: #3B221B;
+  //   color: #FFFFFF;
+  //   border-radius: 4px;
+  //   font-size: 12px;
+  //   padding: 6px 8px;
+  // }
+}
+
+// Estilo customizado para os Tooltips do NG-Zorro (para garantir consistência se necessário)
+// Geralmente, o NG-Zorro já tem um estilo escuro por padrão que é bem similar.
+// Estas regras são para forçar o estilo Tavola se o padrão do Zorro não for exatamente o que você quer.
+::ng-deep .ant-tooltip-inner {
+  background-color: #3B221B !important; 
+  color: #FFFFFF !important;       
+  border-radius: 4px !important;    // NG-Zorro padrão é 2px ou 4px dependendo da versão.
+  font-size: 12px !important;       // Padrão do NG-Zorro
+  padding: 6px 8px !important;      // Padrão do NG-Zorro
+  min-height: 30px !important;      // Padrão do NG-Zorro
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 
+              0 6px 16px 0 rgba(0, 0, 0, 0.08), 
+              0 9px 28px 8px rgba(0, 0, 0, 0.05) !important; // Sombra padrão do NG-Zorro
+}
+
+::ng-deep .ant-tooltip-arrow-content {
+  background-color: #3B221B !important; // Cor da seta do tooltip NG-Zorro
+  // O NG-Zorro cuida da forma e posicionamento da seta.
+}
+
+// Customização do Material Design
+.mat-mdc-select-panel, .mat-mdc-autocomplete-panel {
+  background-color: #fff8ee !important;
+
+  .mat-mdc-option {
+    color: #3B221B !important;
+
+    &.mdc-list-item--selected,
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.2) !important;
+      
+      .mdc-list-item__primary-text {
+        color: #3B221B !important;
+      }
+    }
+
+    .mdc-list-item__primary-text {
+      color: #3B221B !important;
+    }
+  }
+}
+
+// Estilo dos elementos no hover
+.mat-mdc-slide-toggle {
+  .mdc-switch {
+    &:hover {
+      .mdc-switch__track {
+        background-color: lighten(#F6BD38, 10%) !important;
+      }
+      .mdc-switch__handle {
+        background-color: lighten(#DA4A24, 10%) !important;
+      }
+    }
+  }
+}
+
+.mat-mdc-card {
+  &:hover {
+    background-color: rgba(246, 189, 56, 0.05) !important;
+    transition: background-color 0.3s ease;
+  }
+}
+
+.mat-mdc-button, .mat-mdc-raised-button, .mat-mdc-outlined-button {
+  &:hover {
+    opacity: 0.9;
+    background-color: rgba(246, 189, 56, 0.1) !important;
+  }
+}
+
+// Estilos globais para o diálogo do cardápio
+.dialog-cardapio {
+  .mdc-dialog__surface {
+    border-radius: 12px !important;
+    background-color: #FFF8EE !important;
+  }
+
+  .mdc-dialog__container {
+    backdrop-filter: blur(5px);
+  }
+
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-color: transparent;
+  }
+
+  // Estilo dos inputs outline
+  .mat-mdc-form-field-appearance-outline {
+    --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2);
+    --mdc-outlined-text-field-focus-outline-color: #DA4A24;
+    --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
+    --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6);
+    --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
+
+    .mat-mdc-form-field-flex {
+      background-color: transparent;
+    }
+
+    .mat-mdc-input-element,
+    .mat-mdc-select-value-text,
+    .mat-mdc-select-arrow,
+    .mdc-floating-label,
+    .mdc-floating-label--float-above {
+      color: #3B221B !important;
+    }
+
+    .mat-mdc-form-field-label {
+      color: rgba(59, 34, 27, 0.6) !important;
+
+      &.mdc-floating-label--float-above {
+        color: #3B221B !important;
+      }
+    }
+
+    &.mat-focused {
+      .mat-mdc-form-field-label {
+        color: #3B221B !important;
+      }
+
+      .mdc-text-field--focused {
+        .mdc-floating-label {
+          color: #3B221B !important;
+        }
+      }
+    }
+
+    // Corrige a cor do texto no hover e focus
+    .mat-mdc-text-field-wrapper:hover .mat-mdc-form-field-input-control,
+    .mat-mdc-text-field-wrapper:focus-within .mat-mdc-form-field-input-control {
+      color: #3B221B !important;
+    }
+
+    // Garante que o placeholder mantenha a cor
+    ::placeholder {
+      color: rgba(59, 34, 27, 0.6) !important;
+    }
+
+    textarea.mat-mdc-input-element {
+      color: #3B221B !important;
+    }
+
+    &:hover {
+      .mdc-floating-label,
+      .mdc-floating-label--float-above,
+      .mat-mdc-form-field-label {
+        color: #3B221B !important;
+      }
+    }
+  }
+
+  // Estilo do toggle
+  .mat-mdc-slide-toggle {
+    --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
+    --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
+    --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
+    --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-selected-track-color: #F6BD38;
+    --mdc-switch-selected-handle-color: #DA4A24;
+    --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
+    --mdc-switch-unselected-handle-color: #3B221B;
+    --mdc-switch-selected-focus-track-color: #F6BD38;
+    --mdc-switch-selected-hover-track-color: #F6BD38;
+    --mdc-switch-selected-pressed-track-color: #F6BD38;
+  }
+
+  .toggle-label {
+    color: #3B221B;
+  }
+
+  // Estilo dos chips
+  .mat-mdc-chip-option {
+    &.mdc-evolution-chip--selected,
+    &:hover {
+      background-color: #F6BD38 !important;
+      
+      .mdc-evolution-chip__text-label {
+        color: #3B221B !important;
+      }
+    }
+  }
+
+  .mat-mdc-chip-row {
+    background-color: #F6BD38 !important;
+    
+    .mdc-evolution-chip__text-label {
+      color: #3B221B !important;
+    }
+
+    .mat-mdc-chip-remove {
+      color: #3B221B;
+    }
+
+    &:hover {
+      background-color: darken(#F6BD38, 5%) !important;
+    }
+  }
+
+  // Estilo do input de chips
+  .mat-mdc-chip-input {
+    color: #3B221B !important;
+  }
+}
+
+// Customização global dos componentes Material
+.mat-mdc-menu-panel {
+  background-color: #FFF8EE !important;
+
+  .mat-mdc-menu-item {
+    color: #3B221B !important;
+
+    .mat-icon {
+      color: #DA4A24;
+    }
+
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.1);
+    }
+  }
+}
+
+// Correção global para inputs e selects
+.mat-mdc-form-field {
+  .mat-mdc-input-element,
+  .mat-mdc-select-value-text,
+  .mdc-floating-label,
+  .mat-mdc-select-arrow {
+    color: white;
+  }
+
+  .mdc-text-field--filled {
+    background-color: transparent;
+  }
+
+  &:hover {
+    .mdc-floating-label {
+      color: #F6BD38 !important;
+    }
+  }
+
+  &.mat-focused {
+    .mdc-floating-label {
+      color: #F6BD38 !important;
+    }
+  }
+
+  .mat-mdc-form-field-hint,
+  .mat-mdc-form-field-error {
+    color: rgba(59, 34, 27, 0.6) !important;
+  }
+
+  // Removendo o hover marrom dos inputs
+  .mat-mdc-input-element:hover,
+  .mat-mdc-input-element:focus {
+    color: white;
+  }
+
+  .mdc-text-field--outlined {
+    --mdc-outlined-text-field-hover-outline-color: #F6BD38;
+    --mdc-outlined-text-field-focus-outline-color: #F6BD38;
+  }
+}
+
+// Estilo dos chips/tags
+.mat-mdc-chip {
+  &.mat-mdc-standard-chip {
+    background-color: rgba(246, 189, 56, 0.9) !important;
+    
+    .mdc-evolution-chip__text-label {
+      color: #3B221B !important;
+    }
+
+    .mat-mdc-chip-remove {
+      color: #3B221B !important;
+    }
+
+    &:hover {
+      background-color: rgba(246, 189, 56, 1) !important;
+    }
+  }
+}
+
+// Força cor marrom nos inputs, labels, placeholder e hover globalmente
+.mat-mdc-input-element,
+.mat-mdc-select-value-text,
+.mdc-floating-label,
+.mat-mdc-form-field-label,
+.mat-mdc-form-field-infix::placeholder {
+  color: #3B221B !important;
+  opacity: 1 !important;
+}
+
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: #3B221B !important;
+}
+
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+  border-color: #3B221B !important;
+}
+
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__trailing {
+  border-color: #3B221B !important;
+}
+
+// Custom Global Spinner with Pizza
+.global-spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Ajustado para uma cor mais escura e transparente */
+  z-index: 9999; // Ensure it's on top of everything
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-pizza-spinner.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: transparent !important; // Hide default spinner indicator
+  
+  .mat-mdc-progress-spinner-circle {
+    stroke: transparent !important; // Hide default spinner circle
+  }
+}
+
+.pizza-spinner-image {
+  width: 80px; // Adjust size as needed
+  height: 80px;
+  background-image: url('assets/png/pizzaSpin.png'); // Replace with the path to your pizza image
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: spin 1.5s linear infinite; // Add spin animation
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Checkbox Tavola amarelo global
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__background {
+  border-color: #3B221B !important;
+  background-color: transparent !important;
+  transition: background 0.2s, border 0.2s;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__checkmark-path {
+  stroke: #3B221B !important;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+  background-color: #F6BD38 !important;
+  border-color: #F6BD38 !important;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background .mdc-checkbox__checkmark-path {
+  stroke: #3B221B !important;
+}
+::ng-deep .mat-mdc-checkbox.mat-primary:hover .mdc-checkbox__background {
+  border-color: #F6BD38 !important;
+}
+

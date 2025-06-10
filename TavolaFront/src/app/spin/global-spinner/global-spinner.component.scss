@@ -1,0 +1,441 @@
+.global-spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Fundo escurecido existente */
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centraliza horizontal e verticalmente */
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px; /* Espaço entre o forno e o texto */
+}
+
+.oven-body {
+  position: relative;
+  width: 112px;
+  height: 96px;
+  background: linear-gradient(to bottom, #4b5563, #1f2937);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-panel {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background-color: #1f2937;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 1px solid #4b5563;
+  padding: 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.temperature-display-control { /* Novo estilo para a temperatura no painel */
+  font-size: 12px;
+  color: #f87171; /* Cor para o display de temperatura (pode ajustar) */
+  font-family: monospace;
+}
+
+.timer-display { /* Manter o estilo caso ainda haja uso, mas não será usado para temperatura */
+  font-size: 12px;
+  color: #93c5fd;
+  font-family: monospace;
+}
+
+.power-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: #22c55e;
+  border-radius: 9999px;
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.oven-door {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 24px;
+  background-color: #1f2937;
+  border-radius: 4px;
+  border: 1px solid #4b5563;
+}
+
+.door-window {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border-radius: 4px;
+  transition: background-image 2s ease-in-out; /* Transição da imagem de fundo */
+  
+  &.light-on {
+    background: linear-gradient(to bottom, #fde047, #fbbf24); /* Amarelo/Laranja para luz ligada */
+  }
+
+  &:not(.light-on) {
+    background: linear-gradient(to bottom, #fdba74, #f87171); /* Laranja/Vermelho para luz desligada */
+  }
+
+  /* A cor da janela será controlada por ngStyle no HTML para refletir a temperatura */
+}
+
+.heat-elements {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.heat-element {
+  width: 16px;
+  height: 4px;
+  border-radius: 9999px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #4b5563;
+
+  &.active {
+    background-color: #ef4444; /* Vermelho */
+    box-shadow: 0 0 4px #ef4444;
+  }
+}
+
+.convection-fan {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fan-circle {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #9ca3af;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.05s linear; /* transition for rotation */
+}
+
+.fan-blade {
+  position: absolute;
+  background-color: #9ca3af;
+}
+
+.horizontal {
+  width: 16px;
+  height: 2px;
+}
+
+.vertical {
+  width: 2px;
+  height: 16px;
+}
+
+.food-tray {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  background-color: #374151;
+  border-radius: 9999px;
+}
+
+.food-on-tray {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 4px;
+  background-color: #d97706;
+  border-radius: 9999px;
+}
+
+.steam-puff {
+  position: absolute;
+  background-color: white;
+  border-radius: 9999px;
+}
+
+.ventilation-grilles {
+  position: absolute;
+  bottom: 4px;
+  left: 8px;
+  right: 8px;
+  height: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.grille {
+  flex: 1;
+  height: 100%;
+  background-color: #4b5563;
+  border-radius: 2px;
+}
+
+.heat-indicator {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.heat-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #f87171;
+  border-radius: 9999px;
+}
+
+.text-info {
+  text-align: center;
+  /* Removido o posicionamento absoluto para ficar abaixo do forno */
+}
+
+.title {
+  color: #b45309;
+  font-weight: 500;
+}
+
+.status {
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+/* Removido o estilo da temperatura interna */
+/* .temperature-display { ... } */
+
+.chef-spinner-container {
+  margin-top: 3rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.chef-spinner-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #374151;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.chef-spinner-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+.chef-spinner-anim {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid #FDBA74;
+  border-top-color: transparent;
+  border-bottom-color: #F59E42;
+}
+.chef-spinner-circle-1 {
+  width: 80px;
+  height: 80px;
+  animation: chef-spin-1 3s linear infinite;
+}
+.chef-spinner-circle-2 {
+  width: 64px;
+  height: 64px;
+  border-color: #FDBA74 #FDBA74 transparent #F59E42;
+  animation: chef-spin-2 2s linear infinite;
+}
+.chef-spinner-hat {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.chef-spinner-text {
+  margin-top: 1.5rem;
+  font-size: 1.25rem;
+  color: #F59E42;
+  font-weight: 500;
+  text-align: center;
+  animation: chef-fadeInOut 2s infinite;
+}
+.chef-spinner-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+.chef-spinner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F59E42;
+  opacity: 0.5;
+  animation: chef-bounce 1.5s infinite;
+}
+.chef-spinner-dot-2 { animation-delay: 0.2s; }
+.chef-spinner-dot-3 { animation-delay: 0.4s; }
+@keyframes chef-spin-1 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes chef-spin-2 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+@keyframes chef-fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes chef-bounce {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+.chef-spinner-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 340px;
+}
+.chef-spinner-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-anim {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chef-spinner-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid #FDBA74;
+  border-top-color: transparent;
+  border-bottom-color: #F59E42;
+}
+.chef-spinner-circle-1 {
+  width: 80px;
+  height: 80px;
+  animation: chef-spin-1 3s linear infinite;
+}
+.chef-spinner-circle-2 {
+  width: 64px;
+  height: 64px;
+  border-color: #FDBA74 #FDBA74 transparent #F59E42;
+  animation: chef-spin-2 2s linear infinite;
+}
+.chef-spinner-hat {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.chef-spinner-text {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+  color: #F59E42;
+  font-weight: 600;
+  text-align: center;
+  animation: chef-fadeInOut 2s infinite;
+}
+.chef-spinner-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+.chef-spinner-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #F59E42;
+  opacity: 0.5;
+  animation: chef-bounce 1.5s infinite;
+}
+.chef-spinner-dot-2 { animation-delay: 0.2s; }
+.chef-spinner-dot-3 { animation-delay: 0.4s; }
+@keyframes chef-spin-1 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes chef-spin-2 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+@keyframes chef-fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes chef-bounce {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+}

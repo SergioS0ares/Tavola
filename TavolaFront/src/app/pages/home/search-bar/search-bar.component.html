@@ -1,0 +1,32 @@
+<form class="search-bar" (ngSubmit)="onSearch()" autocomplete="off" [@searchBarAnim]>
+  <div class="input-group" id="searchBarHome">
+    <!-- Campo Cidade com Autocomplete -->
+    <mat-form-field appearance="outline" class="custom-field location">
+      <!-- <mat-label>Cidade</mat-label> -->
+      <mat-icon matPrefix class="icon brown">location_on</mat-icon>
+      <input matInput placeholder="Cidade" [formControl]="cityCtrl" [matAutocomplete]="autoCity" required class="brown-text city-input">
+      <mat-autocomplete #autoCity="matAutocomplete">
+        <mat-option *ngFor="let city of filteredCities$ | async" [value]="city">
+          <mat-icon class="icon brown">location_on</mat-icon> {{city}}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <!-- Campo Cozinha/Restaurante com Autocomplete -->
+    <mat-form-field appearance="outline" class="custom-field query">
+      <!-- <mat-label>Nome do restaurante</mat-label> -->
+      <mat-icon matPrefix class="icon brown">search</mat-icon>
+      <input matInput placeholder="Nome do restaurante..." [formControl]="queryCtrl" [matAutocomplete]="autoQuery" class="brown-text long-query">
+      <mat-autocomplete #autoQuery="matAutocomplete">
+        <mat-option *ngFor="let suggestion of filteredQueries$ | async" [value]="suggestion">
+          <mat-icon class="icon brown">search</mat-icon> {{suggestion}}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <!-- Botão de busca -->
+    <button class="search-btn" type="submit">
+      PROCURAR
+    </button>
+  </div>
+</form> 

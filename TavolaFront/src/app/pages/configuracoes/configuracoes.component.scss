@@ -1,0 +1,390 @@
+@import '../../../styles/variables.scss';
+
+// Variáveis
+$primary-color: #F6BD38; // Amarelo
+$accent-color: #DA4A24; // Laranja
+$text-color: #333333;
+$light-gray: #f5f5f5;
+$border-radius: 16px; // Bordas mais arredondadas
+
+.configuracoes-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  
+  h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: $text-color;
+    margin: 0;
+  }
+  
+  p {
+    font-size: 16px;
+    color: rgba(59, 34, 27, 0.7);
+    margin: 0;
+  }
+}
+
+mat-card {
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid transparent;
+  background-color: white;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+  
+  &:hover {
+    border-color: $primary-color;
+  }
+}
+
+::ng-deep {
+  .mat-mdc-card {
+    &:hover {
+      background-color: white !important;
+    }
+  }
+}
+
+// Card de perfil
+.profile-card {
+  padding: 24px;
+  
+  .profile-header {
+    display: flex;
+    align-items: center;
+    
+    .avatar-container {
+      position: relative;
+      margin-right: 24px;
+      
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid $primary-color;
+        box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
+      }
+      
+      .change-photo-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: $primary-color;
+        color: #3B221B;
+        width: 36px;
+        height: 36px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        
+        &:hover {
+          background-color: #f4b942;
+          transform: scale(1.05);
+        }
+        
+        mat-icon {
+          font-size: 18px;
+          line-height: 18px;
+          height: 18px;
+          width: 18px;
+        }
+      }
+    }
+    
+    .profile-info {
+      .profile-name {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        color: $text-color;
+      }
+      
+      .profile-type {
+        font-size: 16px;
+        color: rgba(59, 34, 27, 0.7);
+        margin: 0;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Cards de informação com header amarelo
+.info-card {
+  padding: 0;
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: #3B221B;
+    }
+    
+    .edit-icon {
+      color: #3B221B; 
+      
+      &:hover {
+        background-color: rgba(59, 34, 27, 0.1);
+        transform: scale(1.05);
+      }
+    }
+  }
+  
+  .card-content {
+    padding: 24px;
+    background: white;
+    
+    .info-row {
+      display: flex;
+      margin-bottom: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        margin-bottom: 0;
+        border-bottom: none;
+      }
+      
+      .info-label {
+        width: 150px;
+        font-weight: 600;
+        color: #3B221B;
+        font-size: 14px;
+      }
+      
+      .info-value {
+        flex: 1;
+        color: $text-color;
+        font-size: 14px;
+      }
+    }
+  }
+  
+  // Formulário de edição
+  .edit-form {
+    padding: 24px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    
+    mat-form-field {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    
+    h4 {
+      margin: 8px 0 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #3B221B;
+    }
+    
+    .horarios-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 16px;
+      
+      .horario-item {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        padding: 16px;
+        background: #FAFAFA;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+        
+        .horario-inputs {
+          display: flex;
+          gap: 16px;
+          flex: 1;
+        }
+        
+        .remove-horario-btn {
+          color: #DA4A24;
+          background: white;
+          border: 1px solid #DA4A24;
+          border-radius: 8px;
+          
+          &:hover {
+            background: #DA4A24;
+            color: white;
+          }
+        }
+      }
+    }
+    
+    .add-horario-btn {
+      align-self: flex-start;
+      margin-bottom: 16px;
+      background: white;
+      color: #F6BD38;
+      border: 2px dashed #F6BD38;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-weight: 600;
+      
+      &:hover {
+        background: #FFF9E6;
+        border-color: #f4b942;
+      }
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
+    }
+  }
+}
+
+// Botões
+.save-btn {
+  background: #F6BD38 !important;
+  color: #3B221B !important;
+  font-weight: 600 !important;
+  padding: 12px 32px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  
+  &:hover {
+    background: #f4b942 !important;
+  }
+}
+
+// Estilização para o botão Cancelar
+::ng-deep {
+  .mat-mdc-stroked-button.mat-warn {
+    color: $accent-color !important;
+    border-color: $accent-color !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 12px 32px !important;
+    
+    &:hover {
+      background-color: rgba(218, 74, 36, 0.1) !important;
+    }
+  }
+  
+  // Estilização para os campos de formulário
+  .mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(59, 34, 27, 0.2) !important;
+    }
+    
+    &:hover .mdc-notched-outline__leading,
+    &:hover .mdc-notched-outline__notch,
+    &:hover .mdc-notched-outline__trailing {
+      border-color: $primary-color !important;
+    }
+    
+    &.mat-focused .mdc-notched-outline__leading,
+    &.mat-focused .mdc-notched-outline__notch,
+    &.mat-focused .mdc-notched-outline__trailing {
+      border-color: $primary-color !important;
+    }
+  }
+  
+  .mat-mdc-form-field-label {
+    color: rgba(59, 34, 27, 0.7) !important;
+  }
+  
+  .mat-mdc-form-field.mat-focused .mat-mdc-form-field-label {
+    color: $primary-color !important;
+  }
+}
+
+// Mensagem de funcionalidade não implementada
+.not-ready-container {
+  padding: 0 24px 24px;
+}
+
+.not-ready {
+  display: flex;
+  align-items: center;
+  background-color: rgba(218, 74, 36, 0.1);
+  color: $accent-color;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border-left: 4px solid $accent-color;
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .configuracoes-container {
+    margin: 12px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    
+    .avatar-container {
+      margin-right: 0 !important;
+      margin-bottom: 16px;
+    }
+  }
+  
+  .info-row {
+    flex-direction: column;
+    
+    .info-label {
+      width: 100% !important;
+      margin-bottom: 4px;
+    }
+  }
+  
+  .horario-item {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .horario-inputs {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header {
+    padding: 12px 16px !important;
+    
+    h3 {
+      font-size: 16px !important;
+    }
+  }
+  
+  .card-content, .edit-form {
+    padding: 16px !important;
+  }
+}

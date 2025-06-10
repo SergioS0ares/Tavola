@@ -1,22 +1,27 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
-import java.util.List;
-
 import TavolaSoftware.TavolaApp.tools.Endereco;
-import TavolaSoftware.TavolaApp.tools.Mesas;
-import TavolaSoftware.TavolaApp.tools.TipoUsusario;
+import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
+import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+// import TavolaSoftware.TavolaApp.REST.model.Mesas; // <<< REMOVIDO
+
+import java.util.List;
+import java.util.Set;
 
 public class RegistroRequest {
-    // Comum entre Client e Restaurant
+    // Campos do Usuario
     private String nome;
     private String email;
     private String senha;
     private Endereco endereco;
-    private TipoUsusario tipo;
+    private TipoUsuario tipo;
+    private String telefone;
 
-    // Só pra restaurant
-    private List<Mesas> mesas;
-    private String horaFuncionamento;
+    // Campos específicos do Restaurante
+    private String tipoCozinha;
+    private String descricao;
+    private List<HorarioFuncionamento> horaFuncionamento;
+    private Set<String> nomesServicos;
 
     // Getters e Setters
     public String getNome() { return nome; }
@@ -31,12 +36,23 @@ public class RegistroRequest {
     public Endereco getEndereco() { return endereco; }
     public void setEndereco(Endereco endereco) { this.endereco = endereco; }
 
-    public TipoUsusario getTipo() { return tipo; }
-    public void setTipo(TipoUsusario tipo) { this.tipo = tipo; }
+    public TipoUsuario getTipo() { return tipo; }
+    public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 
-    public List<Mesas> getMesas() { return mesas; }
-    public void setMesas(List<Mesas> mesas) { this.mesas = mesas; }
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
 
-    public String getHoraFuncionamento() { return horaFuncionamento; }
-    public void setHoraFuncionamento(String horaFuncionamento) { this.horaFuncionamento = horaFuncionamento; }
+    public String getTipoCozinha() { return tipoCozinha; }
+    public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public List<HorarioFuncionamento> getHoraFuncionamento() { return horaFuncionamento; }
+    public void setHoraFuncionamento(List<HorarioFuncionamento> horaFuncionamento) { this.horaFuncionamento = horaFuncionamento; }
+
+    public Set<String> getNomesServicos() { return nomesServicos; }
+    public void setNomesServicos(Set<String> nomesServicos) { this.nomesServicos = nomesServicos; }
+
+    // <<< GETTERS E SETTERS de 'quantidadeMesas' e 'mesas' REMOVIDOS >>>
 }

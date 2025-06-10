@@ -1,0 +1,90 @@
+<div class="layout-container">
+  <div class="toolbar">
+    <button class="menu-toggle" (click)="toggleSidebar()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    
+    <app-search-bar
+      *ngIf="showStickySearchBar"
+      [@searchBarAnim]
+      [citySuggestions]="citySuggestions"
+      [querySuggestions]="querySuggestions"
+      [showCityDropdown]="showCityDropdown"
+      [showQueryDropdown]="showQueryDropdown"
+      [cityCtrl]="cityCtrl"
+      [queryCtrl]="queryCtrl"
+      (cidadeChange)="onCityInputSticky($event)"       (queryChange)="queryCtrl.setValue($event)"        (search)="onSearchSticky()"                       (cityInput)="onCityInputSticky($event)"           (selectCity)="selectCitySticky($event)"           (selectQuery)="selectQuerySticky($event)"         (cityBlur)="onCityBlurSticky($event)"             class="toolbar-search-bar"
+    ></app-search-bar>
+
+    <div class="user-menu" [matMenuTriggerFor]="menu">
+      <div class="user-info">
+        <div class="avatar">
+          <img [src]="userAvatar" alt="Avatar do usuário">
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-type">{{ userType }}</span>
+        </div>
+      </div>
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </div>
+
+    <mat-menu #menu="matMenu" class="user-dropdown">
+      <button mat-menu-item routerLink="/configuracoes">
+        <mat-icon>settings</mat-icon>
+        <span>Configurações</span>
+      </button>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </mat-menu>
+  </div>
+
+  <div class="main-wrapper">
+    <div class="sidebar" [class.fechada]="!sidebarAberta" (click)="handleSidebarClick($event)">
+      <div class="sidebar-header">
+        <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo" />
+      </div>
+
+      <div class="menu">
+        <ng-container *ngIf="isCliente">
+          <button routerLink="/home" routerLinkActive="active">
+            <mat-icon>home</mat-icon>
+            <span>Início</span>
+          </button>
+          <button routerLink="/historico" routerLinkActive="active">
+            <mat-icon>history</mat-icon>
+            <span>Histórico</span>
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="isRestaurante">
+          <button routerLink="/reserva" routerLinkActive="active">
+            <mat-icon>event</mat-icon>
+            <span>Reservas</span>
+          </button>
+          <button routerLink="/meu-restaurante" routerLinkActive="active">
+            <mat-icon>restaurant</mat-icon>
+            <span>Meu Restaurante</span>
+          </button>
+          <button routerLink="/cadastro-cardapio" routerLinkActive="active">
+            <mat-icon>menu_book</mat-icon>
+            <span>Cardápio</span>
+          </button>
+        </ng-container>
+
+        <button routerLink="/configuracoes" routerLinkActive="active">
+          <mat-icon>settings</mat-icon>
+          <span>Configurações</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="router-container">
+        <router-outlet (activate)="onOutletActivate($event)"></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>
