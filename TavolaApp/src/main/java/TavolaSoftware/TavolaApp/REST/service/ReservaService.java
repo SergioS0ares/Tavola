@@ -3,12 +3,12 @@ package TavolaSoftware.TavolaApp.REST.service;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
-import TavolaSoftware.TavolaApp.REST.model.Mesa; // <<< NOVO IMPORT
+import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.MesaRepository; // <<< NOVO IMPORT
+import TavolaSoftware.TavolaApp.REST.repository.MesaRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ReservaRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
@@ -34,26 +34,18 @@ import java.util.stream.Collectors;
 @Service
 public class ReservaService {
 
-    @Autowired
-    private ReservaRepository reservaRepository;
-
-    @Autowired
-    private ClienteRepository clienteRepository;
-
-    @Autowired
-    private RestauranteRepository restauranteRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private MesaRepository mesaRepository; // <<< INJEÇÃO DO REPOSITÓRIO DE MESA
+    @Autowired private ReservaRepository reservaRepository;
+    @Autowired private ClienteRepository clienteRepository;
+    @Autowired private RestauranteRepository restauranteRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private MesaRepository mesaRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE; // yyyy-MM-dd
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @Transactional
     public ReservaResponse criarReserva(ReservaRequest requestDto, String emailClienteLogado) {
+        // ... (lógica de criarReserva inalterada)
         Cliente cliente = clienteRepository.findByUsuarioEmail(emailClienteLogado);
         if (cliente == null) {
             throw new RuntimeException("Cliente não encontrado com o email: " + emailClienteLogado);
@@ -77,7 +69,6 @@ public class ReservaService {
         novaReserva.setObservacoes(requestDto.getComentariosPreferenciaReserva());
         novaReserva.setStatus(StatusReserva.ATIVA);
 
-        // <<< LÓGICA ATUALIZADA PARA ASSOCIAR MÚLTIPLAS MESAS >>>
         if (requestDto.getIdsMesas() != null && !requestDto.getIdsMesas().isEmpty()) {
             List<Mesa> mesasEncontradas = mesaRepository.findAllById(requestDto.getIdsMesas());
             if (mesasEncontradas.size() != requestDto.getIdsMesas().size()) {
@@ -89,109 +80,179 @@ public class ReservaService {
         Reserva reservaSalva = reservaRepository.save(novaReserva);
         return new ReservaResponse(reservaSalva);
     }
+    
+    /**
+     * [NOVO] Encontra reservas com base em múltiplos filtros.
+     */
+    @Transactional(readOnly = true)
+    public List<ReservaResponse> findReservasByRestauranteWithFilters(
+            UUID restauranteId, String dataStr, String periodo, String clienteNome, String statusStr) {
 
-    public Optional<ReservaResponse> findById(UUID idReserva) {
-        return reservaRepository.findById(idReserva).map(ReservaResponse::new);
+        LocalDate dataReserva = parseData(dataStr);
+
+        LocalTime horaInicio = LocalTime.MIN;
+        LocalTime horaFim = LocalTime.MAX;
+
+        if ("Almoço".equalsIgnoreCase(periodo)) {
+            horaInicio = LocalTime.of(11, 0);
+            horaFim = LocalTime.of(15, 0);
+        } else if ("Jantar".equalsIgnoreCase(periodo)) {
+            horaInicio = LocalTime.of(18, 0);
+            horaFim = LocalTime.of(23, 0);
+        }
+
+        StatusReserva status = null;
+        if (statusStr != null && !statusStr.isBlank()) {
+            try {
+                // Supondo que o frontend envie o status em minúsculas
+                status = StatusReserva.valueOf(statusStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Status inválido: " + statusStr);
+            }
+        }
+        
+        String nomeParaBusca = (clienteNome != null && !clienteNome.isBlank()) ? clienteNome : null;
+
+        List<Reserva> reservas = reservaRepository.findReservasByRestauranteWithFilters(
+            restauranteId, dataReserva, nomeParaBusca, status, horaInicio, horaFim);
+        
+        return reservas.stream().map(ReservaResponse::new).collect(Collectors.toList());
     }
     
-    public List<ReservaResponse> findAllByClienteOrdered(UUID clienteId, String ordem, int pagina, int tamanho) {
-        Pageable pageable = PageRequest.of(pagina, tamanho);
-        List<Reserva> reservas = reservaRepository.findAllByClienteOrdered(clienteId, ordem, pageable);
-        return reservas.stream().map(ReservaResponse::new).collect(Collectors.toList());
-    }
-
-    public List<ReservaResponse> findAllByRestauranteOrdered(UUID restauranteId, String ordem, int pagina, int tamanho) {
-        Pageable pageable = PageRequest.of(pagina, tamanho);
-        List<Reserva> reservas = reservaRepository.findAllByRestauranteOrdered(restauranteId, ordem, pageable);
-        return reservas.stream().map(ReservaResponse::new).collect(Collectors.toList());
-    }
-
+    /**
+     * [NOVO] Atualiza apenas o status de uma reserva.
+     */
     @Transactional
-    public ReservaResponse cancelarReserva(UUID idReserva, String emailUsuarioLogado) {
+    public ReservaResponse atualizarStatusReserva(UUID idReserva, StatusReserva novoStatus, String emailUsuarioLogado) {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva));
 
         Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
         if (usuarioLogado == null) {
-            throw new RuntimeException("Usuário não autenticado.");
+            throw new SecurityException("Usuário não autenticado.");
         }
 
-        boolean podeCancelar = false;
-        StatusReserva novoStatus = reserva.getStatus();
-
-        if (usuarioLogado.getTipo() == TipoUsuario.CLIENTE && reserva.getCliente().getUsuario().getEmail().equals(emailUsuarioLogado)) {
-            podeCancelar = true;
-            novoStatus = StatusReserva.CANCELADA_CLIENTE;
-        } else if (usuarioLogado.getTipo() == TipoUsuario.RESTAURANTE && reserva.getRestaurante().getUsuario().getEmail().equals(emailUsuarioLogado)) {
-            podeCancelar = true;
-            novoStatus = StatusReserva.CANCELADA_RESTAURANTE;
-        }
-
-        if (!podeCancelar) {
-            throw new SecurityException("Usuário não tem permissão para cancelar esta reserva.");
-        }
-
-        if (reserva.getStatus() == StatusReserva.CANCELADA_CLIENTE || reserva.getStatus() == StatusReserva.CANCELADA_RESTAURANTE || reserva.getStatus() == StatusReserva.CONCLUIDA) {
-            throw new IllegalStateException("Esta reserva não pode ser cancelada pois já está " + reserva.getStatus().toString().toLowerCase() + ".");
+        // Permissão: Apenas o restaurante da reserva pode mudar o status.
+        if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE || 
+            !reserva.getRestaurante().getUsuario().getEmail().equals(emailUsuarioLogado)) {
+            throw new SecurityException("Apenas o restaurante responsável pode alterar o status da reserva.");
         }
         
+        if (reserva.getStatus() == StatusReserva.CONCLUIDA || 
+            reserva.getStatus() == StatusReserva.CANCELADA_CLIENTE ||
+            reserva.getStatus() == StatusReserva.CANCELADA_RESTAURANTE) {
+            throw new IllegalStateException("Esta reserva já foi finalizada ou cancelada e não pode ter seu status alterado.");
+        }
+
         reserva.setStatus(novoStatus);
         Reserva reservaSalva = reservaRepository.save(reserva);
         return new ReservaResponse(reservaSalva);
     }
+    
+    // ... (restante dos métodos: findById, findAllByClienteOrdered, cancelarReserva, etc. inalterados)
+    // ... (eles continuam aqui)
+
+    public Optional<ReservaResponse> findById(UUID idReserva) { //
+        return reservaRepository.findById(idReserva).map(ReservaResponse::new); //
+    }
+    
+    public List<ReservaResponse> findAllByClienteOrdered(UUID clienteId, String ordem, int pagina, int tamanho) { //
+        Pageable pageable = PageRequest.of(pagina, tamanho); //
+        List<Reserva> reservas = reservaRepository.findAllByClienteOrdered(clienteId, ordem, pageable); //
+        return reservas.stream().map(ReservaResponse::new).collect(Collectors.toList()); //
+    }
+
+    public List<ReservaResponse> findAllByRestauranteOrdered(UUID restauranteId, String ordem, int pagina, int tamanho) { //
+        Pageable pageable = PageRequest.of(pagina, tamanho); //
+        List<Reserva> reservas = reservaRepository.findAllByRestauranteOrdered(restauranteId, ordem, pageable); //
+        return reservas.stream().map(ReservaResponse::new).collect(Collectors.toList()); //
+    }
 
     @Transactional
-    public ReservaResponse atualizarReserva(UUID idReserva, ReservaRequest requestDto, String emailUsuarioLogado) {
-        Reserva reserva = reservaRepository.findById(idReserva)
-                .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva));
+    public ReservaResponse cancelarReserva(UUID idReserva, String emailUsuarioLogado) { //
+        Reserva reserva = reservaRepository.findById(idReserva) //
+                .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva)); //
 
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
-        if (usuarioLogado == null) {
-            throw new RuntimeException("Usuário não autenticado.");
-        }
-
-        boolean temPermissao = (usuarioLogado.getTipo() == TipoUsuario.CLIENTE && reserva.getCliente().getUsuario().getEmail().equals(emailUsuarioLogado)) ||
-                               (usuarioLogado.getTipo() == TipoUsuario.RESTAURANTE && reserva.getRestaurante().getUsuario().getEmail().equals(emailUsuarioLogado));
-
-        if (!temPermissao) {
-            throw new SecurityException("Usuário não tem permissão para atualizar esta reserva.");
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado); //
+        if (usuarioLogado == null) { //
+            throw new RuntimeException("Usuário não autenticado."); //
         }
 
-        if (reserva.getStatus() != StatusReserva.ATIVA && reserva.getStatus() != StatusReserva.PENDENTE && reserva.getStatus() != StatusReserva.CONFIRMADA) {
-             throw new IllegalStateException("Apenas reservas ativas, pendentes ou confirmadas podem ser atualizadas. Status atual: " + reserva.getStatus());
+        boolean podeCancelar = false; //
+        StatusReserva novoStatus = reserva.getStatus(); //
+
+        if (usuarioLogado.getTipo() == TipoUsuario.CLIENTE && reserva.getCliente().getUsuario().getEmail().equals(emailUsuarioLogado)) { //
+            podeCancelar = true; //
+            novoStatus = StatusReserva.CANCELADA_CLIENTE; //
+        } else if (usuarioLogado.getTipo() == TipoUsuario.RESTAURANTE && reserva.getRestaurante().getUsuario().getEmail().equals(emailUsuarioLogado)) { //
+            podeCancelar = true; //
+            novoStatus = StatusReserva.CANCELADA_RESTAURANTE; //
         }
 
-        if (requestDto.getDataReserva() != null) {
-            reserva.setDataReserva(parseData(requestDto.getDataReserva()));
-        }
-        if (requestDto.getHorarioReserva() != null) {
-            reserva.setHoraReserva(parseHora(requestDto.getHorarioReserva()));
-        }
-        if (requestDto.getQuantidadePessoasReserva() > 0) {
-            reserva.setQuantidadePessoas(requestDto.getQuantidadePessoasReserva());
-        }
-        if (requestDto.getComentariosPreferenciaReserva() != null) {
-            reserva.setObservacoes(requestDto.getComentariosPreferenciaReserva());
+        if (!podeCancelar) { //
+            throw new SecurityException("Usuário não tem permissão para cancelar esta reserva."); //
         }
 
-        // <<< LÓGICA ATUALIZADA PARA ASSOCIAR MÚLTIPLAS MESAS NA ATUALIZAÇÃO >>>
-        if (requestDto.getIdsMesas() != null) {
-            if (requestDto.getIdsMesas().isEmpty()) {
-                reserva.setMesas(Collections.emptyList()); // Permite remover todas as mesas
+        if (reserva.getStatus() == StatusReserva.CANCELADA_CLIENTE || reserva.getStatus() == StatusReserva.CANCELADA_RESTAURANTE || reserva.getStatus() == StatusReserva.CONCLUIDA) { //
+            throw new IllegalStateException("Esta reserva não pode ser cancelada pois já está " + reserva.getStatus().toString().toLowerCase() + "."); //
+        }
+        
+        reserva.setStatus(novoStatus); //
+        Reserva reservaSalva = reservaRepository.save(reserva); //
+        return new ReservaResponse(reservaSalva); //
+    }
+
+    @Transactional
+    public ReservaResponse atualizarReserva(UUID idReserva, ReservaRequest requestDto, String emailUsuarioLogado) { //
+        Reserva reserva = reservaRepository.findById(idReserva) //
+                .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva)); //
+
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado); //
+        if (usuarioLogado == null) { //
+            throw new RuntimeException("Usuário não autenticado."); //
+        }
+
+        boolean temPermissao = (usuarioLogado.getTipo() == TipoUsuario.CLIENTE && reserva.getCliente().getUsuario().getEmail().equals(emailUsuarioLogado)) || //
+                               (usuarioLogado.getTipo() == TipoUsuario.RESTAURANTE && reserva.getRestaurante().getUsuario().getEmail().equals(emailUsuarioLogado)); //
+
+        if (!temPermissao) { //
+            throw new SecurityException("Usuário não tem permissão para atualizar esta reserva."); //
+        }
+
+        if (reserva.getStatus() != StatusReserva.ATIVA && reserva.getStatus() != StatusReserva.PENDENTE && reserva.getStatus() != StatusReserva.CONFIRMADA) { //
+             throw new IllegalStateException("Apenas reservas ativas, pendentes ou confirmadas podem ser atualizadas. Status atual: " + reserva.getStatus()); //
+        }
+
+        if (requestDto.getDataReserva() != null) { //
+            reserva.setDataReserva(parseData(requestDto.getDataReserva())); //
+        }
+        if (requestDto.getHorarioReserva() != null) { //
+            reserva.setHoraReserva(parseHora(requestDto.getHorarioReserva())); //
+        }
+        if (requestDto.getQuantidadePessoasReserva() > 0) { //
+            reserva.setQuantidadePessoas(requestDto.getQuantidadePessoasReserva()); //
+        }
+        if (requestDto.getComentariosPreferenciaReserva() != null) { //
+            reserva.setObservacoes(requestDto.getComentariosPreferenciaReserva()); //
+        }
+
+        if (requestDto.getIdsMesas() != null) { //
+            if (requestDto.getIdsMesas().isEmpty()) { //
+                reserva.setMesas(Collections.emptyList()); //
             } else {
-                List<Mesa> mesasEncontradas = mesaRepository.findAllById(requestDto.getIdsMesas());
-                if (mesasEncontradas.size() != requestDto.getIdsMesas().size()) {
-                    throw new RuntimeException("Uma ou mais mesas solicitadas para a atualização não foram encontradas.");
+                List<Mesa> mesasEncontradas = mesaRepository.findAllById(requestDto.getIdsMesas()); //
+                if (mesasEncontradas.size() != requestDto.getIdsMesas().size()) { //
+                    throw new RuntimeException("Uma ou mais mesas solicitadas para a atualização não foram encontradas."); //
                 }
-                reserva.setMesas(mesasEncontradas);
+                reserva.setMesas(mesasEncontradas); //
             }
         }
 
-        validarDataHoraReserva(reserva.getDataReserva(), reserva.getHoraReserva());
-        validarQuantidadePessoas(reserva.getQuantidadePessoas());
+        validarDataHoraReserva(reserva.getDataReserva(), reserva.getHoraReserva()); //
+        validarQuantidadePessoas(reserva.getQuantidadePessoas()); //
 
-        Reserva reservaAtualizada = reservaRepository.save(reserva);
-        return new ReservaResponse(reservaAtualizada);
+        Reserva reservaAtualizada = reservaRepository.save(reserva); //
+        return new ReservaResponse(reservaAtualizada); //
     }
 
     // Métodos utilitários de validação (privados)
