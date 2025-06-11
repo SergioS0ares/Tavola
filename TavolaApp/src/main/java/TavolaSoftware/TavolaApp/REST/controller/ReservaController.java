@@ -1,5 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.ListaEsperaResponse;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.dto.StatusUpdateRequest; // NOVO IMPORT
@@ -81,17 +83,18 @@ public class ReservaController {
     }
 
     /**
-     * [NOVO] Lista as reservas de um restaurante com filtros.
+     * [SIMPLIFICADO] Lista as reservas de um restaurante com filtros, ignorando o período do dia.
      */
     @GetMapping("/restaurante/{idRestaurante}")
     public ResponseEntity<?> listarReservasDoRestaurante(
             @PathVariable UUID idRestaurante,
             @RequestParam String data,
-            @RequestParam(required = false, defaultValue = "todos") String periodo,
+            // O @RequestParam de 'periodo' foi REMOVIDO
             @RequestParam(required = false) String clienteNome,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false, defaultValue = "todos") String status) {
         
         try {
+            // ... (lógica de validação de permissão inalterada) ...
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
 
@@ -106,16 +109,72 @@ public class ReservaController {
                                      .body(Map.of("erro", "Você não tem permissão para ver as reservas deste restaurante."));
             }
 
+            // >>> CHAMADA DE SERVIÇO CORRIGIDA <<<
             List<ReservaResponse> reservas = reservaService.findReservasByRestauranteWithFilters(
-                idRestaurante, data, periodo, clienteNome, status);
+                    idRestaurante, data, clienteNome, status);
 
+                return ResponseEntity.ok(reservas);
+
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar reservas: " + e.getMessage()));
+            }
+        }
+    
+    /**
+     * [NOVO] Retorna as reservas na lista de espera de um restaurante.
+     */
+    @GetMapping("/restaurante/{idRestaurante}/lista-espera")
+    public ResponseEntity<?> listarListaDeEspera(@PathVariable UUID idRestaurante) {
+        try {
+            // ... (lógica de validação de permissão, pode ser refatorada para um método privado) ...
+             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+            if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
+                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Apenas usuários do tipo restaurante podem acessar este recurso."));
+            }
+            Restaurante restaurante = restauranteService.getByEmail(emailUsuarioLogado);
+            if (!restaurante.getId().equals(idRestaurante)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para ver a lista de espera deste restaurante."));
+            }
+
+            List<ListaEsperaResponse> reservas = reservaService.findReservasListaEspera(idRestaurante);
+            return ResponseEntity.ok(reservas);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar lista de espera: " + e.getMessage()));
+        }
+    }
+    
+
+    /**
+     * [ADAPTADO] Retorna as reservas de um mês inteiro com base em uma única data.
+     */
+    @GetMapping("/restaurante/{idRestaurante}/calendario")
+    public ResponseEntity<?> listarReservasCalendario(
+            @PathVariable UUID idRestaurante,
+            @RequestParam String data) { // <<< MUDANÇA: Agora recebe uma string de data
+
+        try {
+             // ... (lógica de validação de permissão continua a mesma) ...
+             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+            if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
+                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Apenas usuários do tipo restaurante podem acessar este recurso."));
+            }
+            Restaurante restaurante = restauranteService.getByEmail(emailUsuarioLogado);
+            if (!restaurante.getId().equals(idRestaurante)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para ver o calendário deste restaurante."));
+            }
+
+            // A chamada para o serviço agora passa a string da data
+            List<CalendarioReservaResponse> reservas = reservaService.findReservasParaCalendario(idRestaurante, data);
             return ResponseEntity.ok(reservas);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         } catch (Exception e) {
-            // Logar o erro em um ambiente de produção: e.printStackTrace(); ou usar um logger.
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar reservas: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar dados do calendário: " + e.getMessage()));
         }
     }
 
