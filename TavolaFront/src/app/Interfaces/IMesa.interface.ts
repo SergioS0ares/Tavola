@@ -1,10 +1,12 @@
 export interface IMesa {
   id: string;
-  numero: string;
-  tipo: "retangular" | "circular";
-  area: string;
+  nome: string; // Ex: "05", "Deck VIP"
+  tipo: 'retangular' | 'circular' | string; // Use string para flexibilidade
+  capacidade: number;
   vip: boolean;
-  ocupada: boolean;
+  ambienteId: string;
+
+  // Propriedades adicionadas pelo frontend para controle de UI
+  ocupada?: boolean;
   reservaId?: string;
-  capacidade?: number;
-} 
+}
