@@ -13,8 +13,6 @@ public class AmbienteResponse {
 
     private UUID id;
     private String nome;
-    
-    // <<< ALTERAÇÃO 1: A lista agora é de MesaResponse completos.
     private List<MesaResponse> mesas;
 
     /**
