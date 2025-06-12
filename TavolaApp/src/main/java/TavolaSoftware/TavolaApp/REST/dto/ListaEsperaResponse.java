@@ -3,8 +3,6 @@ package TavolaSoftware.TavolaApp.REST.dto;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.tools.StatusReserva;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -44,7 +42,7 @@ public class ListaEsperaResponse {
         }
 
         if (reserva.getDataReserva() != null) {
-            this.data = reserva.getDataReserva().atStartOfDay().toString(); // Converte para formato ISO
+            this.data = reserva.getDataReserva().atStartOfDay().toString();
         }
         
         if (reserva.getHoraReserva() != null) {
@@ -64,5 +62,27 @@ public class ListaEsperaResponse {
         }
     }
 
-    // Getters e Setters para todos os campos...
+    // --- GETTERS E SETTERS ---
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public UUID getClienteId() { return clienteId; }
+    public void setClienteId(UUID clienteId) { this.clienteId = clienteId; }
+    public String getClienteNome() { return clienteNome; }
+    public void setClienteNome(String clienteNome) { this.clienteNome = clienteNome; }
+    public List<UUID> getMesaIds() { return mesaIds; }
+    public void setMesaIds(List<UUID> mesaIds) { this.mesaIds = mesaIds; }
+    public String getData() { return data; }
+    public void setData(String data) { this.data = data; }
+    public String getHorario() { return horario; }
+    public void setHorario(String horario) { this.horario = horario; }
+    public String getPeriodo() { return periodo; }
+    public void setPeriodo(String periodo) { this.periodo = periodo; }
+    public int getPessoas() { return pessoas; }
+    public void setPessoas(int pessoas) { this.pessoas = pessoas; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getPreferencias() { return preferencias; }
+    public void setPreferencias(String preferencias) { this.preferencias = preferencias; }
+    public String getImagemperfil() { return imagemperfil; }
+    public void setImagemperfil(String imagemperfil) { this.imagemperfil = imagemperfil; }
 }
