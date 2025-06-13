@@ -27,13 +27,13 @@
                 <mat-card *ngFor="let reserva of reservasAlmocoVisiveis" class="reserva-card" [class.selected]="reservaSelecionada?.id === reserva.id" (click)="selecionarReserva(reserva)">
                   <div class="reserva-info">
                     <div class="cliente-info">
-                      <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
+                      <h4>{{ reserva.cliente }}</h4>
                       <div class="reserva-detalhes">
                         <span class="pessoas-info">
                           <mat-icon>person</mat-icon>
                           {{ reserva.pessoas }} Pessoa(s)
                         </span>
-                        <span class="mesa-info">
+                        <span class="mesa-info" *ngIf="reserva.nomesMesas && reserva.nomesMesas.length > 0">
                            <mat-icon>table_restaurant</mat-icon>
                            {{ getMesasFormatadas(reserva) }}
                         </span>
@@ -65,13 +65,13 @@
                 <mat-card *ngFor="let reserva of reservasJantarVisiveis" class="reserva-card" [class.selected]="reservaSelecionada?.id === reserva.id" (click)="selecionarReserva(reserva)">
                    <div class="reserva-info">
                     <div class="cliente-info">
-                      <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
+                      <h4>{{ reserva.cliente }}</h4>
                       <div class="reserva-detalhes">
                         <span class="pessoas-info">
                           <mat-icon>person</mat-icon>
                           {{ reserva.pessoas }} Pessoa(s)
                         </span>
-                         <span class="mesa-info">
+                         <span class="mesa-info" *ngIf="reserva.nomesMesas && reserva.nomesMesas.length > 0">
                            <mat-icon>table_restaurant</mat-icon>
                            {{ getMesasFormatadas(reserva) }}
                         </span>
@@ -126,13 +126,13 @@
               <mat-card *ngFor="let reserva of reservasEsperaVisiveis" class="reserva-card" [class.selected]="reservaSelecionada?.id === reserva.id" (click)="selecionarReserva(reserva)">
                 <div class="reserva-info">
                   <div class="cliente-info">
-                    <h4>{{ getClientePorId(reserva.clienteId)?.nome }}</h4>
+                    <h4>{{ reserva.cliente }}</h4>
                     <div class="reserva-detalhes">
                       <span class="pessoas-info">
                         <mat-icon>person</mat-icon>
                         {{ reserva.pessoas }} Pessoa(s)
                       </span>
-                      <span class="mesa-info">
+                      <span class="mesa-info" *ngIf="reserva.nomesMesas && reserva.nomesMesas.length > 0">
                         <mat-icon>table_restaurant</mat-icon>
                         {{ getMesasFormatadas(reserva) }}
                       </span>
@@ -209,25 +209,25 @@
             <h2>Detalhes da Reserva #{{ reservaSelecionada.id.slice(-4) }}</h2>
           </div>
   
-          <ng-container *ngIf="getClientePorId(reservaSelecionada.clienteId) as cliente">
+          <ng-container *ngIf="reservaSelecionada">
              <div class="cliente-detalhes">
                <div class="cliente-header">
-                 <nz-avatar [nzSize]="64" [nzSrc]="cliente.avatar" nzIcon="user"></nz-avatar>
+                 <nz-avatar [nzSize]="64" [nzSrc]="reservaSelecionada.imagemPerfilCliente || undefined" nzIcon="user"></nz-avatar>
                  <div class="cliente-info-principal">
-                   <h3>{{ cliente.nome }}</h3>
+                   <h3>{{ reservaSelecionada.cliente }}</h3>
                    <div class="cliente-contato">
                      <div class="contato-item">
                        <mat-icon>email</mat-icon>
-                       <span>{{ cliente.email }}</span>
+                       <span>{{ reservaSelecionada.emailCliente }}</span>
                      </div>
                      <div class="contato-item">
                        <mat-icon>phone</mat-icon>
-                       <span>{{ cliente.telefone }}</span>
+                       <span>{{ reservaSelecionada.telefoneCliente }}</span>
                      </div>
                    </div>
                  </div>
                  <div class="cliente-id">
-                   <span>ID Cliente: #{{ cliente.id.slice(-5) }}</span>
+                   <span>ID Cliente: #{{ reservaSelecionada.clienteId.slice(-5) }}</span>
                  </div>
                </div>
              </div>
@@ -314,10 +314,10 @@
                        <div class="secao-header mesas-atribuidas-header">
                            <h4>Mesas Atribuídas</h4>
                        </div>
-                       <div class="mesas-atribuidas-chips" *ngIf="reservaSelecionada.mesaIds.length > 0; else nenhumaMesaAtribuida">
-                           <div class="mesa-chip" *ngFor="let mesaId of reservaSelecionada.mesaIds">
-                               <span class="mesa-nome">{{ getMesaPorId(mesaId)?.nome }}</span>
-                               <button mat-icon-button class="remove-mesa-btn" (click)="removerMesaDaReserva(reservaSelecionada!.id, mesaId)" 
+                       <div class="mesas-atribuidas-chips" *ngIf="reservaSelecionada.nomesMesas && reservaSelecionada.nomesMesas.length > 0; else nenhumaMesaAtribuida">
+                           <div class="mesa-chip" *ngFor="let mesaNome of reservaSelecionada.nomesMesas">
+                               <span class="mesa-nome">{{ mesaNome }}</span>
+                               <button mat-icon-button class="remove-mesa-btn" (click)="removerMesaDaReserva(reservaSelecionada!.id, getMesaIdPorNome(mesaNome)!)" 
                                        matTooltip="Desassociar mesa" matTooltipClass="tavola-tooltip" aria-label="Desassociar mesa">
                                    <mat-icon>close</mat-icon>
                                </button>
@@ -353,7 +353,7 @@
               <!-- Itera sobre a lista de ambientes carregada da API -->
               <mat-tab *ngFor="let ambiente of ambientes; let i = index">
                 <ng-template mat-tab-label>
-                  <div class="custom-tab-label">
+                  <div class="custom-tab-label" [class.editing-mode]="editandoIndex === i">
                     <!-- Modo de visualização -->
                     <span *ngIf="editandoIndex !== i">{{ ambiente.nome }}</span>
                     <!-- Modo de edição -->
@@ -403,8 +403,8 @@
           <!-- GRID DE MESAS DO AMBIENTE ATIVO -->
           <div *ngIf="ambienteAtivo" class="mesas-grid">
             <!-- A iteração agora é sobre 'ambienteAtivo.mesas' -->
-            <div *ngFor="let mesa of ambienteAtivo.mesas" class="mesa" [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': false }">
-              <div class="mesa-menu" (click)="$event.stopPropagation()">
+            <div *ngFor="let mesa of ambienteAtivo.mesas" class="mesa" [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': isMesaAtribuidaAReservaAtual(mesa.id) }" (click)="toggleMesaParaReserva(mesa)">
+              <div class="mesa-menu" (click) = "$event.stopPropagation()">
                 <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
                   <mat-icon>more_vert</mat-icon>
                 </button>
@@ -430,9 +430,9 @@
             <nz-empty nzNotFoundContent="Nenhum ambiente encontrado. Crie um para começar a adicionar mesas."></nz-empty>
           </div>
 
-          <div *ngIf="isLoading.ambientes" class="loading-state">
-            <mat-spinner diameter="50"></mat-spinner>
-          </div>
+            <div *ngIf="isLoading.ambientes" class="loading-state">
+              <mat-spinner diameter="50"></mat-spinner>
+            </div>
         </div>
       </ng-template>
     </div>

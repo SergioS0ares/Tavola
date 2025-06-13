@@ -37,7 +37,7 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
           <li *ngFor="let reserva of getReservasParaData(date); let i = index" class="evento-item">
             <nz-badge 
               [nzStatus]="getStatusBadge(reserva.status)" 
-              [nzText]="reserva.clienteNome + ' (' + reserva.pessoas + 'P)'">
+              [nzText]="reserva.cliente + ' (' + reserva.pessoas + 'P)'">
             </nz-badge>
           </li>
         </ng-container>

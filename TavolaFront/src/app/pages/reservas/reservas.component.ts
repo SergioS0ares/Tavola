@@ -70,6 +70,8 @@ import { AmbienteService } from '../../core/services/ambiente.service';
 import { MesaService } from '../../core/services/mesa.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { ReservasService } from '../../core/services/reservas.service';
+import { ClienteService } from '../../core/services/cliente.service';
 
 registerLocaleData(localePt)
 
@@ -151,6 +153,8 @@ export class ReservasComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private toastr = inject(ToastrService);
   private modalService = inject(NzModalService);
+  private reservasService = inject(ReservasService);
+  private clienteService = inject(ClienteService);
 
   // --- NOVO MODELO DE DADOS ---
   ambientes: IAmbiente[] = [];
@@ -165,7 +169,7 @@ export class ReservasComponent implements OnInit {
   reservasJantarVisiveis: IReserva[] = [];
 
   // --- ESTADO DA UI ---
-  isLoading = { ambientes: false, mesas: false };
+  isLoading = { ambientes: false, mesas: false, reservas: false };
   editandoIndex: number | null = null;
   valorEditado = '';
   adicionandoArea = false;
@@ -181,53 +185,9 @@ export class ReservasComponent implements OnInit {
   mostrarCalendario = false;
 
   // Mock data (como no seu código)
-  clientes: ICliente[] = [
-    {
-      id: "c1",
-      nome: "Ana Silva",
-      email: "ana.silva@email.com",
-      telefone: "(11) 98765-4321",
-      avatar: "assets/png/avatar-padrao-tavola-cordeirinho.png",
-    },
-    {
-      id: "c2",
-      nome: "Carlos Pereira",
-      email: "carlos.pereira@email.com",
-      telefone: "(21) 91234-5678",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    {
-      id: "c3",
-      nome: "Beatriz Costa",
-      email: "beatriz.costa@email.com",
-      telefone: "(31) 95555-5555",
-      avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-    },
-    // Added new clients
-    {
-      id: "c4",
-      nome: "Fernando Rocha",
-      email: "fernando.rocha@email.com",
-      telefone: "(41) 99888-7777",
-      avatar: "https://randomuser.me/api/portraits/men/45.jpg",
-    },
-    {
-      id: "c5",
-      nome: "Gabriela Lima",
-      email: "gabriela.lima@email.com",
-      telefone: "(51) 97777-6666",
-      avatar: "https://randomuser.me/api/portraits/women/21.jpg",
-    },
-    {
-      id: "c6",
-      nome: "Eduardo Gomes",
-      email: "eduardo.gomes@email.com",
-      telefone: "(61) 96666-5555",
-      avatar: "https://randomuser.me/api/portraits/men/60.jpg",
-    },
-  ]
+  clientes: ICliente[] = []; // This will no longer be used as client data is in IReserva
 
-  reservasEsperaVisiveis: IReserva[] = []
+  reservasEsperaVisiveis: IReserva[] = [];
 
   // --- LÓGICA DE CONTROLE DAS ABAS (MAIS ROBUSTA) ---
   mudarAba(event: MatTabChangeEvent): void {
@@ -332,6 +292,7 @@ export class ReservasComponent implements OnInit {
 
   ngOnInit(): void {
     this.carregarAmbientes();
+    this.carregarReservas();
     this.aplicarFiltros();
     this.aplicarFiltrosEspera();
   }
@@ -352,7 +313,7 @@ export class ReservasComponent implements OnInit {
     const novaData = new Date(this.dataAtual)
     novaData.setDate(novaData.getDate() + 1)
     this.dataAtual = novaData
-    this.aplicarFiltros()
+    this.carregarReservas()
     this.limparSelecao()
   }
 
@@ -360,7 +321,7 @@ export class ReservasComponent implements OnInit {
     const novaData = new Date(this.dataAtual)
     novaData.setDate(novaData.getDate() - 1)
     this.dataAtual = novaData
-    this.aplicarFiltros()
+    this.carregarReservas()
     this.limparSelecao()
   }
 
@@ -373,8 +334,7 @@ export class ReservasComponent implements OnInit {
     if (reservasDoPeriodo.length === 0) return false
 
     return reservasDoPeriodo.some((reserva: IReserva) => {
-      const cliente = this.getClientePorId(reserva.clienteId)
-      return cliente && cliente.nome.toLowerCase().includes(termoBusca)
+      return reserva.cliente.toLowerCase().includes(termoBusca)
     })
   }
 
@@ -384,24 +344,40 @@ export class ReservasComponent implements OnInit {
   }
 
   existemReservasParaDataAtual(): boolean {
-    const dataFormatada = this.dataAtual.toLocaleDateString("pt-BR")
+    const dataAtualDia = this.dataAtual.getDate();
+    const dataAtualMes = this.dataAtual.getMonth();
+    const dataAtualAno = this.dataAtual.getFullYear();
+
     return this.reservas.some(
-      (reserva: IReserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
-    )
+      (reserva: IReserva) => {
+        const reservaData = new Date(reserva.data);
+        return reservaData.getDate() === dataAtualDia &&
+               reservaData.getMonth() === dataAtualMes &&
+               reservaData.getFullYear() === dataAtualAno;
+      }
+    );
   }
 
   aplicarFiltros(): void {
-    const dataFormatada = this.dataAtual.toLocaleDateString("pt-BR")
+    const dataAtualDia = this.dataAtual.getDate();
+    const dataAtualMes = this.dataAtual.getMonth();
+    const dataAtualAno = this.dataAtual.getFullYear();
 
     let tempReservas = this.reservas.filter(
-      (reserva: IReserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
-    )
+      (reserva: IReserva) => {
+        const reservaData = new Date(reserva.data);
+        return reservaData.getDate() === dataAtualDia &&
+               reservaData.getMonth() === dataAtualMes &&
+               reservaData.getFullYear() === dataAtualAno;
+      }
+    );
+
+    console.log(`[aplicarFiltros] Data Atual: ${this.dataAtual.toLocaleDateString()}, Reservas Filtradas (pré-pesquisa/período): ${tempReservas.length}`);
 
     if (this.pesquisa && this.pesquisa.trim() !== "") {
       const termoBusca = this.pesquisa.toLowerCase().trim()
       tempReservas = tempReservas.filter((reserva: IReserva) => {
-        const cliente = this.getClientePorId(reserva.clienteId)
-        return cliente && cliente.nome.toLowerCase().includes(termoBusca)
+        return reserva.cliente.toLowerCase().includes(termoBusca)
       })
     }
 
@@ -413,6 +389,8 @@ export class ReservasComponent implements OnInit {
 
     this.reservasAlmocoVisiveis = this.reservasVisiveis.filter((r) => r.periodo === "Almoço")
     this.reservasJantarVisiveis = this.reservasVisiveis.filter((r) => r.periodo === "Jantar")
+
+    console.log(`[aplicarFiltros] Reservas Visíveis: ${this.reservasVisiveis.length}, Almoço: ${this.reservasAlmocoVisiveis.length}, Jantar: ${this.reservasJantarVisiveis.length}`);
 
     if (this.periodoFiltro === "Almoço") {
       this.reservasJantarVisiveis = []
@@ -433,8 +411,7 @@ export class ReservasComponent implements OnInit {
     if (this.pesquisaEspera && this.pesquisaEspera.trim() !== "") {
       const termoBusca = this.pesquisaEspera.toLowerCase().trim()
       tempReservas = tempReservas.filter((reserva: IReserva) => {
-        const cliente = this.getClientePorId(reserva.clienteId)
-        return cliente && cliente.nome.toLowerCase().includes(termoBusca)
+        return reserva.cliente.toLowerCase().includes(termoBusca)
       })
     }
 
@@ -452,7 +429,7 @@ export class ReservasComponent implements OnInit {
 
     this.modalService.confirm({
       nzTitle: "Reatribuir Reserva",
-      nzContent: `Deseja reatribuir a reserva de ${this.getClientePorId(reserva.clienteId)?.nome} para ${this.dataAtual.toLocaleDateString("pt-BR")}?`,
+      nzContent: `Deseja reatribuir a reserva de ${reserva.cliente} para ${this.dataAtual.toLocaleDateString("pt-BR")}?`,
       nzOkText: "Sim, reatribuir",
       nzOkType: "primary",
       nzCancelText: "Cancelar",
@@ -518,13 +495,12 @@ export class ReservasComponent implements OnInit {
   getTooltipMesa(mesa: IMesa): string {
     if (this.isMesaOcupadaPorOutraReserva(mesa.id)) {
       const reserva = this.getReservaPorId(mesa.reservaId!)
-      const cliente = reserva ? this.getClientePorId(reserva.clienteId) : null
-      return `Ocupada por: ${cliente?.nome || "Outra reserva"} (${reserva?.horario || ""})`
+      return `Ocupada por: ${reserva?.cliente || "Outra reserva"} (${reserva?.horario || ""})`
     }
 
     if (this.isMesaAtribuidaAReservaAtual(mesa.id)) {
-      const cliente = this.reservaSelecionada ? this.getClientePorId(this.reservaSelecionada.clienteId) : null
-      return `Atribuída a esta reserva (${cliente?.nome || ""}, ${this.reservaSelecionada?.horario || ""})`
+      const cliente = this.reservaSelecionada ? this.reservaSelecionada.cliente : ""
+      return `Atribuída a esta reserva (${cliente}, ${this.reservaSelecionada?.horario || ""})`
     }
 
     return `Disponível - Capacidade: ${mesa.capacidade || "N/A"} pessoas`
@@ -629,33 +605,34 @@ export class ReservasComponent implements OnInit {
     return undefined;
   }
 
-  getClientePorId(id: string): ICliente | undefined {
-    return this.clientes.find((cliente) => cliente.id === id)
-  }
-
   getReservaPorId(id: string | undefined): IReserva | undefined {
     if (!id) return undefined
     return this.reservas.find((reserva) => reserva.id === id)
   }
 
   getMesasFormatadas(reserva: IReserva | null): string {
-    if (!reserva || !reserva.mesaIds || reserva.mesaIds.length === 0) {
-      return "N/A"
+    if (!reserva || !reserva.nomesMesas || reserva.nomesMesas.length === 0) {
+      return "N/A";
     }
-    return (
-      reserva.mesaIds
-        .map((id) => this.getMesaPorId(id)?.nome)
-        .filter(Boolean)
-        .join(", ") || "N/A"
-    )
+    return reserva.nomesMesas.join(", ");
   }
 
   removerMesaDaReserva(reservaId: string, mesaId: string): void {
     const reservaOriginal = this.reservas.find((r) => r.id === reservaId)
     if (reservaOriginal) {
       reservaOriginal.mesaIds = reservaOriginal.mesaIds.filter((id) => id !== mesaId)
+      // Also remove from nomesMesas if you want to keep them in sync on the client side
+      // This might require a change in how nomesMesas is populated initially if it's not always from mesaIds
+      if (reservaOriginal.nomesMesas) {
+        const mesaRemovida = this.getMesaPorId(mesaId);
+        if (mesaRemovida) {
+          reservaOriginal.nomesMesas = reservaOriginal.nomesMesas.filter(name => name !== mesaRemovida.nome);
+        }
+      }
+
       if (this.reservaSelecionada && this.reservaSelecionada.id === reservaId) {
         this.reservaSelecionada.mesaIds = [...reservaOriginal.mesaIds]
+        this.reservaSelecionada.nomesMesas = [...(reservaOriginal.nomesMesas || [])];
       }
       this.atualizarStatusMesas()
     }
@@ -705,6 +682,12 @@ export class ReservasComponent implements OnInit {
     }
     this.reservas.forEach((reserva) => {
       reserva.mesaIds = reserva.mesaIds.filter((id) => id !== mesaId)
+      if (reserva.nomesMesas) {
+        const mesaRemovida = this.getMesaPorId(mesaId);
+        if (mesaRemovida) {
+          reserva.nomesMesas = reserva.nomesMesas.filter(name => name !== mesaRemovida.nome);
+        }
+      }
     })
     if (this.reservaSelecionada && this.reservaSelecionada.mesaIds.includes(mesaId)) {
       this.removerMesaDaReserva(this.reservaSelecionada.id, mesaId)
@@ -746,7 +729,7 @@ export class ReservasComponent implements OnInit {
 
   nzDatePickerChange(date: Date): void {
     this.dataAtual = date
-    this.aplicarFiltros()
+    this.carregarReservas()
     this.limparSelecao()
   }
 
@@ -788,8 +771,19 @@ export class ReservasComponent implements OnInit {
       (reserva) => new Date(reserva.data).toLocaleDateString("pt-BR") === dataFormatada,
     )
 
-    const clienteIds = [...new Set(reservasDoDia.map((r) => r.clienteId))]
-    return this.clientes.filter((cliente) => clienteIds.includes(cliente.id))
+    const clientesUnicos = new Map<string, ICliente>();
+    reservasDoDia.forEach(reserva => {
+      if (!clientesUnicos.has(reserva.clienteId)) {
+        clientesUnicos.set(reserva.clienteId, {
+          id: reserva.clienteId,
+          nome: reserva.cliente,
+          email: reserva.emailCliente,
+          telefone: reserva.telefoneCliente,
+          avatar: reserva.imagemPerfilCliente,
+        });
+      }
+    });
+    return Array.from(clientesUnicos.values());
   }
 
   atualizarStatusReserva(novoStatus: string): void {
@@ -812,9 +806,13 @@ export class ReservasComponent implements OnInit {
   atualizarMesasReserva(novasMesas: string[]): void {
     if (this.reservaSelecionada) {
       this.reservaSelecionada.mesaIds = novasMesas
+      // Assuming nomesMesas will be updated based on mesaIds after this operation
+      this.reservaSelecionada.nomesMesas = novasMesas.map(id => this.getMesaPorId(id)?.nome).filter(Boolean) as string[];
+
       const reservaOriginal = this.reservas.find((r) => r.id === this.reservaSelecionada!.id)
       if (reservaOriginal) {
         reservaOriginal.mesaIds = novasMesas
+        reservaOriginal.nomesMesas = novasMesas.map(id => this.getMesaPorId(id)?.nome).filter(Boolean) as string[];
       }
       this.atualizarStatusMesas()
     }
@@ -834,7 +832,7 @@ export class ReservasComponent implements OnInit {
     return [...this.reservas, ...this.reservasEspera].map((reserva) => ({
       data: reserva.data,
       clienteId: reserva.clienteId,
-      clienteNome: this.getClientePorId(reserva.clienteId)?.nome || "Cliente não encontrado",
+      cliente: reserva.cliente || "Cliente não encontrado",
       status: reserva.status,
       pessoas: reserva.pessoas,
     }))
@@ -842,7 +840,7 @@ export class ReservasComponent implements OnInit {
 
   selecionarDataDoCalendario(data: Date): void {
     this.dataAtual = data
-    this.aplicarFiltros()
+    this.carregarReservas()
     this.limparSelecao()
     this.mostrarCalendario = false
   }
@@ -852,8 +850,10 @@ export class ReservasComponent implements OnInit {
   }
 
   getClienteNomeById(id: string): string {
-    const cliente = this.clientes?.find((c) => c.id === id)
-    return cliente ? cliente.nome : ''
+    // This method is now redundant since cliente is directly available on IReserva
+    // However, if it's used with ICliente objects elsewhere, it might still be useful.
+    // For now, it will return an empty string.
+    return '';
   }
 
   carregarAmbientes(): void {
@@ -901,5 +901,79 @@ export class ReservasComponent implements OnInit {
     return this.ambientes.find(ambiente => 
       ambiente.mesas.some(mesa => mesa.id === mesaId)
     );
+  }
+
+  getMesaIdPorNome(mesaNome: string): string | undefined {
+    for (const ambiente of this.ambientes) {
+      const mesa = ambiente.mesas.find(m => m.nome === mesaNome);
+      if (mesa) return mesa.id;
+    }
+    return undefined;
+  }
+
+  carregarReservas(): void {
+    const idRestaurante = this.authService.perfil?.id;
+    if (!idRestaurante) {
+      this.toastr.error("ID do restaurante não encontrado. Faça o login.");
+      this.reservas = []; // Clear reservations if no restaurant ID
+      this.aplicarFiltros();
+      return;
+    }
+
+    this.isLoading.reservas = true;
+    const dataFormatada = this.dataAtual.toISOString().split('T')[0];
+    console.log(`[carregarReservas] Chamando API para restaurante: ${idRestaurante}, data: ${dataFormatada}`);
+
+    this.reservasService.getReservasPorRestaurante(idRestaurante, dataFormatada)
+      .pipe(finalize(() => this.isLoading.reservas = false))
+      .subscribe({
+        next: (response) => {
+          console.log('[carregarReservas] Resposta da API:', response);
+          this.reservas = response.map((reserva: any) => ({
+            id: reserva.id,
+            clienteId: reserva.idCliente,
+            cliente: reserva.cliente,
+            mesaIds: [], // This will be populated from nomesMesas if needed or on mesa assignment
+            data: new Date(reserva.data + 'T00:00:00'), // Ensure this is parsed correctly and consistently
+            horario: reserva.hora.substring(0, 5),
+            periodo: this.determinarPeriodo(reserva.hora),
+            pessoas: reserva.pessoas,
+            status: this.mapearStatus(reserva.status),
+            preferencias: reserva.observacoes,
+            restaurante: reserva.restaurante,
+            emailCliente: reserva.emailCliente,
+            telefoneCliente: reserva.telefoneCliente,
+            imagemPerfilCliente: reserva.imagemPerfilCliente,
+            nomesMesas: reserva.nomesMesas || [] // Ensure it's an array
+          }));
+          console.log(`[carregarReservas] Reservas mapeadas: ${this.reservas.length}, Exemplo data primeira reserva: ${this.reservas.length > 0 ? this.reservas[0].data.toLocaleDateString() : 'N/A'}`);
+          // After loading reservations, update table statuses based on new data
+          this.atualizarStatusMesasOcupadas();
+          this.aplicarFiltros();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar reservas:', error);
+          this.toastr.error('Erro ao carregar reservas.');
+          this.reservas = []; // Clear reservations on error
+          this.aplicarFiltros(); // Apply filters to clear the UI
+        }
+      });
+  }
+
+  private determinarPeriodo(hora: string): "Almoço" | "Jantar" {
+    const horaNum = parseInt(hora.split(':')[0]);
+    return horaNum >= 11 && horaNum <= 15 ? "Almoço" : "Jantar";
+  }
+
+  private mapearStatus(status: string): "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera" {
+    const statusMap: { [key: string]: any } = {
+      'ATIVA': 'confirmada',
+      'PENDENTE': 'pendente',
+      'CANCELADA': 'cancelada',
+      'FINALIZADA': 'finalizada',
+      'AUSENTE': 'ausente',
+      'ESPERA': 'espera'
+    };
+    return statusMap[status] || 'pendente';
   }
 }
