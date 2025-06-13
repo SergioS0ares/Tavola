@@ -20,5 +20,37 @@ public class CalendarioReservaResponse {
             this.status = reserva.getStatus().name().toLowerCase();
         }
     }
-    
+
+    // --- GETTERS E SETTERS ---
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+
+    public String getClienteNome() {
+        return clienteNome;
+    }
+
+    public void setClienteNome(String clienteNome) {
+        this.clienteNome = clienteNome;
+    }
+
+    public int getPessoas() {
+        return pessoas;
+    }
+
+    public void setPessoas(int pessoas) {
+        this.pessoas = pessoas;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
