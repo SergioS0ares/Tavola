@@ -196,6 +196,11 @@ export class ReservasComponent implements OnInit {
   mudarAba(event: MatTabChangeEvent): void {
     const index = event.index;
     this.selectedTabIndex = index;
+    if (this.selectedTabIndex === 1) {
+      this.carregarReservasListaEspera();
+    } else if (this.selectedTabIndex === 0) {
+      this.carregarReservas();
+    }
   }
 
   mudarAmbienteTab(event: MatTabChangeEvent): void {
@@ -302,6 +307,7 @@ export class ReservasComponent implements OnInit {
   ngOnInit(): void {
     this.carregarAmbientes();
     this.carregarReservas();
+    this.carregarReservasListaEspera();
     this.aplicarFiltros();
     this.aplicarFiltrosEspera();
   }
@@ -449,23 +455,51 @@ export class ReservasComponent implements OnInit {
       nzOkType: "primary",
       nzCancelText: "Cancelar",
       nzOnOk: () => {
-        // Remover da lista de espera
-        this.reservasEspera = this.reservasEspera.filter((r) => r.id !== reserva.id)
+        const idRestaurante = this.authService.perfil?.id;
+        if (!idRestaurante) {
+          this.toastr.error("ID do restaurante não encontrado. Faça o login.");
+          return;
+        }
 
-        // Atualizar data e status
-        reserva.data = new Date(this.dataAtual)
-        reserva.status = "PENDENTE"
+        // Prepara o payload para a API com a nova data e status
+        const updatePayload = {
+          idRestaurante: idRestaurante, 
+          dataReserva: this.formatarDataParaAPI(this.dataAtual), // Usa a data atual selecionada
+          horarioReserva: reserva.horario,
+          idsMesas: reserva.mesaIds, // Mantém as mesas existentes, se houver
+          quantidadePessoasReserva: reserva.pessoas,
+          comentariosPreferenciaReserva: reserva.preferencias,
+          status: "CONFIRMADA" // Define o status como CONFIRMADA
+        };
 
-        // Adicionar às reservas normais
-        this.reservas.push(reserva)
+        this.reservasService.putAtualizarReserva(reserva.id, updatePayload).subscribe({
+          next: () => {
+            this.toastr.success(`Reserva de ${reserva.cliente} reatribuída e confirmada para ${this.dataAtual.toLocaleDateString("pt-BR")}.`);
+            
+            // Atualiza o estado local após sucesso da API
+            reserva.data = new Date(this.dataAtual); // Atualiza a data localmente
+            reserva.status = "CONFIRMADA"; // Atualiza o status localmente
 
-        // Atualizar filtros
-        this.aplicarFiltros()
-        this.aplicarFiltrosEspera()
+            // Remove da lista de espera e adiciona à lista principal
+            this.reservasEspera = this.reservasEspera.filter((r) => r.id !== reserva.id);
+            this.reservas.push(reserva);
+            
+            this.carregarReservas(); // Recarrega todas as reservas normais do backend
+            this.carregarReservasListaEspera(); // Recarrega a lista de espera
 
-        console.log("Reserva reatribuída:", reserva)
+            this.aplicarFiltros(); // Reaplicar filtros para atualizar as listas visíveis
+            this.aplicarFiltrosEspera();
+            this.limparSelecao(); // Limpa a seleção para fechar os detalhes
+            this.selectedTabIndex = 0; // Volta para a aba 'Reservas'
+          },
+          error: (error) => {
+            const errorMessage = error.error?.erro || "Erro ao reatribuir reserva.";
+            this.toastr.error(errorMessage);
+            console.error("Erro ao reatribuir reserva:", error);
+          },
+        });
       },
-    })
+    });
   }
 
   getTooltipStatus(status: string): string {
@@ -926,17 +960,26 @@ export class ReservasComponent implements OnInit {
           next: () => {
             this.toastr.success("Status da reserva atualizado com sucesso!");
             const reservaOriginal = this.reservas.find((r) => r.id === reservaId);
-      if (reservaOriginal) {
+            if (reservaOriginal) {
               reservaOriginal.status = novoStatus as any;
               currentReserva.status = novoStatus as any; // Adiciona também para a reserva selecionada
               if (novoStatus === "LISTA_ESPERA") {
-                this.reservasEspera.push(reservaOriginal);
+                // Remove da lista principal e adiciona na lista de espera
                 this.reservas = this.reservas.filter((r) => r.id !== reservaOriginal.id);
-                this.selectedTabIndex = 1; 
+                this.reservasEspera.push(reservaOriginal);
+                this.selectedTabIndex = 1; // Seleciona a aba 'Lista de Espera'
+              } else { // Se o status não for LISTA_ESPERA, garante que esteja na lista principal e não na de espera
+                if (!this.reservas.some(r => r.id === reservaOriginal.id) && novoStatus !== "CANCELADA_RESTAURANTE") {
+                  this.reservas.push(reservaOriginal); // Adiciona de volta se foi movida para espera e agora é outro status
+                }
+                this.reservasEspera = this.reservasEspera.filter((r) => r.id !== reservaOriginal.id); // Remove da lista de espera
+                this.selectedTabIndex = 0; // Volta para a aba 'Reservas'
               }
             }
             this.limparSelecao();
-            this.carregarReservas();
+            this.carregarReservas(); // Recarrega as reservas normais para garantir sincronia
+            this.aplicarFiltros(); // Aplica os filtros
+            this.aplicarFiltrosEspera(); // Aplica os filtros da lista de espera
           },
           error: (error) => {
             const errorMessage = error.error?.erro || "Erro ao atualizar status da reserva.";
@@ -1247,5 +1290,63 @@ export class ReservasComponent implements OnInit {
       'status-ativa': status === 'ATIVA',
       'status-lista-espera': status === 'LISTA_ESPERA'
     };
+  }
+
+  // NOVO MÉTODO: Carregar Reservas da Lista de Espera
+  carregarReservasListaEspera(): void {
+    const idRestaurante = this.authService.perfil?.id;
+    if (!idRestaurante) {
+      this.toastr.error("ID do restaurante não encontrado para lista de espera. Faça o login.");
+      this.reservasEspera = [];
+      this.aplicarFiltrosEspera();
+      return;
+    }
+
+    this.isLoading.reservas = true; // Reutiliza o indicador de loading para reservas
+
+    this.reservasService.getReservasListaEspera(idRestaurante)
+      .pipe(finalize(() => this.isLoading.reservas = false))
+      .subscribe({
+        next: (response) => {
+          this.reservasEspera = response.map((reserva: any) => {
+            const datePart = reserva.data.substring(0, 10);
+            const parts = datePart.split('-'); 
+            const dataReserva = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            
+            const mesaIds = (reserva.nomesMesas || []).map((nomeMesa: string) => {
+                for (const ambiente of this.ambientes) {
+                    const mesa = ambiente.mesas.find(m => m.nome === nomeMesa);
+                    if (mesa) return mesa.id;
+                }
+                return null;
+            }).filter((id: string | null) => id !== null) as string[];
+
+            return {
+              id: reserva.id,
+              clienteId: reserva.idCliente,
+              cliente: reserva.clienteNome,
+              mesaIds: mesaIds, 
+              data: dataReserva,
+              horario: reserva.horario.substring(0, 5),
+              periodo: this.determinarPeriodo(reserva.horario),
+              pessoas: reserva.pessoas,
+              status: this.mapearStatus(reserva.status),
+              preferencias: reserva.preferencias,
+              restaurante: reserva.restaurante,
+              emailCliente: reserva.emailCliente,
+              telefoneCliente: reserva.telefoneCliente,
+              imagemPerfilCliente: reserva.imagemperfil,
+              nomesMesas: reserva.nomesMesas || []
+            };
+          });
+          this.aplicarFiltrosEspera(); // Aplica filtros após carregar os dados
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.toastr.error('Erro ao carregar reservas da lista de espera.');
+          this.reservasEspera = [];
+          this.aplicarFiltrosEspera();
+        }
+      });
   }
 }

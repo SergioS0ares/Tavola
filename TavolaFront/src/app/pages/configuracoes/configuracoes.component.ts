@@ -26,6 +26,8 @@ import { IUserData, IEndereco, IHoraFuncionamento } from '../../Interfaces/IUser
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
 import { RestauranteService, IUpdateRestaurantePayload } from '../../core/services/restaurante.service';
 import { ClienteService, IUpdateClientePayload } from '../../core/services/cliente.service';
+import { UsuariosService, IUpdateUsuarioPayload, IEnderecoPayload } from '../../core/services/usuarios.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-configuracoes',
@@ -56,13 +58,13 @@ export class ConfiguracoesComponent implements OnInit {
   private clienteService = inject(ClienteService);
   private router = inject(Router);
   private http = inject(HttpClient);
+  private usuariosService = inject(UsuariosService);
 
   // Estados de edição
   editingInfo = false;
   editingAddress = false;
   editingRestaurant = false;
 
-  // **CORREÇÃO 1: Propriedades re-declaradas**
   showInfoMessage = false;
   showAddressMessage = false;
   showRestaurantMessage = false;
@@ -117,14 +119,23 @@ export class ConfiguracoesComponent implements OnInit {
         servicos: restData.servicos,
         imagens: restData.imagens
       };
+      this.previewImage = (restData.imagens && restData.imagens.length > 0)
+            ? this.getCorretedImageUrl(restData.imagens[0])
+            : 'assets/png/avatar-padrao-restaurante-tavola.png';
+
     } else {
-      // **CORREÇÃO 2: Adicionadas propriedades 'senha' e 'tipo' para conformidade com a interface IUserData**
+      const clientData = data as IUserData;
       this.userData = { 
-        ...data, 
-        endereco: { ...(data.endereco || {}), pais: 'Brasil' },
-        senha: '', // A API de cliente não retorna senha, então inicializamos como vazia.
-        tipo: 'CLIENTE' // O tipo é 'CLIENTE' neste bloco.
+        ...clientData,
+        endereco: { ...(clientData.endereco || {}), pais: 'Brasil' },
+        senha: '', 
+        tipo: 'CLIENTE' 
       };
+      this.previewImage = clientData.imagemPerfil 
+            ? this.getCorretedImageUrl(clientData.imagemPerfil)
+            : 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+      console.log('[handleUserData] clientData.imagemPerfil:', clientData.imagemPerfil);
+      console.log('[handleUserData] final previewImage (client):', this.previewImage);
     }
     this.initForms();
     this.loading = false;
@@ -136,7 +147,6 @@ export class ConfiguracoesComponent implements OnInit {
     this.loading = false;
   }
 
-  // O restante do arquivo permanece igual ao que eu enviei anteriormente...
   initForms() {
     this.infoForm = this.fb.group({
       nome: [this.userData.nome, Validators.required],
@@ -161,121 +171,90 @@ export class ConfiguracoesComponent implements OnInit {
         nome: [this.userData.nome],
         tipoCozinha: [this.userData.tipoCozinha],
         quantidadeMesas: [this.userData.quantidadeMesas],
-        horaFuncionamento: this.fb.array(
-          this.userData.horaFuncionamento?.map(h => this.criarGrupoHorario(h)) || []
-        )
       });
     }
   }
   
-  saveInfo() {
-    if (this.infoForm.invalid) {
-      this.toastr.error('Por favor, preencha os campos de informação corretamente.');
+  saveProfile(): void {
+    if (this.infoForm.invalid || this.addressForm.invalid || (this.isRestaurante && this.restaurantForm.invalid)) {
+      this.toastr.error('Por favor, preencha todos os campos obrigatórios corretamente.');
       return;
     }
+
     this.loading = true;
 
-    if (this.isRestaurante) {
-      this.saveRestaurant();
-      return;
-    }
+    const infoValues = this.infoForm.getRawValue();
+    const addressValues = this.addressForm.getRawValue();
 
-    const payload: IUpdateClientePayload = {
-      nome: this.infoForm.value.nome,
-      email: this.infoForm.value.email,
-      telefone: this.infoForm.value.telefone,
-      senha: this.infoForm.value.senha,
-      endereco: this.userData.endereco,
-      imagemPerfilBase64: this.previewImage || null,
-      imagemBackgroundBase64: null,
+    const payload: IUpdateUsuarioPayload = {
+      nome: infoValues.nome,
+      telefone: infoValues.telefone,
+      senha: infoValues.senha || null,
+      endereco: {
+        cep: addressValues.cep,
+        estado: addressValues.estado,
+        cidade: addressValues.cidade,
+        bairro: addressValues.bairro,
+        rua: addressValues.rua,
+        numero: addressValues.numero,
+        complemento: addressValues.complemento
+      },
+      imagem: this.previewImage && this.previewImage.startsWith('data:') ? this.previewImage : null,
+      imagemBackground: null,
     };
 
-    this.clienteService.updateCliente(payload).subscribe({
-      next: () => {
-        this.toastr.success('Informações atualizadas com sucesso!');
-        this.userData = { ...this.userData, ...this.infoForm.getRawValue() };
-        this.editingInfo = false;
-        this.loading = false;
-      },
-      error: (err) => this.handleError(err, 'salvar informações')
-    });
-  }
-
-  saveAddress() {
-    if (this.addressForm.invalid) {
-      this.toastr.error('Por favor, preencha os campos de endereço corretamente.');
-      return;
-    }
-    this.loading = true;
-
     if (this.isRestaurante) {
-      this.saveRestaurant();
-      return;
+      const restaurantValues = this.restaurantForm.getRawValue();
+      payload.tipoCozinha = restaurantValues.tipoCozinha;
+      payload.descricao = this.userData.descricao;
+      payload.horariosFuncionamento = this.userData.horaFuncionamento;
+      payload.nomesServicos = this.userData.servicos;
+      payload.quantidadeMesas = restaurantValues.quantidadeMesas;
+      
+      if (!payload.imagem && this.userData.imagens && this.userData.imagens.length > 0 && !(this.previewImage?.includes('avatar-padrao'))) {
+          payload.imagem = this.userData.imagens[0];
+      }
+    } else {
+      if (!payload.imagem && this.userData.imagemPerfil && !(this.previewImage?.includes('avatar-padrao'))) {
+          payload.imagem = this.userData.imagemPerfil;
+      }
     }
 
-    const payload: IUpdateClientePayload = {
-      nome: this.userData.nome,
-      email: this.userData.email,
-      telefone: this.userData.telefone,
-      senha: this.infoForm.value.senha,
-      endereco: this.addressForm.value,
-      imagemPerfilBase64: this.previewImage || null,
-      imagemBackgroundBase64: null,
-    };
+    console.log('[saveProfile] Payload imagem to be sent:', payload.imagem);
 
-    this.clienteService.updateCliente(payload).subscribe({
+    this.usuariosService.updateUsuario(payload).subscribe({
       next: () => {
-        this.toastr.success('Endereço atualizado com sucesso!');
-        this.userData.endereco = this.addressForm.value;
-        this.editingAddress = false;
-        this.loading = false;
-      },
-      error: (err) => this.handleError(err, 'salvar endereço')
-    });
-  }
-
-  saveRestaurant() {
-    if (this.infoForm.invalid || this.addressForm.invalid || this.restaurantForm.invalid) {
-      this.toastr.error('Por favor, preencha todos os campos corretamente antes de salvar.');
-      return;
-    }
-    this.loading = true;
-    
-    const payload = this.montarPayloadRestaurante();
-
-    this.restauranteService.updateRestaurante(payload).subscribe({
-      next: () => {
-        this.toastr.success('Dados do restaurante atualizados com sucesso!');
-        this.userData.nome = this.infoForm.value.nome;
-        this.userData.email = this.infoForm.value.email;
-        this.userData.telefone = this.infoForm.value.telefone;
-        this.userData.endereco = this.addressForm.value;
-        this.userData.tipoCozinha = this.restaurantForm.value.tipoCozinha;
-        this.userData.quantidadeMesas = this.restaurantForm.value.quantidadeMesas;
-        this.userData.horaFuncionamento = this.restaurantForm.value.horaFuncionamento;
-        
+        this.toastr.success('Perfil atualizado com sucesso!');
+        this.ngOnInit(); 
         this.editingInfo = false;
         this.editingAddress = false;
         this.editingRestaurant = false;
-        this.loading = false;
       },
-      error: (err) => this.handleError(err, 'salvar dados do restaurante')
+      error: (err) => this.handleError(err, 'salvar perfil')
     });
   }
-  
+
+  saveInfo() {
+    this.saveProfile();
+  }
+
+  saveAddress() {
+    this.saveProfile();
+  }
+
   get isRestaurante(): boolean { return this.auth.hasRole('RESTAURANTE'); }
   get userName(): string { return this.auth.perfil?.nome || ''; }
   get userType(): string { return this.auth.perfil?.tipo || ''; }
   get userAvatar(): string {
-    return this.isRestaurante
-      ? 'assets/png/avatar-padrao-restaurante-tavola.png'
-      : 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+    if (this.previewImage) { 
+      return this.previewImage; 
+    } else if (this.isRestaurante) {
+      return 'assets/png/avatar-padrao-restaurante-tavola.png';
+    } else {
+      return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+    }
   }
   
-  get horaFuncionamentoControls() {
-    return (this.restaurantForm.get('horaFuncionamento') as FormArray).controls;
-  }
-
   toggleEditInfo() { this.editingInfo = !this.editingInfo; }
   toggleEditAddress() { this.editingAddress = !this.editingAddress; }
   toggleEditRestaurant() { this.editingRestaurant = !this.editingRestaurant; }
@@ -298,42 +277,8 @@ export class ConfiguracoesComponent implements OnInit {
         nome: this.userData.nome,
         tipoCozinha: this.userData.tipoCozinha,
         quantidadeMesas: this.userData.quantidadeMesas,
-        horaFuncionamento: this.userData.horaFuncionamento
     });
     this.toastr.info('Edição do restaurante cancelada');
-  }
-
-  criarGrupoHorario(horario: IHoraFuncionamento): FormGroup {
-    return this.fb.group({
-      diaSemana: [horario.diaSemana, Validators.required],
-      abertura: [horario.abertura, Validators.required],
-      fechamento: [horario.fechamento, Validators.required],
-    });
-  }
-  addHorario() {
-    const horaFuncionamento = this.restaurantForm.get('horaFuncionamento') as FormArray;
-    horaFuncionamento.push(this.criarGrupoHorario({ diaSemana: '', abertura: '', fechamento: '' }));
-  }
-  removeHorario(index: number) {
-    (this.restaurantForm.get('horaFuncionamento') as FormArray).removeAt(index);
-  }
-
-  montarPayloadRestaurante(): IUpdateRestaurantePayload {
-    const info = this.infoForm.getRawValue();
-    const address = this.addressForm.getRawValue();
-    const restaurant = this.restaurantForm.getRawValue();
-    return {
-      tipoCozinha: restaurant.tipoCozinha,
-      descricao: this.userData.descricao || '',
-      horariosFuncionamento: restaurant.horaFuncionamento,
-      nomesServicos: this.userData.servicos || [],
-      imagens: this.userData.imagens || [],
-      nomeUsuario: info.nome,
-      emailUsuario: info.email,
-      senhaUsuario: info.senha,
-      telefoneUsuario: info.telefone,
-      enderecoUsuario: address,
-    };
   }
 
   onFileSelected(event: Event) {
@@ -345,7 +290,21 @@ export class ConfiguracoesComponent implements OnInit {
         return;
       }
       const reader = new FileReader();
-      reader.onload = () => { this.previewImage = reader.result as string; };
+      reader.onload = () => { 
+        this.previewImage = reader.result as string; 
+        console.log('[onFileSelected] reader.result (base64):', reader.result ? (reader.result as string).substring(0, 100) + '...' : 'null');
+        console.log('[onFileSelected] previewImage after onload:', this.previewImage ? this.previewImage.substring(0, 100) + '...' : 'null');
+        if (this.isRestaurante) {
+          if (this.userData.imagens) {
+            this.userData.imagens[0] = this.previewImage;
+          } else {
+            this.userData.imagens = [this.previewImage];
+          }
+        } else {
+          this.userData.imagemPerfil = this.previewImage;
+        }
+        this.saveProfile();
+      };
       reader.readAsDataURL(file);
     }
   }
@@ -415,5 +374,11 @@ export class ConfiguracoesComponent implements OnInit {
         });
       }
     });
+  }
+
+  private getCorretedImageUrl(path: string): string {
+    if (!path) return "";
+    if (path.startsWith("http") || path.startsWith("data:")) return path;
+    return `${environment.apiUrl}${path}`;
   }
 }

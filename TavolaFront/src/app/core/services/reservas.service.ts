@@ -31,4 +31,8 @@ export class ReservasService {
   putAtualizarReserva(idReserva: string, payload: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idReserva}/update`, payload);
   }
+
+  getReservasListaEspera(idRestaurante: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/restaurante/${idRestaurante}/lista-espera`);
+  }
 } 
