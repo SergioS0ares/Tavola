@@ -183,6 +183,8 @@ export class ReservasComponent implements OnInit {
   pesquisa = "";
   pesquisaEspera = "";
   mostrarCalendario = false;
+  selectedTabIndex: number = 0;
+  selectedEnvironmentTabIndex: number = 0;
 
   // Mock data (como no seu código)
   clientes: ICliente[] = []; // This will no longer be used as client data is in IReserva
@@ -193,6 +195,12 @@ export class ReservasComponent implements OnInit {
   // --- LÓGICA DE CONTROLE DAS ABAS (MAIS ROBUSTA) ---
   mudarAba(event: MatTabChangeEvent): void {
     const index = event.index;
+    this.selectedTabIndex = index;
+  }
+
+  mudarAmbienteTab(event: MatTabChangeEvent): void {
+    const index = event.index;
+    this.selectedEnvironmentTabIndex = index;
     if (this.editandoIndex === null && index < this.ambientes.length) {
       this.ambienteAtivo = this.ambientes[index];
       this.cdr.detectChanges();
@@ -446,7 +454,7 @@ export class ReservasComponent implements OnInit {
 
         // Atualizar data e status
         reserva.data = new Date(this.dataAtual)
-        reserva.status = "pendente"
+        reserva.status = "PENDENTE"
 
         // Adicionar às reservas normais
         this.reservas.push(reserva)
@@ -462,18 +470,43 @@ export class ReservasComponent implements OnInit {
 
   getTooltipStatus(status: string): string {
     switch (status) {
-      case "confirmada":
+      case "CONFIRMADA":
         return "Reserva Confirmada"
-      case "pendente":
+      case "PENDENTE":
         return "Aguardando Confirmação"
-      case "cancelada":
+      case "CANCELADA_RESTAURANTE":
         return "Reserva Cancelada"
-      case "finalizada":
-        return "Reserva Finalizada"
-      case "ausente":
+      case "CONCLUIDA":
+        return "Reserva Concluída"
+      case "NAO_COMPARECEU":
         return "Cliente Não Compareceu"
+      case "ATIVA":
+        return "Reserva Ativa"
+      case "LISTA_ESPERA":
+        return "Lista de Espera"
       default:
         return "Status Desconhecido"
+    }
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case "CONFIRMADA":
+        return "check_circle"
+      case "PENDENTE":
+        return "hourglass_empty"
+      case "CANCELADA_RESTAURANTE":
+        return "cancel"
+      case "CONCLUIDA":
+        return "task_alt"
+      case "NAO_COMPARECEU":
+        return "person_off"
+      case "ATIVA":
+        return "event_available"
+      case "LISTA_ESPERA":
+        return "pending_actions"
+      default:
+        return "help_outline"
     }
   }
 
@@ -527,14 +560,22 @@ export class ReservasComponent implements OnInit {
 
   selecionarReserva(reserva: IReserva): void {
     this.reservaSelecionada = this.reservaSelecionada?.id === reserva.id ? null : reserva
-    if (this.reservaSelecionada && this.reservaSelecionada.mesaIds.length > 0) {
-      const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0])
-      if (primeiraMesa) {
-        const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
-        if (ambiente) {
-          this.ambienteAtivo = ambiente;
+    if (this.reservaSelecionada) {
+        if (this.selectedTabIndex !== 0) {
+            this.selectedTabIndex = 0; 
         }
-      }
+
+        if (this.reservaSelecionada.mesaIds.length > 0) {
+            const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0])
+            if (primeiraMesa) {
+                const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
+                if (ambiente) {
+                    this.ambienteAtivo = ambiente;
+                    this.selectedEnvironmentTabIndex = this.ambientes.indexOf(ambiente);
+                    this.cdr.detectChanges();
+                }
+            }
+        }
     }
   }
 
@@ -576,17 +617,18 @@ export class ReservasComponent implements OnInit {
   }
 
   toggleMesaParaReserva(mesa: IMesa): void {
-    if (!this.reservaSelecionada || this.isMesaOcupadaPorOutraReserva(mesa.id)) {
-      return // Cannot assign if no reservation is selected or if the table is occupied by another reservation
+    if (!this.reservaSelecionada || (mesa.ocupada && mesa.reservaId !== this.reservaSelecionada.id)) {
+        return;
     }
 
-    const indexNaReserva = this.reservaSelecionada.mesaIds.indexOf(mesa.id)
+    const indexNaReserva = this.reservaSelecionada.mesaIds.indexOf(mesa.id);
     if (indexNaReserva > -1) {
-      this.reservaSelecionada.mesaIds.splice(indexNaReserva, 1)
+        this.reservaSelecionada.mesaIds.splice(indexNaReserva, 1);
     } else {
-      this.reservaSelecionada.mesaIds.push(mesa.id)
+        this.reservaSelecionada.mesaIds.push(mesa.id);
     }
-    this.atualizarStatusMesas()
+    
+    this.atualizarMesasReserva(this.reservaSelecionada.mesaIds);
   }
 
   atualizarStatusMesas(): void {
@@ -625,23 +667,40 @@ export class ReservasComponent implements OnInit {
   }
 
   removerMesaDaReserva(reservaId: string, mesaId: string): void {
-    const reservaOriginal = this.reservas.find((r) => r.id === reservaId)
-    if (reservaOriginal) {
-      reservaOriginal.mesaIds = reservaOriginal.mesaIds.filter((id) => id !== mesaId)
-      // Also remove from nomesMesas if you want to keep them in sync on the client side
-      // This might require a change in how nomesMesas is populated initially if it's not always from mesaIds
-      if (reservaOriginal.nomesMesas) {
-        const mesaRemovida = this.getMesaPorId(mesaId);
-        if (mesaRemovida) {
-          reservaOriginal.nomesMesas = reservaOriginal.nomesMesas.filter(name => name !== mesaRemovida.nome);
-        }
-      }
+    const reservaOriginal = this.reservas.find((r) => r.id === reservaId);
+    if (reservaOriginal && this.reservaSelecionada && this.reservaSelecionada.id === reservaId) {
+      const currentReserva = this.reservaSelecionada; // Usa a reserva selecionada para a atualização
+      const idRestaurante = this.authService.perfil?.id;
 
-      if (this.reservaSelecionada && this.reservaSelecionada.id === reservaId) {
-        this.reservaSelecionada.mesaIds = [...reservaOriginal.mesaIds]
-        this.reservaSelecionada.nomesMesas = [...(reservaOriginal.nomesMesas || [])];
-      }
-      this.atualizarStatusMesas()
+      // Remove o ID da mesa do array local
+      const novasMesasIds = currentReserva.mesaIds.filter((id) => id !== mesaId);
+      
+      // Prepara o payload para a API
+      const updatePayload = {
+        idRestaurante: idRestaurante, 
+        dataReserva: this.formatarDataParaAPI(currentReserva.data),
+        horarioReserva: currentReserva.horario,
+        idsMesas: novasMesasIds, // Envia os IDs das mesas atualizados
+        quantidadePessoasReserva: currentReserva.pessoas,
+        comentariosPreferenciaReserva: currentReserva.preferencias
+      };
+
+      // Chama a API para atualizar a reserva
+      this.reservasService.putAtualizarReserva(reservaId, updatePayload).subscribe({
+        next: () => {
+          this.toastr.success("Mesa desassociada da reserva com sucesso!");
+          // Recomendo recarregar as reservas para garantir que o estado local esteja 100% sincronizado
+          this.carregarReservas();
+          this.limparSelecao(); // Fecha os detalhes para recarregar com o novo estado
+        },
+        error: (error) => {
+          const errorMessage = error.error?.erro || "Erro ao desassociar mesa da reserva.";
+          this.toastr.error(errorMessage);
+          console.error("Erro ao desassociar mesa da reserva:", error);
+          // Opcional: Reverter a remoção do chip localmente em caso de erro
+          // currentReserva.mesaIds.push(mesaId);
+        }
+      });
     }
   }
 
@@ -796,33 +855,145 @@ export class ReservasComponent implements OnInit {
 
   atualizarStatusReserva(novoStatus: string): void {
     if (this.reservaSelecionada) {
-      this.reservaSelecionada.status = novoStatus as any
-      const reservaOriginal = this.reservas.find((r) => r.id === this.reservaSelecionada!.id)
+      const currentReserva = this.reservaSelecionada; // Atribui a uma constante local
+      const reservaId = currentReserva.id;
+      const idRestaurante = this.authService.perfil?.id;
+      const statusAnterior = currentReserva.status; // Usa a constante local
+
+      if (novoStatus === "CANCELADA_RESTAURANTE") {
+        Swal.fire({
+          title: `Tem certeza que deseja cancelar a reserva de ${currentReserva.cliente}?`,
+          html: "Esta ação irá desassociar todas as mesas e não poderá ser desfeita.",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sim, cancelar',
+          cancelButtonText: 'Não',
+          confirmButtonColor: '#d33',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // PASSO 1: Desassociar mesas antes de cancelar
+            const updatePayload = {
+              idRestaurante: idRestaurante, 
+              dataReserva: this.formatarDataParaAPI(currentReserva.data), 
+              horarioReserva: currentReserva.horario,
+              idsMesas: [], // Remover todas as mesas
+              quantidadePessoasReserva: currentReserva.pessoas,
+              comentariosPreferenciaReserva: currentReserva.preferencias
+            };
+
+            this.reservasService.putAtualizarReserva(reservaId, updatePayload).subscribe({
+              next: () => {
+                this.toastr.info("Mesas desassociadas da reserva. Prosseguindo com o cancelamento...");
+                // PASSO 2: Chamar o endpoint de cancelamento
+                this.reservasService.putCancelarReserva(reservaId).subscribe({
+                  next: () => {
+                    this.toastr.success("Reserva cancelada com sucesso!");
+                    currentReserva.status = novoStatus as any; // Usa a constante local
+                    this.limparSelecao();
+                    this.carregarReservas(); // Recarrega todas as reservas do backend
+                  },
+                  error: (error) => {
+                    const errorMessage = error.error?.erro || "Erro ao cancelar reserva.";
+                    this.toastr.error(errorMessage);
+                    if (errorMessage.includes("já foi finalizada ou cancelada")) {
+                      Swal.fire({
+                        title: 'Erro ao Cancelar',
+                        text: errorMessage,
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                      });
+                    }
+                    console.error("Erro ao cancelar reserva:", error);
+                    currentReserva.status = statusAnterior as any; // Usa a constante local
+                  },
+                });
+              },
+              error: (error) => {
+                const errorMessage = error.error?.erro || "Erro ao desassociar mesas para cancelamento.";
+                this.toastr.error(errorMessage);
+                console.error("Erro ao desassociar mesas para cancelamento:", error);
+                currentReserva.status = statusAnterior as any; // Usa a constante local
+              }
+            });
+          } else {
+            // Se o usuário clicou em "Não" ou fechou o Swal, reverte o status
+            currentReserva.status = statusAnterior; 
+          }
+        });
+      } else {
+        // Lógica existente para outros status
+        this.reservasService.putAtualizarStatusReserva(reservaId, novoStatus).subscribe({
+          next: () => {
+            this.toastr.success("Status da reserva atualizado com sucesso!");
+            const reservaOriginal = this.reservas.find((r) => r.id === reservaId);
       if (reservaOriginal) {
-        reservaOriginal.status = novoStatus as any
-        if (novoStatus === "espera") {
-          this.reservasEspera.push(reservaOriginal)
-          this.reservas = this.reservas.filter((r) => r.id !== reservaOriginal.id)
-          this.reservaSelecionada = null
-          this.aplicarFiltros()
-          this.aplicarFiltrosEspera()
-        }
+              reservaOriginal.status = novoStatus as any;
+              currentReserva.status = novoStatus as any; // Adiciona também para a reserva selecionada
+              if (novoStatus === "LISTA_ESPERA") {
+                this.reservasEspera.push(reservaOriginal);
+                this.reservas = this.reservas.filter((r) => r.id !== reservaOriginal.id);
+                this.selectedTabIndex = 1; 
+              }
+            }
+            this.limparSelecao();
+            this.carregarReservas();
+          },
+          error: (error) => {
+            const errorMessage = error.error?.erro || "Erro ao atualizar status da reserva.";
+            this.toastr.error(errorMessage);
+            console.error("Erro ao atualizar status da reserva:", error);
+            currentReserva.status = statusAnterior as any; // Usa a constante local
+          },
+        });
       }
     }
   }
 
+  // Método auxiliar para formatar a data para o formato da API (YYYY-MM-DD)
+  formatarDataParaAPI(data: Date): string {
+    const ano = data.getFullYear();
+    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+    const dia = data.getDate().toString().padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  }
+
   atualizarMesasReserva(novasMesas: string[]): void {
     if (this.reservaSelecionada) {
-      this.reservaSelecionada.mesaIds = novasMesas
-      // Assuming nomesMesas will be updated based on mesaIds after this operation
-      this.reservaSelecionada.nomesMesas = novasMesas.map(id => this.getMesaPorId(id)?.nome).filter(Boolean) as string[];
+      const currentReserva = this.reservaSelecionada;
+      const idRestaurante = this.authService.perfil?.id;
 
-      const reservaOriginal = this.reservas.find((r) => r.id === this.reservaSelecionada!.id)
-      if (reservaOriginal) {
-        reservaOriginal.mesaIds = novasMesas
-        reservaOriginal.nomesMesas = novasMesas.map(id => this.getMesaPorId(id)?.nome).filter(Boolean) as string[];
-      }
-      this.atualizarStatusMesas()
+      currentReserva.mesaIds = novasMesas; // Atualiza localmente os IDs das mesas
+
+      // Construir o payload para a API
+      const updatePayload = {
+        idRestaurante: idRestaurante, 
+        dataReserva: this.formatarDataParaAPI(currentReserva.data),
+        horarioReserva: currentReserva.horario,
+        idsMesas: novasMesas, // Envia os novos IDs das mesas
+        quantidadePessoasReserva: currentReserva.pessoas,
+        comentariosPreferenciaReserva: currentReserva.preferencias
+      };
+
+      // Chamar a API para atualizar a reserva
+      this.reservasService.putAtualizarReserva(currentReserva.id, updatePayload).subscribe({
+        next: () => {
+          this.toastr.success("Mesas da reserva atualizadas com sucesso!");
+          // Recomendo recarregar as reservas para garantir que nomesMesas seja atualizado corretamente pelo backend
+          this.carregarReservas();
+        },
+        error: (error) => {
+          const errorMessage = error.error?.erro || "Erro ao atualizar mesas da reserva.";
+          this.toastr.error(errorMessage);
+          console.error("Erro ao atualizar mesas da reserva:", error);
+          // Opcional: Reverter a seleção local das mesas em caso de erro
+          // currentReserva.mesaIds = reservasOriginal.mesaIds; 
+        }
+      });
+
+      // Removida a atualização local de nomesMesas, pois será recarregada pela API
+      // currentReserva.nomesMesas = novasMesas.map(id => this.getMesaPorId(id)?.nome).filter(Boolean) as string[];
+      
+      this.atualizarStatusMesas(); // Mantém a atualização visual dos status das mesas no mapa
     }
   }
 
@@ -830,7 +1001,7 @@ export class ReservasComponent implements OnInit {
     const mesasDisponiveis: IMesa[] = [];
     this.ambientes.forEach(ambiente => {
       mesasDisponiveis.push(...ambiente.mesas.filter(
-        mesa => !mesa.ocupada || (this.reservaSelecionada && this.reservaSelecionada.mesaIds.includes(mesa.id))
+        mesa => !mesa.ocupada || (this.reservaSelecionada && mesa.reservaId === this.reservaSelecionada.id)
       ));
     });
     return mesasDisponiveis;
@@ -881,6 +1052,7 @@ export class ReservasComponent implements OnInit {
           }
           if (!this.ambienteAtivo && this.ambientes.length > 0) {
             this.ambienteAtivo = this.ambientes[0];
+            this.selectedEnvironmentTabIndex = 0;
           }
           this.atualizarStatusMesasOcupadas();
           this.cdr.detectChanges();
@@ -890,15 +1062,22 @@ export class ReservasComponent implements OnInit {
   }
   
   atualizarStatusMesasOcupadas(): void {
-    const idsMesasOcupadas = new Set<string>();
-    this.reservas.forEach(reserva => {
-        (reserva.mesaIds || []).forEach(idMesa => idsMesasOcupadas.add(idMesa));
-    });
-
+    // Primeiro, reseta o status de todas as mesas
     this.ambientes.forEach(ambiente => {
         ambiente.mesas.forEach(mesa => {
-            mesa.ocupada = idsMesasOcupadas.has(mesa.id);
-            mesa.reservaId = undefined;
+            mesa.ocupada = false;
+            mesa.reservaId = undefined; // Limpa o ID da reserva
+        });
+    });
+
+    // Agora, marca as mesas como ocupadas com base nas reservas carregadas para o dia
+    this.reservas.forEach(reserva => {
+        (reserva.mesaIds || []).forEach(idMesa => {
+            const mesa = this.getMesaPorId(idMesa);
+            if (mesa) {
+                mesa.ocupada = true;
+                mesa.reservaId = reserva.id; // Atribui o ID da reserva que a ocupa
+            }
         });
     });
     this.cdr.detectChanges();
@@ -929,34 +1108,34 @@ export class ReservasComponent implements OnInit {
 
     this.isLoading.reservas = true;
     
-    console.log(`[DEBUG - carregarReservas] this.dataAtual (objeto completo): ${this.dataAtual}`);
-    console.log(`[DEBUG - carregarReservas] Ano: ${this.dataAtual.getFullYear()}, Mês (0-indexed): ${this.dataAtual.getMonth()}, Dia: ${this.dataAtual.getDate()}`);
-
     const ano = this.dataAtual.getFullYear();
     const mes = (this.dataAtual.getMonth() + 1).toString().padStart(2, '0');
     const dia = this.dataAtual.getDate().toString().padStart(2, '0');
     const dataFormatada = `${ano}-${mes}-${dia}`;
     
-    console.log(`[carregarReservas] Data selecionada (toLocaleDateString): ${this.dataAtual.toLocaleDateString()}`);
-    console.log(`[carregarReservas] Data formatada para API: ${dataFormatada}`);
-
     this.reservasService.getReservasPorRestaurante(idRestaurante, dataFormatada)
       .pipe(finalize(() => this.isLoading.reservas = false))
       .subscribe({
         next: (response) => {
-          console.log('[carregarReservas] Resposta da API:', response);
           this.reservas = response.map((reserva: any) => {
-            // Extrai a parte da data "YYYY-MM-DD" e então parseia como uma data local
-            const datePart = reserva.data.substring(0, 10); // "YYYY-MM-DD"
+            const datePart = reserva.data.substring(0, 10);
             const parts = datePart.split('-'); 
             const dataReserva = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            console.log(`[carregarReservas] Processando reserva: ${reserva.cliente}, Data original (API): ${reserva.data}, Data parseada (local): ${dataReserva.toLocaleDateString()}, Dia parseado (local): ${dataReserva.getDate()}`);
             
+            // Popula mesaIds a partir de nomesMesas (se ambientes já estiverem carregados)
+            const mesaIds = (reserva.nomesMesas || []).map((nomeMesa: string) => {
+                for (const ambiente of this.ambientes) {
+                    const mesa = ambiente.mesas.find(m => m.nome === nomeMesa);
+                    if (mesa) return mesa.id;
+                }
+                return null;
+            }).filter((id: string | null) => id !== null) as string[];
+
             return {
               id: reserva.id,
               clienteId: reserva.idCliente,
               cliente: reserva.cliente,
-              mesaIds: [], 
+              mesaIds: mesaIds, // Agora preenchido
               data: dataReserva,
               horario: reserva.hora.substring(0, 5),
               periodo: this.determinarPeriodo(reserva.hora),
@@ -970,13 +1149,10 @@ export class ReservasComponent implements OnInit {
               nomesMesas: reserva.nomesMesas || [] 
             };
           });
-          
-          console.log(`[carregarReservas] Total de reservas carregadas: ${this.reservas.length}`);
-          this.atualizarStatusMesasOcupadas();
+          this.atualizarStatusMesasOcupadas(); // Atualiza status de ocupação com base nas reservas carregadas
           this.aplicarFiltros();
         },
         error: (error) => {
-          console.error('Erro ao carregar reservas:', error);
           this.toastr.error('Erro ao carregar reservas.');
           this.reservas = []; 
           this.aplicarFiltros(); 
@@ -989,18 +1165,19 @@ export class ReservasComponent implements OnInit {
     return horaNum >= 11 && horaNum <= 15 ? "Almoço" : "Jantar";
   }
 
-  private mapearStatus(status: string): "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera" {
+  private mapearStatus(status: string): "PENDENTE" | "CONFIRMADA" | "ATIVA" | "LISTA_ESPERA" | "CANCELADA_RESTAURANTE" | "CONCLUIDA" | "NAO_COMPARECEU" {
+    const statusUpper = status.toUpperCase();
     const statusMap: { [key: string]: any } = {
-      'ATIVA': 'confirmada',
-      'PENDENTE': 'pendente',
-      'CANCELADA_CLIENTE': 'cancelada',
-      'CANCELADA_RESTAURANTE': 'cancelada',
-      'CONCLUIDA': 'finalizada',
-      'NAO_COMPARECEU': 'ausente',
-      'LISTA_ESPERA': 'espera',
-      'CONFIRMADA': 'confirmada'
+      'ATIVA': 'ATIVA',
+      'PENDENTE': 'PENDENTE',
+      'CANCELADA_CLIENTE': 'CANCELADA_RESTAURANTE',
+      'CANCELADA_RESTAURANTE': 'CANCELADA_RESTAURANTE',
+      'CONCLUIDA': 'CONCLUIDA',
+      'NAO_COMPARECEU': 'NAO_COMPARECEU',
+      'LISTA_ESPERA': 'LISTA_ESPERA',
+      'CONFIRMADA': 'CONFIRMADA'
     };
-    return statusMap[status] || 'pendente';
+    return statusMap[statusUpper] || 'PENDENTE';
   }
 
   // Nova função para abrir o calendário e carregar os dados
@@ -1058,5 +1235,17 @@ export class ReservasComponent implements OnInit {
           this.reservasParaCalendario = [];
         }
       });
+  }
+
+  getStatusClasses(status: string): { [key: string]: boolean } {
+    return {
+      'status-confirmada': status === 'CONFIRMADA',
+      'status-pendente': status === 'PENDENTE',
+      'status-cancelada': status === 'CANCELADA_RESTAURANTE',
+      'status-concluida': status === 'CONCLUIDA',
+      'status-nao-compareceu': status === 'NAO_COMPARECEU',
+      'status-ativa': status === 'ATIVA',
+      'status-lista-espera': status === 'LISTA_ESPERA'
+    };
   }
 }

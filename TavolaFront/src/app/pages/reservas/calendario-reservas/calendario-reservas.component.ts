@@ -7,6 +7,7 @@ import { NzIconModule } from "ng-zorro-antd/icon"
 import { FormsModule } from "@angular/forms"
 import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
+import { MatTooltipModule } from "@angular/material/tooltip"
 import { IReserva } from "../../../Interfaces/IReserva.interface"
 
 @Component({
@@ -21,6 +22,7 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
     FormsModule,
     MatIconModule,
     MatButtonModule,
+    MatTooltipModule,
   ],
   template: `
   <div class="calendario-container">
@@ -37,7 +39,9 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
           <li *ngFor="let reserva of getReservasParaData(date); let i = index" class="evento-item">
             <nz-badge 
               [nzStatus]="getStatusBadge(reserva.status)" 
-              [nzText]="reserva.cliente + ' (' + reserva.pessoas + 'P)'">
+              [nzText]="reserva.cliente + ' (' + reserva.pessoas + 'P)'"
+              [matTooltip]="getTooltipStatus(reserva.status)" 
+              matTooltipClass="tavola-tooltip">
             </nz-badge>
           </li>
         </ng-container>
@@ -182,6 +186,10 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   background-color: #DA4A24 !important;
 }
 
+::ng-deep .ant-badge-status-default {
+  background-color: #9E9E9E !important; /* Cor cinza para status padrão/desconhecido */
+}
+
 @media (max-width: 800px) {
   .calendario-container {
     max-width: 98vw;
@@ -236,17 +244,15 @@ export class CalendarioReservasComponent implements OnChanges {
 
   getStatusBadge(status: string): string {
     switch (status) {
-      case "confirmada":
+      case "CONFIRMADA":
+      case "ATIVA":
+      case "CONCLUIDA":
         return "success"
-      case "pendente":
+      case "PENDENTE":
+      case "LISTA_ESPERA":
         return "warning"
-      case "cancelada":
-        return "error"
-      case "espera":
-        return "warning"
-      case "finalizada":
-        return "success"
-      case "ausente":
+      case "CANCELADA_RESTAURANTE":
+      case "NAO_COMPARECEU":
         return "error"
       default:
         return "default"
@@ -259,5 +265,26 @@ export class CalendarioReservasComponent implements OnChanges {
 
   fecharCalendario(): void {
     this.fechar.emit()
+  }
+
+  getTooltipStatus(status: string): string {
+    switch (status) {
+      case "CONFIRMADA":
+        return "Reserva confirmada"
+      case "ATIVA":
+        return "Reserva ativa"
+      case "CONCLUIDA":
+        return "Reserva concluída"
+      case "PENDENTE":
+        return "Reserva pendente"
+      case "LISTA_ESPERA":
+        return "Reserva na lista de espera"
+      case "CANCELADA_RESTAURANTE":
+        return "Reserva cancelada pelo restaurante"
+      case "NAO_COMPARECEU":
+        return "Cliente não compareceu"
+      default:
+        return "Status desconhecido"
+    }
   }
 }

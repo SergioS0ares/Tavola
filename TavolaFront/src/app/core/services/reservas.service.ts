@@ -19,4 +19,16 @@ export class ReservasService {
   getReservasParaCalendario(idRestaurante: string, data: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/restaurante/${idRestaurante}/calendario?data=${data}`);
   }
+
+  putAtualizarStatusReserva(idReserva: string, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idReserva}/status`, { status });
+  }
+
+  putCancelarReserva(idReserva: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idReserva}/cancel`, {});
+  }
+
+  putAtualizarReserva(idReserva: string, payload: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idReserva}/update`, payload);
+  }
 } 

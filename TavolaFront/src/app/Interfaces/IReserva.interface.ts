@@ -7,7 +7,7 @@ export interface IReserva {
   horario: string;
   periodo: "Almoço" | "Jantar";
   pessoas: number;
-  status: "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera";
+  status: "PENDENTE" | "CONFIRMADA" | "ATIVA" | "LISTA_ESPERA" | "CANCELADA_RESTAURANTE" | "CONCLUIDA" | "NAO_COMPARECEU";
   preferencias: string;
   restaurante: string;
   emailCliente: string;
