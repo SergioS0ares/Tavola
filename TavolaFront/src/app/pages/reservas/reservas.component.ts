@@ -188,6 +188,7 @@ export class ReservasComponent implements OnInit {
   clientes: ICliente[] = []; // This will no longer be used as client data is in IReserva
 
   reservasEsperaVisiveis: IReserva[] = [];
+  reservasParaCalendario: IReserva[] = [];
 
   // --- LÓGICA DE CONTROLE DAS ABAS (MAIS ROBUSTA) ---
   mudarAba(event: MatTabChangeEvent): void {
@@ -363,16 +364,22 @@ export class ReservasComponent implements OnInit {
     const dataAtualMes = this.dataAtual.getMonth();
     const dataAtualAno = this.dataAtual.getFullYear();
 
+    console.log(`[aplicarFiltros] Filtrando para data: ${this.dataAtual.toLocaleDateString()}`);
+
     let tempReservas = this.reservas.filter(
       (reserva: IReserva) => {
         const reservaData = new Date(reserva.data);
-        return reservaData.getDate() === dataAtualDia &&
-               reservaData.getMonth() === dataAtualMes &&
-               reservaData.getFullYear() === dataAtualAno;
+        const mesmoDia = reservaData.getDate() === dataAtualDia;
+        const mesmoMes = reservaData.getMonth() === dataAtualMes;
+        const mesmoAno = reservaData.getFullYear() === dataAtualAno;
+        
+        console.log(`[aplicarFiltros] Comparando reserva: ${reserva.cliente}, Data: ${reservaData.toLocaleDateString()}, Mesmo dia: ${mesmoDia}, Mesmo mês: ${mesmoMes}, Mesmo ano: ${mesmoAno}`);
+        
+        return mesmoDia && mesmoMes && mesmoAno;
       }
     );
 
-    console.log(`[aplicarFiltros] Data Atual: ${this.dataAtual.toLocaleDateString()}, Reservas Filtradas (pré-pesquisa/período): ${tempReservas.length}`);
+    console.log(`[aplicarFiltros] Reservas filtradas (pré-pesquisa/período): ${tempReservas.length}`);
 
     if (this.pesquisa && this.pesquisa.trim() !== "") {
       const termoBusca = this.pesquisa.toLowerCase().trim()
@@ -728,9 +735,10 @@ export class ReservasComponent implements OnInit {
   }
 
   nzDatePickerChange(date: Date): void {
-    this.dataAtual = date
-    this.carregarReservas()
-    this.limparSelecao()
+    // Cria um novo objeto Date para garantir que a data seja o início do dia no fuso horário local
+    this.dataAtual = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    this.carregarReservas();
+    this.limparSelecao();
   }
 
   limparSelecao(): void {
@@ -829,20 +837,22 @@ export class ReservasComponent implements OnInit {
   }
 
   getReservasParaCalendario(): any[] {
-    return [...this.reservas, ...this.reservasEspera].map((reserva) => ({
-      data: reserva.data,
+    return this.reservasParaCalendario.map((reserva) => ({
+      id: reserva.id,
       clienteId: reserva.clienteId,
       cliente: reserva.cliente || "Cliente não encontrado",
+      data: reserva.data,
       status: reserva.status,
       pessoas: reserva.pessoas,
-    }))
+    }));
   }
 
   selecionarDataDoCalendario(data: Date): void {
-    this.dataAtual = data
-    this.carregarReservas()
-    this.limparSelecao()
-    this.mostrarCalendario = false
+    // Cria um novo objeto Date para garantir que a data seja o início do dia no fuso horário local
+    this.dataAtual = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+    this.carregarReservas();
+    this.limparSelecao();
+    this.mostrarCalendario = false;
   }
 
   formatarDataSimples(data: Date): string {
@@ -850,9 +860,6 @@ export class ReservasComponent implements OnInit {
   }
 
   getClienteNomeById(id: string): string {
-    // This method is now redundant since cliente is directly available on IReserva
-    // However, if it's used with ICliente objects elsewhere, it might still be useful.
-    // For now, it will return an empty string.
     return '';
   }
 
@@ -915,47 +922,64 @@ export class ReservasComponent implements OnInit {
     const idRestaurante = this.authService.perfil?.id;
     if (!idRestaurante) {
       this.toastr.error("ID do restaurante não encontrado. Faça o login.");
-      this.reservas = []; // Clear reservations if no restaurant ID
+      this.reservas = []; 
       this.aplicarFiltros();
       return;
     }
 
     this.isLoading.reservas = true;
-    const dataFormatada = this.dataAtual.toISOString().split('T')[0];
-    console.log(`[carregarReservas] Chamando API para restaurante: ${idRestaurante}, data: ${dataFormatada}`);
+    
+    console.log(`[DEBUG - carregarReservas] this.dataAtual (objeto completo): ${this.dataAtual}`);
+    console.log(`[DEBUG - carregarReservas] Ano: ${this.dataAtual.getFullYear()}, Mês (0-indexed): ${this.dataAtual.getMonth()}, Dia: ${this.dataAtual.getDate()}`);
+
+    const ano = this.dataAtual.getFullYear();
+    const mes = (this.dataAtual.getMonth() + 1).toString().padStart(2, '0');
+    const dia = this.dataAtual.getDate().toString().padStart(2, '0');
+    const dataFormatada = `${ano}-${mes}-${dia}`;
+    
+    console.log(`[carregarReservas] Data selecionada (toLocaleDateString): ${this.dataAtual.toLocaleDateString()}`);
+    console.log(`[carregarReservas] Data formatada para API: ${dataFormatada}`);
 
     this.reservasService.getReservasPorRestaurante(idRestaurante, dataFormatada)
       .pipe(finalize(() => this.isLoading.reservas = false))
       .subscribe({
         next: (response) => {
           console.log('[carregarReservas] Resposta da API:', response);
-          this.reservas = response.map((reserva: any) => ({
-            id: reserva.id,
-            clienteId: reserva.idCliente,
-            cliente: reserva.cliente,
-            mesaIds: [], // This will be populated from nomesMesas if needed or on mesa assignment
-            data: new Date(reserva.data + 'T00:00:00'), // Ensure this is parsed correctly and consistently
-            horario: reserva.hora.substring(0, 5),
-            periodo: this.determinarPeriodo(reserva.hora),
-            pessoas: reserva.pessoas,
-            status: this.mapearStatus(reserva.status),
-            preferencias: reserva.observacoes,
-            restaurante: reserva.restaurante,
-            emailCliente: reserva.emailCliente,
-            telefoneCliente: reserva.telefoneCliente,
-            imagemPerfilCliente: reserva.imagemPerfilCliente,
-            nomesMesas: reserva.nomesMesas || [] // Ensure it's an array
-          }));
-          console.log(`[carregarReservas] Reservas mapeadas: ${this.reservas.length}, Exemplo data primeira reserva: ${this.reservas.length > 0 ? this.reservas[0].data.toLocaleDateString() : 'N/A'}`);
-          // After loading reservations, update table statuses based on new data
+          this.reservas = response.map((reserva: any) => {
+            // Extrai a parte da data "YYYY-MM-DD" e então parseia como uma data local
+            const datePart = reserva.data.substring(0, 10); // "YYYY-MM-DD"
+            const parts = datePart.split('-'); 
+            const dataReserva = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            console.log(`[carregarReservas] Processando reserva: ${reserva.cliente}, Data original (API): ${reserva.data}, Data parseada (local): ${dataReserva.toLocaleDateString()}, Dia parseado (local): ${dataReserva.getDate()}`);
+            
+            return {
+              id: reserva.id,
+              clienteId: reserva.idCliente,
+              cliente: reserva.cliente,
+              mesaIds: [], 
+              data: dataReserva,
+              horario: reserva.hora.substring(0, 5),
+              periodo: this.determinarPeriodo(reserva.hora),
+              pessoas: reserva.pessoas,
+              status: this.mapearStatus(reserva.status),
+              preferencias: reserva.observacoes,
+              restaurante: reserva.restaurante,
+              emailCliente: reserva.emailCliente,
+              telefoneCliente: reserva.telefoneCliente,
+              imagemPerfilCliente: reserva.imagemPerfilCliente,
+              nomesMesas: reserva.nomesMesas || [] 
+            };
+          });
+          
+          console.log(`[carregarReservas] Total de reservas carregadas: ${this.reservas.length}`);
           this.atualizarStatusMesasOcupadas();
           this.aplicarFiltros();
         },
         error: (error) => {
           console.error('Erro ao carregar reservas:', error);
           this.toastr.error('Erro ao carregar reservas.');
-          this.reservas = []; // Clear reservations on error
-          this.aplicarFiltros(); // Apply filters to clear the UI
+          this.reservas = []; 
+          this.aplicarFiltros(); 
         }
       });
   }
@@ -969,11 +993,70 @@ export class ReservasComponent implements OnInit {
     const statusMap: { [key: string]: any } = {
       'ATIVA': 'confirmada',
       'PENDENTE': 'pendente',
-      'CANCELADA': 'cancelada',
-      'FINALIZADA': 'finalizada',
-      'AUSENTE': 'ausente',
-      'ESPERA': 'espera'
+      'CANCELADA_CLIENTE': 'cancelada',
+      'CANCELADA_RESTAURANTE': 'cancelada',
+      'CONCLUIDA': 'finalizada',
+      'NAO_COMPARECEU': 'ausente',
+      'LISTA_ESPERA': 'espera',
+      'CONFIRMADA': 'confirmada'
     };
     return statusMap[status] || 'pendente';
+  }
+
+  // Nova função para abrir o calendário e carregar os dados
+  abrirCalendario(): void {
+    this.mostrarCalendario = true;
+    this.carregarReservasParaCalendario(this.dataAtual);
+  }
+
+  carregarReservasParaCalendario(data: Date): void {
+    const idRestaurante = this.authService.perfil?.id;
+    if (!idRestaurante) {
+      console.error("ID do restaurante não encontrado para calendário.");
+      this.reservasParaCalendario = [];
+      return;
+    }
+
+    const ano = data.getFullYear();
+    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+    const dia = data.getDate().toString().padStart(2, '0');
+    const dataFormatada = `${ano}-${mes}-${dia}`;
+
+    this.isLoading.reservas = true; // Use existing isLoading for simplicity or create a new one
+
+    this.reservasService.getReservasParaCalendario(idRestaurante, dataFormatada)
+      .pipe(finalize(() => this.isLoading.reservas = false))
+      .subscribe({
+        next: (response) => {
+          this.reservasParaCalendario = response.map((reserva: any) => ({
+            id: reserva.id || uuidv4(), // Assuming id might be missing from calendar API
+            clienteId: reserva.idCliente || '', // Assuming idCliente might be missing
+            cliente: reserva.clienteNome,
+            mesaIds: [],
+            // Extrai a parte da data "YYYY-MM-DD" e então parseia como uma data local
+            data: new Date(
+                parseInt(reserva.data.substring(0, 4)), // Ano
+                parseInt(reserva.data.substring(5, 7)) - 1, // Mês (0-indexed)
+                parseInt(reserva.data.substring(8, 10))  // Dia
+            ),
+            horario: reserva.hora || '00:00',
+            periodo: this.determinarPeriodo(reserva.hora || '00:00'),
+            pessoas: reserva.pessoas,
+            status: this.mapearStatus(reserva.status),
+            preferencias: reserva.observacoes || '',
+            restaurante: reserva.restaurante || '',
+            emailCliente: reserva.emailCliente || '',
+            telefoneCliente: reserva.telefoneCliente || '',
+            imagemPerfilCliente: reserva.imagemPerfilCliente || null,
+            nomesMesas: reserva.nomesMesas || []
+          }));
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar reservas para calendário:', error);
+          this.toastr.error('Erro ao carregar reservas para calendário.');
+          this.reservasParaCalendario = [];
+        }
+      });
   }
 }

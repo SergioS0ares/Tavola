@@ -223,7 +223,10 @@ export class CalendarioReservasComponent implements OnChanges {
   }
 
   formatarDataKey(data: Date): string {
-    return `${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate()}`
+    const ano = data.getFullYear();
+    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+    const dia = data.getDate().toString().padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
   }
 
   getReservasParaData(data: Date): IReserva[] {
@@ -241,6 +244,10 @@ export class CalendarioReservasComponent implements OnChanges {
         return "error"
       case "espera":
         return "warning"
+      case "finalizada":
+        return "success"
+      case "ausente":
+        return "error"
       default:
         return "default"
     }

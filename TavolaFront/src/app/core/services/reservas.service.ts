@@ -15,4 +15,8 @@ export class ReservasService {
   getReservasPorRestaurante(idRestaurante: string, data: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/restaurante/${idRestaurante}?data=${data}`);
   }
+
+  getReservasParaCalendario(idRestaurante: string, data: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/restaurante/${idRestaurante}/calendario?data=${data}`);
+  }
 } 
