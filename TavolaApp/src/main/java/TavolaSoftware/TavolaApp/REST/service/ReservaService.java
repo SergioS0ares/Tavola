@@ -1,7 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
 import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.ListaEsperaResponse;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
@@ -69,7 +68,7 @@ public class ReservaService {
         novaReserva.setHoraReserva(horaReserva);
         novaReserva.setQuantidadePessoas(requestDto.getQuantidadePessoasReserva());
         novaReserva.setObservacoes(requestDto.getComentariosPreferenciaReserva());
-        novaReserva.setStatus(StatusReserva.ATIVA); // Você pode querer mudar para PENDENTE ou CONFIRMADA dependendo da sua regra
+        novaReserva.setStatus(StatusReserva.ATIVA);
 
         if (requestDto.getIdsMesas() != null && !requestDto.getIdsMesas().isEmpty()) {
             List<Mesa> mesasEncontradas = mesaRepository.findAllById(requestDto.getIdsMesas());
@@ -83,16 +82,11 @@ public class ReservaService {
         return new ReservaResponse(reservaSalva);
     }
     
-    /**
-     * [SIMPLIFICADO] Encontra reservas com base em múltiplos filtros, ignorando o horário.
-     */
     @Transactional(readOnly = true)
     public List<ReservaResponse> findReservasByRestauranteWithFilters(
             UUID restauranteId, String dataStr, String clienteNome, String statusStr) {
 
         LocalDate dataReserva = parseData(dataStr);
-
-        // A lógica de horaInicio, horaFim e período foi COMPLETAMENTE REMOVIDA
 
         String statusParaBusca = null;
         if (statusStr != null && !statusStr.isBlank() && !"todos".equalsIgnoreCase(statusStr)) {
@@ -106,24 +100,23 @@ public class ReservaService {
         
         String nomeParaBusca = (clienteNome != null && !clienteNome.isBlank()) ? clienteNome : null;
 
-        // A chamada para o repositório agora é mais simples
         List<Reserva> reservas = reservaRepository.findReservasByRestauranteWithFilters(
             restauranteId, dataReserva, nomeParaBusca, statusParaBusca);
         
-        return reservas.stream().map(ReservaResponse::new).collect(Collectors.toList());
+        return reservas.stream()
+                .filter(reserva -> reserva.getStatus() != StatusReserva.LISTA_ESPERA)
+                .map(ReservaResponse::new)
+                .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
-    public List<ListaEsperaResponse> findReservasListaEspera(UUID restauranteId) {
+    public List<ReservaResponse> findReservasListaEspera(UUID restauranteId) {
         List<Reserva> reservasEmEspera = reservaRepository.findByRestauranteIdAndStatusOrderByDataReservaAscHoraReservaAsc(
             restauranteId, StatusReserva.LISTA_ESPERA
         );
-        return reservasEmEspera.stream().map(ListaEsperaResponse::new).collect(Collectors.toList());
+        return reservasEmEspera.stream().map(ReservaResponse::new).collect(Collectors.toList());
     }
     
-    /**
-     * [ADAPTADO] Busca reservas de um restaurante para um mês inteiro com base em uma única data.
-     */
     @Transactional(readOnly = true)
     public List<CalendarioReservaResponse> findReservasParaCalendario(UUID restauranteId, String dataStr) {
         LocalDate dataRecebida = parseData(dataStr);
@@ -223,9 +216,23 @@ public class ReservaService {
             throw new SecurityException("Usuário não tem permissão para atualizar esta reserva.");
         }
 
-        if (reserva.getStatus() != StatusReserva.ATIVA && reserva.getStatus() != StatusReserva.PENDENTE && reserva.getStatus() != StatusReserva.CONFIRMADA) {
-             throw new IllegalStateException("Apenas reservas ativas, pendentes ou confirmadas podem ser atualizadas. Status atual: " + reserva.getStatus());
+        StatusReserva statusOriginal = reserva.getStatus();
+        if (statusOriginal == StatusReserva.CONCLUIDA || 
+            statusOriginal == StatusReserva.CANCELADA_CLIENTE || 
+            statusOriginal == StatusReserva.CANCELADA_RESTAURANTE ||
+            statusOriginal == StatusReserva.NAO_COMPARECEU) {
+             throw new IllegalStateException("Esta reserva não pode ser alterada pois seu status é '" + statusOriginal + "'.");
         }
+
+        // --- LÓGICA DE ATUALIZAÇÃO AUTOMÁTICA DE STATUS ---
+        boolean deveConfirmarAutomaticamente = false;
+        if (statusOriginal == StatusReserva.LISTA_ESPERA && requestDto.getDataReserva() != null) {
+            LocalDate novaData = parseData(requestDto.getDataReserva());
+            if (!novaData.isEqual(reserva.getDataReserva())) {
+                deveConfirmarAutomaticamente = true;
+            }
+        }
+        // --- FIM DA LÓGICA ---
 
         if (requestDto.getDataReserva() != null) {
             reserva.setDataReserva(parseData(requestDto.getDataReserva()));
@@ -252,6 +259,10 @@ public class ReservaService {
             }
         }
 
+        if (deveConfirmarAutomaticamente) {
+            reserva.setStatus(StatusReserva.CONFIRMADA);
+        }
+
         validarDataHoraReserva(reserva.getDataReserva(), reserva.getHoraReserva());
         validarQuantidadePessoas(reserva.getQuantidadePessoas());
 
@@ -263,7 +274,7 @@ public class ReservaService {
         try {
             return LocalDate.parse(dataStr, DATE_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Formato de data inválido. Use yyyy-MM-dd.", e);
+            throw new IllegalArgumentException("Formato de data inválido. Use aaaa-MM-dd.", e);
         }
     }
 
