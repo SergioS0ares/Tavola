@@ -1,28 +1,32 @@
+@import '../../../styles/variables.scss';
+
 .global-spinner-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7); /* Fundo escurecido existente */
+  background-color: rgba(0, 0, 0, 0.7);
   z-index: 9999;
   display: flex;
   align-items: center;
-  justify-content: center; /* Centraliza horizontal e verticalmente */
+  justify-content: center;
+  backdrop-filter: blur(2px);
 }
 
 .spinner-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px; /* Espaço entre o forno e o texto */
+  gap: 16px;
 }
 
+// Mantendo o forno para compatibilidade, mas com cores Tavola
 .oven-body {
   position: relative;
   width: 112px;
   height: 96px;
-  background: linear-gradient(to bottom, #4b5563, #1f2937);
+  background: linear-gradient(to bottom, lighten($text-color, 20%), $text-color);
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -33,10 +37,10 @@
   left: 0;
   right: 0;
   height: 24px;
-  background-color: #1f2937;
+  background-color: $text-color;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid lighten($text-color, 20%);
   padding: 0 8px;
   display: flex;
   justify-content: space-between;
@@ -57,22 +61,22 @@
   gap: 4px;
 }
 
-.temperature-display-control { /* Novo estilo para a temperatura no painel */
+.temperature-display-control {
   font-size: 12px;
-  color: #f87171; /* Cor para o display de temperatura (pode ajustar) */
+  color: $primary-color;
   font-family: monospace;
 }
 
-.timer-display { /* Manter o estilo caso ainda haja uso, mas não será usado para temperatura */
+.timer-display {
   font-size: 12px;
-  color: #93c5fd;
+  color: $primary-color;
   font-family: monospace;
 }
 
 .power-indicator {
   width: 8px;
   height: 8px;
-  background-color: #22c55e;
+  background-color: $primary-color;
   border-radius: 9999px;
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -88,9 +92,9 @@
   left: 8px;
   right: 8px;
   bottom: 24px;
-  background-color: #1f2937;
+  background-color: darken($text-color, 10%);
   border-radius: 4px;
-  border: 1px solid #4b5563;
+  border: 1px solid lighten($text-color, 20%);
 }
 
 .door-window {
@@ -100,17 +104,15 @@
   right: 4px;
   bottom: 4px;
   border-radius: 4px;
-  transition: background-image 2s ease-in-out; /* Transição da imagem de fundo */
+  transition: background-image 2s ease-in-out;
   
   &.light-on {
-    background: linear-gradient(to bottom, #fde047, #fbbf24); /* Amarelo/Laranja para luz ligada */
+    background: linear-gradient(to bottom, $primary-color, darken($primary-color, 10%));
   }
 
   &:not(.light-on) {
-    background: linear-gradient(to bottom, #fdba74, #f87171); /* Laranja/Vermelho para luz desligada */
+    background: linear-gradient(to bottom, lighten($primary-color, 10%), $primary-color);
   }
-
-  /* A cor da janela será controlada por ngStyle no HTML para refletir a temperatura */
 }
 
 .heat-elements {
@@ -127,11 +129,11 @@
   height: 4px;
   border-radius: 9999px;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  background-color: #4b5563;
+  background-color: lighten($text-color, 20%);
 
   &.active {
-    background-color: #ef4444; /* Vermelho */
-    box-shadow: 0 0 4px #ef4444;
+    background-color: $primary-color;
+    box-shadow: 0 0 4px $primary-color;
   }
 }
 
@@ -145,17 +147,17 @@
 .fan-circle {
   width: 24px;
   height: 24px;
-  border: 2px solid #9ca3af;
+  border: 2px solid lighten($text-color, 30%);
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.05s linear; /* transition for rotation */
+  transition: transform 0.05s linear;
 }
 
 .fan-blade {
   position: absolute;
-  background-color: #9ca3af;
+  background-color: lighten($text-color, 30%);
 }
 
 .horizontal {
@@ -174,7 +176,7 @@
   left: 8px;
   right: 8px;
   height: 4px;
-  background-color: #374151;
+  background-color: lighten($text-color, 10%);
   border-radius: 9999px;
 }
 
@@ -184,7 +186,7 @@
   left: 25%;
   width: 50%;
   height: 4px;
-  background-color: #d97706;
+  background-color: $primary-color;
   border-radius: 9999px;
 }
 
@@ -207,7 +209,7 @@
 .grille {
   flex: 1;
   height: 100%;
-  background-color: #4b5563;
+  background-color: lighten($text-color, 20%);
   border-radius: 2px;
 }
 
@@ -222,220 +224,272 @@
   position: absolute;
   width: 4px;
   height: 4px;
-  background-color: #f87171;
+  background-color: $primary-color;
   border-radius: 9999px;
 }
 
 .text-info {
   text-align: center;
-  /* Removido o posicionamento absoluto para ficar abaixo do forno */
 }
 
 .title {
-  color: #b45309;
+  color: $primary-color;
   font-weight: 500;
 }
 
 .status {
-  color: #fbbf24;
+  color: $primary-color;
   font-size: 14px;
 }
 
-/* Removido o estilo da temperatura interna */
-/* .temperature-display { ... } */
-
-.chef-spinner-container {
-  margin-top: 3rem;
-  background: #fff;
-  border-radius: 1.5rem;
-  padding: 2rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.chef-spinner-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #374151;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-.chef-spinner-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 0;
-}
-.chef-spinner-anim {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.chef-spinner-circle {
-  position: absolute;
-  border-radius: 50%;
-  border: 4px solid #FDBA74;
-  border-top-color: transparent;
-  border-bottom-color: #F59E42;
-}
-.chef-spinner-circle-1 {
-  width: 80px;
-  height: 80px;
-  animation: chef-spin-1 3s linear infinite;
-}
-.chef-spinner-circle-2 {
-  width: 64px;
-  height: 64px;
-  border-color: #FDBA74 #FDBA74 transparent #F59E42;
-  animation: chef-spin-2 2s linear infinite;
-}
-.chef-spinner-hat {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-.chef-spinner-text {
-  margin-top: 1.5rem;
-  font-size: 1.25rem;
-  color: #F59E42;
-  font-weight: 500;
-  text-align: center;
-  animation: chef-fadeInOut 2s infinite;
-}
-.chef-spinner-dots {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  justify-content: center;
-}
-.chef-spinner-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #F59E42;
-  opacity: 0.5;
-  animation: chef-bounce 1.5s infinite;
-}
-.chef-spinner-dot-2 { animation-delay: 0.2s; }
-.chef-spinner-dot-3 { animation-delay: 0.4s; }
-@keyframes chef-spin-1 {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-@keyframes chef-spin-2 {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(-360deg); }
-}
-@keyframes chef-fadeInOut {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-@keyframes chef-bounce {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.5); opacity: 1; }
-}
-
+// SPINNER PRINCIPAL DO TAVOLA - Tema Chef
 .chef-spinner-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.7);
+  top: 0; 
+  left: 0; 
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(59, 34, 27, 0.85); // Fundo marrom semi-transparente
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(3px);
 }
+
 .chef-spinner-card {
   background: #fff;
-  border-radius: 1.5rem;
-  padding: 2.5rem 3rem;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  border-radius: 20px;
+  padding: 3rem 3.5rem;
+  box-shadow: 0 20px 40px rgba(59, 34, 27, 0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 340px;
+  min-width: 380px;
+  border: 3px solid $primary-color;
+  position: relative;
+  
+  // Efeito de brilho sutil
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, $primary-color, lighten($primary-color, 20%), $primary-color);
+    border-radius: 22px;
+    z-index: -1;
+    opacity: 0.7;
+    animation: tavola-glow 3s ease-in-out infinite;
+  }
 }
+
 .chef-spinner-center {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
+
 .chef-spinner-anim {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 1rem;
 }
+
 .chef-spinner-circle {
   position: absolute;
   border-radius: 50%;
-  border: 4px solid #FDBA74;
-  border-top-color: transparent;
-  border-bottom-color: #F59E42;
+  border: 5px solid transparent;
 }
+
 .chef-spinner-circle-1 {
-  width: 80px;
-  height: 80px;
-  animation: chef-spin-1 3s linear infinite;
+  width: 100px;
+  height: 100px;
+  border: 5px solid lighten($primary-color, 30%);
+  border-top-color: $primary-color;
+  border-right-color: $primary-color;
+  animation: tavola-spin-1 2.5s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(246, 189, 56, 0.3));
 }
+
 .chef-spinner-circle-2 {
-  width: 64px;
-  height: 64px;
-  border-color: #FDBA74 #FDBA74 transparent #F59E42;
-  animation: chef-spin-2 2s linear infinite;
+  width: 75px;
+  height: 75px;
+  border: 4px solid lighten($primary-color, 40%);
+  border-bottom-color: $primary-color;
+  border-left-color: $primary-color;
+  animation: tavola-spin-2 2s linear infinite reverse;
 }
+
+.chef-spinner-circle-3 {
+  width: 50px;
+  height: 50px;
+  border: 3px solid lighten($primary-color, 50%);
+  border-top-color: darken($primary-color, 10%);
+  animation: tavola-spin-1 1.5s linear infinite;
+}
+
 .chef-spinner-hat {
   position: absolute;
-  left: 50%; top: 50%;
+  left: 50%; 
+  top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2;
+  z-index: 10;
+  animation: tavola-float 3s ease-in-out infinite;
 }
+
 .chef-spinner-text {
   margin-top: 2rem;
-  font-size: 1.25rem;
-  color: #F59E42;
+  font-size: 1.4rem;
+  color: $text-color;
   font-weight: 600;
   text-align: center;
-  animation: chef-fadeInOut 2s infinite;
+  animation: tavola-fadeInOut 2.5s infinite;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  
+  .highlight {
+    color: $primary-color;
+    font-weight: 700;
+  }
 }
+
+.chef-spinner-subtitle {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: lighten($text-color, 20%);
+  font-weight: 400;
+  text-align: center;
+  opacity: 0.8;
+}
+
 .chef-spinner-dots {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+  gap: 0.75rem;
+  margin-top: 2rem;
   justify-content: center;
 }
+
 .chef-spinner-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: #F59E42;
-  opacity: 0.5;
-  animation: chef-bounce 1.5s infinite;
+  background: $primary-color;
+  opacity: 0.4;
+  animation: tavola-bounce 1.8s infinite;
+  box-shadow: 0 2px 4px rgba(246, 189, 56, 0.3);
 }
-.chef-spinner-dot-2 { animation-delay: 0.2s; }
-.chef-spinner-dot-3 { animation-delay: 0.4s; }
-@keyframes chef-spin-1 {
+
+.chef-spinner-dot-2 { 
+  animation-delay: 0.3s; 
+  background: darken($primary-color, 5%);
+}
+
+.chef-spinner-dot-3 { 
+  animation-delay: 0.6s; 
+  background: darken($primary-color, 10%);
+}
+
+// Animações do Tavola
+@keyframes tavola-spin-1 {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-@keyframes chef-spin-2 {
+
+@keyframes tavola-spin-2 {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(-360deg); }
 }
-@keyframes chef-fadeInOut {
-  0%, 100% { opacity: 0.5; }
+
+@keyframes tavola-fadeInOut {
+  0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
-@keyframes chef-bounce {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.5); opacity: 1; }
+
+@keyframes tavola-bounce {
+  0%, 100% { 
+    transform: scale(1) translateY(0); 
+    opacity: 0.4; 
+  }
+  50% { 
+    transform: scale(1.3) translateY(-8px); 
+    opacity: 1; 
+  }
+}
+
+@keyframes tavola-float {
+  0%, 100% { 
+    transform: translate(-50%, -50%) translateY(0px); 
+  }
+  50% { 
+    transform: translate(-50%, -50%) translateY(-5px); 
+  }
+}
+
+@keyframes tavola-glow {
+  0%, 100% { 
+    opacity: 0.7; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.9; 
+    transform: scale(1.02);
+  }
+}
+
+// Responsividade
+@media (max-width: 480px) {
+  .chef-spinner-card {
+    min-width: 320px;
+    padding: 2rem 2.5rem;
+    margin: 1rem;
+  }
+  
+  .chef-spinner-anim {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .chef-spinner-circle-1 {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .chef-spinner-circle-2 {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .chef-spinner-circle-3 {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .chef-spinner-text {
+    font-size: 1.2rem;
+  }
+}
+
+// Variação para loading rápido
+.chef-spinner-card.fast {
+  .chef-spinner-circle-1 {
+    animation-duration: 1s;
+  }
+  
+  .chef-spinner-circle-2 {
+    animation-duration: 0.8s;
+  }
+  
+  .chef-spinner-circle-3 {
+    animation-duration: 0.6s;
+  }
+  
+  .chef-spinner-dot {
+    animation-duration: 1s;
+  }
 }

@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import TavolaSoftware.TavolaApp.REST.dto.ClienteHomeResponse; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.REST.dto.RestauranteRequest;
 import TavolaSoftware.TavolaApp.REST.dto.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
@@ -57,11 +58,9 @@ public class RestauranteService {
     @Autowired
     private BCryptPasswordEncoder encoder;
     
- // <<< INJETAR O NOVO SERVIÇO DE RECOMENDAÇÃO >>>
     @Autowired
     private RecomendacaoService recomendacaoService;
     
-    // <<< INJETAR O REPOSITÓRIO DE CLIENTE >>>
     @Autowired
     private ClienteRepository clienteRepository;
 
@@ -69,117 +68,87 @@ public class RestauranteService {
     
     
     // === CONSTANTES PARA A PESQUISA POR RELEVÂNCIA ===
-    // Ajuste estes valores para calibrar a relevância da sua busca
     private static final double MEDIA_GERAL_AVALIACAO_APP = 3.5;
     private static final int C_CONFIANCA = 10;
-    private static final double PESO_FTS_BASE = 0.45;    // Relevância do nome e tipo de cozinha
-    private static final double PESO_SERVICOS = 0.10;    // Relevância dos serviços oferecidos
-    private static final double PESO_CARDAPIO = 0.20;    // Relevância do nome dos pratos
-    private static final double PESO_TAGS = 0.10;        // Relevância das tags dos pratos
-    private static final double PESO_QUALIDADE = 0.15;   // Relevância da avaliação/popularidade
+    private static final double PESO_FTS_BASE = 0.45;
+    private static final double PESO_SERVICOS = 0.10;
+    private static final double PESO_CARDAPIO = 0.20;
+    private static final double PESO_TAGS = 0.10;
+    private static final double PESO_QUALIDADE = 0.15;
 
     /**
      * Realiza uma busca completa por restaurantes, ordenando por relevância.
      * @param termoOriginal O termo de busca inserido pelo usuário.
      * @param pageable Objeto de paginação.
-     * @return Uma página de RestauranteResponse ordenada por relevância.
+     * @return Uma página de ClienteHomeResponse ordenada por relevância.
      */
-
-@Transactional(readOnly = true)
-public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termoOriginal, Pageable pageable) {
-    
-    // 1. Formata o termo de busca (seu código original, está perfeito)
-    String termoFts = Arrays.stream(termoOriginal.trim().toLowerCase().split("\\s+"))
-                            .filter(palavra -> palavra.length() > 1) 
-                            .collect(Collectors.joining(" | "));
-
-    // 2. Executa a busca FTS base no banco (seu código original, está perfeito)
-    Page<Object[]> resultadosFtsBase = repoRestaurante.searchRestaurantesByFtsBase(termoFts, pageable);
-
-    if (resultadosFtsBase.isEmpty()) {
-        return Page.empty(pageable);
-    }
-
-    Map<UUID, Double> ftsBaseScoresMap = resultadosFtsBase.getContent().stream()
-        .collect(Collectors.toMap(
-            result -> UUID.fromString(result[0].toString()),
-            result -> result[1] != null ? ((Number) result[1]).doubleValue() : 0.0
-        ));
-    
-    // 3. Busca as entidades completas (seu código original, está perfeito)
-    List<UUID> restauranteIds = new ArrayList<>(ftsBaseScoresMap.keySet());
-    Map<UUID, Restaurante> restauranteMap = repoRestaurante.findAllById(restauranteIds).stream().collect(Collectors.toMap(Restaurante::getId, r -> r));
-    List<Restaurante> restaurantesOrdenadosPeloFts = restauranteIds.stream()
-                                                                .map(restauranteMap::get)
-                                                                .filter(java.util.Objects::nonNull)
-                                                                .collect(Collectors.toList());
-
-    List<String> palavrasDoTermo = Arrays.asList(termoOriginal.trim().toLowerCase().split("\\s+"));
-
-    // 4. Calcula o score final de relevância para cada restaurante (seu código original, está perfeito)
-    List<RestauranteComScore> restaurantesComScore = restaurantesOrdenadosPeloFts.stream().map(r -> {
-        double ftsScoreBase = ftsBaseScoresMap.getOrDefault(r.getId(), 0.0);
-        double boostServicos = calcularBoostServicos(r, palavrasDoTermo);
-        double boostCardapio = calcularBoostCardapio(r, palavrasDoTermo);
-        double boostTags = calcularBoostTags(r, palavrasDoTermo);
-        double scoreQualidade = calcularScoreQualidade(r);
-        double scoreQualidadeNormalizado = scoreQualidade / 5.0;
-
-        double finalScore = (PESO_FTS_BASE * ftsScoreBase) +
-                            (PESO_SERVICOS * boostServicos) +
-                            (PESO_CARDAPIO * boostCardapio) +
-                            (PESO_TAGS * boostTags) +
-                            (PESO_QUALIDADE * scoreQualidadeNormalizado);
+    @Transactional(readOnly = true)
+    // >>> ALTERAÇÃO 1: O tipo de retorno agora é Page<ClienteHomeResponse> <<<
+    public Page<ClienteHomeResponse> pesquisarRestaurantesPorRelevancia(String termoOriginal, Pageable pageable) {
         
-        return new RestauranteComScore(r, finalScore);
-    }).collect(Collectors.toList());
+        String termoFts = Arrays.stream(termoOriginal.trim().toLowerCase().split("\\s+"))
+                                .filter(palavra -> palavra.length() > 1) 
+                                .collect(Collectors.joining(" | "));
 
-    // 5. Ordena a lista final pelo score de relevância (seu código original, está perfeito)
-    restaurantesComScore.sort(Comparator.comparingDouble(RestauranteComScore::getFinalScore).reversed());
+        Page<Object[]> resultadosFtsBase = repoRestaurante.searchRestaurantesByFtsBase(termoFts, pageable);
 
-    // === 6. CORREÇÃO: Converte para o DTO de resposta APLICANDO A NOVA LÓGICA ===
-    
-    // Busca a lista de favoritos do cliente UMA VEZ para otimizar
-    List<UUID> favoritosDoCliente = getFavoritosDoClienteLogado();
+        if (resultadosFtsBase.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-    List<RestauranteResponse> responses = restaurantesComScore.stream()
-            .map(rsc -> {
-                // Pega o restaurante do objeto com score
-                Restaurante restaurante = rsc.getRestaurante();
+        Map<UUID, Double> ftsBaseScoresMap = resultadosFtsBase.getContent().stream()
+            .collect(Collectors.toMap(
+                result -> UUID.fromString(result[0].toString()),
+                result -> result[1] != null ? ((Number) result[1]).doubleValue() : 0.0
+            ));
+        
+        List<UUID> restauranteIds = new ArrayList<>(ftsBaseScoresMap.keySet());
+        Map<UUID, Restaurante> restauranteMap = repoRestaurante.findAllById(restauranteIds).stream().collect(Collectors.toMap(Restaurante::getId, r -> r));
+        List<Restaurante> restaurantesOrdenadosPeloFts = restauranteIds.stream()
+                                                                    .map(restauranteMap::get)
+                                                                    .filter(java.util.Objects::nonNull)
+                                                                    .collect(Collectors.toList());
 
-                // Cria o DTO base
-                RestauranteResponse dto = new RestauranteResponse(restaurante);
+        List<String> palavrasDoTermo = Arrays.asList(termoOriginal.trim().toLowerCase().split("\\s+"));
 
-                // Define os campos dinâmicos
-                dto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
-                dto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
+        List<RestauranteComScore> restaurantesComScore = restaurantesOrdenadosPeloFts.stream().map(r -> {
+            double ftsScoreBase = ftsBaseScoresMap.getOrDefault(r.getId(), 0.0);
+            double boostServicos = calcularBoostServicos(r, palavrasDoTermo);
+            double boostCardapio = calcularBoostCardapio(r, palavrasDoTermo);
+            double boostTags = calcularBoostTags(r, palavrasDoTermo);
+            double scoreQualidade = calcularScoreQualidade(r);
+            double scoreQualidadeNormalizado = scoreQualidade / 5.0;
 
-                // Aplica a lógica de imagem única (igual ao findAll)
-                List<String> principalImageOnly = new ArrayList<>();
-                List<String> imagensDoRestaurante = restaurante.getImagens();
-                if (imagensDoRestaurante != null && !imagensDoRestaurante.isEmpty()) {
-                    principalImageOnly.add(imagensDoRestaurante.get(0));
-                }
-                dto.setImagens(principalImageOnly);
+            double finalScore = (PESO_FTS_BASE * ftsScoreBase) +
+                                (PESO_SERVICOS * boostServicos) +
+                                (PESO_CARDAPIO * boostCardapio) +
+                                (PESO_TAGS * boostTags) +
+                                (PESO_QUALIDADE * scoreQualidadeNormalizado);
+            
+            return new RestauranteComScore(r, finalScore);
+        }).collect(Collectors.toList());
 
-                return dto;
-            })
-            .collect(Collectors.toList());
-    
-    // 7. Retorna a página de resultados
-    return new PageImpl<>(responses, pageable, resultadosFtsBase.getTotalElements());
-}
+        restaurantesComScore.sort(Comparator.comparingDouble(RestauranteComScore::getFinalScore).reversed());
+
+        // >>> ALTERAÇÃO 2: Convertendo a lista de restaurantes para uma lista de ClienteHomeResponse. <<<
+        // Usamos o construtor de ClienteHomeResponse que aceita um Restaurante.
+        List<ClienteHomeResponse> responses = restaurantesComScore.stream()
+                .map(rsc -> new ClienteHomeResponse(rsc.getRestaurante()))
+                .collect(Collectors.toList());
+        
+        return new PageImpl<>(responses, pageable, resultadosFtsBase.getTotalElements());
+    }
 
     private double calcularBoostServicos(Restaurante r, List<String> palavrasDoTermo) {
         if (r.getServicos() == null || r.getServicos().isEmpty() || palavrasDoTermo.isEmpty()) return 0.0;
         for (Servico servico : r.getServicos()) {
             for (String palavra : palavrasDoTermo) {
                 if (servico.getNome() != null && servico.getNome().toLowerCase().contains(palavra)) {
-                    return 1.0; // Encontrou correspondência, retorna um boost
+                    return 1.0;
                 }
             }
         }
-        return 0.0; // Nenhuma correspondência
+        return 0.0;
     }
 
     private double calcularBoostCardapio(Restaurante r, List<String> palavrasDoTermo) {
@@ -223,99 +192,67 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
     /**
      * Busca restaurantes filtrando pela cidade.
      * @param cidade O nome da cidade.
-     * @return Uma lista de RestauranteResponse.
+     * @return Uma lista de ClienteHomeResponse.
      */
     @Transactional(readOnly = true)
-    public List<RestauranteResponse> findByCidade(String cidade) {
+    // >>> ALTERAÇÃO 3: O tipo de retorno agora é List<ClienteHomeResponse> <<<
+    public List<ClienteHomeResponse> findByCidade(String cidade) {
         if (cidade == null || cidade.trim().isEmpty()) {
             return new ArrayList<>();
         }
 
         List<Restaurante> restaurantes = repoRestaurante.findByUsuarioEnderecoCidadeIgnoreCase(cidade.trim());
         
-        // <<< INÍCIO DA MELHORIA >>>
-        
-        // 1. Busca os favoritos do cliente logado, assim como nos outros métodos
-        List<UUID> favoritosDoCliente = getFavoritosDoClienteLogado();
-
-        // 2. Converte para DTO, agora adicionando os campos dinâmicos
+        // >>> ALTERAÇÃO 4: Convertendo a lista de Restaurante para ClienteHomeResponse. <<<
+        // A lógica complexa anterior foi removida, pois o ClienteHomeResponse é mais simples.
         return restaurantes.stream()
-            .map(restaurante -> {
-                RestauranteResponse responseDto = new RestauranteResponse(restaurante);
-                
-                // Adiciona os campos dinâmicos para consistência
-                responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
-                responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
-
-                // Mantém a lógica da imagem principal
-                List<String> principalImageOnly = new ArrayList<>();
-                List<String> imagensDoRestaurante = restaurante.getImagens();
-                if (imagensDoRestaurante != null && !imagensDoRestaurante.isEmpty()) {
-                    principalImageOnly.add(imagensDoRestaurante.get(0));
-                }
-                responseDto.setImagens(principalImageOnly);
-                
-                return responseDto;
-            })
+            .map(ClienteHomeResponse::new) // Usando referência do construtor para um código mais limpo
             .collect(Collectors.toList());
-        
-        // <<< FIM DA MELHORIA >>>
     }
     
-    /**
-     * Calcula o valor médio por pessoa, somando o preço médio de cada categoria do cardápio.
-     */
     private double calcularValorMedioPorPessoa(Restaurante restaurante) {
         if (restaurante.getCardapio() == null || restaurante.getCardapio().isEmpty()) {
             return 0.0;
         }
 
-        // Agrupa os itens do cardápio por categoria
         Map<String, List<Cardapio>> cardapioPorCategoria = restaurante.getCardapio().stream()
                 .filter(item -> item.getCategoria() != null && item.getPreco() != 0.0 && item.getPreco() > 0.0)
                 .collect(Collectors.groupingBy(item -> item.getCategoria().getNome()));
 
-        // Calcula a média de preço para cada categoria e soma tudo
         double valorTotalDasMedias = cardapioPorCategoria.values().stream()
                 .mapToDouble(itensDaCategoria -> 
                     itensDaCategoria.stream()
                                     .mapToDouble(Cardapio::getPreco)
                                     .average()
-                                    .orElse(0.0) // Se uma categoria não tiver itens com preço, a média é 0
+                                    .orElse(0.0)
                 )
                 .sum();
         
-        // Arredonda para 2 casas decimais
         return BigDecimal.valueOf(valorTotalDasMedias).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
     
-    /**
-     * Busca a lista de IDs de restaurantes favoritados pelo cliente logado.
-     * Retorna uma lista vazia se o usuário não for um cliente ou não estiver logado.
-     */
     private List<UUID> getFavoritosDoClienteLogado() {
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Usuario usuario = repoUsuario.findByEmail(emailUsuarioLogado);
             if (usuario != null && usuario.getTipo() == TipoUsuario.CLIENTE) {
-                // Usamos o repoCliente para buscar a entidade Cliente e seus favoritos
                 return clienteRepository.findById(usuario.getId())
                                         .map(cliente -> cliente.getFavoritos())
                                         .orElse(Collections.emptyList());
             }
         } catch (Exception e) {
-            // Ocorre se não houver usuário autenticado, apenas ignoramos.
+            // Ignora
         }
         return Collections.emptyList();
     }
-    // === MÉTODOS CRUD EXISTENTES (AJUSTADOS) ===
 
- // === MÉTODO findAll MODIFICADO PARA USAR A IA E A NOVA LÓGICA ===
+    // Os métodos abaixo (findAll, findById, save, update, delete) permanecem sem alterações
+    // pois eles são usados em outros contextos (gestão do restaurante, detalhes, etc.)
+    // e devem continuar retornando o DTO completo (RestauranteResponse).
+
     public List<RestauranteResponse> findAll() {
-        // 1. Busca todos os restaurantes, como antes.
         List<Restaurante> restaurantes = repoRestaurante.findAll();
         
-        // 2. Tenta ordenar por recomendação para o cliente logado (sua lógica de IA)
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Usuario usuario = repoUsuario.findByEmail(emailUsuarioLogado);
@@ -326,67 +263,44 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
             System.err.println("Não foi possível ordenar por recomendação (usuário não é cliente ou não está logado): " + e.getMessage());
         }
         
-        // 3. Busca a lista de favoritos do cliente logado UMA VEZ para otimizar
         List<UUID> favoritosDoCliente = getFavoritosDoClienteLogado();
 
-        // 4. Mapeia para o DTO, aplicando a lógica específica do findAll
         return restaurantes.stream().map(restaurante -> {
-            // Cria o DTO base
             RestauranteResponse responseDto = new RestauranteResponse(restaurante);
 
-            // Calcula e define os campos dinâmicos
             responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
             responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
 
-            // === LÓGICA DE IMAGEM ESPECÍFICA PARA O findAll ===
-            // Cria uma nova lista para conter apenas a imagem principal
             List<String> principalImageOnly = new ArrayList<>();
             List<String> imagensDoRestaurante = restaurante.getImagens();
 
-            // Adiciona apenas a primeira imagem, se ela existir
             if (imagensDoRestaurante != null && !imagensDoRestaurante.isEmpty()) {
                 principalImageOnly.add(imagensDoRestaurante.get(0));
             }
-            responseDto.setImagens(principalImageOnly); // Define a lista com apenas uma imagem
+            responseDto.setImagens(principalImageOnly);
 
             return responseDto;
         }).collect(Collectors.toList());
     }
 
     public Optional<RestauranteResponse> findById(UUID id) {
-        // 1. Busca o restaurante no repositório
         Optional<Restaurante> restauranteOpt = repoRestaurante.findById(id);
 
-        // Se não encontrar, retorna um Optional vazio
         if (restauranteOpt.isEmpty()) {
             return Optional.empty();
         }
         
-        // 2. Pega a entidade Restaurante
         Restaurante restaurante = restauranteOpt.get();
-        
-        // 3. Busca a lista de favoritos do cliente logado
         List<UUID> favoritosDoCliente = getFavoritosDoClienteLogado();
-        
-        // 4. Converte para o DTO
         RestauranteResponse responseDto = new RestauranteResponse(restaurante);
-
-        // 5. Calcula e define os campos dinâmicos
         responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
         responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
 
-        // === LÓGICA DE IMAGEM ESPECÍFICA PARA O findById ===
-        // Aqui não fazemos nada, pois o construtor do RestauranteResponse já
-        // carrega a lista completa de imagens por padrão. A lógica está correta.
-        // responseDto.setImagens(restaurante.getImagens()); // Esta linha já é executada no construtor
-
-        // 6. Retorna o DTO dentro de um Optional
         return Optional.of(responseDto);
     }
     
     @Transactional
     public Restaurante saveFromRequest(RestauranteRequest request) {
-        // Validação de e-mail único
         if (repoUsuario.findByEmail(request.getEmailUsuario()) != null) {
             throw new RuntimeException("Email já está em uso.");
         }
@@ -397,7 +311,6 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
         usuario.setSenha(encoder.encode(request.getSenhaUsuario())); 
         usuario.setEndereco(request.getEnderecoUsuario()); 
         usuario.setTipo(TipoUsuario.RESTAURANTE);
-        // Adicionando telefone
         if (request.getTelefoneUsuario() != null && !request.getTelefoneUsuario().isBlank()) {
             usuario.setTelefone(request.getTelefoneUsuario());
         }
@@ -406,7 +319,6 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
         Restaurante restaurante = new Restaurante();
         restaurante.setUsuario(usuarioSalvo);
         
-        // Adicionando descrição
         if (request.getDescricao() != null && !request.getDescricao().isBlank()) {
             restaurante.setDescricao(request.getDescricao());
         }
@@ -414,7 +326,7 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
         if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) {
             restaurante.setTipoCozinha(request.getTipoCozinha());
         } else {
-            restaurante.setTipoCozinha(null); // Permite nulo se não informado
+            restaurante.setTipoCozinha(null);
         }
         
         if (request.getHorariosFuncionamento() != null) {
@@ -450,7 +362,6 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
 
         Usuario usuarioAssociado = restauranteExistente.getUsuario(); 
 
-        // Atualiza dados do Usuario
         if (request.getNomeUsuario() != null && !request.getNomeUsuario().isBlank()) { 
             usuarioAssociado.setNome(request.getNomeUsuario()); 
         }
@@ -465,7 +376,6 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
         }
         repoUsuario.save(usuarioAssociado);
 
-        // Atualiza dados do Restaurante
         if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) { 
             restauranteExistente.setTipoCozinha(request.getTipoCozinha()); 
         }
@@ -502,10 +412,8 @@ public Page<RestauranteResponse> pesquisarRestaurantesPorRelevancia(String termo
     @Transactional
     public void deleteById(UUID id) {
         if (repoRestaurante.existsById(id)) {
-            // Deleta a entidade do banco
             repoRestaurante.deleteById(id);
             
-            // Deleta a pasta de imagens associada
             String pastaImagens = "upl/restaurantes/" + id.toString();
             uplUtil.deletarPasta(pastaImagens);
             

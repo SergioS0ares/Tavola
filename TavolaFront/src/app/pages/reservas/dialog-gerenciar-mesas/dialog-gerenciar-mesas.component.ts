@@ -7,11 +7,12 @@ import { MatInputModule } from "@angular/material/input"
 import { MatSelectModule } from "@angular/material/select"
 import { MatCheckboxModule } from "@angular/material/checkbox"
 import { MatButtonModule } from "@angular/material/button"
-import { MatAutocompleteModule } from "@angular/material/autocomplete"
-import { type Observable, map, startWith } from "rxjs"
-import { ICliente } from "../../../Interfaces/ICliente.interface"
 import { IMesa } from "../../../Interfaces/IMesa.interface"
-import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarMesasData.interface" 
+import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarMesasData.interface"
+import { IAmbiente } from "../../../Interfaces/IAmbiente.interface"
+import { MesaService } from "../../../core/services/mesa.service"
+import { ToastrService } from "ngx-toastr"
+import { finalize } from "rxjs"
 
 @Component({
   selector: "app-dialog-gerenciar-mesas",
@@ -25,7 +26,6 @@ import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarM
     MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatAutocompleteModule,
   ],
   template: `
     <mat-dialog-content class="dialog-content">
@@ -35,26 +35,16 @@ import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarM
 
       <form [formGroup]="form" class="dialog-form">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Número/Nome da Mesa</mat-label>
-          <input matInput formControlName="numero" placeholder="Ex: 1, Mesa 5, Deck" />
-          <mat-error *ngIf="form.get('numero')?.hasError('required')">O número/nome da mesa é obrigatório.</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Área</mat-label>
-          <mat-select formControlName="area">
-            <mat-option *ngFor="let area of data.areas" [value]="area">
-              {{ area }}
-            </mat-option>
-          </mat-select>
-           <mat-error *ngIf="form.get('area')?.hasError('required')">A área é obrigatória.</mat-error>
+          <mat-label>Nome da Mesa</mat-label>
+          <input matInput formControlName="nome" placeholder="Ex: Mesa 1, Deck" />
+          <mat-error *ngIf="form.get('nome')?.hasError('required')">O nome da mesa é obrigatório.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Capacidade</mat-label>
           <input matInput type="number" formControlName="capacidade" placeholder="Ex: 4, 6" />
-           <mat-error *ngIf="form.get('capacidade')?.hasError('required')">A capacidade é obrigatória.</mat-error>
-            <mat-error *ngIf="form.get('capacidade')?.hasError('min')">A capacidade deve ser no mínimo 1.</mat-error>
+          <mat-error *ngIf="form.get('capacidade')?.hasError('required')">A capacidade é obrigatória.</mat-error>
+          <mat-error *ngIf="form.get('capacidade')?.hasError('min')">A capacidade deve ser no mínimo 1.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -63,17 +53,17 @@ import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarM
             <mat-option value="retangular">Retangular</mat-option>
             <mat-option value="circular">Circular</mat-option>
           </mat-select>
-           <mat-error *ngIf="form.get('tipo')?.hasError('required')">O tipo é obrigatório.</mat-error>
+          <mat-error *ngIf="form.get('tipo')?.hasError('required')">O tipo é obrigatório.</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Cliente (Opcional)</mat-label>
-          <input type="text" matInput formControlName="cliente" [matAutocomplete]="auto">
-          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-            <mat-option *ngFor="let cliente of filteredClientes | async" [value]="cliente">
-              {{ cliente.nome }}
+        <mat-form-field appearance="outline" class="full-width" *ngIf="data.modo === 'criar'">
+          <mat-label>Ambiente</mat-label>
+          <mat-select formControlName="ambienteId">
+            <mat-option *ngFor="let ambiente of data.ambientes" [value]="ambiente.id">
+              {{ ambiente.nome }}
             </mat-option>
-          </mat-autocomplete>
+          </mat-select>
+          <mat-error *ngIf="form.get('ambienteId')?.hasError('required')">O ambiente é obrigatório.</mat-error>
         </mat-form-field>
 
         <div class="toggle-row">
@@ -86,7 +76,9 @@ import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarM
 
     <mat-dialog-actions align="end" class="dialog-actions">
       <button mat-stroked-button color="warn" (click)="cancelar()">Cancelar</button>
-      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="salvar()">Salvar</button>
+      <button mat-flat-button color="primary" [disabled]="form.invalid || isLoading" (click)="salvar()">
+        {{ isLoading ? 'Salvando...' : 'Salvar' }}
+      </button>
     </mat-dialog-actions>
   `,
   styles: [
@@ -209,64 +201,43 @@ import { IDialogGerenciarMesasData } from "../../../Interfaces/IDialogGerenciarM
         .mat-mdc-select-arrow {
           color: #3B221B;
         }
-
-        // Autocomplete
-        .mat-mdc-autocomplete-panel {
-          background-color: #FFFFFF !important;
-          border: 1px solid rgba(246, 189, 56, 0.3);
-
-          .mat-mdc-option {
-            color: #3B221B !important;
-
-            &:hover {
-              background-color: rgba(246, 189, 56, 0.1) !important;
-            }
-          }
-        }
       }
     `,
   ],
 })
 export class DialogGerenciarMesasComponent implements OnInit {
   form!: FormGroup
-  filteredClientes!: Observable<ICliente[]>;
+  ambientes: IAmbiente[] = []
+  isLoading = false
 
   constructor(
     private fb: FormBuilder,
+    private mesaService: MesaService,
+    private toastr: ToastrService,
     @Inject(MAT_DIALOG_DATA) public data: IDialogGerenciarMesasData,
     public dialogRef: MatDialogRef<DialogGerenciarMesasComponent>
   ) {
-    // Remover o X de fechar
     dialogRef.disableClose = true
+    if (data.ambientes) {
+      this.ambientes = data.ambientes
+    }
   }
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      numero: [this.data.modo === "editar" ? this.data.mesa?.numero || "" : "", Validators.required],
-      area: [this.data.modo === "editar" ? this.data.mesa?.area || "" : "", Validators.required],
+      nome: [this.data.modo === "editar" ? this.data.mesa?.nome || "" : "", Validators.required],
       capacidade: [
         this.data.modo === "editar" ? this.data.mesa?.capacidade || null : null,
         [Validators.required, Validators.min(1)],
       ],
       tipo: [this.data.modo === "editar" ? this.data.mesa?.tipo || "retangular" : "retangular", Validators.required],
       vip: [this.data.modo === "editar" ? this.data.mesa?.vip || false : false],
-      cliente: [null],
+      ambienteId: [this.data.modo === "editar" ? this.data.mesa?.ambienteId : this.data.idAmbiente, this.data.modo === "criar" ? Validators.required : []],
     })
 
-    this.filteredClientes = this.form.get("cliente")!.valueChanges.pipe(
-      startWith(""),
-      map((value) => (typeof value === "string" ? value : value?.nome || "")),
-      map((nome) => (nome ? this._filter(nome) : this.data.clientesDoDia.slice())),
-    )
-  }
-
-  displayFn(cliente: ICliente): string {
-    return cliente && cliente.nome ? cliente.nome : ""
-  }
-
-  private _filter(nome: string): ICliente[] {
-    const filterValue = nome.toLowerCase()
-    return this.data.clientesDoDia.filter((cliente) => cliente.nome.toLowerCase().includes(filterValue))
+    if (this.data.modo === "editar") {
+      this.form.get("ambienteId")?.disable()
+    }
   }
 
   cancelar(): void {
@@ -275,14 +246,36 @@ export class DialogGerenciarMesasComponent implements OnInit {
 
   salvar(): void {
     if (this.form.valid) {
-      const resultado = {
-        modo: this.data.modo,
-        mesa: {
-          ...this.form.value,
-          id: this.data.modo === "editar" ? this.data.mesa?.id : undefined,
-        },
+      this.isLoading = true
+      const mesaData = {
+        nome: this.form.get("nome")?.value,
+        tipo: this.form.get("tipo")?.value,
+        capacidade: this.form.get("capacidade")?.value,
+        vip: this.form.get("vip")?.value,
       }
-      this.dialogRef.close(resultado)
+
+      if (this.data.modo === "criar") {
+        const ambienteId = this.form.get("ambienteId")?.value
+        this.mesaService.postCriarMesa(ambienteId, mesaData)
+          .pipe(finalize(() => this.isLoading = false))
+          .subscribe({
+            next: () => {
+              this.toastr.success("Mesa criada com sucesso!")
+              this.dialogRef.close(true)
+            },
+            error: () => this.toastr.error("Erro ao criar mesa.")
+          })
+      } else {
+        this.mesaService.putAtualizarMesa(this.data.mesa!.id, mesaData)
+          .pipe(finalize(() => this.isLoading = false))
+          .subscribe({
+            next: () => {
+              this.toastr.success("Mesa atualizada com sucesso!")
+              this.dialogRef.close(true)
+            },
+            error: () => this.toastr.error("Erro ao atualizar mesa.")
+          })
+      }
     }
   }
 }

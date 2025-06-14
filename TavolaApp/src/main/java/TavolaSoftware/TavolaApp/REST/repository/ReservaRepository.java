@@ -37,23 +37,47 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
     List<Reserva> findAllByRestauranteOrdered(@Param("restauranteId") UUID restauranteId, @Param("ordem") String ordem, Pageable pageable);
     
     /**
-     * [NOVO] Busca reservas de um restaurante com filtros avançados para data, nome do cliente, status e período (hora).
+     * [VERSÃO FINAL E SIMPLIFICADA] Busca reservas por dia, ignorando o horário.
      */
-    @Query("SELECT r FROM Reserva r JOIN r.cliente c JOIN c.usuario u " +
-           "WHERE r.restaurante.id = :restauranteId " +
-           "AND r.dataReserva = :dataReserva " +
-           "AND (:clienteNome IS NULL OR LOWER(u.nome) LIKE LOWER(CONCAT('%', :clienteNome, '%'))) " +
-           "AND (:status IS NULL OR r.status = :status) " +
-           "AND r.horaReserva BETWEEN :horaInicio AND :horaFim " +
-           "ORDER BY r.horaReserva ASC, u.nome ASC")
+    @Query(value = "SELECT r.* FROM reserva_table r " +
+                   "JOIN cliente_table c ON c.usuario_id = r.cliente_id " +
+                   "JOIN usuario_table u ON u.usuario_id = c.usuario_id " +
+                   "WHERE r.restaurante_id = :restauranteId " +
+                   // Comparamos apenas a DATA, ignorando a hora da coluna do banco
+                   "AND CAST(r.data_reserva AS DATE) = :dataReserva " +
+                   "AND (:clienteNome IS NULL OR LOWER(CAST(u.nome_usuario AS TEXT)) LIKE LOWER(CONCAT('%', :clienteNome, '%'))) " +
+                   "AND (:status IS NULL OR r.status_reserva = :status) " +
+                   // A cláusula de tempo (BETWEEN :horaInicio AND :horaFim) foi REMOVIDA
+                   "ORDER BY r.hora_reserva ASC, u.nome_usuario ASC",
+           nativeQuery = true)
     List<Reserva> findReservasByRestauranteWithFilters(
             @Param("restauranteId") UUID restauranteId,
             @Param("dataReserva") LocalDate dataReserva,
             @Param("clienteNome") String clienteNome,
-            @Param("status") StatusReserva status,
-            @Param("horaInicio") LocalTime horaInicio,
-            @Param("horaFim") LocalTime horaFim
+            @Param("status") String status
     );
+
+    // >>> NOVO MÉTODO PARA A LISTA DE ESPERA <<<
+    /**
+     * Encontra todas as reservas de um restaurante com um status específico, ordenado pela data e hora.
+     * Ideal para a funcionalidade de "Lista de Espera".
+     * @param restauranteId O ID do restaurante.
+     * @param status O status da reserva a ser buscado (ex: LISTA_ESPERA).
+     * @return Uma lista de reservas que correspondem aos critérios.
+     */
+    List<Reserva> findByRestauranteIdAndStatusOrderByDataReservaAscHoraReservaAsc(UUID restauranteId, StatusReserva status);
+
+    // >>> NOVO MÉTODO PARA O CALENDÁRIO <<<
+    /**
+     * Encontra todas as reservas de um restaurante dentro de um intervalo de datas.
+     * Ideal para a funcionalidade de "Calendário".
+     * @param restauranteId O ID do restaurante.
+     * @param dataInicio A data inicial do intervalo.
+     * @param dataFim A data final do intervalo.
+     * @return Uma lista de reservas dentro do período especificado.
+     */
+    List<Reserva> findByRestauranteIdAndDataReservaBetween(UUID restauranteId, LocalDate dataInicio, LocalDate dataFim);
+
 
     void deleteAllByClienteId(UUID clienteId);
 }
