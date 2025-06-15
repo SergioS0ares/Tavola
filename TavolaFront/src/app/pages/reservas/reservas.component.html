@@ -1,7 +1,7 @@
 <div class="reservas-container">
   <div class="reservas-content-columns">
     <div class="reservas-list-column">
-      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" (selectedTabChange)="mudarAba($event)">
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" (selectedTabChange)="mudarAba($event)" [selectedIndex]="selectedTabIndex">
         <mat-tab>
           <ng-template mat-tab-label>
             <span class="tab-label">Reservas</span>
@@ -41,11 +41,19 @@
                     </div>
                     <div class="reserva-acoes">
                       <button mat-icon-button 
-                        [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" 
+                        [ngClass]="{
+                          'status-confirmada': reserva.status === 'CONFIRMADA',
+                          'status-pendente': reserva.status === 'PENDENTE',
+                          'status-cancelada': reserva.status === 'CANCELADA_RESTAURANTE',
+                          'status-concluida': reserva.status === 'CONCLUIDA',
+                          'status-nao-compareceu': reserva.status === 'NAO_COMPARECEU',
+                          'status-ativa': reserva.status === 'ATIVA',
+                          'status-lista-espera': reserva.status === 'LISTA_ESPERA'
+                        }" 
                         [matTooltip]="getTooltipStatus(reserva.status)" 
                         matTooltipClass="tavola-tooltip"
                         aria-label="Status da reserva">
-                        <mat-icon>{{ reserva.status === 'confirmada' ? 'check_circle' : (reserva.status === 'pendente' ? 'hourglass_empty' : 'cancel') }}</mat-icon>
+                        <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
                       </button>
                       <div class="horario">
                         {{ reserva.horario }}
@@ -56,7 +64,9 @@
               </div>
             </div>
             <div *ngIf="reservasAlmocoVisiveis.length === 0 && (periodoFiltro === 'todos' || periodoFiltro === 'Almoço') && (pesquisa.trim() === '' || (pesquisa.trim() !== '' && !temReservasParaPesquisaNoPeriodo('Almoço')))" class="sem-reservas">
-              <nz-empty nzDescription="Sem reservas para o almoço nesta data com os filtros aplicados"></nz-empty>
+              <nz-empty nzDescription="Sem reservas para o almoço nesta data com os filtros aplicados"
+                        matTooltip="Sem reservas para o almoço nesta data com os filtros aplicados"
+                        matTooltipClass="tavola-tooltip"></nz-empty>
             </div>
 
             <div class="periodo-section" *ngIf="reservasJantarVisiveis.length > 0">
@@ -79,11 +89,19 @@
                     </div>
                     <div class="reserva-acoes">
                       <button mat-icon-button 
-                        [ngClass]="{'confirmada': reserva.status === 'confirmada', 'pendente': reserva.status === 'pendente', 'cancelada': reserva.status === 'cancelada'}" 
+                        [ngClass]="{
+                          'status-confirmada': reserva.status === 'CONFIRMADA',
+                          'status-pendente': reserva.status === 'PENDENTE',
+                          'status-cancelada': reserva.status === 'CANCELADA_RESTAURANTE',
+                          'status-concluida': reserva.status === 'CONCLUIDA',
+                          'status-nao-compareceu': reserva.status === 'NAO_COMPARECEU',
+                          'status-ativa': reserva.status === 'ATIVA',
+                          'status-lista-espera': reserva.status === 'LISTA_ESPERA'
+                        }" 
                         [matTooltip]="getTooltipStatus(reserva.status)" 
                         matTooltipClass="tavola-tooltip"
                         aria-label="Status da reserva">
-                         <mat-icon>{{ reserva.status === 'confirmada' ? 'check_circle' : (reserva.status === 'pendente' ? 'hourglass_empty' : 'cancel') }}</mat-icon>
+                         <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
                       </button>
                       <div class="horario">
                         {{ reserva.horario }}
@@ -94,14 +112,20 @@
               </div>
             </div>
             <div *ngIf="reservasJantarVisiveis.length === 0 && (periodoFiltro === 'todos' || periodoFiltro === 'Jantar') && (pesquisa.trim() === '' || (pesquisa.trim() !== '' && !temReservasParaPesquisaNoPeriodo('Jantar')))" class="sem-reservas">
-              <nz-empty nzDescription="Sem reservas para o jantar nesta data com os filtros aplicados"></nz-empty>
+              <nz-empty nzDescription="Sem reservas para o jantar nesta data com os filtros aplicados"
+                        matTooltip="Sem reservas para o jantar nesta data com os filtros aplicados"
+                        matTooltipClass="tavola-tooltip"></nz-empty>
             </div>
 
             <div *ngIf="reservasVisiveis.length === 0 && pesquisa.trim() !== ''" class="sem-reservas">
-                <nz-empty nzDescription="Nenhuma reserva encontrada para sua busca."></nz-empty>
+                <nz-empty nzDescription="Nenhuma reserva encontrada para sua busca."
+                          matTooltip="Nenhuma reserva encontrada para sua busca."
+                          matTooltipClass="tavola-tooltip"></nz-empty>
             </div>
              <div *ngIf="reservasAlmocoVisiveis.length === 0 && reservasJantarVisiveis.length === 0 && pesquisa.trim() === '' && !existemReservasParaDataAtual()" class="sem-reservas">
-                 <nz-empty nzDescription="Nenhuma reserva para a data selecionada."></nz-empty>
+                 <nz-empty nzDescription="Nenhuma reserva para a data selecionada."
+                           matTooltip="Nenhuma reserva para a data selecionada."
+                           matTooltipClass="tavola-tooltip"></nz-empty>
             </div>
           </div>
         </mat-tab>
@@ -119,7 +143,9 @@
           </div>
           
           <div class="tab-content-placeholder" *ngIf="reservasEsperaVisiveis.length === 0">
-            <nz-empty nzDescription="Lista de espera vazia"></nz-empty>
+            <nz-empty nzDescription="Lista de espera vazia"
+                      matTooltip="Lista de espera vazia"
+                      matTooltipClass="tavola-tooltip"></nz-empty>
           </div>
           <div class="reservas-list" *ngIf="reservasEsperaVisiveis.length > 0">
             <div class="reserva-cards">
@@ -150,7 +176,7 @@
                       matTooltip="Reatribuir para data atual" 
                       matTooltipClass="tavola-tooltip"
                       aria-label="Reatribuir reserva">
-                      <mat-icon>event_available</mat-icon>
+                      <mat-icon>pending_actions</mat-icon>
                     </button>
                   </div>
                 </div>
@@ -159,7 +185,9 @@
           </div>
         </mat-tab>
         <mat-tab label="Garçons">
-          <div class="tab-content-placeholder"> <nz-empty nzDescription="Nenhum garçom disponível"></nz-empty>
+          <div class="tab-content-placeholder"> <nz-empty nzDescription="Nenhum garçom disponível"
+            matTooltip="Nenhum garçom disponível"
+            matTooltipClass="tavola-tooltip"></nz-empty>
           </div>
         </mat-tab>
       </mat-tab-group>
@@ -181,7 +209,7 @@
             <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
               <mat-icon>chevron_right</mat-icon>
             </button>
-            <button mat-icon-button (click)="mostrarCalendario = true" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+            <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
               <mat-icon>calendar_month</mat-icon>
             </button>
           </div>
@@ -263,36 +291,34 @@
                           <div class="info-valor">{{ reservaSelecionada.pessoas }}</div>
                         </div>
                         
-                        <!-- Status e Associar Mesas apenas para reservas normais, não para lista de espera -->
-                        <ng-container *ngIf="reservaSelecionada.status !== 'espera'">
-                          <div class="info-row-centered">
-                            <div class="info-label">Status</div>
-                            <div class="info-valor">
-                              <mat-form-field appearance="outline" class="status-dropdown">
-                                <mat-select [(value)]="reservaSelecionada.status" (selectionChange)="atualizarStatusReserva($event.value)"
-                                  [ngClass]="{
-                                    'status-confirmada': reservaSelecionada.status === 'confirmada',
-                                    'status-pendente': reservaSelecionada.status === 'pendente',
-                                    'status-cancelada': reservaSelecionada.status === 'cancelada',
-                                    'status-finalizada': reservaSelecionada.status === 'finalizada',
-                                    'status-ausente': reservaSelecionada.status === 'ausente'
-                                  }">
-                                  <mat-option value="pendente">Pendente</mat-option>
-                                  <mat-option value="confirmada">Confirmada</mat-option>
-                                  <mat-option value="cancelada">Cancelada</mat-option>
-                                  <mat-option value="finalizada">Finalizada</mat-option>
-                                  <mat-option value="ausente">Ausente</mat-option>
-                                  <mat-option value="espera">Espera</mat-option>
-                                </mat-select>
-                              </mat-form-field>
-                            </div>
+                        <!-- Status sempre visível para edição -->
+                        <div class="info-row-centered">
+                          <div class="info-label">Status</div>
+                          <div class="info-valor">
+                            <mat-form-field appearance="outline" class="status-dropdown">
+                              <mat-select [(value)]="reservaSelecionada.status" (selectionChange)="atualizarStatusReserva($event.value)"
+                                [ngClass]="getStatusClasses(reservaSelecionada.status)"
+                                [disabled]="reservaSelecionada.status === 'CANCELADA_RESTAURANTE'">
+                                <mat-option value="PENDENTE">Pendente</mat-option>
+                                <mat-option value="CONFIRMADA">Confirmada</mat-option>
+                                <mat-option value="ATIVA">Ativa</mat-option>
+                                <mat-option value="CANCELADA_RESTAURANTE">Cancelada</mat-option>
+                                <mat-option value="CONCLUIDA">Concluída</mat-option>
+                                <mat-option value="NAO_COMPARECEU">Não Compareceu</mat-option>
+                                <mat-option value="LISTA_ESPERA">Lista de Espera</mat-option>
+                              </mat-select>
+                            </mat-form-field>
                           </div>
-
+                        </div>
+                        
+                        <!-- Associar Mesas apenas para reservas normais, não para lista de espera -->
+                        <ng-container *ngIf="reservaSelecionada.status !== 'LISTA_ESPERA'">
                           <div class="info-row-centered">
                             <div class="info-label">Associar Mesas</div>
                             <div class="info-valor">
                               <mat-form-field appearance="outline" class="mesas-dropdown">
-                                <mat-select multiple [(value)]="reservaSelecionada.mesaIds" (selectionChange)="atualizarMesasReserva($event.value)">
+                                <mat-select multiple [(value)]="reservaSelecionada.mesaIds" (selectionChange)="atualizarMesasReserva($event.value)"
+                                  [disabled]="reservaSelecionada.status === 'CANCELADA_RESTAURANTE'">
                                   <mat-option *ngFor="let mesa of getMesasDisponiveis()" [value]="mesa.id">
                                     {{ mesa.nome }} - {{ getAmbientePorMesa(mesa.id)?.nome }} ({{ mesa.capacidade }}P)
                                   </mat-option>
@@ -303,7 +329,7 @@
                         </ng-container>
                         
                         <!-- Botão de reatribuir para lista de espera -->
-                        <div class="info-row-centered" *ngIf="reservaSelecionada.status === 'espera'">
+                        <div class="info-row-centered" *ngIf="reservaSelecionada.status === 'LISTA_ESPERA'">
                           <button mat-flat-button class="reatribuir-btn-grande" (click)="reatribuirReserva(reservaSelecionada, $event)">
                             <mat-icon>event_available</mat-icon>
                             Reatribuir para {{ formatarDataSimples(dataAtual) }}
@@ -349,7 +375,7 @@
         <div class="mesas-container">
           <!-- HEADER COM AS ABAS DE AMBIENTE -->
           <div class="areas-header">
-            <mat-tab-group (selectedTabChange)="mudarAba($event)">
+            <mat-tab-group (selectedTabChange)="mudarAmbienteTab($event)" [selectedIndex]="selectedEnvironmentTabIndex">
               <!-- Itera sobre a lista de ambientes carregada da API -->
               <mat-tab *ngFor="let ambiente of ambientes; let i = index">
                 <ng-template mat-tab-label>
@@ -403,7 +429,12 @@
           <!-- GRID DE MESAS DO AMBIENTE ATIVO -->
           <div *ngIf="ambienteAtivo" class="mesas-grid">
             <!-- A iteração agora é sobre 'ambienteAtivo.mesas' -->
-            <div *ngFor="let mesa of ambienteAtivo.mesas" class="mesa" [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': isMesaAtribuidaAReservaAtual(mesa.id) }" (click)="toggleMesaParaReserva(mesa)">
+            <div *ngFor="let mesa of ambienteAtivo.mesas" 
+              class="mesa" 
+              [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': isMesaAtribuidaAReservaAtual(mesa.id) }" 
+              (click)="toggleMesaParaReserva(mesa)"
+              [matTooltip]="getTooltipMesa(mesa)" 
+              matTooltipClass="tavola-tooltip">
               <div class="mesa-menu" (click) = "$event.stopPropagation()">
                 <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
                   <mat-icon>more_vert</mat-icon>

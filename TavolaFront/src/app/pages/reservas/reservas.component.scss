@@ -775,18 +775,13 @@
         
         &.mesa-ocupada {
           .mesa-visual {
-            background-color: lighten($accent-color, 40%);
-            border-color: $accent-color;
-            cursor: not-allowed;
-            
-            .mesa-capacidade {
-              color: darken($accent-color, 10%);
-            }
+            border: 2px solid #F44336 !important; /* Borda vermelha para mesa ocupada */
+            background-color: rgba(244, 67, 54, 0.1) !important; /* Fundo levemente avermelhado */
           }
           
           .mesa-etiqueta {
-            background-color: $accent-color;
-            color: white;
+            color: #F44336 !important; /* Texto do nome da mesa em vermelho */
+            font-weight: bold;
           }
         }
         
@@ -1591,5 +1586,67 @@
         border-width: 2px !important;
       }
     }
+  }
+}
+
+/* Cores para os botões de status da reserva */
+.status-confirmada {
+  color: #4CAF50; /* Verde */
+}
+
+.status-pendente {
+  color: #FFC107; /* Laranja */
+}
+
+.status-cancelada {
+  color: #F44336; /* Vermelho */
+}
+
+.status-concluida {
+  color: #2196F3; /* Azul */
+}
+
+.status-nao-compareceu {
+  color: #9E9E9E; /* Cinza */
+}
+
+.status-ativa {
+  color: #673AB7; /* Roxo (exemplo, você pode ajustar) */
+}
+
+.status-lista-espera {
+  color: #FF9800; /* Laranja mais escuro */
+}
+
+/* Cores para os seletores de status (dropdown) */
+.status-dropdown {
+  .mat-mdc-select-value {
+    .mat-mdc-select-value-text {
+      &.status-confirmada { color: #4CAF50; }
+      &.status-pendente { color: #FFC107; }
+      &.status-cancelada { color: #F44336; }
+      &.status-concluida { color: #2196F3; }
+      &.status-nao-compareceu { color: #9E9E9E; }
+      &.status-ativa { color: #673AB7; }
+      &.status-lista-espera { color: #FF9800; }
+    }
+  }
+
+  .mat-mdc-select-arrow {
+    color: #3B221B; /* Cor da seta do dropdown */
+  }
+}
+
+/* Exemplo no reservas.component.scss */
+.status-dropdown .mat-mdc-select-trigger[aria-disabled="true"],
+.mesas-dropdown .mat-mdc-select-trigger[aria-disabled="true"] {
+  opacity: 0.6; /* Torna mais transparente */
+  cursor: not-allowed; /* Altera o cursor */
+}
+
+/* Pode ser necessário ajustar o input também se for um form-field */
+.mat-mdc-form-field-disabled {
+  .mat-mdc-form-field-flex {
+    background-color: #f0f0f0 !important; /* Exemplo de cor de fundo */
   }
 }

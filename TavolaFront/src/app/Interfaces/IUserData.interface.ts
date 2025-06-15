@@ -28,4 +28,5 @@ export interface IUserData {
   descricao?: string;
   servicos?: string[];
   imagens?: string[];
+  imagemPerfil?: string;
 } 
