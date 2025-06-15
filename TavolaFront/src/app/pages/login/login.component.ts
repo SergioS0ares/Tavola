@@ -80,7 +80,7 @@ export class LoginComponent {
           this.toastService.success("Login feito com sucesso!");
           
           if (res.tipoUsuario === 'RESTAURANTE') {
-             this.authService.setAuthData(res.token, res.name, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id);
+            this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id, res.imagem);
             this.router.navigate(['reserva']);
           } else {
             this.router.navigate(['home']);

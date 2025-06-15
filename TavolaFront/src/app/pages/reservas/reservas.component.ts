@@ -58,6 +58,7 @@ import {
   PlusOutline,
   DeleteOutline,
   EditOutline,
+  UserOutline,
 } from "@ant-design/icons-angular/icons"
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker"
 import { IReserva } from '../../Interfaces/IReserva.interface';
@@ -95,6 +96,7 @@ const antIcons: IconDefinition[] = [
   PlusOutline,
   DeleteOutline,
   EditOutline,
+  UserOutline,
 ]
 
 @Component({
@@ -366,9 +368,13 @@ export class ReservasComponent implements OnInit {
     return this.reservas.some(
       (reserva: IReserva) => {
         const reservaData = new Date(reserva.data);
-        return reservaData.getDate() === dataAtualDia &&
-               reservaData.getMonth() === dataAtualMes &&
-               reservaData.getFullYear() === dataAtualAno;
+        const mesmoDia = reservaData.getDate() === dataAtualDia;
+        const mesmoMes = reservaData.getMonth() === dataAtualMes;
+        const mesmoAno = reservaData.getFullYear() === dataAtualAno;
+        
+        console.log(`[aplicarFiltros] Comparando reserva: ${reserva.cliente}, Data: ${reservaData.toLocaleDateString()}, Mesmo dia: ${mesmoDia}, Mesmo mês: ${mesmoMes}, Mesmo ano: ${mesmoAno}`);
+        
+        return mesmoDia && mesmoMes && mesmoAno;
       }
     );
   }
@@ -450,7 +456,7 @@ export class ReservasComponent implements OnInit {
 
     this.modalService.confirm({
       nzTitle: "Reatribuir Reserva",
-      nzContent: `Deseja reatribuir a reserva de ${reserva.cliente} para ${this.dataAtual.toLocaleDateString("pt-BR")}?`,
+      nzContent: `Deseja reatribuir a reserva de ${reserva.cliente} para ${this.dataAtual.toLocaleDateString("pt-BR")}`,
       nzOkText: "Sim, reatribuir",
       nzOkType: "primary",
       nzCancelText: "Cancelar",
@@ -496,7 +502,7 @@ export class ReservasComponent implements OnInit {
             const errorMessage = error.error?.erro || "Erro ao reatribuir reserva.";
             this.toastr.error(errorMessage);
             console.error("Erro ao reatribuir reserva:", error);
-          },
+      },
         });
       },
     });
@@ -595,21 +601,24 @@ export class ReservasComponent implements OnInit {
   selecionarReserva(reserva: IReserva): void {
     this.reservaSelecionada = this.reservaSelecionada?.id === reserva.id ? null : reserva
     if (this.reservaSelecionada) {
-        if (this.selectedTabIndex !== 0) {
+        // Apenas muda para a aba de Reservas (índice 0) se a reserva selecionada NÃO for da Lista de Espera
+        if (this.reservaSelecionada.status !== 'LISTA_ESPERA' && this.selectedTabIndex !== 0) {
             this.selectedTabIndex = 0; 
+        } else if (this.reservaSelecionada.status === 'LISTA_ESPERA' && this.selectedTabIndex !== 1) { // If it is a waiting list reservation, switch to waiting list tab
+            this.selectedTabIndex = 1;
         }
 
         if (this.reservaSelecionada.mesaIds.length > 0) {
-            const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0])
-            if (primeiraMesa) {
-                const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
-                if (ambiente) {
-                    this.ambienteAtivo = ambiente;
+      const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0])
+      if (primeiraMesa) {
+        const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
+        if (ambiente) {
+          this.ambienteAtivo = ambiente;
                     this.selectedEnvironmentTabIndex = this.ambientes.indexOf(ambiente);
                     this.cdr.detectChanges();
                 }
-            }
         }
+      }
     }
   }
 
@@ -960,7 +969,7 @@ export class ReservasComponent implements OnInit {
           next: () => {
             this.toastr.success("Status da reserva atualizado com sucesso!");
             const reservaOriginal = this.reservas.find((r) => r.id === reservaId);
-            if (reservaOriginal) {
+      if (reservaOriginal) {
               reservaOriginal.status = novoStatus as any;
               currentReserva.status = novoStatus as any; // Adiciona também para a reserva selecionada
               if (novoStatus === "LISTA_ESPERA") {
@@ -1150,12 +1159,12 @@ export class ReservasComponent implements OnInit {
     }
 
     this.isLoading.reservas = true;
-    
+
     const ano = this.dataAtual.getFullYear();
     const mes = (this.dataAtual.getMonth() + 1).toString().padStart(2, '0');
     const dia = this.dataAtual.getDate().toString().padStart(2, '0');
     const dataFormatada = `${ano}-${mes}-${dia}`;
-    
+
     this.reservasService.getReservasPorRestaurante(idRestaurante, dataFormatada)
       .pipe(finalize(() => this.isLoading.reservas = false))
       .subscribe({
@@ -1173,12 +1182,14 @@ export class ReservasComponent implements OnInit {
                 }
                 return null;
             }).filter((id: string | null) => id !== null) as string[];
+            
+            const imageUrl = this.authService.getAbsoluteImageUrl(reserva.imagemPerfilCliente);
 
             return {
               id: reserva.id,
               clienteId: reserva.idCliente,
               cliente: reserva.cliente,
-              mesaIds: mesaIds, // Agora preenchido
+              mesaIds: mesaIds, 
               data: dataReserva,
               horario: reserva.hora.substring(0, 5),
               periodo: this.determinarPeriodo(reserva.hora),
@@ -1188,10 +1199,11 @@ export class ReservasComponent implements OnInit {
               restaurante: reserva.restaurante,
               emailCliente: reserva.emailCliente,
               telefoneCliente: reserva.telefoneCliente,
-              imagemPerfilCliente: reserva.imagemPerfilCliente,
+              imagemPerfilCliente: imageUrl || undefined, // Use undefined to trigger nzIcon fallback
               nomesMesas: reserva.nomesMesas || [] 
             };
           });
+          console.log('[ReservasComponent] Reservas carregadas e mapeadas:', this.reservas);
           this.atualizarStatusMesasOcupadas(); // Atualiza status de ocupação com base nas reservas carregadas
           this.aplicarFiltros();
         },
@@ -1248,28 +1260,32 @@ export class ReservasComponent implements OnInit {
       .pipe(finalize(() => this.isLoading.reservas = false))
       .subscribe({
         next: (response) => {
-          this.reservasParaCalendario = response.map((reserva: any) => ({
-            id: reserva.id || uuidv4(), // Assuming id might be missing from calendar API
-            clienteId: reserva.idCliente || '', // Assuming idCliente might be missing
-            cliente: reserva.clienteNome,
-            mesaIds: [],
-            // Extrai a parte da data "YYYY-MM-DD" e então parseia como uma data local
-            data: new Date(
-                parseInt(reserva.data.substring(0, 4)), // Ano
-                parseInt(reserva.data.substring(5, 7)) - 1, // Mês (0-indexed)
-                parseInt(reserva.data.substring(8, 10))  // Dia
-            ),
-            horario: reserva.hora || '00:00',
-            periodo: this.determinarPeriodo(reserva.hora || '00:00'),
-            pessoas: reserva.pessoas,
-            status: this.mapearStatus(reserva.status),
-            preferencias: reserva.observacoes || '',
-            restaurante: reserva.restaurante || '',
-            emailCliente: reserva.emailCliente || '',
-            telefoneCliente: reserva.telefoneCliente || '',
-            imagemPerfilCliente: reserva.imagemPerfilCliente || null,
-            nomesMesas: reserva.nomesMesas || []
-          }));
+          this.reservasParaCalendario = response.map((reserva: any) => {
+            const mappedReserva = {
+              id: reserva.id || uuidv4(), // Assuming id might be missing from calendar API
+              clienteId: reserva.idCliente || '', // Assuming idCliente might be missing
+              cliente: reserva.clienteNome,
+              mesaIds: [],
+              // Extrai a parte da data "YYYY-MM-DD" e então parseia como uma data local
+              data: new Date(
+                  parseInt(reserva.data.substring(0, 4)), // Ano
+                  parseInt(reserva.data.substring(5, 7)) - 1, // Mês (0-indexed)
+                  parseInt(reserva.data.substring(8, 10))  // Dia
+              ),
+              horario: reserva.hora || '00:00',
+              periodo: this.determinarPeriodo(reserva.hora || '00:00'),
+              pessoas: reserva.pessoas,
+              status: this.mapearStatus(reserva.status),
+              preferencias: reserva.observacoes || '',
+              restaurante: reserva.restaurante || '',
+              emailCliente: reserva.emailCliente || '',
+              telefoneCliente: reserva.telefoneCliente || '',
+              imagemPerfilCliente: this.authService.getAbsoluteImageUrl(reserva.imagemPerfilCliente) || undefined, // Updated here to use undefined
+              nomesMesas: reserva.nomesMesas || []
+            };
+            console.log('[ReservasComponent] Reserva Calendário mapeada:', mappedReserva);
+            return mappedReserva;
+          });
           this.cdr.detectChanges();
         },
         error: (error) => {
@@ -1313,31 +1329,35 @@ export class ReservasComponent implements OnInit {
             const parts = datePart.split('-'); 
             const dataReserva = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             
-            const mesaIds = (reserva.nomesMesas || []).map((nomeMesa: string) => {
+            const mesaIds = (reserva.mesas || []).map((mesaObj: any) => {
                 for (const ambiente of this.ambientes) {
-                    const mesa = ambiente.mesas.find(m => m.nome === nomeMesa);
+                    const mesa = ambiente.mesas.find(m => m.id === mesaObj.id); // Assuming mesas in response has objects with id
                     if (mesa) return mesa.id;
                 }
                 return null;
             }).filter((id: string | null) => id !== null) as string[];
-
-            return {
+    
+            const imageUrl = this.authService.getAbsoluteImageUrl(reserva.imagemPerfilCliente);
+    
+            const mappedReserva = {
               id: reserva.id,
               clienteId: reserva.idCliente,
-              cliente: reserva.clienteNome,
+              cliente: reserva.cliente,
               mesaIds: mesaIds, 
               data: dataReserva,
-              horario: reserva.horario.substring(0, 5),
-              periodo: this.determinarPeriodo(reserva.horario),
+              horario: reserva.hora.substring(0, 5), // Corrigido para 'hora' como na amostra
+              periodo: this.determinarPeriodo(reserva.hora), // Corrigido para 'hora'
               pessoas: reserva.pessoas,
               status: this.mapearStatus(reserva.status),
-              preferencias: reserva.preferencias,
+              preferencias: reserva.observacoes, // Corrigido para 'observacoes'
               restaurante: reserva.restaurante,
               emailCliente: reserva.emailCliente,
               telefoneCliente: reserva.telefoneCliente,
-              imagemPerfilCliente: reserva.imagemperfil,
-              nomesMesas: reserva.nomesMesas || []
+              imagemPerfilCliente: imageUrl || undefined, // Use undefined to trigger nzIcon fallback
+              nomesMesas: (reserva.mesas || []).map((mesa: any) => mesa.nome) // Popula nomesMesas da lista de objetos 'mesas'
             };
+            console.log('[ReservasComponent] Reserva Lista de Espera mapeada:', mappedReserva);
+            return mappedReserva;
           });
           this.aplicarFiltrosEspera(); // Aplica filtros após carregar os dados
           this.cdr.detectChanges();

@@ -114,6 +114,10 @@ export class LayoutPrincipalComponent implements OnInit {
   }
 
   get userAvatar(): string {
+    const profileImage = this.auth.perfil?.imagem;
+    if (profileImage) {
+      return this.auth.getAbsoluteImageUrl(profileImage);
+    }
     if (this.auth.perfil?.tipo === 'RESTAURANTE') {
       return 'assets/png/avatar-padrao-restaurante-tavola.png';
     }

@@ -214,10 +214,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const cidadeBusca = this.cityCtrl.value?.trim();
     const termoBusca = this.queryCtrl.value?.trim();
 
-    console.log('HomeComponent - onSearch acionado.');
-    console.log('HomeComponent - cidadeBusca:', cidadeBusca);
-    console.log('HomeComponent - termoBusca:', termoBusca);
-
     if (cidadeBusca && termoBusca) {
       this.restauranteService.getRestaurantesPorCidade(cidadeBusca).subscribe({
         next: (restaurantsPorCidade) => {
