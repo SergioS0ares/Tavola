@@ -8,8 +8,6 @@
           <app-search-bar
             *ngIf="!stickySearch"
             #searchBarHome
-            [cidade]="cidade"
-            [query]="query"
             [citySuggestions]="filteredCitySuggestions"
             [querySuggestions]="querySuggestions"
             [showCityDropdown]="showCityDropdown"
@@ -18,8 +16,6 @@
             [queryCtrl]="queryCtrl"
             [filteredCities$]="filteredCities$"
             [filteredQueries$]="filteredQueries$"
-            (cidadeChange)="cidade = $event"
-            (queryChange)="query = $event"
             (search)="onSearch()"
             (cityInput)="onCityInput($event)"
             (selectCity)="selectCity($event)"
@@ -34,7 +30,7 @@
     </div>
     <div class="city-dropdown-absolute" *ngIf="showCityDropdown">
       <div class="dropdown city-dropdown">
-        <input class="dropdown-city-search" type="text" placeholder="Digite a cidade..." [(ngModel)]="cidade" (input)="onCityInput($event)" autofocus>
+        <input class="dropdown-city-search" type="text" placeholder="Digite a cidade..." [formControl]="cityCtrl" (input)="onCityInput($event)" autofocus>
         <div class="dropdown-item brown-text highlight" (mousedown)="selectCity('Perto de mim')">
           <mat-icon class="icon brown">send</mat-icon> Perto de mim
         </div>

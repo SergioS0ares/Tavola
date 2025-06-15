@@ -13,6 +13,7 @@ import { FormControl } from '@angular/forms';
 import { Observable, of, startWith, map } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { HomeComponent } from '../home/home.component'; // Importe HomeComponent para verificar a instância
+import { RestauranteService } from '../../core/services/restaurante.service'; // NEW IMPORT
 
 @Component({
   selector: 'app-layout-principal',
@@ -54,6 +55,7 @@ export class LayoutPrincipalComponent implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
   private stickyService = inject(StickySearchService);
+  private restauranteService = inject(RestauranteService); // NEW INJECTION
 
   constructor() {
     // Assina o estado da search bar sticky do StickySearchService
@@ -82,12 +84,20 @@ export class LayoutPrincipalComponent implements OnInit {
     // Inicializa o autocomplete para a search bar sticky
     this.filteredCities$ = this.cityCtrl.valueChanges.pipe(
       startWith(this.cityCtrl.value ?? ''),
-      map(val => this._filter(val ?? '', this.citySuggestions)) // Usar citySuggestions do LayoutPrincipal
+      map(val => this._filter(val ?? '', this.citySuggestions))
     );
     this.filteredQueries$ = this.queryCtrl.valueChanges.pipe(
       startWith(''),
-      map(val => this._filter(val ?? '', this.querySuggestions)) // Usar querySuggestions do LayoutPrincipal
+      map(val => this._filter(val ?? '', this.querySuggestions))
     );
+
+    // NEW: Subscribe to suggestions from RestauranteService
+    this.restauranteService.allCities$.subscribe(cities => {
+      this.citySuggestions = cities;
+    });
+    this.restauranteService.allCuisines$.subscribe(cuisines => {
+      this.querySuggestions = cuisines;
+    });
   }
 
   ngOnInit() {
@@ -139,24 +149,50 @@ export class LayoutPrincipalComponent implements OnInit {
   }
 
   // --- Métodos para a SearchBarComponent (na toolbar sticky) ---
-  onSearchSticky() { // Renomeado para evitar conflito de propósito com onSearch do Home
+  onSearchSticky() {
+    console.log('Sticky Search - Início');
     console.log('Sticky Search - Buscar:', this.cityCtrl.value, this.queryCtrl.value);
-    // Se um HomeComponent estiver ativo, aciona a busca nele
-    if (this.currentHomeComponent) {
-      this.currentHomeComponent.onSearch(); // Assume que HomeComponent tem um método onSearch
+    const currentUrl = this.router.url;
+    const isCurrentlyOnHomePage = this.currentHomeComponent !== null; // True if HomeComponent is currently active
+    console.log('Sticky Search - Rota atual:', currentUrl, 'Está na Home (componente ativo):', isCurrentlyOnHomePage);
+    console.log('Sticky Search - currentHomeComponent (antes da busca):', this.currentHomeComponent);
+
+    // Se não estamos na Home ou currentHomeComponent não está ativo, navega para Home primeiro
+    if (!isCurrentlyOnHomePage) {
+      console.log('Sticky Search - Não está na Home (componente ativo). Navegando para /home...');
+      this.router.navigate(['/home']).then(() => {
+        // Adiciona um pequeno delay para garantir que o HomeComponent seja ativado
+        // e o currentHomeComponent seja populado via onOutletActivate.
+        setTimeout(() => {
+          if (this.currentHomeComponent) {
+            console.log('Sticky Search - HomeComponent ativo após navegação. Sincronizando e buscando...');
+            this.currentHomeComponent.cityCtrl.setValue(this.cityCtrl.value, { emitEvent: false });
+            this.currentHomeComponent.queryCtrl.setValue(this.queryCtrl.value, { emitEvent: false });
+            this.currentHomeComponent.onSearch();
+            console.log('Sticky Search - onSearch do HomeComponent acionado.');
+          } else {
+            console.error('Sticky Search - HomeComponent ainda não disponível após navegação. Tentar novamente ou avisar usuário.');
+            // Poderia adicionar uma nova tentativa ou uma mensagem ao usuário aqui
+          }
+        }, 200); // Aumentado o delay para 200ms
+      });
+    } else {
+      // Já está na Home e o componente está ativo, apenas sincroniza e aciona a busca
+      console.log('Sticky Search - Já na rota /home e componente ativo. Sincronizando e buscando diretamente.');
+      this.currentHomeComponent!.cityCtrl.setValue(this.cityCtrl.value, { emitEvent: false }); // Use ! para garantir que não é null
+      this.currentHomeComponent!.queryCtrl.setValue(this.queryCtrl.value, { emitEvent: false });
+      this.currentHomeComponent!.onSearch();
+      console.log('Sticky Search - onSearch do HomeComponent acionado diretamente.');
     }
   }
 
-  onCityInputSticky(event: any) { // Renomeado
-    // Lógica de input para a search bar sticky. Sincroniza com as sugestões do Home.
+  onCityInputSticky(event: any) { 
     if (this.currentHomeComponent) {
       const value = event.target.value;
-      // Usa as sugestões do HomeComponent para filtrar
-      this.citySuggestions = this.currentHomeComponent.allCities.filter(city =>
-        city.toLowerCase().includes(value.toLowerCase())
-      );
-      this.filteredCities$ = of(this.citySuggestions); // Atualiza o observable de sugestões
-      this.currentHomeComponent.cityCtrl.setValue(value, { emitEvent: false }); // Sincroniza com Home
+      // Usa as sugestões do LayoutPrincipal, que agora vêm do RestauranteService
+      this.citySuggestions = this._filter(value, this.citySuggestions);
+      this.filteredCities$ = of(this.citySuggestions); 
+      this.currentHomeComponent.cityCtrl.setValue(value, { emitEvent: false }); 
     }
   }
 
@@ -198,28 +234,29 @@ export class LayoutPrincipalComponent implements OnInit {
 
   // Método para lidar com componentes de rota ativados
   onOutletActivate(component: any) {
-    // Verifica se o componente ativado é uma instância de HomeComponent
+    console.log('onOutletActivate - Componente ativado:', component);
     if (component instanceof HomeComponent) {
-      this.currentHomeComponent = component; // Salva a referência do HomeComponent
-      // Assina as mudanças nos FormControls do HomeComponent para atualizar a sticky search bar
+      console.log('onOutletActivate - Componente é HomeComponent.');
+      this.currentHomeComponent = component; 
+      console.log('onOutletActivate - currentHomeComponent definido:', this.currentHomeComponent);
       this.currentHomeComponent.cityCtrl.valueChanges.subscribe(city => {
-        // Apenas atualiza a sticky search bar se ela estiver visível
         if (this.showStickySearchBar) {
           this.cityCtrl.setValue(city || '', { emitEvent: false });
+          console.log('onOutletActivate - cityCtrl da Sticky Search atualizado:', city);
         }
       });
       this.currentHomeComponent.queryCtrl.valueChanges.subscribe(query => {
         if (this.showStickySearchBar) {
           this.queryCtrl.setValue(query || '', { emitEvent: false });
+          console.log('onOutletActivate - queryCtrl da Sticky Search atualizado:', query);
         }
       });
-
-      // Sincroniza as listas de sugestões da sticky search bar com as do Home
-      this.citySuggestions = this.currentHomeComponent.allCities;
-      this.querySuggestions = this.currentHomeComponent.allQueries;
-
+      this.citySuggestions = this.currentHomeComponent.todasCidades;
+      this.querySuggestions = this.currentHomeComponent.todasCozinhas;
+      console.log('onOutletActivate - Sugestões de cidades e cozinhas sincronizadas.');
     } else {
-      this.currentHomeComponent = null; // Garante que a referência é nula se não for HomeComponent
+      this.currentHomeComponent = null; 
+      console.log('onOutletActivate - Componente NÃO é HomeComponent. currentHomeComponent nulo.');
     }
   }
 }

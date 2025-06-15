@@ -13,7 +13,12 @@
       [showQueryDropdown]="showQueryDropdown"
       [cityCtrl]="cityCtrl"
       [queryCtrl]="queryCtrl"
-      (cidadeChange)="onCityInputSticky($event)"       (queryChange)="queryCtrl.setValue($event)"        (search)="onSearchSticky()"                       (cityInput)="onCityInputSticky($event)"           (selectCity)="selectCitySticky($event)"           (selectQuery)="selectQuerySticky($event)"         (cityBlur)="onCityBlurSticky($event)"             class="toolbar-search-bar"
+      (search)="onSearchSticky()"
+      (cityInput)="onCityInputSticky($event)"
+      (selectCity)="selectCitySticky($event)"
+      (selectQuery)="selectQuerySticky($event)"
+      (cityBlur)="onCityBlurSticky($event)"
+      class="toolbar-search-bar"
     ></app-search-bar>
 
     <div class="user-menu" [matMenuTriggerFor]="menu">
