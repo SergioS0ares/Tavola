@@ -1,10 +1,9 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.ListaEsperaResponse;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.StatusUpdateRequest; // NOVO IMPORT
+import TavolaSoftware.TavolaApp.REST.dto.StatusUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
@@ -37,7 +36,7 @@ public class ReservaController {
 
     @PostMapping("/save")
     public ResponseEntity<?> criarReserva(@RequestBody ReservaRequest reservaRequest) {
-        // ... (lógica de criarReserva inalterada)
+        // ... (lógica inalterada)
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
 
         handler.checkUUID("ID do Restaurante (idRestaurante)", reservaRequest.getIdRestaurante());
@@ -82,19 +81,14 @@ public class ReservaController {
         }
     }
 
-    /**
-     * [SIMPLIFICADO] Lista as reservas de um restaurante com filtros, ignorando o período do dia.
-     */
     @GetMapping("/restaurante/{idRestaurante}")
     public ResponseEntity<?> listarReservasDoRestaurante(
             @PathVariable UUID idRestaurante,
             @RequestParam String data,
-            // O @RequestParam de 'periodo' foi REMOVIDO
             @RequestParam(required = false) String clienteNome,
             @RequestParam(required = false, defaultValue = "todos") String status) {
         
         try {
-            // ... (lógica de validação de permissão inalterada) ...
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
 
@@ -109,7 +103,6 @@ public class ReservaController {
                                      .body(Map.of("erro", "Você não tem permissão para ver as reservas deste restaurante."));
             }
 
-            // >>> CHAMADA DE SERVIÇO CORRIGIDA <<<
             List<ReservaResponse> reservas = reservaService.findReservasByRestauranteWithFilters(
                     idRestaurante, data, clienteNome, status);
 
@@ -122,13 +115,9 @@ public class ReservaController {
             }
         }
     
-    /**
-     * [NOVO] Retorna as reservas na lista de espera de um restaurante.
-     */
     @GetMapping("/restaurante/{idRestaurante}/lista-espera")
     public ResponseEntity<?> listarListaDeEspera(@PathVariable UUID idRestaurante) {
         try {
-            // ... (lógica de validação de permissão, pode ser refatorada para um método privado) ...
              String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
             if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
@@ -139,24 +128,20 @@ public class ReservaController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para ver a lista de espera deste restaurante."));
             }
 
-            List<ListaEsperaResponse> reservas = reservaService.findReservasListaEspera(idRestaurante);
+            // <<< CORREÇÃO 2: A variável agora é do tipo correto para manter a clareza do código >>>
+            List<ReservaResponse> reservas = reservaService.findReservasListaEspera(idRestaurante);
             return ResponseEntity.ok(reservas);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar lista de espera: " + e.getMessage()));
         }
     }
     
-
-    /**
-     * [ADAPTADO] Retorna as reservas de um mês inteiro com base em uma única data.
-     */
     @GetMapping("/restaurante/{idRestaurante}/calendario")
     public ResponseEntity<?> listarReservasCalendario(
             @PathVariable UUID idRestaurante,
-            @RequestParam String data) { // <<< MUDANÇA: Agora recebe uma string de data
+            @RequestParam String data) { 
 
         try {
-             // ... (lógica de validação de permissão continua a mesma) ...
              String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
             if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
@@ -167,7 +152,6 @@ public class ReservaController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para ver o calendário deste restaurante."));
             }
 
-            // A chamada para o serviço agora passa a string da data
             List<CalendarioReservaResponse> reservas = reservaService.findReservasParaCalendario(idRestaurante, data);
             return ResponseEntity.ok(reservas);
 
@@ -178,9 +162,6 @@ public class ReservaController {
         }
     }
 
-    /**
-     * [NOVO] Atualiza o status de uma reserva específica.
-     */
     @PutMapping("/{idReserva}/status")
     public ResponseEntity<?> atualizarStatusReserva(@PathVariable UUID idReserva, @RequestBody StatusUpdateRequest statusRequest) {
         try {
@@ -204,9 +185,6 @@ public class ReservaController {
         }
     }
     
-    // ... (restante dos endpoints: /cliente, /{idReserva}, etc., inalterados)
-    // ... (eles continuam aqui)
-
     @GetMapping("/cliente")
     public ResponseEntity<?> listarMinhasReservasCliente(
             @RequestParam(defaultValue = "latest") String ordem,
@@ -234,34 +212,33 @@ public class ReservaController {
     }
 
     @GetMapping("/{idReserva}")
-    public ResponseEntity<?> buscarReservaPorId(@PathVariable("idReserva") UUID idReserva) { //
-        Optional<ReservaResponse> reservaResponseOpt = reservaService.findById(idReserva); //
-        return reservaResponseOpt //
-                .<ResponseEntity<?>>map(ResponseEntity::ok) //
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Reserva não encontrada com ID: " + idReserva))); //
+    public ResponseEntity<?> buscarReservaPorId(@PathVariable("idReserva") UUID idReserva) { 
+        Optional<ReservaResponse> reservaResponseOpt = reservaService.findById(idReserva); 
+        return reservaResponseOpt 
+                .<ResponseEntity<?>>map(ResponseEntity::ok) 
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Reserva não encontrada com ID: " + idReserva))); 
     }
 
     @PutMapping("/{idReserva}/cancel")
-    public ResponseEntity<?> cancelarReserva(@PathVariable("idReserva") UUID idReserva) { //
+    public ResponseEntity<?> cancelarReserva(@PathVariable("idReserva") UUID idReserva) { 
         try {
-            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(); //
-            ReservaResponse reservaCancelada = reservaService.cancelarReserva(idReserva, emailUsuarioLogado); //
-            return ResponseEntity.ok(reservaCancelada); //
+            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+            ReservaResponse reservaCancelada = reservaService.cancelarReserva(idReserva, emailUsuarioLogado); 
+            return ResponseEntity.ok(reservaCancelada); 
         } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage())); 
         } catch (IllegalStateException e) { 
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage())); 
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) { //
-                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage())); //
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) { 
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage())); 
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao cancelar reserva: " + e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao cancelar reserva: " + e.getMessage())); 
         }
     }
     
     @PutMapping("/{idReserva}/update")
-    public ResponseEntity<?> atualizarReserva(@PathVariable("idReserva") UUID idReserva, @RequestBody ReservaRequest reservaRequest) { //
-        // ... (lógica de validação do update inalterada)
+    public ResponseEntity<?> atualizarReserva(@PathVariable("idReserva") UUID idReserva, @RequestBody ReservaRequest reservaRequest) { 
         ResponseExceptionHandler handler = new ResponseExceptionHandler();
         if (reservaRequest.getDataReserva() != null) {
             handler.checkCondition(
@@ -286,20 +263,20 @@ public class ReservaController {
         }
 
         try {
-            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(); //
-            ReservaResponse reservaAtualizada = reservaService.atualizarReserva(idReserva, reservaRequest, emailUsuarioLogado); //
-            return ResponseEntity.ok(reservaAtualizada); //
+            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
+            ReservaResponse reservaAtualizada = reservaService.atualizarReserva(idReserva, reservaRequest, emailUsuarioLogado); 
+            return ResponseEntity.ok(reservaAtualizada); 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage())); 
         } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage())); 
         } catch (IllegalStateException e) { 
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage())); 
         } catch (RuntimeException e) {
-             if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) { //
-                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage())); //
+             if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) { 
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage())); 
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao atualizar reserva: " + e.getMessage())); //
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao atualizar reserva: " + e.getMessage())); 
         }
     }
 }

@@ -1,6 +1,5 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
-import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Usuario; // <<< NOVO IMPORT
 import TavolaSoftware.TavolaApp.tools.StatusReserva;
@@ -31,8 +30,8 @@ public class ReservaResponse {
     private String imagemPerfilCliente; // <<< NOVO CAMPO
     
     // Dados das Mesas
-    private List<String> nomesMesas;
-
+    private List<SimpleMesaResponse> mesas; // <<< MUDANÇA 1: O tipo da lista foi alterado
+    
     public ReservaResponse() {}
 
     public ReservaResponse(Reserva reserva) {
@@ -40,32 +39,29 @@ public class ReservaResponse {
         this.data = reserva.getDataReserva();
         this.hora = reserva.getHoraReserva();
         this.pessoas = reserva.getQuantidadePessoas();
-        this.status = reserva.getStatus();
         this.observacoes = reserva.getObservacoes();
+        this.status = reserva.getStatus();
+
+        if (reserva.getRestaurante() != null && reserva.getRestaurante().getUsuario() != null) {
+            this.idRestaurante = reserva.getRestaurante().getId();
+            this.restaurante = reserva.getRestaurante().getUsuario().getNome();
+        }
 
         // Mapeando dados do Cliente
         if (reserva.getCliente() != null) {
-            this.idCliente = reserva.getCliente().getId();
             Usuario usuarioCliente = reserva.getCliente().getUsuario();
-            if (usuarioCliente != null) {
-                this.cliente = usuarioCliente.getNome();
-                this.emailCliente = usuarioCliente.getEmail(); // <<< MAPEAMENTO
-                this.telefoneCliente = usuarioCliente.getTelefone(); // <<< MAPEAMENTO
-                this.imagemPerfilCliente = usuarioCliente.getImagem(); // <<< MAPEAMENTO (Assumindo que Usuario tem getImagemPerfil())
-            }
+            this.idCliente = reserva.getCliente().getId();
+            this.cliente = usuarioCliente.getNome();
+            this.emailCliente = usuarioCliente.getEmail();
+            this.telefoneCliente = usuarioCliente.getTelefone();
+            this.imagemPerfilCliente = usuarioCliente.getImagem();
         }
 
-        // Mapeando dados do Restaurante
-        if (reserva.getRestaurante() != null && reserva.getRestaurante().getUsuario() != null) {
-            this.restaurante = reserva.getRestaurante().getUsuario().getNome();
-            this.idRestaurante = reserva.getRestaurante().getId();
-        }
-        
-        // Mapeando Mesas
-        if (reserva.getMesas() != null && !reserva.getMesas().isEmpty()) {
-            this.nomesMesas = reserva.getMesas().stream()
-                                     .map(Mesa::getNome)
-                                     .collect(Collectors.toList());
+        if (reserva.getMesas() != null) {
+            // <<< MUDANÇA 2: Mapeando a lista de Mesas para a lista do novo DTO
+            this.mesas = reserva.getMesas().stream()
+                                  .map(SimpleMesaResponse::new)
+                                  .collect(Collectors.toList());
         }
     }
 
@@ -86,18 +82,20 @@ public class ReservaResponse {
     public void setHora(LocalTime hora) { this.hora = hora; }
     public int getPessoas() { return pessoas; }
     public void setPessoas(int pessoas) { this.pessoas = pessoas; }
-    public String getCliente() { return cliente; }
-    public void setCliente(String cliente) { this.cliente = cliente; }
-    public String getRestaurante() { return restaurante; }
-    public void setRestaurante(String restaurante) { this.restaurante = restaurante; }
+    
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
-    public UUID getIdCliente() { return idCliente; }
-    public void setIdCliente(UUID idCliente) { this.idCliente = idCliente; }
-    public UUID getIdRestaurante() { return idRestaurante; }
-    public void setIdRestaurante(UUID idRestaurante) { this.idRestaurante = idRestaurante; }
-    public List<String> getNomesMesas() { return nomesMesas; }
-    public void setNomesMesas(List<String> nomesMesas) { this.nomesMesas = nomesMesas; }
     public StatusReserva getStatus() { return status; }
     public void setStatus(StatusReserva status) { this.status = status; }
+    public UUID getIdRestaurante() { return idRestaurante; }
+    public void setIdRestaurante(UUID idRestaurante) { this.idRestaurante = idRestaurante; }
+    public String getRestaurante() { return restaurante; }
+    public void setRestaurante(String restaurante) { this.restaurante = restaurante; }
+    public UUID getIdCliente() { return idCliente; }
+    public void setIdCliente(UUID idCliente) { this.idCliente = idCliente; }
+    public String getCliente() { return cliente; }
+    public void setCliente(String cliente) { this.cliente = cliente; }
+    // <<< MUDANÇA 3: Getter e Setter atualizados para o novo tipo da lista
+    public List<SimpleMesaResponse> getMesas() { return mesas; }
+    public void setMesas(List<SimpleMesaResponse> mesas) { this.mesas = mesas; }
 }
