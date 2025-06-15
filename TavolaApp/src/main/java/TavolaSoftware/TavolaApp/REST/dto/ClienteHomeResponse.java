@@ -1,17 +1,20 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+import java.util.List;
+import java.util.ArrayList; // <<< NOVO IMPORT
+
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.tools.Endereco; // Certifique-se que esta classe possui os campos esperados
-
+import TavolaSoftware.TavolaApp.tools.Endereco;
 
 public class ClienteHomeResponse {
 
     private String id;
     private String nome;
     private String tipoCozinha;
-    private double avaliacao;
-    private String imagem; // URL da imagem principal
+    private double mediaAvaliacao;
+    private List<String> imagem; // O tipo List<String> está correto
+    private int totalAvaliacao; // Agora este campo será preenchido
     private Endereco endereco;
 
     // Construtor padrão
@@ -25,17 +28,24 @@ public class ClienteHomeResponse {
         Usuario usuario = restaurante.getUsuario();
         if (usuario != null) {
             this.nome = usuario.getNome();
-            this.endereco = usuario.getEndereco(); // Assumindo que a classe Endereco já tem os campos corretos
+            this.endereco = usuario.getEndereco();
         }
 
         this.tipoCozinha = restaurante.getTipoCozinha();
-        this.avaliacao = restaurante.getMediaAvaliacao();
+        this.mediaAvaliacao = restaurante.getMediaAvaliacao();
 
-        // Pega a primeira imagem da lista, se houver
+        // <<< CORREÇÃO 1: Preenchendo o total de avaliações >>>
+        // Pegamos o total de avaliações do objeto Restaurante.
+        this.totalAvaliacao = restaurante.getTotalDeAvaliacoes();
+
+        // <<< CORREÇÃO 2: Lógica para a lista de imagens >>>
+        // Inicializamos a lista de imagens.
+        this.imagem = new ArrayList<>();
+        // Verificamos se o restaurante possui imagens.
         if (restaurante.getImagens() != null && !restaurante.getImagens().isEmpty()) {
-            this.imagem = restaurante.getImagens().get(0);
-        } else {
-            this.imagem = null; // Ou uma URL de imagem placeholder, se preferir
+            // Adicionamos apenas a primeira imagem da lista (a imagem principal).
+            // Isso satisfaz o tipo List<String> e a necessidade do front-end.
+            this.imagem.add(restaurante.getImagens().get(0));
         }
     }
 
@@ -65,20 +75,30 @@ public class ClienteHomeResponse {
         this.tipoCozinha = tipoCozinha;
     }
 
-    public double getAvaliacao() {
-        return avaliacao;
+    // <<< CORREÇÃO 3: Renomeando os getters e setters para consistência >>>
+    public double getMediaAvaliacao() {
+        return mediaAvaliacao;
     }
 
-    public void setAvaliacao(double avaliacao) {
-        this.avaliacao = avaliacao;
+    public void setMediaAvaliacao(double mediaAvaliacao) {
+        this.mediaAvaliacao = mediaAvaliacao;
     }
 
-    public String getImagem() {
+    // <<< CORREÇÃO 4: Getters e setters corretos para a lista de imagens >>>
+    public List<String> getImagem() {
         return imagem;
     }
 
-    public void setImagem(String imagem) {
+    public void setImagem(List<String> imagem) {
         this.imagem = imagem;
+    }
+
+    public int getTotalAvaliacao() {
+        return totalAvaliacao;
+    }
+
+    public void setTotalAvaliacao(int totalAvaliacao) {
+        this.totalAvaliacao = totalAvaliacao;
     }
 
     public Endereco getEndereco() {
