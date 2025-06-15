@@ -6,10 +6,10 @@ import TavolaSoftware.TavolaApp.REST.dto.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.REST.model.Servico; // <<< NOVO IMPORT
+import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository; // <<< NOVO IMPORT
+import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
@@ -25,10 +25,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.ArrayList;
-import java.util.HashSet; // <<< NOVO IMPORT
-import java.util.List;
-import java.util.Set; // <<< NOVO IMPORT
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -45,12 +43,11 @@ public class AccessController {
     private RestauranteRepository repoRestaurante;
 
     @Autowired
-    private ServicoRepository repoServico; // <<< INJETAR ServicoRepository
+    private ServicoRepository repoServico;
 
     @Autowired
     private JwtUtil jwt;
 
-    // ... (método login e refreshToken permanecem os mesmos) ...
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) { 
         String email = loginRequest.getEmail();
@@ -75,8 +72,16 @@ public class AccessController {
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Tipo de usuário não configurado corretamente.");
             }
+            
+            // <<< ALTERAÇÃO 1 AQUI: Adicionando as imagens >>>
             return ResponseEntity.ok(new LoginResponse(
-                accessToken, usuario.getNome(), tipoUsuarioStr, entidadeId, usuario.getEmail()
+                accessToken, 
+                usuario.getNome(), 
+                tipoUsuarioStr, 
+                entidadeId, 
+                usuario.getEmail(),
+                usuario.getImagem(),        // Novo parâmetro
+                usuario.getImagemBackground() // Novo parâmetro
             ));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas.");
@@ -108,8 +113,16 @@ public class AccessController {
             if (usuario != null && usuario.getEmail().equals(email)) {
                 String novoAccessToken = jwt.generateAccessToken(usuario.getEmail());
                 String tipoUsuarioStr = usuario.getTipo() == TipoUsuario.CLIENTE ? "CLIENTE" : "RESTAURANTE";
+                
+                // <<< ALTERAÇÃO 2 AQUI: Adicionando as imagens >>>
                 return ResponseEntity.ok(new LoginResponse(
-                        novoAccessToken, usuario.getNome(), tipoUsuarioStr, usuario.getId(), usuario.getEmail()
+                        novoAccessToken, 
+                        usuario.getNome(), 
+                        tipoUsuarioStr, 
+                        usuario.getId(), 
+                        usuario.getEmail(),
+                        usuario.getImagem(),        // Novo parâmetro
+                        usuario.getImagemBackground() // Novo parâmetro
                 ));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado ou dados do token inconsistentes.");
@@ -150,6 +163,11 @@ public class AccessController {
         usuario.setTipo(request.getTipo());
         usuario.setTelefone(request.getTelefone());
         
+        // No momento do registro, as imagens são nulas, o que é o comportamento esperado.
+        // O usuário fará o upload depois.
+        usuario.setImagem(null);
+        usuario.setImagemBackground(null);
+        
         usuario = repo.save(usuario); 
 
         // Geração de Tokens...
@@ -168,8 +186,15 @@ public class AccessController {
             cliente.setUsuario(usuario);
             repoClient.save(cliente);
             
+            // <<< ALTERAÇÃO 3 AQUI: Adicionando as imagens (que serão nulas) >>>
             return ResponseEntity.ok(new LoginResponse(
-                    accessToken, usuario.getNome(), "CLIENTE", usuario.getId(), usuario.getEmail()
+                    accessToken, 
+                    usuario.getNome(), 
+                    "CLIENTE", 
+                    usuario.getId(), 
+                    usuario.getEmail(),
+                    usuario.getImagem(),
+                    usuario.getImagemBackground()
             ));
 
         } else { // TipoUsuario.RESTAURANTE
@@ -201,8 +226,15 @@ public class AccessController {
             
             repoRestaurante.save(restaurante); 
 
+            // <<< ALTERAÇÃO 4 AQUI: Adicionando as imagens (que serão nulas) >>>
             return ResponseEntity.ok(new LoginResponse(
-                    accessToken, usuario.getNome(), "RESTAURANTE", usuario.getId(), usuario.getEmail()
+                    accessToken, 
+                    usuario.getNome(), 
+                    "RESTAURANTE", 
+                    usuario.getId(), 
+                    usuario.getEmail(),
+                    usuario.getImagem(),
+                    usuario.getImagemBackground()
             ));
         }
     }
