@@ -1,4 +1,3 @@
-import "./chunk-MP5B2SRU.js";
 import {
   Overlay,
   OverlayModule
@@ -7,6 +6,7 @@ import "./chunk-OIBNGD5S.js";
 import {
   ComponentPortal
 } from "./chunk-2ET3CX5M.js";
+import "./chunk-MP5B2SRU.js";
 import "./chunk-OHWI2S6G.js";
 import {
   coerceBooleanProperty

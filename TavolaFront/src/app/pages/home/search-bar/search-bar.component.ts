@@ -28,8 +28,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchBarComponent {
-  @Input() cidade: string = '';
-  @Input() query: string = '';
   @Input() citySuggestions: string[] = [];
   @Input() querySuggestions: string[] = [];
   @Input() showCityDropdown = false;
@@ -38,8 +36,6 @@ export class SearchBarComponent {
   @Input() queryCtrl: FormControl = new FormControl('');
   @Input() filteredCities$: Observable<string[]> = of([]);
   @Input() filteredQueries$: Observable<string[]> = of([]);
-  @Output() cidadeChange = new EventEmitter<string>();
-  @Output() queryChange = new EventEmitter<string>();
   @Output() search = new EventEmitter<void>();
   @Output() cityInput = new EventEmitter<any>();
   @Output() queryInput = new EventEmitter<any>();
@@ -52,8 +48,6 @@ export class SearchBarComponent {
   onSelectCity(city: string) { this.selectCity.emit(city); }
   onSelectQuery(query: string) { this.selectQuery.emit(query); }
   onSearch() { this.search.emit(); }
-  onCidadeChange(val: string) { this.cidadeChange.emit(val); }
-  onQueryChange(val: string) { this.queryChange.emit(val); }
   onCityBlur(event: FocusEvent) { this.cityBlur.emit(event); }
 
   @HostListener('document:click', ['$event'])

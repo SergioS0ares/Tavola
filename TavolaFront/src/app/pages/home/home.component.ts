@@ -11,8 +11,11 @@ import { SearchBarComponent } from './search-bar/search-bar.component';
 import { StickySearchService } from '../../core/services/sticky-search.service';
 import { RouterModule, Router } from '@angular/router';
 import { RestauranteService } from '../../core/services/restaurante.service';
+import { IPesquisaRestauranteResponse } from '../../Interfaces/IPesquisaRestaurante.interface';
 import { MapsService } from '../../core/services/maps.service';
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
+import { GlobalSpinnerService } from '../../core/services/global-spinner.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home',
@@ -32,25 +35,11 @@ import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
-  cityCtrl  = new FormControl('Paris');
+  cityCtrl  = new FormControl('');
   queryCtrl = new FormControl('');
 
-  allCities  = [
-    'Paris, França',
-    'Lisboa, Portugal',
-    'Barcelona, Espanha',
-    'Roma, Itália',
-    'Madri, Espanha',
-    'Florença, Itália'
-  ];
-  allQueries = [
-    'Ver todos os restaurantes',
-    'Top 100 Paris',
-    'Melhor avaliado',
-    'Italiano',
-    'Francês',
-    'Japonês'
-  ];
+  todasCidades: string[] = [];
+  todasCozinhas: string[] = [];
 
   filteredCities$!: Observable<string[]>;
   filteredQueries$!: Observable<string[]>;
@@ -60,8 +49,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   showCityDropdown = false;
   showQueryDropdown = false;
-  cidade = 'Paris';
-  query = '';
 
   restaurants: IRestaurante[] = [];
   groupedRestaurants: Record<string, IRestaurante[]> = {};
@@ -83,27 +70,45 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private restauranteService: RestauranteService,
     private mapsService: MapsService,
-    private router: Router
+    private router: Router,
+    private spinnerService: GlobalSpinnerService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {
-    this.filteredCitySuggestions = [...this.allCities];
-    this.querySuggestions = [...this.allQueries];
+    this.filteredCitySuggestions = [];
+    this.querySuggestions = [];
+
+    // Subscribe to city and cuisine suggestions from RestauranteService
+    this.restauranteService.allCities$.subscribe(cities => {
+      this.todasCidades = cities;
+      this.filteredCitySuggestions = [...this.todasCidades]; // Update filtered suggestions for direct use
+    });
+    this.restauranteService.allCuisines$.subscribe(cuisines => {
+      // Sugestões gerais de cozinha (agora definidas localmente no HomeComponent)
+      const sugestoesGeraisCozinha = [
+        'Ver todos os restaurantes',
+        'Melhor avaliado'
+      ];
+      // Combina as cozinhas do serviço com as sugestões gerais, removendo duplicatas
+      this.todasCozinhas = Array.from(new Set([...cuisines, ...sugestoesGeraisCozinha])).sort();
+      this.querySuggestions = [...this.todasCozinhas]; // Update filtered suggestions for direct use
+    });
 
     this.filteredCities$ = this.cityCtrl.valueChanges.pipe(
       startWith(this.cityCtrl.value ?? ''),
-      map(val => this._filter(val ?? '', this.allCities))
+      map(val => this._filter(val ?? '', this.todasCidades))
     );
     this.filteredQueries$ = this.queryCtrl.valueChanges.pipe(
       startWith(''),
-      map(val => this._filter(val ?? '', this.allQueries))
+      map(val => this._filter(val ?? '', this.todasCozinhas))
     );
 
-    // Buscar restaurantes do backend
+    // Buscar restaurantes do backend (already triggers popularSugestoes inside service)
+    this.spinnerService.mostrar();
     this.restauranteService.getRestaurantes().subscribe({
       next: (restaurants) => {
-        // Para cada restaurante, buscar coordenadas se não houver
-        const coordPromises = restaurants.map(async (r) => {
+        const coordPromises = (restaurants || []).map(async (r) => {
           if (!r.coordenadas) {
             const endereco = `${r.endereco.rua}, ${r.endereco.numero}, ${r.endereco.bairro}, ${r.endereco.cidade} - ${r.endereco.estado}, ${r.endereco.cep}`;
             try {
@@ -117,10 +122,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         Promise.all(coordPromises).then(rests => {
           this.setRestaurants(rests);
+          this.spinnerService.ocultar();
         });
       },
       error: (err) => {
-        // Pode exibir erro se quiser
+        this.spinnerService.ocultar();
       }
     });
 
@@ -140,15 +146,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    // --- CORREÇÃO: Usar searchSentinel para o IntersectionObserver ---
-    // O IntersectionObserver deve observar o elemento '#searchSentinel' que é um ponto de referência
-    // para a posição da search bar original.
     setTimeout(() => {
         if (this.searchSentinel) {
             this.initStickyObserver(this.searchSentinel.nativeElement);
         }
     }, 0);
-    // --- FIM DA CORREÇÃO ---
   }
 
   ngAfterViewInit() {
@@ -187,19 +189,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // --- CORREÇÃO: Ajustar a lógica do IntersectionObserver ---
   initStickyObserver(elementToObserve: HTMLElement) {
     const observer = new IntersectionObserver(entries => {
      
       this.stickySearch = !entries[0].isIntersecting;
       this.stickyService.setSticky(this.stickySearch);
-      this.cdr.detectChanges(); // Força detecção de mudanças
+      this.cdr.detectChanges();
     }, {
-      threshold: [0, 1] // Observa quando 0% ou 100% do elemento está visível
+      threshold: [0, 1]
     });
     observer.observe(elementToObserve);
   }
-  // --- FIM DA CORREÇÃO ---
 
   private _filter(val: string, list: string[]): string[] {
     const filterValue = val.toLowerCase();
@@ -207,21 +207,81 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSearch() {
-    console.log('Buscar:', this.cityCtrl.value, this.queryCtrl.value);
+    this.spinnerService.mostrar();
+    this.restaurants = [];
+    this.groupedRestaurants = {};
+
+    const cidadeBusca = this.cityCtrl.value?.trim();
+    const termoBusca = this.queryCtrl.value?.trim();
+
+    if (cidadeBusca && termoBusca) {
+      this.restauranteService.getRestaurantesPorCidade(cidadeBusca).subscribe({
+        next: (restaurantsPorCidade) => {
+          const filteredByTerm = restaurantsPorCidade.filter(r => 
+            r.nome.toLowerCase().includes(termoBusca.toLowerCase()) || 
+            (r.tipoCozinha && r.tipoCozinha.toLowerCase().includes(termoBusca.toLowerCase()))
+          );
+          this.setRestaurants(filteredByTerm);
+          this.spinnerService.ocultar();
+        },
+        error: (err) => {
+          this.toastr.error('Erro ao buscar restaurantes por cidade.');
+          console.error(err);
+          this.spinnerService.ocultar();
+        }
+      });
+    } else if (cidadeBusca) {
+      this.restauranteService.getRestaurantesPorCidade(cidadeBusca).subscribe({
+        next: (restaurantsPorCidade) => {
+          this.setRestaurants(restaurantsPorCidade);
+          this.spinnerService.ocultar();
+        },
+        error: (err) => {
+          this.toastr.error('Erro ao buscar restaurantes por cidade.');
+          console.error(err);
+          this.spinnerService.ocultar();
+        }
+      });
+    } else if (termoBusca) {
+      this.restauranteService.getPesquisarRestaurantes(termoBusca, 0, 10).subscribe({
+        next: (response: IPesquisaRestauranteResponse) => {
+          this.setRestaurants(response.content || []);
+          this.spinnerService.ocultar();
+        },
+        error: (err: any) => {
+          this.toastr.error('Erro ao pesquisar restaurantes.');
+          console.error(err);
+          this.spinnerService.ocultar();
+        }
+      });
+    } else {
+      this.restauranteService.getRestaurantes().subscribe({
+        next: (allRestaurants) => {
+          this.setRestaurants(allRestaurants);
+          this.spinnerService.ocultar();
+        },
+        error: (err) => {
+          this.toastr.error('Erro ao carregar todos os restaurantes.');
+          console.error(err);
+          this.spinnerService.ocultar();
+        }
+      });
+      this.toastr.info('Por favor, digite um termo ou selecione uma cidade para buscar.');
+      this.spinnerService.ocultar();
+    }
   }
 
   onCityInput(event: any) {
     const value = event.target.value;
-    this.filteredCitySuggestions = this.allCities.filter(city => city.includes(value));
+    this.filteredCitySuggestions = this._filter(value, this.todasCidades);
   }
 
   onCityBlur(event: FocusEvent) {
     setTimeout(() => { this.showCityDropdown = false; }, 120);
   }
 
-  selectQuery(q: string) {
+  public selectQuery(q: string) {
     this.queryCtrl.setValue(q);
-    this.query = q;
     this.showQueryDropdown = false;
   }
 
@@ -231,7 +291,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public selectCity(city: string) {
     this.cityCtrl.setValue(city);
-    this.cidade = city;
     this.showCityDropdown = false;
   }
 

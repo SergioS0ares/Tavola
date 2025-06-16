@@ -1,441 +1,289 @@
-.global-spinner-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7); /* Fundo escurecido existente */
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Centraliza horizontal e verticalmente */
-}
+@import '../../../styles/variables.scss';
 
-.spinner-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px; /* Espaço entre o forno e o texto */
-}
-
-.oven-body {
-  position: relative;
-  width: 112px;
-  height: 96px;
-  background: linear-gradient(to bottom, #4b5563, #1f2937);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.control-panel {
-  position: absolute;
-  top: -24px;
-  left: 0;
-  right: 0;
-  height: 24px;
-  background-color: #1f2937;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom: 1px solid #4b5563;
-  padding: 0 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.controls-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-.control-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.temperature-display-control { /* Novo estilo para a temperatura no painel */
-  font-size: 12px;
-  color: #f87171; /* Cor para o display de temperatura (pode ajustar) */
-  font-family: monospace;
-}
-
-.timer-display { /* Manter o estilo caso ainda haja uso, mas não será usado para temperatura */
-  font-size: 12px;
-  color: #93c5fd;
-  font-family: monospace;
-}
-
-.power-indicator {
-  width: 8px;
-  height: 8px;
-  background-color: #22c55e;
-  border-radius: 9999px;
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
-}
-
-.oven-door {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  bottom: 24px;
-  background-color: #1f2937;
-  border-radius: 4px;
-  border: 1px solid #4b5563;
-}
-
-.door-window {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  right: 4px;
-  bottom: 4px;
-  border-radius: 4px;
-  transition: background-image 2s ease-in-out; /* Transição da imagem de fundo */
-  
-  &.light-on {
-    background: linear-gradient(to bottom, #fde047, #fbbf24); /* Amarelo/Laranja para luz ligada */
-  }
-
-  &:not(.light-on) {
-    background: linear-gradient(to bottom, #fdba74, #f87171); /* Laranja/Vermelho para luz desligada */
-  }
-
-  /* A cor da janela será controlada por ngStyle no HTML para refletir a temperatura */
-}
-
-.heat-elements {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.heat-element {
-  width: 16px;
-  height: 4px;
-  border-radius: 9999px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  background-color: #4b5563;
-
-  &.active {
-    background-color: #ef4444; /* Vermelho */
-    box-shadow: 0 0 4px #ef4444;
-  }
-}
-
-.convection-fan {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.fan-circle {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #9ca3af;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.05s linear; /* transition for rotation */
-}
-
-.fan-blade {
-  position: absolute;
-  background-color: #9ca3af;
-}
-
-.horizontal {
-  width: 16px;
-  height: 2px;
-}
-
-.vertical {
-  width: 2px;
-  height: 16px;
-}
-
-.food-tray {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  right: 8px;
-  height: 4px;
-  background-color: #374151;
-  border-radius: 9999px;
-}
-
-.food-on-tray {
-  position: absolute;
-  top: 0;
-  left: 25%;
-  width: 50%;
-  height: 4px;
-  background-color: #d97706;
-  border-radius: 9999px;
-}
-
-.steam-puff {
-  position: absolute;
-  background-color: white;
-  border-radius: 9999px;
-}
-
-.ventilation-grilles {
-  position: absolute;
-  bottom: 4px;
-  left: 8px;
-  right: 8px;
-  height: 8px;
-  display: flex;
-  gap: 4px;
-}
-
-.grille {
-  flex: 1;
-  height: 100%;
-  background-color: #4b5563;
-  border-radius: 2px;
-}
-
-.heat-indicator {
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.heat-dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background-color: #f87171;
-  border-radius: 9999px;
-}
-
-.text-info {
-  text-align: center;
-  /* Removido o posicionamento absoluto para ficar abaixo do forno */
-}
-
-.title {
-  color: #b45309;
-  font-weight: 500;
-}
-
-.status {
-  color: #fbbf24;
-  font-size: 14px;
-}
-
-/* Removido o estilo da temperatura interna */
-/* .temperature-display { ... } */
-
-.chef-spinner-container {
-  margin-top: 3rem;
-  background: #fff;
-  border-radius: 1.5rem;
-  padding: 2rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.chef-spinner-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #374151;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-.chef-spinner-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 0;
-}
-.chef-spinner-anim {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.chef-spinner-circle {
-  position: absolute;
-  border-radius: 50%;
-  border: 4px solid #FDBA74;
-  border-top-color: transparent;
-  border-bottom-color: #F59E42;
-}
-.chef-spinner-circle-1 {
-  width: 80px;
-  height: 80px;
-  animation: chef-spin-1 3s linear infinite;
-}
-.chef-spinner-circle-2 {
-  width: 64px;
-  height: 64px;
-  border-color: #FDBA74 #FDBA74 transparent #F59E42;
-  animation: chef-spin-2 2s linear infinite;
-}
-.chef-spinner-hat {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-.chef-spinner-text {
-  margin-top: 1.5rem;
-  font-size: 1.25rem;
-  color: #F59E42;
-  font-weight: 500;
-  text-align: center;
-  animation: chef-fadeInOut 2s infinite;
-}
-.chef-spinner-dots {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  justify-content: center;
-}
-.chef-spinner-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #F59E42;
-  opacity: 0.5;
-  animation: chef-bounce 1.5s infinite;
-}
-.chef-spinner-dot-2 { animation-delay: 0.2s; }
-.chef-spinner-dot-3 { animation-delay: 0.4s; }
-@keyframes chef-spin-1 {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-@keyframes chef-spin-2 {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(-360deg); }
-}
-@keyframes chef-fadeInOut {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-@keyframes chef-bounce {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.5); opacity: 1; }
-}
-
+// SPINNER PRINCIPAL DO TAVOLA - Versão Melhorada
 .chef-spinner-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.7);
+  top: 0; 
+  left: 0; 
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
-.chef-spinner-card {
+
+.chef-spinner-content {
   background: #fff;
-  border-radius: 1.5rem;
-  padding: 2.5rem 3rem;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  border-radius: 24px;
+  padding: 3rem 3.5rem;
+  box-shadow: 
+    0 25px 50px rgba(59, 34, 27, 0.4),
+    0 0 0 1px rgba(246, 189, 56, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 340px;
+  min-width: 400px;
+  border: 3px solid $primary-color;
+  position: relative;
+  
+  // Efeito de brilho melhorado
+  &::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, 
+      $primary-color, 
+      lighten($primary-color, 15%), 
+      $primary-color, 
+      darken($primary-color, 5%));
+    border-radius: 27px;
+    z-index: -1;
+    opacity: 0.8;
+    animation: tavola-glow 3s ease-in-out infinite;
+  }
 }
-.chef-spinner-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
+
 .chef-spinner-anim {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 1.5rem;
 }
+
 .chef-spinner-circle {
   position: absolute;
   border-radius: 50%;
-  border: 4px solid #FDBA74;
-  border-top-color: transparent;
-  border-bottom-color: #F59E42;
+  border: 6px solid transparent;
 }
+
 .chef-spinner-circle-1 {
-  width: 80px;
-  height: 80px;
-  animation: chef-spin-1 3s linear infinite;
+  width: 120px;
+  height: 120px;
+  border: 6px solid lighten($primary-color, 35%);
+  border-top-color: $primary-color;
+  border-right-color: $primary-color;
+  animation: tavola-spin-1 2.5s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(246, 189, 56, 0.4));
 }
+
 .chef-spinner-circle-2 {
-  width: 64px;
-  height: 64px;
-  border-color: #FDBA74 #FDBA74 transparent #F59E42;
-  animation: chef-spin-2 2s linear infinite;
+  width: 90px;
+  height: 90px;
+  border: 5px solid lighten($primary-color, 45%);
+  border-bottom-color: $primary-color;
+  border-left-color: $primary-color;
+  animation: tavola-spin-2 2s linear infinite reverse;
+  filter: drop-shadow(0 0 8px rgba(246, 189, 56, 0.3));
 }
-.chef-spinner-hat {
+
+.chef-spinner-circle-3 {
+  width: 60px;
+  height: 60px;
+  border: 4px solid lighten($primary-color, 55%);
+  border-top-color: darken($primary-color, 10%);
+  border-right-color: darken($primary-color, 5%);
+  animation: tavola-spin-1 1.5s linear infinite;
+}
+
+.chef-spinner-icon {
   position: absolute;
-  left: 50%; top: 50%;
+  left: 50%; 
+  top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2;
+  z-index: 10;
+  animation: tavola-float 3s ease-in-out infinite;
+  
+  svg {
+    filter: drop-shadow(0 4px 8px rgba(59, 34, 27, 0.2));
+  }
 }
+
 .chef-spinner-text {
   margin-top: 2rem;
-  font-size: 1.25rem;
-  color: #F59E42;
+  font-size: 1.5rem;
+  color: $text-color;
   font-weight: 600;
   text-align: center;
-  animation: chef-fadeInOut 2s infinite;
+  animation: tavola-fadeInOut 2.5s infinite;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.5px;
+  
+  .highlight {
+    color: $primary-color;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(246, 189, 56, 0.3);
+  }
 }
+
+.chef-spinner-subtitle {
+  margin-top: 0.75rem;
+  font-size: 1.1rem;
+  color: lighten($text-color, 15%);
+  font-weight: 400;
+  text-align: center;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
 .chef-spinner-dots {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+  gap: 1rem;
+  margin-top: 2.5rem;
   justify-content: center;
 }
+
 .chef-spinner-dot {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: #F59E42;
-  opacity: 0.5;
-  animation: chef-bounce 1.5s infinite;
+  background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+  opacity: 0.4;
+  animation: tavola-bounce 1.8s infinite;
+  box-shadow: 0 3px 6px rgba(246, 189, 56, 0.4);
 }
-.chef-spinner-dot-2 { animation-delay: 0.2s; }
-.chef-spinner-dot-3 { animation-delay: 0.4s; }
-@keyframes chef-spin-1 {
+
+.chef-spinner-dot-2 { 
+  animation-delay: 0.3s; 
+  background: linear-gradient(135deg, darken($primary-color, 5%), darken($primary-color, 15%));
+}
+
+.chef-spinner-dot-3 { 
+  animation-delay: 0.6s; 
+  background: linear-gradient(135deg, darken($primary-color, 10%), darken($primary-color, 20%));
+}
+
+// Animações melhoradas do Tavola
+@keyframes tavola-spin-1 {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-@keyframes chef-spin-2 {
+
+@keyframes tavola-spin-2 {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(-360deg); }
 }
-@keyframes chef-fadeInOut {
-  0%, 100% { opacity: 0.5; }
+
+@keyframes tavola-fadeInOut {
+  0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
 }
-@keyframes chef-bounce {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.5); opacity: 1; }
+
+@keyframes tavola-bounce {
+  0%, 100% { 
+    transform: scale(1) translateY(0); 
+    opacity: 0.4; 
+  }
+  50% { 
+    transform: scale(1.4) translateY(-10px); 
+    opacity: 1; 
+  }
+}
+
+@keyframes tavola-glow {
+  0%, 100% { 
+    opacity: 0.8; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.03);
+  }
+}
+
+@keyframes tavola-float {
+  0%, 100% { 
+    transform: translate(-50%, -50%) translateY(0px); 
+  }
+  50% { 
+    transform: translate(-50%, -50%) translateY(-3px); 
+  }
+}
+
+// Responsividade melhorada
+@media (max-width: 480px) {
+  .chef-spinner-content {
+    min-width: 340px;
+    padding: 2.5rem 2rem;
+    margin: 1rem;
+    border-radius: 20px;
+  }
+  
+  .chef-spinner-anim {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .chef-spinner-circle-1 {
+    width: 100px;
+    height: 100px;
+    border-width: 5px;
+  }
+  
+  .chef-spinner-circle-2 {
+    width: 75px;
+    height: 75px;
+    border-width: 4px;
+  }
+  
+  .chef-spinner-circle-3 {
+    width: 50px;
+    height: 50px;
+    border-width: 3px;
+  }
+  
+  .chef-spinner-icon svg {
+    width: 65px;
+    height: 65px;
+  }
+  
+  .chef-spinner-text {
+    font-size: 1.3rem;
+  }
+  
+  .chef-spinner-subtitle {
+    font-size: 1rem;
+  }
+}
+
+// Variação para loading rápido
+.chef-spinner-content.fast {
+  .chef-spinner-circle-1 {
+    animation-duration: 1.2s;
+  }
+  
+  .chef-spinner-circle-2 {
+    animation-duration: 1s;
+  }
+  
+  .chef-spinner-circle-3 {
+    animation-duration: 0.8s;
+  }
+  
+  .chef-spinner-dot {
+    animation-duration: 1.2s;
+  }
+}
+
+// Tema escuro (opcional)
+.chef-spinner-content.dark-theme {
+  background: #2a2a2a;
+  color: #ffffff;
+  
+  .chef-spinner-text {
+    color: #ffffff;
+  }
+  
+  .chef-spinner-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+  }
 }

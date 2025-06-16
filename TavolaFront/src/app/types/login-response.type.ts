@@ -2,6 +2,7 @@ export interface LoginResponse {
   id: string
   token: string;
   refreshToken: string;
-  name: string;
+  nome: string;
   tipoUsuario: 'CLIENTE' | 'RESTAURANTE';
+  imagem: string;
 }

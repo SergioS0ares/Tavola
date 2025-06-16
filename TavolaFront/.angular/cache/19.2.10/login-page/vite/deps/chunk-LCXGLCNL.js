@@ -57,12 +57,12 @@ import {
   DomSanitizer
 } from "./chunk-ODPRINZA.js";
 import {
+  Platform
+} from "./chunk-USHARBCX.js";
+import {
   HttpBackend,
   HttpClient
 } from "./chunk-EPNYPDVT.js";
-import {
-  Platform
-} from "./chunk-USHARBCX.js";
 import {
   DOCUMENT
 } from "./chunk-O3MZQZIU.js";
@@ -1661,4 +1661,4 @@ export {
   provideNzIconsPatch,
   NzIconModule
 };
-//# sourceMappingURL=chunk-FLS7MO5V.js.map
+//# sourceMappingURL=chunk-LCXGLCNL.js.map

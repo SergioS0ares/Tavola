@@ -9,7 +9,7 @@
   <mat-card class="profile-card" *ngIf="userData">
     <div class="profile-header">
       <div class="avatar-container">
-        <img [src]="previewImage || userAvatar" alt="Avatar do usuário" class="profile-avatar">
+        <img [src]="previewImage" alt="Avatar do usuário" class="profile-avatar">
         <button mat-mini-fab class="change-photo-btn" aria-label="Alterar foto" (click)="fileInput.click()">
           <mat-icon>photo_camera</mat-icon>
         </button>

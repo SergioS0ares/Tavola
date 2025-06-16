@@ -642,10 +642,11 @@
     flex-direction: column;
     overflow: hidden;
     
-    // Estilização específica para centralização das abas de área
+    // Estilização específica e forçada para as abas de ambiente
     ::ng-deep .mat-mdc-tab-group {
       .mat-mdc-tab-header {
         margin-bottom: 16px;
+        background-color: white !important;
 
         .mat-mdc-tab-header-pagination {
           display: none;
@@ -655,21 +656,64 @@
           justify-content: center !important;
           display: flex;
           width: 100%;
+          background-color: white !important;
         }
         
         .mat-mdc-tab-list {
           display: flex;
           justify-content: center;
           width: 100%;
+          background-color: white !important;
         }
       }
 
       .mat-mdc-tab {
         min-width: 100px;
+        background-color: white !important;
+        
+        // Força o fundo branco em todos os elementos internos
+        .mdc-tab {
+          background-color: white !important;
+        }
+        
+        .mdc-tab__content {
+          background-color: white !important;
+        }
         
         .mdc-tab__text-label {
           font-weight: 600;
+          color: $text-color !important; // Texto marrom
+          background-color: transparent !important;
         }
+        
+        // Hover state
+        &:hover .mdc-tab__text-label {
+          color: $primary-color !important; // Amarelo no hover
+        }
+        
+        // Active state
+        &.mat-mdc-tab-active {
+          background-color: white !important;
+          
+          .mdc-tab {
+            background-color: white !important;
+          }
+          
+          .mdc-tab__content {
+            background-color: white !important;
+          }
+          
+          .mdc-tab__text-label {
+            color: $primary-color !important; // Amarelo quando ativo
+          }
+        }
+      }
+  
+      // Indicador da aba ativa
+      .mat-ink-bar,
+      .mdc-tab-indicator__content--underline {
+        background-color: $primary-color !important;
+        border-color: $primary-color !important;
       }
     }
     
@@ -731,18 +775,13 @@
         
         &.mesa-ocupada {
           .mesa-visual {
-            background-color: lighten($accent-color, 40%);
-            border-color: $accent-color;
-            cursor: not-allowed;
-            
-            .mesa-capacidade {
-              color: darken($accent-color, 10%);
-            }
+            border: 2px solid #F44336 !important; /* Borda vermelha para mesa ocupada */
+            background-color: rgba(244, 67, 54, 0.1) !important; /* Fundo levemente avermelhado */
           }
           
           .mesa-etiqueta {
-            background-color: $accent-color;
-            color: white;
+            color: #F44336 !important; /* Texto do nome da mesa em vermelho */
+            font-weight: bold;
           }
         }
         
@@ -1240,11 +1279,18 @@
   .add-area-btn {
     border-style: dashed;
     border-radius: 8px;
-    color: rgba(59, 34, 27, 0.7);
+    color: $text-color !important; // Texto marrom
     border-color: rgba(59, 34, 27, 0.4);
+    background-color: white !important; // Fundo branco
     height: 36px;
     line-height: 34px;
+    
+    &:hover {
+      color: $primary-color !important; // Amarelo no hover
+      border-color: $primary-color !important;
+    }
   }
+  
   .add-area-input {
     .mat-mdc-form-field-subscript-wrapper {
       display: none;
@@ -1253,6 +1299,11 @@
       height: 48px;
       padding-top: 10px;
       align-items: center;
+      background-color: white !important;
+    }
+    
+    .mat-mdc-input-element {
+      color: $text-color !important; // Texto marrom
     }
   }
 }
@@ -1286,5 +1337,316 @@
       background-color: $primary-color; // Amarelo Tavola
       border-radius: 4px;
     }
+  }
+}
+
+.custom-tab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  position: relative;
+
+  // Indicativo de edição ativo
+  &.editing-mode {
+    background-color: lighten($primary-color, 45%) !important;
+    border: 2px dashed $primary-color !important;
+    border-radius: 6px;
+    padding: 4px 8px;
+    animation: pulse-edit 1.5s infinite;
+    
+    .edit-area-input {
+      ::ng-deep {
+        // Força o fundo branco para o wrapper principal do input (e outros elementos internos)
+        .mdc-text-field--filled,
+        .mat-mdc-form-field-flex,
+        .mat-mdc-text-field-wrapper,
+        .mat-mdc-form-field-input-control {
+          background-color: white !important;
+        }
+        
+        // Garante que o elemento input em si também tenha fundo branco e cor de texto marrom
+        .mat-mdc-form-field-input-control.mat-mdc-form-field-input-control > input {
+          background-color: white !important;
+          color: $text-color !important;
+        }
+
+        // Estilos para o label
+        .mat-mdc-form-field-label,
+        .mdc-floating-label {
+          color: $text-color !important;
+        }
+
+        // Estilos para o placeholder
+        .mat-mdc-form-field-input-control::placeholder {
+          color: $text-color-lighter !important;
+          opacity: 1;
+        }
+
+        // Estilos para a borda (no foco)
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: $primary-color !important;
+          border-width: 2px !important;
+        }
+      }
+    }
+  }
+
+  .more-options-btn {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    color: $text-color !important;
+    
+    &:hover {
+      color: $primary-color !important;
+      background-color: rgba(246, 189, 56, 0.1);
+    }
+  }
+}
+
+// Animação de pulsação para indicar edição
+@keyframes pulse-edit {
+  0% {
+    box-shadow: 0 0 0 0 rgba(246, 189, 56, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(246, 189, 56, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(246, 189, 56, 0);
+  }
+}
+
+// Força estilos para botão Nova Área
+.add-area-tab-label {
+  .add-area-btn {
+    border-style: dashed;
+    border-radius: 8px;
+    color: $text-color !important; // Texto marrom
+    border-color: rgba(59, 34, 27, 0.4) !important;
+    background-color: white !important; // Fundo branco
+    height: 36px;
+    line-height: 34px;
+    
+    &:hover {
+      color: $primary-color !important; // Amarelo no hover
+      border-color: $primary-color !important;
+      background-color: rgba(246, 189, 56, 0.05) !important;
+    }
+  }
+  
+  .add-area-input {
+    // Este é o mat-form-field
+    ::ng-deep {
+      // Força o fundo branco para o wrapper principal do input (e outros elementos internos)
+      .mdc-text-field--filled,
+      .mat-mdc-form-field-flex,
+      .mat-mdc-text-field-wrapper,
+      .mat-mdc-form-field-input-control {
+        background-color: white !important;
+      }
+
+      // Garante que o elemento input em si também tenha fundo branco e cor de texto marrom
+      .mat-mdc-form-field-input-control.mat-mdc-form-field-input-control > input {
+        background-color: white !important;
+        color: $text-color !important;
+      }
+
+      // Estilos para o label
+      .mat-mdc-form-field-label,
+      .mdc-floating-label {
+        color: $text-color !important;
+      }
+
+      // Estilos para o placeholder
+      .mat-mdc-form-field-input-control::placeholder {
+        color: $text-color-lighter !important;
+        opacity: 1;
+      }
+
+      // Estilos para a borda (no foco)
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $primary-color !important;
+        border-width: 2px !important;
+      }
+    }
+  }
+}
+
+// Força fundo branco em todos os elementos das abas
+::ng-deep .areas-header {
+  .mat-mdc-tab-group {
+    background-color: white !important;
+    
+    .mat-mdc-tab-header {
+      background-color: white !important;
+      
+      .mat-mdc-tab-label-container {
+        background-color: white !important;
+      }
+      
+      .mat-mdc-tab-list {
+        background-color: white !important;
+      }
+    }
+    
+    .mat-mdc-tab {
+      background-color: white !important;
+      
+      &::before,
+      &::after {
+        background-color: white !important;
+      }
+      
+      .mdc-tab {
+        background-color: white !important;
+        
+        &::before,
+        &::after {
+          background-color: white !important;
+        }
+      }
+      
+      .mdc-tab__content {
+        background-color: white !important;
+      }
+      
+      .mdc-tab__ripple {
+        background-color: transparent !important;
+      }
+    }
+  }
+}
+
+.custom-tab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+
+  .more-options-btn {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+}
+
+.mesa-menu {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+}
+
+::ng-deep {
+  .mat-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+::ng-deep {
+  // Estilos globais para todos os mat-form-field dentro deste componente
+  .mat-mdc-form-field {
+    .mat-mdc-form-field-flex {
+      background-color: white !important;
+      .mat-mdc-text-field-wrapper {
+        background-color: white !important;
+        .mat-mdc-form-field-input-control {
+          background-color: white !important;
+        }
+      }
+    }
+    .mat-mdc-input-element {
+      color: $text-color !important; // Cor do texto digitado
+      background-color: white !important; // Fundo do input
+    }
+    .mat-mdc-form-field-label,
+    .mdc-floating-label {
+      color: $text-color !important; // Cor do label
+    }
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(59, 34, 27, 0.4) !important;
+    }
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $primary-color !important;
+        border-width: 2px !important;
+      }
+    }
+  }
+}
+
+/* Cores para os botões de status da reserva */
+.status-confirmada {
+  color: #4CAF50; /* Verde */
+}
+
+.status-pendente {
+  color: #FFC107; /* Laranja */
+}
+
+.status-cancelada {
+  color: #F44336; /* Vermelho */
+}
+
+.status-concluida {
+  color: #2196F3; /* Azul */
+}
+
+.status-nao-compareceu {
+  color: #9E9E9E; /* Cinza */
+}
+
+.status-ativa {
+  color: #673AB7; /* Roxo (exemplo, você pode ajustar) */
+}
+
+.status-lista-espera {
+  color: #FF9800; /* Laranja mais escuro */
+}
+
+/* Cores para os seletores de status (dropdown) */
+.status-dropdown {
+  .mat-mdc-select-value {
+    .mat-mdc-select-value-text {
+      &.status-confirmada { color: #4CAF50; }
+      &.status-pendente { color: #FFC107; }
+      &.status-cancelada { color: #F44336; }
+      &.status-concluida { color: #2196F3; }
+      &.status-nao-compareceu { color: #9E9E9E; }
+      &.status-ativa { color: #673AB7; }
+      &.status-lista-espera { color: #FF9800; }
+    }
+  }
+
+  .mat-mdc-select-arrow {
+    color: #3B221B; /* Cor da seta do dropdown */
+  }
+}
+
+/* Exemplo no reservas.component.scss */
+.status-dropdown .mat-mdc-select-trigger[aria-disabled="true"],
+.mesas-dropdown .mat-mdc-select-trigger[aria-disabled="true"] {
+  opacity: 0.6; /* Torna mais transparente */
+  cursor: not-allowed; /* Altera o cursor */
+}
+
+/* Pode ser necessário ajustar o input também se for um form-field */
+.mat-mdc-form-field-disabled {
+  .mat-mdc-form-field-flex {
+    background-color: #f0f0f0 !important; /* Exemplo de cor de fundo */
   }
 }

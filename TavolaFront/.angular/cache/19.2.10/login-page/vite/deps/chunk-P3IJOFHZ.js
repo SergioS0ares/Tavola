@@ -3,11 +3,6 @@ import {
   getPlacementName
 } from "./chunk-ZEQ5Z5KE.js";
 import {
-  NavigationEnd,
-  Router,
-  RouterLink
-} from "./chunk-5MVIAFIO.js";
-import {
   NzNoAnimationDirective
 } from "./chunk-RMYNG7YU.js";
 import {
@@ -17,11 +12,11 @@ import {
 } from "./chunk-GVUQ4SW7.js";
 import {
   NzButtonGroupComponent
-} from "./chunk-D6CJZWGV.js";
+} from "./chunk-GJKJJ76Y.js";
 import {
   NzIconDirective,
   NzIconModule
-} from "./chunk-FLS7MO5V.js";
+} from "./chunk-LCXGLCNL.js";
 import {
   NzOutletModule,
   NzStringTemplateOutletDirective
@@ -34,6 +29,11 @@ import {
   fromEventOutsideAngular,
   numberAttributeWithZeroFallback
 } from "./chunk-SKGPHRCM.js";
+import {
+  NavigationEnd,
+  Router,
+  RouterLink
+} from "./chunk-5MVIAFIO.js";
 import {
   CdkConnectedOverlay,
   CdkOverlayOrigin,
@@ -2541,4 +2541,4 @@ export {
   NzDropdownMenuComponent,
   NzDropDownModule
 };
-//# sourceMappingURL=chunk-OEXIJG46.js.map
+//# sourceMappingURL=chunk-P3IJOFHZ.js.map

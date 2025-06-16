@@ -608,15 +608,15 @@ mat-card {
 
 .add-horario-btn {
   background: white;
-  color: #F6BD38;
-  border: 2px dashed #F6BD38;
+  color: $primary-color; /* Marrom Tavola para o texto */
+  border: 2px dashed rgba(59, 34, 27, 0.4); /* Borda marrom transparente */
   border-radius: 12px;
   padding: 12px 24px;
   font-weight: 600;
   
   &:hover {
-    background: #FFF9E6;
-    border-color: #f4b942;
+    background: rgba(59, 34, 27, 0.05); /* Fundo levemente transparente no hover */
+    border-color: rgba(59, 34, 27, 0.6); /* Borda um pouco mais escura no hover */
   }
 }
 

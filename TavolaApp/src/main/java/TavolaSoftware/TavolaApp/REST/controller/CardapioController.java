@@ -96,31 +96,7 @@ public class CardapioController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Ocorreu um erro inesperado."));
         }
     }
-
-    @PostMapping("/save/multi")
-    public ResponseEntity<?> saveMultiple(@RequestBody List<Cardapio> cardapios) {
-        
-        String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Restaurante restaurante = restauranteServ.getByEmail(email);
-
-        // Validação inicial (opcional, pode ser movida para o serviço também)
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        for (Cardapio cardapio : cardapios) {
-            handler.checkEmptyStrting("nome", cardapio.getNome());
-            handler.checkMinimmumNumber("valor", cardapio.getPreco(), 0.0);
-        }
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
-        }
-
-        // Apenas uma chamada para o serviço
-        List<Cardapio> salvos = serv.saveMultiple(cardapios, restaurante);
-        
-        // Converte a lista de entidades para a lista de DTOs de resposta
-        List<CardapioResponse> response = salvos.stream().map(CardapioResponse::new).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
+    
     // PUT
     @PutMapping("/update/{id}")
     public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody Cardapio cardapio) throws SecurityException {

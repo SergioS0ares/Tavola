@@ -1,13 +1,16 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+// Usamos as anotações do Jakarta Validation para garantir que o nome não seja nulo ou vazio.
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class AmbienteRequest {
 
+    @NotBlank(message = "O nome do ambiente não pode ser vazio.")
+    @Size(max = 100, message = "O nome do ambiente não pode exceder 100 caracteres.")
     private String nome;
 
-    // Construtores, Getters e Setters
-    public AmbienteRequest() {
-    }
-
+    // Getters e Setters
     public String getNome() {
         return nome;
     }

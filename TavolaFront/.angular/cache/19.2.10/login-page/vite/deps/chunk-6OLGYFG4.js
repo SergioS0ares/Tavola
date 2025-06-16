@@ -6,7 +6,7 @@ import {
   NzFormItemFeedbackIconComponent,
   NzFormNoStatusService,
   NzFormStatusService
-} from "./chunk-K44TI7KO.js";
+} from "./chunk-6YODJLIH.js";
 import {
   NzConnectedOverlayDirective,
   NzOverlayModule,
@@ -33,7 +33,7 @@ import {
 import {
   NzIconDirective,
   NzIconModule
-} from "./chunk-FLS7MO5V.js";
+} from "./chunk-LCXGLCNL.js";
 import {
   NzOutletModule,
   NzStringTemplateOutletDirective
@@ -49,6 +49,11 @@ import {
   numberAttributeWithInfinityFallback
 } from "./chunk-SKGPHRCM.js";
 import {
+  CdkConnectedOverlay,
+  CdkOverlayOrigin,
+  OverlayModule
+} from "./chunk-BDTLI736.js";
+import {
   COMPOSITION_BUFFER_MODE,
   DefaultValueAccessor,
   FormsModule,
@@ -56,11 +61,6 @@ import {
   NgControlStatus,
   NgModel
 } from "./chunk-2ZAX7M67.js";
-import {
-  CdkConnectedOverlay,
-  CdkOverlayOrigin,
-  OverlayModule
-} from "./chunk-BDTLI736.js";
 import {
   FocusMonitor
 } from "./chunk-CKIU65T3.js";
@@ -3396,4 +3396,4 @@ export {
   NzSelectComponent,
   NzSelectModule
 };
-//# sourceMappingURL=chunk-GUZX645F.js.map
+//# sourceMappingURL=chunk-6OLGYFG4.js.map

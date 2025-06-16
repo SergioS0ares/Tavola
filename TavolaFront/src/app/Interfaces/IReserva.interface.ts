@@ -1,12 +1,17 @@
 export interface IReserva {
   id: string;
   clienteId: string;
-  clienteNome: string;
+  cliente: string;
   mesaIds: string[];
   data: Date;
   horario: string;
   periodo: "Almoço" | "Jantar";
   pessoas: number;
-  status: "confirmada" | "pendente" | "cancelada" | "finalizada" | "ausente" | "espera";
+  status: "PENDENTE" | "CONFIRMADA" | "ATIVA" | "LISTA_ESPERA" | "CANCELADA_RESTAURANTE" | "CONCLUIDA" | "NAO_COMPARECEU";
   preferencias: string;
+  restaurante: string;
+  emailCliente: string;
+  telefoneCliente: string;
+  imagemPerfilCliente: string | null;
+  nomesMesas: string[] | null;
 } 

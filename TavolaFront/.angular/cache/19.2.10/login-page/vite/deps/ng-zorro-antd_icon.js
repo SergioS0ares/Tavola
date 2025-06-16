@@ -10,7 +10,7 @@ import {
   NzIconService,
   provideNzIcons,
   provideNzIconsPatch
-} from "./chunk-FLS7MO5V.js";
+} from "./chunk-LCXGLCNL.js";
 import "./chunk-2SJ2DHYL.js";
 import "./chunk-BQ76GOFF.js";
 import "./chunk-XSRHLV33.js";
@@ -18,7 +18,6 @@ import "./chunk-SKGPHRCM.js";
 import "./chunk-ODPRINZA.js";
 import "./chunk-NCBG67EV.js";
 import "./chunk-IZBEIZLW.js";
-import "./chunk-EPNYPDVT.js";
 import "./chunk-MP5B2SRU.js";
 import "./chunk-OHWI2S6G.js";
 import "./chunk-37JVYMH4.js";
@@ -28,6 +27,7 @@ import "./chunk-B5GAWAR3.js";
 import "./chunk-IJ3KGSPX.js";
 import "./chunk-USHARBCX.js";
 import "./chunk-HPCFBG3Q.js";
+import "./chunk-EPNYPDVT.js";
 import "./chunk-GAMILAFO.js";
 import "./chunk-O3MZQZIU.js";
 import "./chunk-CR2THLZV.js";

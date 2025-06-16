@@ -1,12 +1,4 @@
 import {
-  MatRippleModule
-} from "./chunk-CUGNFELP.js";
-import {
-  MatRipple,
-  _StructuralStylesLoader
-} from "./chunk-Y7MKC3P2.js";
-import "./chunk-MP5B2SRU.js";
-import {
   Overlay,
   OverlayConfig,
   OverlayModule
@@ -16,6 +8,14 @@ import {
   DomPortalOutlet,
   TemplatePortal
 } from "./chunk-2ET3CX5M.js";
+import {
+  MatRippleModule
+} from "./chunk-CUGNFELP.js";
+import {
+  MatRipple,
+  _StructuralStylesLoader
+} from "./chunk-Y7MKC3P2.js";
+import "./chunk-MP5B2SRU.js";
 import "./chunk-OHWI2S6G.js";
 import "./chunk-37JVYMH4.js";
 import {
