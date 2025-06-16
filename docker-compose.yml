@@ -1,0 +1,42 @@
+services:
+  # Serviço 1: Banco de Dados PostgreSQL com suas credenciais
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres # <-- Seu usuário
+      POSTGRES_PASSWORD: Aluno    # <-- Sua senha
+      POSTGRES_DB: tavola_db      # Um nome para o banco de dados
+    ports:
+      # Expõe a porta do banco para você poder acessá-lo da sua máquina
+      - "5432:5432"
+    volumes:
+      # Garante que os dados do banco não sejam perdidos
+      - postgres-data:/var/lib/postgresql/data
+
+  # Serviço 2: Sua API Spring Boot
+  api:
+    build:
+      # Caminho para a pasta da sua API
+      context: ./TavolaApp
+    container_name: TavolaApp
+    restart: on-failure
+    depends_on:
+      - db # Garante que o banco inicie antes da API
+    ports:
+      - "8080:8080"
+    environment:
+      # Passa as informações de conexão para sua API
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tavola_db
+      SPRING_DATASOURCE_USERNAME: postgres # <-- Seu usuário
+      SPRING_DATASOURCE_PASSWORD: Aluno    # <-- Sua senha
+      APP_UPLOAD_DIR: /app/uploads
+    volumes:
+      # Garante que os arquivos de upload não sejam perdidos
+      - upload-data:/app/uploads
+
+# Declaração dos Volumes para persistir os dados
+volumes:
+  postgres-data:
+  upload-data:
