@@ -947,7 +947,10 @@ export class ReservasComponent implements OnInit {
                       });
                     }
                     console.error("Erro ao cancelar reserva:", error);
-                    currentReserva.status = statusAnterior as any; // Usa a constante local
+                    setTimeout(() => {
+                      currentReserva.status = statusAnterior as any;
+                      this.cdr.detectChanges();
+                    }, 0);
                   },
                 });
               },
@@ -955,46 +958,108 @@ export class ReservasComponent implements OnInit {
                 const errorMessage = error.error?.erro || "Erro ao desassociar mesas para cancelamento.";
                 this.toastr.error(errorMessage);
                 console.error("Erro ao desassociar mesas para cancelamento:", error);
-                currentReserva.status = statusAnterior as any; // Usa a constante local
+                setTimeout(() => {
+                  currentReserva.status = statusAnterior as any;
+                  this.cdr.detectChanges();
+                }, 0);
               }
             });
           } else {
             // Se o usuário clicou em "Não" ou fechou o Swal, reverte o status
-            currentReserva.status = statusAnterior; 
+            setTimeout(() => {
+              currentReserva.status = statusAnterior as any;
+              this.cdr.detectChanges();
+            }, 0);
           }
         });
-      } else {
-        // Lógica existente para outros status
+      } else if (novoStatus === "LISTA_ESPERA") { // Lógica para mover para LISTA_ESPERA
+        Swal.fire({
+          title: `Tem certeza que deseja mover a reserva de ${currentReserva.cliente} para a Lista de Espera?`,
+          html: "Isso irá desassociar todas as mesas atualmente atribuídas a esta reserva.",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sim, mover',
+          cancelButtonText: 'Não',
+          confirmButtonColor: '#ffc107',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // PASSO 1: PREPARAÇÃO - Chama o endpoint para limpar as mesas da reserva.
+            // Note que o status NÃO é enviado aqui.
+            const preparacaoPayload = {
+              idRestaurante: idRestaurante,
+              dataReserva: this.formatarDataParaAPI(currentReserva.data),
+              horarioReserva: currentReserva.horario,
+              idsMesas: [], // Ação principal: esvaziar a lista de mesas
+              quantidadePessoasReserva: currentReserva.pessoas,
+              comentariosPreferenciaReserva: currentReserva.preferencias,
+            };
+
+            this.reservasService.putAtualizarReserva(reservaId, preparacaoPayload).subscribe({
+              next: () => {
+                this.toastr.info("Mesas desassociadas. Atualizando status...");
+
+                // PASSO 2: EXECUÇÃO FINAL - Agora que as mesas foram limpas, atualiza o status.
+                this.reservasService.putAtualizarStatusReserva(reservaId, novoStatus).subscribe({
+                  next: () => {
+                    this.toastr.success("Reserva movida para a Lista de Espera com sucesso!");
+                    
+                    // Atualiza a UI
+                    this.limparSelecao();
+                    this.carregarReservas();
+                    this.carregarReservasListaEspera();
+                    this.selectedTabIndex = 1; // Muda para a aba correta
+                    this.cdr.detectChanges();
+                  },
+                  error: (error) => {
+                    // Erro no PASSO 2
+                    const errorMessage = error.error?.erro || "Erro ao atualizar o status para Lista de Espera.";
+                    this.toastr.error(errorMessage);
+                    console.error("Erro no passo 2 (atualizar status):", error);
+                    setTimeout(() => {
+                      currentReserva.status = statusAnterior as any;
+                      this.cdr.detectChanges();
+                    }, 0);
+                  }
+                });
+              },
+              error: (error) => {
+                // Erro no PASSO 1
+                const errorMessage = error.error?.erro || "Erro ao desassociar mesas da reserva.";
+                this.toastr.error(errorMessage);
+                console.error("Erro no passo 1 (limpar mesas):", error);
+                setTimeout(() => {
+                  currentReserva.status = statusAnterior as any;
+                  this.cdr.detectChanges();
+                }, 0);
+              }
+            });
+          } else {
+            // Usuário clicou em "Não" no Swal
+            setTimeout(() => {
+              currentReserva.status = statusAnterior as any;
+              this.cdr.detectChanges();
+            }, 0);
+          }
+        });
+      } else { // Lógica para outros status (PENDENTE, CONFIRMADA, ATIVA, CONCLUIDA, NAO_COMPARECEU)
         this.reservasService.putAtualizarStatusReserva(reservaId, novoStatus).subscribe({
           next: () => {
             this.toastr.success("Status da reserva atualizado com sucesso!");
-            const reservaOriginal = this.reservas.find((r) => r.id === reservaId);
-      if (reservaOriginal) {
-              reservaOriginal.status = novoStatus as any;
-              currentReserva.status = novoStatus as any; // Adiciona também para a reserva selecionada
-              if (novoStatus === "LISTA_ESPERA") {
-                // Remove da lista principal e adiciona na lista de espera
-                this.reservas = this.reservas.filter((r) => r.id !== reservaOriginal.id);
-                this.reservasEspera.push(reservaOriginal);
-                this.selectedTabIndex = 1; // Seleciona a aba 'Lista de Espera'
-              } else { // Se o status não for LISTA_ESPERA, garante que esteja na lista principal e não na de espera
-                if (!this.reservas.some(r => r.id === reservaOriginal.id) && novoStatus !== "CANCELADA_RESTAURANTE") {
-                  this.reservas.push(reservaOriginal); // Adiciona de volta se foi movida para espera e agora é outro status
-                }
-                this.reservasEspera = this.reservasEspera.filter((r) => r.id !== reservaOriginal.id); // Remove da lista de espera
-                this.selectedTabIndex = 0; // Volta para a aba 'Reservas'
-              }
-            }
-            this.limparSelecao();
+            currentReserva.status = novoStatus as any; // Atualiza o status localmente para a reserva selecionada
             this.carregarReservas(); // Recarrega as reservas normais para garantir sincronia
-            this.aplicarFiltros(); // Aplica os filtros
-            this.aplicarFiltrosEspera(); // Aplica os filtros da lista de espera
+            this.carregarReservasListaEspera(); // Recarrega a lista de espera (garante que, se algo saiu, volte ao normal)
+            this.limparSelecao(); // Limpa a seleção para fechar os detalhes e forçar recarregamento
+            this.selectedTabIndex = 0; // Garante que esteja na aba 'Reservas'
+            this.cdr.detectChanges(); // Força a atualização da UI para a mudança de aba e status
           },
           error: (error) => {
             const errorMessage = error.error?.erro || "Erro ao atualizar status da reserva.";
             this.toastr.error(errorMessage);
             console.error("Erro ao atualizar status da reserva:", error);
-            currentReserva.status = statusAnterior as any; // Usa a constante local
+            setTimeout(() => {
+              currentReserva.status = statusAnterior as any;
+              this.cdr.detectChanges();
+            }, 0);
           },
         });
       }
@@ -1174,14 +1239,8 @@ export class ReservasComponent implements OnInit {
             const parts = datePart.split('-'); 
             const dataReserva = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             
-            // Popula mesaIds a partir de nomesMesas (se ambientes já estiverem carregados)
-            const mesaIds = (reserva.nomesMesas || []).map((nomeMesa: string) => {
-                for (const ambiente of this.ambientes) {
-                    const mesa = ambiente.mesas.find(m => m.nome === nomeMesa);
-                    if (mesa) return mesa.id;
-                }
-                return null;
-            }).filter((id: string | null) => id !== null) as string[];
+            // Popula mesaIds diretamente da lista de mesas da reserva (se disponível na resposta da API)
+            const mesaIds = (reserva.mesas || []).map((mesaObj: any) => mesaObj.id);
             
             const imageUrl = this.authService.getAbsoluteImageUrl(reserva.imagemPerfilCliente);
 
@@ -1200,7 +1259,7 @@ export class ReservasComponent implements OnInit {
               emailCliente: reserva.emailCliente,
               telefoneCliente: reserva.telefoneCliente,
               imagemPerfilCliente: imageUrl || undefined, // Use undefined to trigger nzIcon fallback
-              nomesMesas: reserva.nomesMesas || [] 
+              nomesMesas: (reserva.mesas || []).map((mesaObj: any) => mesaObj.nome) // Popula nomesMesas diretamente da lista de objetos 'mesas'
             };
           });
           console.log('[ReservasComponent] Reservas carregadas e mapeadas:', this.reservas);
@@ -1329,13 +1388,7 @@ export class ReservasComponent implements OnInit {
             const parts = datePart.split('-'); 
             const dataReserva = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             
-            const mesaIds = (reserva.mesas || []).map((mesaObj: any) => {
-                for (const ambiente of this.ambientes) {
-                    const mesa = ambiente.mesas.find(m => m.id === mesaObj.id); // Assuming mesas in response has objects with id
-                    if (mesa) return mesa.id;
-                }
-                return null;
-            }).filter((id: string | null) => id !== null) as string[];
+            const mesaIds = (reserva.mesas || []).map((mesaObj: any) => mesaObj.id); // Simplificado para usar diretamente o ID
     
             const imageUrl = this.authService.getAbsoluteImageUrl(reserva.imagemPerfilCliente);
     

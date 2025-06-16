@@ -240,7 +240,7 @@
           <ng-container *ngIf="reservaSelecionada">
              <div class="cliente-detalhes">
                <div class="cliente-header">
-                 <nz-avatar [nzSize]="64" [nzSrc]="reservaSelecionada.imagemPerfilCliente || undefined" nzIcon="user"></nz-avatar>
+                 <nz-avatar [nzSize]="64" [nzSrc]="reservaSelecionada.imagemPerfilCliente || 'assets/png/avatar-padrao-tavola-cordeirinho.png'" nzIcon="user"></nz-avatar>
                  <div class="cliente-info-principal">
                    <h3>{{ reservaSelecionada.cliente }}</h3>
                    <div class="cliente-contato">
