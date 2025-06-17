@@ -23,7 +23,7 @@ public class Servico { // Renomeado de Tags para Servico
     @Column (name = "servicos_id")
     private UUID id;
 
-    @Column(name = "nome_servicos", nullable = false, unique = true, length = 100)
+    @Column(name = "servico_nome", nullable = false, unique = true, length = 100)
     private String nome; // Renomeado de 'tag' para 'nome'
 
     @Column(name = "descricao_servicos", length = 255) // Adicione uma descrição opcional

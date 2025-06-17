@@ -1,0 +1,1 @@
+import{Bc as s,Db as o,cc as i,dc as n}from"./chunk-ZBUSQTZT.js";var p=(()=>{class e{static{this.\u0275fac=function(t){return new(t||e)}}static{this.\u0275cmp=o({type:e,selectors:[["app-historico-reservas"]],decls:2,vars:0,template:function(t,a){t&1&&(i(0,"p"),s(1,"historico-reservas works!"),n())},encapsulation:2})}}return e})();export{p as HistoricoReservasComponent};

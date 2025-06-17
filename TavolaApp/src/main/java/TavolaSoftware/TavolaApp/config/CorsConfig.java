@@ -14,7 +14,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // aplica pra todos os endpoints
-                        .allowedOrigins("http://localhost:4200", "http://localhost:8080") // Permite o Angular e o Swagger
+                        .allowedOrigins("http://localhost:4200", "http://localhost:8080", "http://localhost") // Permite o Angular, o ambiente Docker e o Swagger
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true); // se estiver usando cookies/autenticação
