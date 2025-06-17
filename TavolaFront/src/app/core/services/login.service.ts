@@ -9,7 +9,7 @@ import { RefreshResponse } from '../../types/refresh-token.type';
   providedIn: 'root'
 })
 export class LoginService {
-  apiUrl: string = "http://localhost:8080/auth";
+  apiUrl: string = "http://64.181.187.11:8080/auth";
 
   constructor(private httpClient: HttpClient, private auth: AuthService) {}
 
