@@ -17,7 +17,7 @@ export class LoginService {
     return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, senha }, { withCredentials: true }).pipe(
       tap((value) => {
         this.auth.setToken(value.token);
-        this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.name });
+        this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.nome, imagem: value.imagem });
       })
     );
   }
@@ -26,7 +26,7 @@ export class LoginService {
     return this.httpClient.post<LoginResponse>(`${this.apiUrl}/register`, data, { withCredentials: true }).pipe(
       tap((value) => {
         this.auth.setToken(value.token);
-        this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.name });
+        this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.nome, imagem: value.imagem });
       })
     );
   }
@@ -41,7 +41,7 @@ export class LoginService {
           // atualiza token na AuthService
           this.auth.setToken(res.token);
           // se precisar atualizar perfil:
-          this.auth.setPerfil({ tipo: res.tipoUsuario, nome: res.name });
+          this.auth.setPerfil({ tipo: res.tipoUsuario, nome: res.nome, imagem: res.imagem });
         })
       );
   }
