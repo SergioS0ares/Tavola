@@ -30,7 +30,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: Aluno
       APP_UPLOAD_DIR: /app/uploads
-      APP_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:4200,http://localhost:8080
+      APP_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:4200,http://localhost:8080,http://64.181.187.11
     volumes:
       # 'volumes' está no mesmo nível de 'build', 'ports' e 'environment'
       - upload-data:/app/uploads
