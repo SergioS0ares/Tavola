@@ -1,14 +1,17 @@
-# Estágio de Build (AGORA COM JAVA 21)
-FROM maven:3.9.6-eclipse-temurin-21 AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn clean package -DskipTests
+# Dockerfile Otimizado para o Backend (sem build interno)
 
-# Estágio de Execução (Já estava correto com Java 21)
+# Usamos apenas a imagem leve do Java 21, já que não vamos compilar nada.
 FROM openjdk:21-jdk-slim
+
+# Define o diretório de trabalho dentro do container.
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copia o arquivo .jar que foi gerado LOCALMENTE na pasta 'target'
+# para dentro do container, renomeando para 'app.jar'.
+COPY target/*.jar app.jar
+
+# Expõe a porta que a API usa.
 EXPOSE 8080
+
+# Comando para iniciar a API quando o container ligar.
 ENTRYPOINT ["java", "-jar", "app.jar"]
