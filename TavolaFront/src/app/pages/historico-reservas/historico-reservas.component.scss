@@ -1,0 +1,199 @@
+// Importando suas variáveis globais para manter a consistência do projeto
+@import '../../../styles/variables.scss';
+
+.historico-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: auto;
+  font-family: 'Poppins', sans-serif; // Garante uma fonte consistente
+}
+
+.page-header {
+  margin-bottom: 32px;
+  h1 {
+    color: $texto-principal-sobre-claro;
+    font-weight: 700;
+  }
+  p {
+    color: $texto-secundario-sobre-claro;
+    font-size: 16px;
+  }
+}
+
+.sem-reservas {
+  text-align: center;
+  padding: 48px;
+  background-color: $fundo-container-claro;
+  border-radius: $border-radius-forte;
+  border: 1px dashed $borda-cor-base;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $texto-placeholder-sobre-claro;
+  }
+  p {
+    font-size: 18px;
+    margin-top: 16px;
+    color: $texto-secundario-sobre-claro;
+  }
+  a {
+    margin-top: 24px;
+  }
+}
+
+.timeline-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.timeline-month {
+  font-size: 22px;
+  font-weight: 600;
+  color: $texto-secundario-sobre-claro;
+  margin: 40px 0 20px 0;
+  text-align: center;
+}
+
+/* A lista que vai conter nossos itens da timeline */
+.timeline {
+  list-style-type: none;
+  padding: 0;
+  position: relative; /* Essencial para posicionar a linha vertical */
+}
+
+/* ==================================================================== */
+/* A MÁGICA DO CSS COMEÇA AQUI                                          */
+/* ==================================================================== */
+
+/* 1. A LINHA VERTICAL: Criada com um "elemento virtual" (::before) */
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 19px; /* Posiciona a linha exatamente no centro do ícone de 40px */
+  width: 2px;
+  background: $borda-cor-divisor;
+  z-index: 1; /* Fica atrás dos círculos */
+}
+
+/* Cada item da lista (cada reserva) */
+.timeline-item {
+  position: relative; /* Essencial para posicionar o "badge" (círculo) e o card */
+  margin-bottom: 30px;
+}
+
+/* 2. O CÍRCULO NA LINHA DO TEMPO: O ponto do evento */
+.timeline-badge {
+  position: absolute;
+  top: 16px; /* Ajusta a altura do círculo no card */
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $fundo-pagina-geral;
+  border: 2px solid $borda-cor-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2; /* Fica por cima da linha vertical */
+
+  mat-icon {
+    color: $texto-secundario-sobre-claro;
+  }
+}
+
+/* O CARD COM AS INFORMAÇÕES */
+.reserva-card {
+  margin-left: 60px; /* Empurra o card para a direita da linha */
+  position: relative; /* Essencial para a setinha */
+  border-left-width: 4px;
+  border-left-style: solid;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+  }
+
+  /* 3. A SETINHA QUE CONECTA O CARD AO PONTO: Outro truque com ::before */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 22px; // Alinha a seta com o círculo
+    left: -12px; // Posiciona a seta para fora do card
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 10px 8px 0; /* Cria um triângulo apontando para a esquerda */
+    border-color: transparent white transparent transparent; /* A cor do fundo do card */
+  }
+
+  // Cores dinâmicas para a borda do card, baseadas no status
+  &.status-border-concluida { border-left-color: $cor-sucesso; }
+  &.status-border-confirmada { border-left-color: $tavola-amarelo-primario; }
+  &.status-border-cancelada { border-left-color: $cor-erro; }
+}
+
+.restaurante-imagem {
+  height: 180px;
+  object-fit: cover;
+  background-color: $tavola-marrom-claro-fundo-imagem;
+}
+
+mat-card-content {
+  padding: 16px;
+}
+
+.info-reserva {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: $texto-secundario-sobre-claro;
+  align-items: center;
+  font-size: 14px;
+
+  span { display: flex; align-items: center; gap: 6px; }
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.comentarios-section {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: $fundo-container-dialog-especial; // Cor creme
+  border-radius: $border-radius-base;
+  border-left: 3px solid $tavola-amarelo-primario;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  mat-icon {
+    color: $texto-secundario-sobre-claro;
+    margin-top: 2px;
+  }
+
+  .comentario-texto {
+    strong {
+      display: block;
+      font-weight: 600;
+      color: $texto-principal-sobre-claro;
+      margin-bottom: 4px;
+    }
+
+    p {
+      margin: 0;
+      font-style: italic;
+      color: $texto-secundario-sobre-claro;
+      line-height: 1.5;
+    }
+  }
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 16px 16px 16px !important;
+}

@@ -1,12 +1,115 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { of } from 'rxjs';
+import { delay, finalize } from 'rxjs/operators';
+
+// INTERFACES E SERVIÇOS
+import { IReservaHistorico } from '../../Interfaces/IReservaHistorico.interface';
+import { ReservasService } from '../../core/services/reservas.service';
+import { AuthService } from '../../core/services/auth.service';
+import { GlobalSpinnerService } from '../../core/services/global-spinner.service';
+
+// COMPONENTES DE UI
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+
+// ====================================================================
+// CORREÇÃO AQUI: A lista de dados mockados estava vazia.
+// Agora ela está preenchida com os exemplos que criamos.
+// ====================================================================
+const mockHistoricoReservas: IReservaHistorico[] = [
+];
 
 @Component({
   selector: 'app-historico-reservas',
   standalone: true,
-  imports: [],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatIconModule,
+    MatButtonModule
+  ],
   templateUrl: './historico-reservas.component.html',
-  styleUrl: './historico-reservas.component.scss'
+  styleUrl: './historico-reservas.component.scss',
+  providers: [DatePipe]
 })
-export class HistoricoReservasComponent {
+export class HistoricoReservasComponent implements OnInit {
 
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private datePipe = inject(DatePipe);
+  private spinnerService = inject(GlobalSpinnerService);
+
+  public historicoAgrupado: { mesAno: string, reservas: IReservaHistorico[] }[] = [];
+
+  ngOnInit(): void {
+    this.spinnerService.mostrar();
+
+    of(mockHistoricoReservas).pipe(
+      delay(1500),
+      finalize(() => this.spinnerService.ocultar())
+    ).subscribe({
+      next: (data: IReservaHistorico[]) => {
+        this.historicoAgrupado = this.agruparReservasPorMes(data);
+      },
+      error: (err: any) => {
+        console.error('Erro ao buscar histórico de reservas:', err);
+      }
+    });
+  }
+
+  private agruparReservasPorMes(reservas: IReservaHistorico[]): { mesAno: string, reservas: IReservaHistorico[] }[] {
+    if (!reservas || reservas.length === 0) {
+      return [];
+    }
+    const sortedReservas = reservas.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+
+    const grupos: { [key: string]: IReservaHistorico[] } = {};
+
+    for (const reserva of sortedReservas) {
+      const mesAno = this.datePipe.transform(reserva.data, 'MMMM \'de\' yyyy', 'pt-BR');
+      const chave = mesAno!.charAt(0).toUpperCase() + mesAno!.slice(1);
+
+      if (!grupos[chave]) {
+        grupos[chave] = [];
+      }
+      grupos[chave].push(reserva);
+    }
+
+    return Object.keys(grupos).map(chave => ({
+      mesAno: chave,
+      reservas: grupos[chave]
+    }));
+  }
+
+  public getIconePorStatus(status: string): string {
+    switch (status) {
+      case 'CONCLUÍDA': return 'check_circle';
+      case 'CONFIRMADA': return 'bookmark';
+      case 'CANCELADA': return 'cancel';
+      default: return 'circle';
+    }
+  }
+
+  public getImagemUrl(path: string | null): string {
+    if (path && path.startsWith('assets/')) {
+      return path;
+    }
+    return this.authService.getAbsoluteImageUrl(path);
+  }
+
+  public verRestaurante(idRestaurante: string): void {
+    if (idRestaurante) {
+      this.router.navigate(['/restaurante', idRestaurante]);
+    }
+  }
+
+  public reservarNovamente(idRestaurante: string): void {
+    if (idRestaurante) {
+      this.router.navigate(['/restaurante', idRestaurante]);
+    }
+  }
 }
