@@ -26,7 +26,7 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const isApiRequest = request.url.startsWith('http://localhost:8080');
+    const isApiRequest = request.url.startsWith('http://64.181.187.11:8080');
     const token = this.auth.getToken();
     const authReq = isApiRequest
       ? request.clone({

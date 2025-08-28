@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuario_table")
@@ -46,6 +47,15 @@ public class Usuario {
 
     @Column(name = "imagem_repositorio_usuario") // Explicitando o nome da coluna
     private UUID idImagem; // Este campo parece ser um identificador para uma imagem num repositório externo
+    
+    @Column(name = "codigo_verificacao") // <<< NOVO CAMPO
+    private String codigoVerificacao;
+
+    @Column(name = "expiracao_codigo") // <<< NOVO CAMPO
+    private LocalDateTime expiracaoCodigo;
+    
+    @Column(name = "email_verificado") // <<< NOVO CAMPO (útil para o futuro)
+    private boolean emailVerificado = false;
 
     // Getters e Setters
 
@@ -79,4 +89,14 @@ public class Usuario {
     
     public UUID getIdImagem() { return idImagem; }
     public void setIdImagem(UUID idImagem) { this.idImagem = idImagem; }
+    
+    public String getCodigoVerificacao() { return codigoVerificacao; }
+    public void setCodigoVerificacao(String codigoVerificacao) { this.codigoVerificacao = codigoVerificacao; }
+    
+    public LocalDateTime getExpiracaoCodigo() { return expiracaoCodigo; }
+    public void setExpiracaoCodigo(LocalDateTime expiracaoCodigo) { this.expiracaoCodigo = expiracaoCodigo; }
+
+    public boolean isEmailVerificado() { return emailVerificado; }
+    public void setEmailVerificado(boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+    
 }

@@ -18,7 +18,7 @@ export class AuthService {
 
   private _token: string | null = null;
   private _perfil: Perfil | null = null;
-  private readonly BASE_IMAGE_URL = 'http://localhost:8080';
+  private readonly BASE_IMAGE_URL = 'http://64.181.187.11:8080';
 
   constructor() {
     this._token = localStorage.getItem(this.TOKEN_KEY);

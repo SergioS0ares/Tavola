@@ -371,7 +371,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getImagemRestaurante(r: IRestaurante): string {
     if (r.imagens && r.imagens.length > 0 && r.imagens[0]) {
-      return r.imagens[0].startsWith('/') ? 'http://localhost:8080' + r.imagens[0] : r.imagens[0];
+      return r.imagens[0].startsWith('/') ? 'http://64.181.187.11:8080' + r.imagens[0] : r.imagens[0];
     }
     return 'assets/jpg/restauranteOsso.jpg';
   }
