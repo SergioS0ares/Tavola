@@ -1,59 +1,119 @@
 <div class="historico-container">
     <div class="page-header">
-      <h1>Minha Linha do Tempo</h1>
-      <p>Sua jornada gastronômica através do Tavola, reserva por reserva.</p>
+      <div class="header-content">
+        <div class="header-icon">
+          <mat-icon>timeline</mat-icon>
+        </div>
+        <div class="header-text">
+          <h1>Minha Linha do Tempo</h1>
+          <p>Sua jornada gastronômica através do Tavola, reserva por reserva.</p>
+        </div>
+      </div>
     </div>
   
     <div *ngIf="historicoAgrupado.length === 0" class="sem-reservas">
-      <mat-icon>sentiment_dissatisfied</mat-icon>
-      <p>Sua linha do tempo ainda não tem histórias para contar.</p>
-      <a mat-stroked-button color="primary" routerLink="/home">Fazer a primeira reserva</a>
+      <div class="empty-state-icon">
+        <mat-icon>restaurant_menu</mat-icon>
+      </div>
+      <h3>Sua linha do tempo ainda não tem histórias para contar</h3>
+      <p>Que tal começar sua jornada gastronômica?</p>
+      <a mat-flat-button color="primary" routerLink="/home" class="cta-button">
+        <mat-icon>add</mat-icon>
+        Fazer a primeira reserva
+      </a>
     </div>
   
     <div *ngIf="historicoAgrupado.length > 0" class="timeline-wrapper">
-  
-      <div *ngFor="let grupo of historicoAgrupado" class="timeline-group">
-        <h2 class="timeline-month">{{ grupo.mesAno }}</h2>
+      <div *ngFor="let grupo of historicoAgrupado; let isFirst = first" class="timeline-group" 
+           [class.first-group]="isFirst">
+        
+        <div class="timeline-month-header">
+          <div class="month-badge">
+            <mat-icon>calendar_month</mat-icon>
+            <span>{{ grupo.mesAno }}</span>
+          </div>
+        </div>
   
         <ul class="timeline">
-  
-          <li *ngFor="let reserva of grupo.reservas" class="timeline-item">
+          <li *ngFor="let reserva of grupo.reservas; let isLast = last" 
+              class="timeline-item" 
+              [class.last-item]="isLast">
             
-            <div class="timeline-badge">
+            <div class="timeline-badge" [ngClass]="'badge-' + reserva.status.toLowerCase()">
               <mat-icon>{{ getIconePorStatus(reserva.status) }}</mat-icon>
             </div>
   
             <mat-card class="reserva-card" [ngClass]="'status-border-' + reserva.status.toLowerCase()">
               
-              <img mat-card-image 
-                   class="restaurante-imagem" 
-                   [src]="getImagemUrl(reserva.imagemRestaurante)" 
-                   alt="Foto de {{ reserva.nomeRestaurante }}">
+              <div class="card-header-image">
+                <img mat-card-image 
+                     class="restaurante-imagem" 
+                     [src]="getImagemUrl(reserva.imagemRestaurante)" 
+                     alt="Foto de {{ reserva.nomeRestaurante }}">
+                
+                <div class="status-badge" [ngClass]="'status-' + reserva.status.toLowerCase()">
+                  <mat-icon>{{ getIconePorStatus(reserva.status) }}</mat-icon>
+                  <span>{{ getStatusText(reserva.status) }}</span>
+                </div>
+              </div>
               
-              <mat-card-header>
-                <mat-card-title>{{ reserva.nomeRestaurante }}</mat-card-title>
-                <mat-card-subtitle>{{ reserva.enderecoResumido }}</mat-card-subtitle>
+              <mat-card-header class="enhanced-header">
+                <div class="restaurant-info">
+                  <mat-card-title>{{ reserva.nomeRestaurante }}</mat-card-title>
+                  <mat-card-subtitle>
+                    <mat-icon>location_on</mat-icon>
+                    {{ reserva.enderecoResumido }}
+                  </mat-card-subtitle>
+                </div>
               </mat-card-header>
   
               <mat-card-content>
                 <div class="info-reserva">
-                  <span><mat-icon>event</mat-icon> {{ reserva.data | date:'dd/MM/yyyy' }}</span>
-                  <span><mat-icon>schedule</mat-icon> {{ reserva.horario }}</span>
-                  <span><mat-icon>group</mat-icon> {{ reserva.quantidadePessoas }} pessoas</span>
+                  <div class="info-item">
+                    <mat-icon>event</mat-icon>
+                    <div class="info-text">
+                      <span class="label">Data</span>
+                      <span class="value">{{ reserva.data | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="info-item">
+                    <mat-icon>schedule</mat-icon>
+                    <div class="info-text">
+                      <span class="label">Horário</span>
+                      <span class="value">{{ reserva.horario }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="info-item">
+                    <mat-icon>group</mat-icon>
+                    <div class="info-text">
+                      <span class="label">Pessoas</span>
+                      <span class="value">{{ reserva.quantidadePessoas }}</span>
+                    </div>
+                  </div>
                 </div>
   
                 <div *ngIf="reserva.comentariosPreferenciaReserva" class="comentarios-section">
-                  <mat-icon>comment</mat-icon>
-                  <div class="comentario-texto">
-                    <strong>Suas Preferências:</strong>
+                  <div class="comentario-header">
+                    <mat-icon>chat_bubble_outline</mat-icon>
+                    <strong>Suas Preferências</strong>
+                  </div>
+                  <div class="comentario-content">
                     <p>"{{ reserva.comentariosPreferenciaReserva }}"</p>
                   </div>
                 </div>
               </mat-card-content>
               
               <mat-card-actions class="card-actions">
-                <button mat-stroked-button (click)="verRestaurante(reserva.idRestaurante)">Ver Restaurante</button>
-                <button mat-flat-button color="primary" (click)="reservarNovamente(reserva.idRestaurante)">Reservar Novamente</button>
+                <button mat-stroked-button (click)="verRestaurante(reserva.idRestaurante)" class="action-btn secondary">
+                  <mat-icon>visibility</mat-icon>
+                  Ver Restaurante
+                </button>
+                <button mat-flat-button color="primary" (click)="reservarNovamente(reserva.idRestaurante)" class="action-btn primary">
+                  <mat-icon>refresh</mat-icon>
+                  Reservar Novamente
+                </button>
               </mat-card-actions>
             </mat-card>
           </li>
@@ -61,3 +121,4 @@
       </div>
     </div>
   </div>
+  
