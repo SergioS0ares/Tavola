@@ -32,6 +32,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Ignorar autenticação nas rotas públicas
         if (
         	    path.equals("/auth/login") ||
+        	    path.equals("/auth/login/verificar") ||
+        	    path.equals("/auth/senha/iniciar-reset") ||
+        	    path.equals("/auth/senha/confirmar-reset") ||
         	    path.equals("/auth/register") ||
         	    path.equals("/auth/refresh") ||
         	    path.startsWith("/v3/api-docs") ||      
