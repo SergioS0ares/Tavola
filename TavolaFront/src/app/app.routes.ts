@@ -10,11 +10,19 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./pages/acesso/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'signup',
-    loadComponent: () => import('./pages/signup/signup.component').then(m => m.SignUpComponent)
+    loadComponent: () => import('./pages/acesso/signup/signup.component').then(m => m.SignUpComponent)
+  },
+  {
+    path: 'verificacao-email',
+    loadComponent: () => import('./pages/acesso/verificacao-email/verificacao-email.component').then(m => m.VerificacaoEmailComponent)
+  },
+  {
+    path: 'confirmar-codigo/:id',
+    loadComponent: () => import('./pages/acesso/confirmar-codigo/confirmar-codigo.component').then(m => m.ConfirmarCodigoComponent)
   },
   {
     path: '',

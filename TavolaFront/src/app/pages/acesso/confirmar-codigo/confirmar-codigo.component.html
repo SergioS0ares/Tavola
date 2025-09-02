@@ -1,0 +1,30 @@
+<app-default-login-layout 
+  title="Digite o código de verificação"
+  primaryBtnText="Verificar Código"
+  secondaryBtnText="Não recebeu o código?"
+  [disablePrimaryBtn]="!isCodigoCompleto() || carregando"
+  (submit)="verificarCodigo()"
+  (navigate)="voltarVerificacao()">
+  
+  <div class.="codigo-content">
+    <div class="header-icon">
+      <i nz-icon nzType="safety-certificate" nzTheme="outline"></i>
+    </div>
+    
+    <p class="description">
+      Insira o código de 6 dígitos que enviamos para seu e-mail.
+    </p>
+
+    <!-- ÁREA REFATORADA -->
+    <div class="codigo-inputs-wrapper">
+      <nz-input-otp 
+        [nzLength]="6" 
+        [(ngModel)]="codigo">
+      </nz-input-otp>
+    </div>
+    
+    <div class="help-text">
+      <p>O código expira em 10 minutos. Certifique-se de digitá-lo corretamente.</p>
+    </div>
+  </div>
+</app-default-login-layout>

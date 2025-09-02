@@ -33,6 +33,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzMessageModule } from 'ng-zorro-antd/message';
 // ─────────────────────────────────────────────────────────────────────────────
 
 // monte o array de ícones que vai usar
@@ -58,7 +59,8 @@ bootstrapApplication(AppComponent, {
       NzButtonModule,
       NzTagModule,
       NzTypographyModule,
-      NzSpaceModule
+      NzSpaceModule,
+      NzMessageModule
     ),
     { provide: NZ_ICONS, useValue: icons },
 

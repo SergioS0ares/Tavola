@@ -1,0 +1,69 @@
+<div class="verificacao-container">
+    Lado esquerdo - Logo 
+   <div class="logo-section">
+     <div class="logo-content">
+       <div class="tavola-logo">
+         <div class="crown-fork">
+           <div class="crown"></div>
+           <div class="fork"></div>
+           <div class="plate">
+             <div class="pasta"></div>
+           </div>
+         </div>
+       </div>
+       <h1 class="tavola-title">TAVOLA</h1>
+       <div class="decorative-line"></div>
+     </div>
+   </div>
+ 
+    Lado direito - Formulário 
+   <div class="form-section">
+     <div class="form-content">
+       <div class="header-icon">
+         <i nz-icon nzType="mail" nzTheme="outline"></i>
+       </div>
+       
+       <h2 class="title">Falta pouco! Verifique seu e-mail</h2>
+       
+       <p class="description">
+         Enviamos um código de verificação para o endereço 
+         <strong>{{ emailUsuario }}</strong>. 
+         Por favor, verifique sua caixa de entrada e spam.
+       </p>
+ 
+       <div class="email-illustration">
+         <div class="email-icon">
+           <i nz-icon nzType="mail" nzTheme="outline"></i>
+           <div class="email-animation"></div>
+         </div>
+       </div>
+ 
+       <div class="actions">
+         <button 
+           nz-button 
+           nzType="primary" 
+           nzSize="large"
+           [disabled]="reenviarDisabilitado"
+           (click)="reenviarEmail()"
+           class="reenviar-btn">
+           <span *ngIf="!reenviarDisabilitado">Reenviar E-mail</span>
+           <span *ngIf="reenviarDisabilitado">Aguarde {{ tempoRestante }}s</span>
+         </button>
+ 
+         <button 
+           nz-button 
+           nzType="text" 
+           nzSize="large"
+           (click)="voltarLogin()"
+           class="voltar-btn">
+           Voltar ao Login
+         </button>
+       </div>
+ 
+       <div class="help-text">
+         <p>Não recebeu o e-mail? Verifique sua pasta de spam ou tente reenviar.</p>
+       </div>
+     </div>
+   </div>
+ </div>
+ 

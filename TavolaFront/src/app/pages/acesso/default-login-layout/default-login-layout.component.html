@@ -1,0 +1,22 @@
+<main>
+    <section class="main-section"></section>
+    <section class="form-section">
+        <img src="/assets/png/LogoTavolaSimples.png"/>
+        <h2>{{ title }}</h2>
+        <div class="form-content">
+            <ng-content></ng-content>
+        </div>
+        <div class="btn-wrapper">
+            <button
+                class="btn-primary"
+                (click)="submit()"
+                [disabled]="disablePrimaryBtn"
+            >
+                {{ primaryBtnText }}
+            </button>
+            <a class="navigation-link" (click)="navigate()">
+                {{ secondaryBtnText }}
+            </a>
+        </div>
+    </section>
+</main>
