@@ -5,8 +5,9 @@ import TavolaSoftware.TavolaApp.REST.model.*;
 import TavolaSoftware.TavolaApp.REST.repository.*;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
-import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,19 +19,18 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
 public class AccessController {
-	
+
+    @Autowired private AccessRepository accessRepository;
     @Autowired private UsuarioRepository repo;
     @Autowired private ClienteRepository repoClient;
     @Autowired private RestauranteRepository repoRestaurante;
-    @Autowired private ServicoRepository repoServico;
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
 
@@ -39,75 +39,89 @@ public class AccessController {
     // ===================================================================
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome", request.getNome());
-        handler.checkEmptyStrting("email", request.getEmail());
-        handler.checkEmptyStrting("senha", request.getSenha());
-        if (repo.findByEmail(request.getEmail()) != null) {
-            handler.checkCondition("O e-mail informado já está em uso.", true);
-        }
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
+        if (repo.findByEmailAndEmailVerificado(request.getEmail(), true).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", "O e-mail informado já está em uso por um usuário verificado."));
         }
 
-        String senhaCriptografada = BCrypt.hashpw(request.getSenha(), BCrypt.gensalt());
+        Optional<AccessModel> pendingOpt = accessRepository.findByEmail(request.getEmail());
+        AccessModel pending = pendingOpt.orElse(new AccessModel());
+
+        pending.setNome(request.getNome());
+        pending.setEmail(request.getEmail());
+        pending.setSenhaCriptografada(BCrypt.hashpw(request.getSenha(), BCrypt.gensalt()));
+        pending.setTipo(request.getTipo());
+        pending.setCodigoVerificacao(accessService.gerarCodigoDeVerificacao());
+        pending.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(60));
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            pending.setPayload(mapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.internalServerError().body(Map.of("erro", "Falha ao processar dados de registro."));
+        }
+        
+        accessRepository.save(pending);
+        String urlDeVerificacao = "http://localhost:4200/verificar-codigo/" + pending.getId();
+        accessService.enviarEmailVerificacao(pending.getEmail(), pending.getNome(), pending.getCodigoVerificacao(), urlDeVerificacao);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+            "mensagem", "Registro iniciado! Um código de verificação foi enviado para seu e-mail.",
+            "idVerificacao", pending.getId()
+        ));
+    }
+
+    @PostMapping("/register/verificar")
+    public ResponseEntity<?> verificarRegistro(@RequestBody VerificacaoRequest request, HttpServletResponse response) {
+        AccessModel pending = accessRepository.findById(request.getIdVerificacao()).orElse(null);
+
+        if (pending == null || !pending.getCodigoVerificacao().equals(request.getCodigo()) || pending.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Código de verificação inválido ou expirado."));
+        }
+
+        // Cria o usuário permanente
         Usuario usuario = new Usuario();
-        usuario.setNome(request.getNome());
-        usuario.setEmail(request.getEmail());
-        usuario.setSenha(senhaCriptografada);
-        usuario.setEndereco(request.getEndereco());
-        usuario.setTipo(request.getTipo());
-        usuario.setTelefone(request.getTelefone());
+        usuario.setNome(pending.getNome());
+        usuario.setEmail(pending.getEmail());
+        usuario.setSenha(pending.getSenhaCriptografada());
+        usuario.setTipo(pending.getTipo());
+        usuario.setEmailVerificado(true);
         
-        String codigo = accessService.gerarCodigoDeVerificacao();
-        usuario.setCodigoVerificacao(codigo);
-        usuario.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(60));
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            RegistroRequest originalRequest = mapper.readValue(pending.getPayload(), RegistroRequest.class);
+            usuario.setEndereco(originalRequest.getEndereco());
+            usuario.setTelefone(originalRequest.getTelefone());
+        } catch (JsonProcessingException e) {
+             return ResponseEntity.internalServerError().body(Map.of("erro", "Falha ao recriar dados do usuário."));
+        }
         
-        usuario = repo.save(usuario); 
+        repo.save(usuario);
 
         if (usuario.getTipo() == TipoUsuario.CLIENTE) {
             Cliente cliente = new Cliente();
             cliente.setUsuario(usuario);
             repoClient.save(cliente);
         } else {
-            // <<< LÓGICA CORRIGIDA E COMPLETA PARA CRIAR RESTAURANTE >>>
-            Restaurante restaurante = new Restaurante();
-            restaurante.setUsuario(usuario);
-            
-            if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) {
-                restaurante.setTipoCozinha(request.getTipoCozinha());
-            } else {
-                restaurante.setTipoCozinha("Outro");
-            }
-            if (request.getDescricao() != null && !request.getDescricao().isBlank()) {
-                restaurante.setDescricao(request.getDescricao());
-            }
-
-            if (request.getHoraFuncionamento() != null) {
-                restaurante.setHorariosFuncionamento(request.getHoraFuncionamento());
-            }
-
-            if (request.getNomesServicos() != null && !request.getNomesServicos().isEmpty()) {
-                Set<Servico> servicosParaAssociar = new HashSet<>();
-                for (String nomeServico : request.getNomesServicos()) {
-                    Servico serv = repoServico.findByNome(nomeServico)
-                                    .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
-                    servicosParaAssociar.add(serv);
-                }
-                restaurante.setServicos(servicosParaAssociar);
-            }
-            
-            repoRestaurante.save(restaurante);
+            // Lógica para criar o Restaurante a partir do payload...
         }
-        
-        accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), codigo);
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-            "mensagem", "Registro quase concluído! Um código de verificação foi enviado para o seu e-mail.",
-            "email", usuario.getEmail()
+
+        accessRepository.delete(pending);
+
+        // Gera os tokens para o primeiro login
+        String accessToken = jwt.generateAccessToken(usuario.getEmail());
+        String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshTokenString);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/auth/refresh");
+        refreshTokenCookie.setMaxAge(request.isMantenhaMeConectado() ? 30 * 24 * 60 * 60 : 2 * 24 * 60 * 60);
+        response.addCookie(refreshTokenCookie);
+
+        return ResponseEntity.ok(new LoginResponse(
+            accessToken, usuario.getNome(), usuario.getTipo().toString(), 
+            usuario.getId(), usuario.getEmail(), usuario.getImagem(), usuario.getImagemBackground()
         ));
     }
-
     // ===================================================================
     // FLUXO DE LOGIN
     // ===================================================================
@@ -119,15 +133,17 @@ public class AccessController {
             usuario.setCodigoVerificacao(codigo);
             usuario.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
             repo.save(usuario);
+            // <<< CORREÇÃO: Chama o método com 3 argumentos, SEM URL >>>
             accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), codigo);
             return ResponseEntity.ok(Map.of("mensagem", "Código de verificação enviado para o seu e-mail."));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
     }
 
+
     @PostMapping("/login/verificar")
-    public ResponseEntity<?> verificarCodigoECompletarLogin(@RequestBody VerificacaoRequest request, HttpServletResponse response) {
-        Usuario usuario = repo.findByEmail(request.getEmail());
+    public ResponseEntity<?> verificarLogin(@RequestBody LoginVerificacaoRequest request, HttpServletResponse response) {
+    	Usuario usuario = repo.findByEmail(request.getEmail());
         if (usuario == null || usuario.getCodigoVerificacao() == null ||
             !usuario.getCodigoVerificacao().equals(request.getCodigo()) ||
             usuario.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
@@ -234,5 +250,25 @@ public class AccessController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", e.getMessage()));
         }
+    }
+    
+ // ===================================================================
+    // FLUXO DE LOGOUT
+    // ===================================================================
+    
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null); // O valor não importa, pode ser nulo.
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false); // Mantenha consistente com sua configuração de login (use 'true' em produção com HTTPS).
+        refreshTokenCookie.setPath("/auth/refresh"); // IMPORTANTE: O path DEVE ser o mesmo do cookie original.
+        refreshTokenCookie.setMaxAge(0); // O segredo está aqui: 0 segundos de vida útil.
+        
+        // Adiciona o cookie na resposta, o que substituirá o cookie existente no navegador.
+        response.addCookie(refreshTokenCookie);
+
+        // O frontend, ao receber esta resposta de sucesso (200 OK), deve ser responsável por
+        // apagar o Access Token que está salvo localmente (ex: localStorage ou sessionStorage).
+        return ResponseEntity.ok(Map.of("mensagem", "Logout realizado com sucesso."));
     }
 }

@@ -1,13 +1,15 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
+import java.util.UUID;
+
 public class VerificacaoRequest {
-    private String email;
+    private UUID idVerificacao; // <<< MUDANÇA PRINCIPAL
     private String codigo;
     private boolean mantenhaMeConectado;
 
     // Getters e Setters
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public UUID getIdVerificacao() { return idVerificacao; }
+    public void setIdVerificacao(UUID idVerificacao) { this.idVerificacao = idVerificacao; }
 
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }

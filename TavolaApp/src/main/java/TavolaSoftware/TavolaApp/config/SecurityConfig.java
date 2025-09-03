@@ -31,11 +31,13 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers( 
+                	"/auth/reenviar-codigo",
                     "/auth/refresh",
                     "/auth/login",
                     "/auth/login/**",
                     "/auth/senha/**",
                     "/auth/register",
+                    "/auth/register/**",
                     "/v3/api-docs/**",    
                     "/swagger-ui/**",    
                     "/swagger-ui.html",  

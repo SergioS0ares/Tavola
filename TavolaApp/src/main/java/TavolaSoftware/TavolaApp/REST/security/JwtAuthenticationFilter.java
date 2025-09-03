@@ -31,16 +31,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Ignorar autenticação nas rotas públicas
         if (
+        		path.equals("/auth/reenviar-codigo") ||
         	    path.equals("/auth/login") ||
         	    path.equals("/auth/login/verificar") ||
         	    path.equals("/auth/senha/iniciar-reset") ||
         	    path.equals("/auth/senha/confirmar-reset") ||
         	    path.equals("/auth/register") ||
+        	    path.equals("/auth/register/verificar") ||
         	    path.equals("/auth/refresh") ||
         	    path.startsWith("/v3/api-docs") ||      
         	    path.startsWith("/swagger-ui") ||       
         	    path.equals("/swagger-ui.html") ||      
-        	    path.startsWith("/upl")      //
+        	    path.startsWith("/upl")
         	) {
         	    System.out.println("[JwtFilter] Path público, ignorando autenticação JWT: " + path); // Log existente e mantido
         	    filterChain.doFilter(request, response);
