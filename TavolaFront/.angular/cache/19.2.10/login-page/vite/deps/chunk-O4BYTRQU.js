@@ -4,15 +4,18 @@ import {
   NzSpaceCompactItemDirective
 } from "./chunk-E7XIJL7V.js";
 import {
+  NzTransitionPatchModule
+} from "./chunk-T6GUKDGX.js";
+import {
   NzWaveModule
 } from "./chunk-NTFCFKQS.js";
 import {
   NzDestroyService
-} from "./chunk-6MK5YD2S.js";
+} from "./chunk-ZDAZYUS5.js";
 import {
   NzIconDirective,
   NzIconModule
-} from "./chunk-BW5KF2SA.js";
+} from "./chunk-FBLKUB2D.js";
 import {
   NzConfigService,
   WithConfig
@@ -20,9 +23,6 @@ import {
 import {
   fromEventOutsideAngular
 } from "./chunk-6UWQDYTA.js";
-import {
-  NzTransitionPatchModule
-} from "./chunk-T6GUKDGX.js";
 import {
   Directionality
 } from "./chunk-E6OYZ467.js";
@@ -477,4 +477,4 @@ export {
   NzButtonGroupComponent,
   NzButtonModule
 };
-//# sourceMappingURL=chunk-7SN2QZWG.js.map
+//# sourceMappingURL=chunk-O4BYTRQU.js.map

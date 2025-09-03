@@ -1,11 +1,11 @@
 import {
+  MediaMatcher
+} from "./chunk-JNEJ2NCE.js";
+import {
   environment,
   getEventPosition,
   isTouchEvent
 } from "./chunk-6UWQDYTA.js";
-import {
-  MediaMatcher
-} from "./chunk-JNEJ2NCE.js";
 import {
   Platform
 } from "./chunk-OXN33DHF.js";
@@ -567,4 +567,4 @@ export {
   NzBreakpointService,
   NzDestroyService
 };
-//# sourceMappingURL=chunk-6MK5YD2S.js.map
+//# sourceMappingURL=chunk-ZDAZYUS5.js.map

@@ -48,21 +48,21 @@ import {
   _defineProperty
 } from "./chunk-HCI7F54D.js";
 import {
+  DomSanitizer
+} from "./chunk-G7WRJXLU.js";
+import {
   NzConfigService
 } from "./chunk-V4AXAFIE.js";
 import {
   warn
 } from "./chunk-6UWQDYTA.js";
 import {
-  DomSanitizer
-} from "./chunk-BBCIOFPE.js";
+  Platform
+} from "./chunk-OXN33DHF.js";
 import {
   HttpBackend,
   HttpClient
 } from "./chunk-WVL4N7HK.js";
-import {
-  Platform
-} from "./chunk-OXN33DHF.js";
 import {
   DOCUMENT
 } from "./chunk-CW2EXLSN.js";
@@ -1661,4 +1661,4 @@ export {
   provideNzIconsPatch,
   NzIconModule
 };
-//# sourceMappingURL=chunk-BW5KF2SA.js.map
+//# sourceMappingURL=chunk-FBLKUB2D.js.map

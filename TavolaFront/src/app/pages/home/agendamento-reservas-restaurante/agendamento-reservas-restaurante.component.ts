@@ -1,14 +1,4 @@
-import {
-  Component,
-  type OnInit,
-  ViewChild,
-  ElementRef,
-  type AfterViewInit,
-  HostListener,
-  LOCALE_ID,
-  OnDestroy,
-  Inject,
-} from "@angular/core"
+import { Component, type OnInit, ViewChild, ElementRef, type AfterViewInit, HostListener, LOCALE_ID, OnDestroy, Inject,} from "@angular/core"
 import { ActivatedRoute, Router } from "@angular/router"
 import { RestauranteService } from "../../../core/services/restaurante.service"
 import { MapsService } from "../../../core/services/maps.service"
@@ -19,12 +9,11 @@ import { GoogleMapsModule } from "@angular/google-maps"
 import { GoogleMap } from "@angular/google-maps"
 import localePt from "@angular/common/locales/pt"
 import { GlobalSpinnerService } from "../../../core/services/global-spinner.service"
-import { MatCommonModule } from '@angular/material/core';
 import { IRestaurante } from '../../../Interfaces/IRestaurante.interface';
 import { CardapioService } from '../../../core/services/cardapio.service';
 import { ReservasService } from '../../../core/services/reservas.service';
 import { environment } from '../../../../environments/environment';
-
+import { ReservaConfirmadaDialogComponent , DialogDataReservaConfirmada} from "./reserva-confirmada-dialog/reserva-confirmada-dialog.component"
 
 // Registrar locale português
 registerLocaleData(localePt)
@@ -35,8 +24,9 @@ import { MatTabsModule } from "@angular/material/tabs"
 import { MatButtonModule } from "@angular/material/button"
 import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatInputModule } from '@angular/material/input'
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'
+import { MatSnackBarModule } from '@angular/material/snack-bar'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
+import { MatDialog } from '@angular/material/dialog'
 
 // NG-Zorro
 import { NzGridModule } from "ng-zorro-antd/grid"
@@ -243,7 +233,8 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private router: Router,
     private spinnerService: GlobalSpinnerService,
     private cardapioService: CardapioService,
-    private reservasService: ReservasService
+    private reservasService: ReservasService,
+    private dialog: MatDialog
   ) {}
   public agendamentoId: string | null = null;
   public agendamentoDetails: any; // Replace 'any' with a proper interface
@@ -704,9 +695,8 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     this.reservasService.criarReserva(reservaData).subscribe({
       next: () => {
         this.spinnerService.ocultar();
-        this.message.success('Reserva realizada com sucesso!');
-        this.resetBooking();
-        this.router.navigate(['/home']);
+        this.abrirDialogSucesso(reservaData);
+        this.resetBooking(); // Limpa o formulário para uma nova reserva
       },
       error: () => {
         this.spinnerService.ocultar();
@@ -714,6 +704,30 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       }
     });
   }
+
+  abrirDialogSucesso(dadosReserva: any): void {
+    const dialogData: DialogDataReservaConfirmada = {
+      nomeRestaurante: this.restaurante?.nome || 'Restaurante',
+      endereco: this.getEnderecoFormatado(),
+      data: dadosReserva.dataReserva,
+      horario: dadosReserva.horarioReserva,
+      quantidadePessoas: dadosReserva.quantidadePessoasReserva,
+      comentarios: dadosReserva.comentariosPreferenciaReserva // Passe os comentários para o diálogo
+    };
+
+    const dialogRef = this.dialog.open(ReservaConfirmadaDialogComponent, {
+      width: '450px',
+      data: dialogData,
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.message.success('Reserva realizada com sucesso!');
+      this.resetBooking();
+      this.router.navigate(['/home']);
+    });
+  }
+
 
   checkIfFavorite(): void {
     // Implementação simples mock: apenas alterna a propriedade isFavorite.

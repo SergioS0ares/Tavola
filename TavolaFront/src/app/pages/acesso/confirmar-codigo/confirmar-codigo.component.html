@@ -6,25 +6,67 @@
   (submit)="verificarCodigo()"
   (navigate)="voltarVerificacao()">
   
-  <div class.="codigo-content">
-    <div class="header-icon">
-      <i nz-icon nzType="safety-certificate" nzTheme="outline"></i>
+  <div class="codigo-content">
+    <!-- Melhorado o ícone com animação e melhor posicionamento -->
+    <div class="header-icon" [class.loading]="carregando">
+      <div class="icon-container">
+        <i nz-icon nzType="safety-certificate" nzTheme="outline"></i>
+        <div class="loading-spinner" *ngIf="carregando">
+          <i nz-icon nzType="loading" nzSpin></i>
+        </div>
+      </div>
     </div>
     
-    <p class="description">
-      Insira o código de 6 dígitos que enviamos para seu e-mail.
-    </p>
+    <!-- Melhorada a tipografia e hierarquia visual -->
+    <div class="content-header">
+      <h3 class="main-title">Verificação de Segurança</h3>
+      <p class="description">
+        Insira o código de <strong>6 dígitos</strong> que enviamos para seu e-mail
+      </p>
+    </div>
 
-    <!-- ÁREA REFATORADA -->
-    <div class="codigo-inputs-wrapper">
+    <!-- Melhorado o wrapper dos inputs com melhor espaçamento -->
+    <div class="codigo-inputs-wrapper" [class.error]="hasError" [class.success]="isCodigoCompleto()">
       <nz-input-otp 
         [nzLength]="6" 
-        [(ngModel)]="codigo">
+        [(ngModel)]="codigo"
+        (ngModelChange)="onCodigoChange()">
       </nz-input-otp>
     </div>
     
-    <div class="help-text">
-      <p>O código expira em 10 minutos. Certifique-se de digitá-lo corretamente.</p>
+    <!-- Adicionado feedback visual para estados -->
+    <div class="status-feedback" *ngIf="statusMessage">
+      <div class="status-icon" [ngClass]="statusType">
+        <i nz-icon [nzType]="getStatusIcon()" [nzTheme]="statusType === 'error' ? 'fill' : 'outline'"></i>
+      </div>
+      <p class="status-text" [ngClass]="statusType">{{ statusMessage }}</p>
+    </div>
+    
+    <!-- Melhorado o texto de ajuda com melhor hierarquia -->
+    <div class="help-section">
+      <div class="help-text">
+        <p class="timer-text">
+          <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
+          O código expira em <span class="highlight">10 minutos</span>
+        </p>
+        <p class="instruction-text">
+          Certifique-se de digitá-lo corretamente
+        </p>
+      </div>
+      
+      <!-- Adicionado botão para reenviar código -->
+      <div class="resend-section" *ngIf="!carregando">
+        <button 
+          nz-button 
+          nzType="link" 
+          nzSize="small"
+          class="resend-btn"
+          (click)="reenviarCodigo()"
+          [nzLoading]="reenviando">
+          <i nz-icon nzType="reload" nzTheme="outline"></i>
+          Reenviar código
+        </button>
+      </div>
     </div>
   </div>
 </app-default-login-layout>

@@ -51,9 +51,9 @@ function normalizePassiveListenerOptions(options) {
 }
 
 export {
+  normalizePassiveListenerOptions,
   _getShadowRoot,
   _getFocusedElementPierceShadowDom,
-  _getEventTarget,
-  normalizePassiveListenerOptions
+  _getEventTarget
 };
-//# sourceMappingURL=chunk-4P5ZFVME.js.map
+//# sourceMappingURL=chunk-PHSO4WZE.js.map

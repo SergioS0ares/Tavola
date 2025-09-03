@@ -1,7 +1,7 @@
 import {
   NzIconDirective,
   NzIconModule
-} from "./chunk-BW5KF2SA.js";
+} from "./chunk-FBLKUB2D.js";
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -182,4 +182,4 @@ export {
   NzFormNoStatusService,
   NzFormItemFeedbackIconComponent
 };
-//# sourceMappingURL=chunk-PXN3XB66.js.map
+//# sourceMappingURL=chunk-X2RWIZQ4.js.map
