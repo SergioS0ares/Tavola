@@ -1,67 +1,144 @@
 /* reserva-confirmada-dialog.component.scss */
 
+// Variáveis de cor para consistência
+$primary-color: #F6BD38;
+$accent-color: #3B221B;
+$success-color: #52c41a;
+$light-gray: #f5f5f5;
+$medium-gray: #e0e0e0;
+
+// Remove padding padrão do mat-dialog-content
+:host ::ng-deep .mat-mdc-dialog-content {
+  padding: 0 24px !important;
+}
+
+.confirmacao-container {
+  padding: 8px; // Pequeno preenchimento interno
+}
+
 .dialog-header {
+  text-align: center;
+  padding-top: 16px;
+
+  .success-icon {
+    font-size: 56px;
+    width: 56px;
+    height: 56px;
+    color: $success-color;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $accent-color;
+    margin: 8px 0;
+  }
+
+  p {
+    font-size: 16px;
+    color: #555;
+    margin: 0;
+  }
+}
+
+.dialog-content {
+  padding: 20px 0;
+
+  .detalhes-titulo {
+    font-size: 14px;
+    font-weight: 500;
+    color: #777;
+    text-align: center;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .detalhes-reserva {
     display: flex;
     flex-direction: column;
+    gap: 12px;
+  }
+
+  // Estilo das "Pílulas" de informação
+  .detalhe-pill {
+    display: flex;
     align-items: center;
-    text-align: center;
-    padding-top: 16px;
-  
-    .success-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      color: #52c41a; /* Verde sucesso */
+    gap: 12px;
+    background: $light-gray;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid $primary-color;
+
+    mat-icon {
+      color: $primary-color;
     }
-  
-    h2 {
-      color: #3B221B; /* Cor principal de texto */
-      margin-top: 8px;
+
+    span {
+      font-size: 15px;
+      font-weight: 500;
+      color: $accent-color;
     }
-  }
-  
-  .dialog-content {
-    text-align: center;
-    
-    .detalhes-reserva {
-      margin: 24px 0;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-  
-      .detalhe-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 16px;
-  
-        mat-icon {
-          color: #F6BD38; /* Cor primária */
-        }
-      }
-    }
-  
-    .google-calendar-btn {
-      width: 100%;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 16px;
-      background-color: #fff !important;
-      color: #4285F4 !important; // Cor do Google
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  
-      .google-icon {
-        width: 20px;
-        height: 20px;
-      }
-  
-      &:hover {
-        background-color: #f8f9fa !important;
+
+    &.comentario {
+      align-items: flex-start; // Para textos longos
+      border-left-color: #1890ff; // Cor diferente para comentários
+
+      mat-icon {
+        color: #1890ff;
+        margin-top: 2px;
       }
     }
   }
+}
+
+// Estilo dos botões de ação
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 24px 16px 24px;
+  gap: 12px;
+
+  .action-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 15px;
+    text-transform: none;
+  }
+
+  .google-btn {
+    background-color: #4285F4 !important;
+    color: white !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .acoes-secundarias {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+
+    .action-btn {
+      flex: 1;
+      height: 44px;
+      color: #555;
+      border-color: $medium-gray;
+    }
+  }
+
+  .fechar-btn {
+    margin-top: 8px;
+    color: #777;
+    font-weight: 500;
+  }
+}

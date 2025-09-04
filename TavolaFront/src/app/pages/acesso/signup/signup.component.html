@@ -1,15 +1,8 @@
-<app-default-login-layout
-  title="Cadastre-se"
-  [disablePrimaryBtn]="!isCurrentFormValid()"
-  [primaryBtnText]="'Cadastrar'"
-  [secondaryBtnText]="'Já possui uma conta? Entre na plataforma'"
-  (submit)="submitForm()"
-  (navigate)="navigate()"
->
+<app-default-login-layout>
   <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="signup-tabs" mat-stretch-tabs="false" mat-align-tabs="center">
     <!-- Tab Cliente -->
     <mat-tab label="Cliente">
-      <form [formGroup]="clienteForm" class="signup-form" (ngSubmit)="submitCliente()">
+      <form [formGroup]="clienteForm" class="signup-form" (ngSubmit)="cadastrarCliente()">
         <div class="form-section">
           <h3 class="section-title">Informações da Conta</h3>
           <div class="form-row">
@@ -128,12 +121,31 @@
             </mat-form-field>
           </div>
         </div>
+        
+        <!-- Botões de ação para Cliente -->
+        <div class="actions">
+          <button 
+            type="submit" 
+            class="primary-action" 
+            [disabled]="!clienteForm.valid">
+            <i nz-icon nzType="user-add" nzTheme="outline"></i>
+            Cadastrar Cliente
+          </button>
+          
+          <button 
+            type="button"
+            class="secondary-action" 
+            (click)="irParaLogin()">
+            <i nz-icon nzType="login" nzTheme="outline"></i>
+            Já tenho uma conta
+          </button>
+        </div>
       </form>
     </mat-tab>
 
     <!-- Tab Restaurante -->
     <mat-tab label="Restaurante">
-      <form [formGroup]="restauranteForm" class="signup-form" (ngSubmit)="submitRestaurante()">
+      <form [formGroup]="restauranteForm" class="signup-form" (ngSubmit)="cadastrarRestaurante()">
         <div class="form-section">
           <h3 class="section-title">Informações da Conta</h3>
           <div class="form-row">
@@ -319,6 +331,25 @@
               <mat-icon>add</mat-icon> Adicionar Horário
             </button>
           </div>
+        </div>
+        
+        <!-- Botões de ação para Restaurante -->
+        <div class="actions">
+          <button 
+            type="submit" 
+            class="primary-action" 
+            [disabled]="!restauranteForm.valid">
+            <i nz-icon nzType="shop" nzTheme="outline"></i>
+            Cadastrar Restaurante
+          </button>
+          
+          <button 
+            type="button"
+            class="secondary-action" 
+            (click)="irParaLogin()">
+            <i nz-icon nzType="login" nzTheme="outline"></i>
+            Já tenho uma conta
+          </button>
         </div>
       </form>
     </mat-tab>

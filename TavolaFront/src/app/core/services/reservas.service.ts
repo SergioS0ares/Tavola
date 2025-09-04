@@ -8,7 +8,7 @@ export class ReservasService {
   private apiUrl = `${environment.apiUrl}/auth/reservas`;
   constructor(private http: HttpClient) {}
 
-  criarReserva(payload: any): Observable<any> {
+  postCriarReserva(payload: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/save`, payload);
   }
 

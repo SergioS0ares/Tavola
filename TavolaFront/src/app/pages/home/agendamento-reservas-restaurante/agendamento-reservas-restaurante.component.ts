@@ -692,7 +692,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       quantidadePessoasReserva: this.selectedGuests,
       comentariosPreferenciaReserva: this.selectedComments
     };
-    this.reservasService.criarReserva(reservaData).subscribe({
+    this.reservasService.postCriarReserva(reservaData).subscribe({
       next: () => {
         this.spinnerService.ocultar();
         this.abrirDialogSucesso(reservaData);

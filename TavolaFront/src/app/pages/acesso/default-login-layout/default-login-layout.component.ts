@@ -9,4 +9,7 @@ import { Component, Input } from "@angular/core"
 })
 export class DefaultLoginLayoutComponent {
   @Input() title = ""
+  @Input() primaryBtnText = ""
+  @Input() secondaryBtnText = ""
+  @Input() disablePrimaryBtn = false
 }

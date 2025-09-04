@@ -1,13 +1,7 @@
-<app-default-login-layout
-    title="Acesse a sua conta"
-    primaryBtnText="Entrar"
-    secondaryBtnText="Não tem uma conta? Cadastra-se"
-    (submit)="submit()"
-    (navigate)="navigate()"
-    [disablePrimaryBtn]="!loginForm.valid">
+<app-default-login-layout>
 
     <div class="form-section">
-        <form [formGroup]="loginForm" class="login-form" (ngSubmit)="submit()">
+        <form [formGroup]="loginForm" class="login-form" (ngSubmit)="realizarLogin()">
             <!-- Campo E-mail -->
             <mat-form-field class="largura-total" appearance="outline" >
                 <mat-label>E-mail</mat-label>
@@ -47,6 +41,23 @@
             <div *ngIf="showLoginError" class="login-error-card">
                 <mat-icon>error</mat-icon>
                 Não foi possível acessar sua conta. Verifique seu e-mail e senha e tente novamente.
+            </div>
+            <div class="actions">
+                <button 
+                  type="submit" 
+                  class="primary-action" 
+                  [disabled]="!loginForm.valid">
+                  <i nz-icon nzType="login" nzTheme="outline"></i>
+                  Entrar
+                </button>
+                
+                <button 
+                  type="button"
+                  class="secondary-action" 
+                  (click)="irParaCadastro()">
+                  <i nz-icon nzType="user-add" nzTheme="outline"></i>
+                  Criar Conta
+                </button>
             </div>
         </form>
     </div>

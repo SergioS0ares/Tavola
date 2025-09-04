@@ -1,31 +1,44 @@
-<div class="dialog-header">
-    <mat-icon class="success-icon">check_circle</mat-icon>
-    <h2 mat-dialog-title>Reserva Confirmada!</h2>
-  </div>
-  
-  <mat-dialog-content class="dialog-content">
-    <p>Sua reserva no <strong>{{ data.nomeRestaurante }}</strong> foi efetuada com sucesso.</p>
-    
-    <nz-divider></nz-divider>
-    
-    <div class="detalhes-reserva">
-      <div class="detalhe-item">
-        <mat-icon>group</mat-icon>
-        <span>{{ data.quantidadePessoas }} {{ data.quantidadePessoas > 1 ? 'pessoas' : 'pessoa' }}</span>
-      </div>
-  
-      <div *ngIf="data.comentarios" class="detalhe-item">
-        <mat-icon>comment</mat-icon>
-        <span>{{ data.comentarios }}</span>
-      </div>
+<div class="confirmacao-container">
+    <div class="dialog-header">
+      <mat-icon class="success-icon">check_circle</mat-icon>
+      <h2 mat-dialog-title>Reserva Confirmada!</h2>
+      <p>Sua reserva no <strong>{{ data.nomeRestaurante }}</strong> foi efetuada com sucesso.</p>
     </div>
   
-    <button mat-flat-button color="primary" class="google-calendar-btn" (click)="adicionarAoGoogleCalendar()">
-      <img src="assets/svg/google-calendar.svg" alt="Google Calendar Icon" class="google-icon">
-      Adicionar ao Google Calendar
-    </button>
-  </mat-dialog-content>
+    <nz-divider></nz-divider>
   
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="fecharDialog()">Fechar</button>
-  </mat-dialog-actions>
+    <mat-dialog-content class="dialog-content">
+      <h3 class="detalhes-titulo">Detalhes da Reserva</h3>
+      <div class="detalhes-reserva">
+        <div class="detalhe-pill">
+          <mat-icon>calendar_today</mat-icon>
+          <span>{{ data.data | date:'dd/MM/yyyy' }} às {{ data.horario }}</span>
+        </div>
+        <div class="detalhe-pill">
+          <mat-icon>group</mat-icon>
+          <span>{{ data.quantidadePessoas }} {{ data.quantidadePessoas > 1 ? 'pessoas' : 'pessoa' }}</span>
+        </div>
+        <div *ngIf="data.comentarios" class="detalhe-pill comentario">
+          <mat-icon>comment</mat-icon>
+          <span>{{ data.comentarios }}</span>
+        </div>
+      </div>
+    </mat-dialog-content>
+  
+    <mat-dialog-actions class="dialog-actions">
+      <div class="acoes-opcionais">
+        <button mat-stroked-button class="action-btn" (click)="adicionarAoGoogleCalendar()">
+          <img src="assets/svg/google-calendar.svg" alt="Google Calendar" class="google-icon">
+          Adicionar ao Calendário
+        </button>
+        <button mat-stroked-button class="action-btn" *ngIf="canShare" (click)="compartilharReserva()">
+          <mat-icon>share</mat-icon>
+          Compartilhar
+        </button>
+      </div>
+  
+      <button mat-flat-button color="primary" class="action-btn concluir-btn" (click)="concluir()">
+        Concluir e ir para a Home
+      </button>
+    </mat-dialog-actions>
+  </div>

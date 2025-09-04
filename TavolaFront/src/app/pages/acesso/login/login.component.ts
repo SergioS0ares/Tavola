@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { ILoginForm } from '../../../Interfaces/ILoginForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +23,8 @@ import { AuthService } from '../../../core/services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    NzIconModule
   ],
   providers: [],
   templateUrl: './login.component.html',
@@ -61,7 +63,7 @@ export class LoginComponent {
     return null;
   }
 
-  submit(){
+  realizarLogin(){
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -74,9 +76,7 @@ export class LoginComponent {
       this.loginService.login(email, senha).subscribe({
         next: (res) => {
           this.showLoginError = false;
-          // Centraliza o armazenamento no AuthService
-         
-          
+          // Centraliza o armazenamento no AuthService       
           this.toastService.success("Login feito com sucesso!");
           
           if (res.tipoUsuario === 'RESTAURANTE') {
@@ -98,7 +98,7 @@ export class LoginComponent {
     }
   }
 
-  navigate(){
+  irParaCadastro(){
     this.router.navigate(["signup"]);
   }
 

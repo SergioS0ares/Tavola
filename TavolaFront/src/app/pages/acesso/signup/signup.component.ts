@@ -19,6 +19,7 @@ import { LayoutPrincipalComponent } from '../../layout-principal/layout-principa
 import { NgxMaskDirective} from 'ngx-mask';
 import { ISignupForm } from '../../../Interfaces/ISignupForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
   selector: 'app-signup',
@@ -26,7 +27,8 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule, DefaultLoginLayoutComponent, ReactiveFormsModule, MatFormFieldModule,
     MatInputModule, MatIconModule, MatButtonModule, MatDividerModule, MatSelectModule,
-    MatRadioModule, MatTabsModule, MatCheckboxModule, LayoutPrincipalComponent, NgxMaskDirective
+    MatRadioModule, MatTabsModule, MatCheckboxModule, LayoutPrincipalComponent, NgxMaskDirective,
+    NzIconModule
   ],
   providers: [],
   templateUrl: './signup.component.html',
@@ -161,7 +163,7 @@ export class SignUpComponent {
     });
   }
 
-  submitCliente() {
+  cadastrarCliente() {
     if (this.clienteForm.invalid) {
       this.clienteForm.markAllAsTouched();
       return;
@@ -188,7 +190,7 @@ export class SignUpComponent {
       next: (res) => {
         this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.imagem);
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['home']);
+        this.router.navigate(['verificacao-email']);
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
@@ -197,7 +199,7 @@ export class SignUpComponent {
     });
   }
 
-  submitRestaurante() {
+  cadastrarRestaurante() {
     if (this.restauranteForm.invalid) {
       this.restauranteForm.markAllAsTouched();
       return;
@@ -238,7 +240,7 @@ export class SignUpComponent {
       next: (res) => {
         this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id, res.imagem);
         this.toastService.success("Cadastro realizado com sucesso!");
-        this.router.navigate(['reserva']);
+        this.router.navigate(['verificacao-email']);
       },
       error: (err: any) => {
         const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
@@ -249,9 +251,9 @@ export class SignUpComponent {
 
   submitForm() {
     if (this.selectedTabIndex === 0) {
-      this.submitCliente();
+      this.cadastrarCliente();
     } else {
-      this.submitRestaurante();
+      this.cadastrarRestaurante();
     }
   }
 
@@ -271,7 +273,7 @@ export class SignUpComponent {
     return this.selectedTabIndex === 0 ? this.clienteForm.valid : this.restauranteForm.valid;
   }
 
-  navigate() {
-    this.router.navigate([""]);
+  irParaLogin() {
+    this.router.navigate(["/login"]);
   }
 }
