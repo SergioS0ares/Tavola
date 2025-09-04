@@ -26,13 +26,13 @@ public class AccessModel {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
-    
-    // Para simplificar, vamos guardar o resto como JSON.
-    // Isso evita criar dezenas de colunas nesta tabela temporária.
+
     @Column(columnDefinition = "TEXT")
     private String payload; // Aqui guardaremos Endereco, Telefone, dados do restaurante, etc.
 
-    // Dados de verificação
+    @Column(nullable = true)
+    private UUID usuarioId;
+
     @Column(nullable = false)
     private String codigoVerificacao;
 
@@ -56,4 +56,7 @@ public class AccessModel {
     public void setCodigoVerificacao(String codigoVerificacao) { this.codigoVerificacao = codigoVerificacao; }
     public LocalDateTime getExpiracaoCodigo() { return expiracaoCodigo; }
     public void setExpiracaoCodigo(LocalDateTime expiracaoCodigo) { this.expiracaoCodigo = expiracaoCodigo; }
+    public UUID getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(UUID usuarioId) { this.usuarioId = usuarioId; }
+
 }
