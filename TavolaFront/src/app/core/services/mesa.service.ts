@@ -7,7 +7,7 @@ import { IMesa } from '../../Interfaces/IMesa.interface';
   providedIn: 'root'
 })
 export class MesaService {
-  private apiUrl = 'http://localhost:8080/auth/mesas';
+  private apiUrl = 'http://64.181.187.11:8080/auth/mesas';
 
   constructor(private http: HttpClient) {}
 
