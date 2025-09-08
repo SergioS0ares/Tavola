@@ -38,7 +38,10 @@
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Senha</mat-label>
-              <input matInput formControlName="senha" type="password">
+              <input matInput formControlName="senha" [type]="passwordVisibility['senhaCliente'] ? 'password' : 'text'">
+              <button mat-icon-button matSuffix (click)="togglePasswordVisibility('senhaCliente')" type="button">
+                <mat-icon>{{passwordVisibility['senhaCliente'] ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
               <mat-error *ngIf="clienteForm.get('senha')?.hasError('required')">
                 Este campo é obrigatório
               </mat-error>
@@ -50,10 +53,14 @@
               </mat-error>
             </mat-form-field>
           </div>
+          
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Confirme sua senha</mat-label>
-              <input matInput formControlName="passwordConfirm" type="password">
+              <input matInput formControlName="passwordConfirm" [type]="passwordVisibility['confirmSenhaCliente'] ? 'password' : 'text'">
+              <button mat-icon-button matSuffix (click)="togglePasswordVisibility('confirmSenhaCliente')" type="button">
+                <mat-icon>{{passwordVisibility['confirmSenhaCliente'] ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
               <mat-error *ngIf="clienteForm.get('passwordConfirm')?.hasError('required')">
                 Este campo é obrigatório
               </mat-error>
@@ -172,7 +179,10 @@
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Senha</mat-label>
-              <input matInput formControlName="senha" type="password">
+              <input matInput formControlName="senha" [type]="passwordVisibility['senhaRestaurante'] ? 'password' : 'text'">
+              <button mat-icon-button matSuffix (click)="togglePasswordVisibility('senhaRestaurante')" type="button">
+                  <mat-icon>{{passwordVisibility['senhaRestaurante'] ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
               <mat-error *ngIf="restauranteForm.get('senha')?.hasError('required')">
                 Este campo é obrigatório
               </mat-error>
@@ -184,10 +194,14 @@
               </mat-error>
             </mat-form-field>
           </div>
+          
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Confirme sua senha</mat-label>
-              <input matInput formControlName="passwordConfirm" type="password">
+              <input matInput formControlName="passwordConfirm" [type]="passwordVisibility['confirmSenhaRestaurante'] ? 'password' : 'text'">
+              <button mat-icon-button matSuffix (click)="togglePasswordVisibility('confirmSenhaRestaurante')" type="button">
+                  <mat-icon>{{passwordVisibility['confirmSenhaRestaurante'] ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
               <mat-error *ngIf="restauranteForm.get('passwordConfirm')?.hasError('required')">
                 Este campo é obrigatório
               </mat-error>

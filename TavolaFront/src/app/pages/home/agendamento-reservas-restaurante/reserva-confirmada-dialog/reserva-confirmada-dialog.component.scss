@@ -1,144 +1,239 @@
-/* reserva-confirmada-dialog.component.scss */
+// reserva-confirmada-dialog.component.scss
 
-// Variáveis de cor para consistência
-$primary-color: #F6BD38;
-$accent-color: #3B221B;
-$success-color: #52c41a;
-$light-gray: #f5f5f5;
-$medium-gray: #e0e0e0;
-
-// Remove padding padrão do mat-dialog-content
-:host ::ng-deep .mat-mdc-dialog-content {
-  padding: 0 24px !important;
-}
-
-.confirmacao-container {
-  padding: 8px; // Pequeno preenchimento interno
-}
-
-.dialog-header {
-  text-align: center;
-  padding-top: 16px;
-
-  .success-icon {
-    font-size: 56px;
-    width: 56px;
-    height: 56px;
-    color: $success-color;
+// :host garante que as variáveis se apliquem apenas a este componente.
+:host {
+    // --- TEMA E VARIÁVEIS (Fácil de customizar) ---
+    --cor-primaria: #F6BD38;
+    --cor-texto: #3B221B;
+    --cor-sucesso: #52c41a;
+    --fundo-card: #ffffff;
+    --fundo-claro: #fafafa;
+    --cor-borda: rgba(59, 34, 27, 0.1);
+    --raio-borda: 8px;
+    --padding-geral: 16px 20px;
   }
-
-  h2 {
-    font-size: 24px;
-    font-weight: 600;
-    color: $accent-color;
-    margin: 8px 0;
-  }
-
-  p {
-    font-size: 16px;
-    color: #555;
-    margin: 0;
-  }
-}
-
-.dialog-content {
-  padding: 20px 0;
-
-  .detalhes-titulo {
-    font-size: 14px;
-    font-weight: 500;
-    color: #777;
-    text-align: center;
-    margin-bottom: 16px;
-    text-transform: uppercase;
-  }
-
-  .detalhes-reserva {
+  
+  // --- LAYOUT BASE ---
+  .dialog-container {
+    background: var(--fundo-card);
+    border-radius: 12px;
+    overflow: hidden;
+    min-width: 420px;
+    max-width: 500px;
+    max-height: 80vh;
     display: flex;
     flex-direction: column;
-    gap: 12px;
   }
-
-  // Estilo das "Pílulas" de informação
-  .detalhe-pill {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: $light-gray;
-    padding: 12px 16px;
-    border-radius: 8px;
-    border-left: 4px solid $primary-color;
-
-    mat-icon {
-      color: $primary-color;
+  
+  // --- CABEÇALHO ---
+  .dialog-header {
+    background: linear-gradient(135deg, var(--fundo-claro) 0%, rgba(246, 189, 56, 0.05) 100%);
+    padding: var(--padding-geral);
+    text-align: center;
+    border-bottom: 1px solid var(--cor-borda);
+    flex-shrink: 0;
+  
+    .success-icon-wrapper {
+      margin-bottom: 12px;
+  
+      .success-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: var(--cor-sucesso);
+        filter: drop-shadow(0 2px 4px rgba(82, 196, 26, 0.2));
+      }
     }
-
-    span {
-      font-size: 15px;
-      font-weight: 500;
-      color: $accent-color;
+  
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cor-texto);
+      margin: 0 0 6px 0;
+      letter-spacing: -0.5px;
     }
-
-    &.comentario {
-      align-items: flex-start; // Para textos longos
-      border-left-color: #1890ff; // Cor diferente para comentários
-
-      mat-icon {
-        color: #1890ff;
-        margin-top: 2px;
+  
+    .subtitle {
+      font-size: 14px;
+      color: rgba(59, 34, 27, 0.7);
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+  
+  // --- CONTEÚDO E LISTA DE DETALHES ---
+  .dialog-content {
+    padding: var(--padding-geral);
+    background: var(--fundo-card);
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .detalhes-section {
+    .detalhes-lista {
+      display: flex;
+      flex-direction: column; // Força todos os itens a ficarem um sobre o outro
+      gap: 12px;
+    }
+  
+    .detalhe-card {
+      background: var(--fundo-claro);
+      border: 1px solid var(--cor-borda);
+      border-radius: var(--raio-borda);
+      padding: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: all 0.2s ease;
+  
+      &:hover {
+        border-color: rgba(246, 189, 56, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+  
+      .card-icon {
+        background: rgba(246, 189, 56, 0.1);
+        border-radius: 6px;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+  
+        mat-icon {
+          color: var(--cor-primaria);
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+  
+      .card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+  
+        .card-label {
+          font-size: 11px;
+          font-weight: 500;
+          color: rgba(59, 34, 27, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+  
+        .card-value {
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--cor-texto);
+          line-height: 1.3;
+        }
       }
     }
   }
-}
-
-// Estilo dos botões de ação
-.dialog-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 24px 16px 24px;
-  gap: 12px;
-
-  .action-btn {
-    width: 100%;
-    height: 48px;
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 15px;
-    text-transform: none;
-  }
-
-  .google-btn {
-    background-color: #4285F4 !important;
-    color: white !important;
+  
+  
+  /* ESTILOS PARA OS BOTÕES */
+  .dialog-actions {
+    background: var(--fundo-claro);
+    border-top: 1px solid var(--cor-borda);
+    padding: var(--padding-geral);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-
-    .google-icon {
-      width: 20px;
-      height: 20px;
+    flex-direction: column; // Garante que os grupos fiquem um sobre o outro
+    gap: 12px; // Espaço entre os grupos de botões
+    flex-shrink: 0;
+  
+    // Wrapper para os botões secundários
+    .secondary-actions-wrapper {
+      display: flex; // Coloca os botões internos lado a lado
+      gap: 12px; // Espaço entre os botões secundários
+      width: 100%;
     }
-  }
-
-  .acoes-secundarias {
-    display: flex;
-    width: 100%;
-    gap: 12px;
-
+  
     .action-btn {
-      flex: 1;
-      height: 44px;
-      color: #555;
-      border-color: $medium-gray;
+      height: 44px; // Altura padrão para todos
+      border-radius: var(--raio-borda);
+      font-weight: 600; // Um pouco mais de peso na fonte
+      font-size: 14px;
+      text-transform: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px; // Mais espaço entre ícone e texto
+      transition: all 0.2s ease;
+  
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+  
+      // Estilo para botões secundários
+      &.secondary-btn {
+        flex: 1; // Faz com que ocupem o espaço igualmente no wrapper
+        background: var(--fundo-card);
+        color: var(--cor-texto);
+        border: 1px solid var(--cor-borda);
+  
+        &:hover {
+          border-color: rgba(246, 189, 56, 0.4);
+          background: rgba(246, 189, 56, 0.05);
+        }
+      }
+  
+      // Estilo para o botão primário
+      &.primary-btn {
+        width: 100%; // Ocupa toda a largura
+        background-color: var(--cor-primaria) !important;
+        color: var(--cor-texto) !important;
+        border: none;
+  
+        &:hover {
+          background-color: darken(#F6BD38, 8%) !important;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
+        }
+      }
     }
   }
-
-  .fechar-btn {
-    margin-top: 8px;
-    color: #777;
-    font-weight: 500;
+  
+  // Remove o padding padrão do Angular Material
+  :host ::ng-deep .mat-mdc-dialog-content {
+    padding: 0 !important;
+    max-height: 60vh;
   }
-}
+  
+  // Responsividade para telas menores
+  @media (max-width: 500px) {
+    .dialog-container {
+      min-width: 320px;
+      margin: 16px;
+      max-height: 90vh;
+    }
+  
+    .detalhes-lista {
+      grid-template-columns: 1fr !important;
+    }
+  
+    .dialog-header {
+      padding: 16px 16px 12px;
+      
+      h2 {
+        font-size: 20px;
+      }
+      
+      .subtitle {
+        font-size: 13px;
+      }
+    }
+  
+    .dialog-content {
+      padding: 12px 16px;
+    }
+    
+    .dialog-actions {
+      padding: 12px 16px;
+    }
+  }

@@ -1,44 +1,68 @@
-<div class="confirmacao-container">
+<div class="dialog-container">
     <div class="dialog-header">
-      <mat-icon class="success-icon">check_circle</mat-icon>
+      <div class="success-icon-wrapper">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+      </div>
       <h2 mat-dialog-title>Reserva Confirmada!</h2>
-      <p>Sua reserva no <strong>{{ data.nomeRestaurante }}</strong> foi efetuada com sucesso.</p>
+      <p class="subtitle">Sua reserva no <strong>{{ data.nomeRestaurante }}</strong> foi efetuada com sucesso.</p>
     </div>
   
-    <nz-divider></nz-divider>
-  
     <mat-dialog-content class="dialog-content">
-      <h3 class="detalhes-titulo">Detalhes da Reserva</h3>
-      <div class="detalhes-reserva">
-        <div class="detalhe-pill">
-          <mat-icon>calendar_today</mat-icon>
-          <span>{{ data.data | date:'dd/MM/yyyy' }} às {{ data.horario }}</span>
-        </div>
-        <div class="detalhe-pill">
-          <mat-icon>group</mat-icon>
-          <span>{{ data.quantidadePessoas }} {{ data.quantidadePessoas > 1 ? 'pessoas' : 'pessoa' }}</span>
-        </div>
-        <div *ngIf="data.comentarios" class="detalhe-pill comentario">
-          <mat-icon>comment</mat-icon>
-          <span>{{ data.comentarios }}</span>
+      <div class="detalhes-section">
+        <div class="detalhes-lista">
+          <div class="detalhe-card">
+            <div class="card-icon"><mat-icon>restaurant</mat-icon></div>
+            <div class="card-content">
+              <span class="card-label">Restaurante</span>
+              <span class="card-value">{{ data.nomeRestaurante }}</span>
+            </div>
+          </div>
+          <div class="detalhe-card">
+            <div class="card-icon"><mat-icon>calendar_today</mat-icon></div>
+            <div class="card-content">
+              <span class="card-label">Data e Horário</span>
+              <span class="card-value">{{ data.data | date:'dd/MM/yyyy' }} às {{ data.horario }}</span>
+            </div>
+          </div>
+          <div class="detalhe-card">
+            <div class="card-icon"><mat-icon>group</mat-icon></div>
+            <div class="card-content">
+              <span class="card-label">Pessoas</span>
+              <span class="card-value">{{ data.quantidadePessoas }} {{ data.quantidadePessoas > 1 ? 'pessoas' : 'pessoa' }}</span>
+            </div>
+          </div>
+          <div *ngIf="data.endereco" class="detalhe-card">
+            <div class="card-icon"><mat-icon>location_on</mat-icon></div>
+            <div class="card-content">
+              <span class="card-label">Endereço</span>
+              <span class="card-value">{{ data.endereco }}</span>
+            </div>
+          </div>
+          <div *ngIf="data.comentarios" class="detalhe-card">
+            <div class="card-icon"><mat-icon>comment</mat-icon></div>
+            <div class="card-content">
+              <span class="card-label">Observações</span>
+              <span class="card-value">{{ data.comentarios }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </mat-dialog-content>
   
     <mat-dialog-actions class="dialog-actions">
-      <div class="acoes-opcionais">
-        <button mat-stroked-button class="action-btn" (click)="adicionarAoGoogleCalendar()">
-          <img src="assets/svg/google-calendar.svg" alt="Google Calendar" class="google-icon">
-          Adicionar ao Calendário
+      <div class="secondary-actions-wrapper">
+        <button mat-stroked-button class="action-btn secondary-btn" (click)="adicionarAoGoogleCalendar()">
+          <mat-icon>event</mat-icon>
+          Calendário
         </button>
-        <button mat-stroked-button class="action-btn" *ngIf="canShare" (click)="compartilharReserva()">
+        <button mat-stroked-button class="action-btn secondary-btn" *ngIf="canShare" (click)="compartilharReserva()">
           <mat-icon>share</mat-icon>
           Compartilhar
         </button>
       </div>
-  
-      <button mat-flat-button color="primary" class="action-btn concluir-btn" (click)="concluir()">
-        Concluir e ir para a Home
+      <button mat-flat-button color="primary" class="action-btn primary-btn" (click)="concluir()">
+        <mat-icon>home</mat-icon>
+        Concluir
       </button>
     </mat-dialog-actions>
   </div>

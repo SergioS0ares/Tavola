@@ -28,7 +28,10 @@
                 <span matPrefix>
                     <mat-icon class="input-icon">lock</mat-icon>
                 </span>
-                <input matInput placeholder="Sua senha" formControlName="senha" type="password">
+                <input matInput placeholder="Sua senha" formControlName="senha" [type]="hidePassword ? 'password' : 'text'">
+                <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                    <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
                 <mat-error *ngIf="loginForm.get('senha')?.hasError('required')">
                     Este campo é obrigatório
                 </mat-error>

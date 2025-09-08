@@ -156,3 +156,38 @@ mat-error {
   font-weight: 500;
   opacity: 1 !important;
 }
+// login.component.scss e signup.component.scss
+
+::ng-deep .mat-mdc-form-field {
+  width: 100%;
+  .mat-mdc-input-element,
+  .mat-mdc-select-value-text,
+  .mdc-floating-label,
+  .mat-mdc-select-arrow {
+      color: white !important;
+  }
+  .mat-mdc-input-element:hover,
+  .mat-mdc-input-element:focus {
+      color: white !important;
+  }
+
+  /* NOVO: Adicione este trecho para mudar a cor do ícone de visibilidade
+  */
+  .mat-mdc-icon-button mat-icon {
+      color: white !important;
+  }
+  /* FIM DA NOVIDADE */
+
+  .mdc-text-field--outlined {
+      --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.6);
+      --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.3);
+      --mdc-outlined-text-field-hover-outline-color: #F6BD38;
+      --mdc-outlined-text-field-focus-outline-color: #F6BD38;
+  }
+  .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+      color: #F6BD38 !important;
+  }
+  textarea {
+      min-height: 100px;
+  }
+}

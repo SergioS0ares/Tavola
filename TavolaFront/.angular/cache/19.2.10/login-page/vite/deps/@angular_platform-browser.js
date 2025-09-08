@@ -19,7 +19,7 @@ import {
   withI18nSupport,
   withIncrementalHydration,
   withNoHttpTransferCache
-} from "./chunk-SRZJFGN4.js";
+} from "./chunk-BBCIOFPE.js";
 import {
   BrowserDomAdapter,
   BrowserGetTestability,
@@ -30,7 +30,7 @@ import {
   createApplication,
   platformBrowser,
   provideProtractorTestingSupport
-} from "./chunk-SDK5WKEV.js";
+} from "./chunk-ZHFP7TC3.js";
 import {
   DomRendererFactory2,
   EVENT_MANAGER_PLUGINS,
@@ -38,17 +38,16 @@ import {
   EventManagerPlugin,
   REMOVE_STYLES_ON_COMPONENT_DESTROY,
   SharedStylesHost
-} from "./chunk-GHBGD7IO.js";
+} from "./chunk-6TYQRXCN.js";
+import "./chunk-WVL4N7HK.js";
 import {
   getDOM
-} from "./chunk-D7VYIZE5.js";
-import "./chunk-M2QKEA4Q.js";
-import "./chunk-JL2UIKLO.js";
-import "./chunk-KMZDDPF6.js";
-import "./chunk-AUUEAPBY.js";
-import "./chunk-ZVBUXEIT.js";
-import "./chunk-WGR2OQS3.js";
-import "./chunk-FZDZWEM2.js";
+} from "./chunk-3THGSVIG.js";
+import "./chunk-CW2EXLSN.js";
+import "./chunk-ECCGN4ZH.js";
+import "./chunk-JVENEIRA.js";
+import "./chunk-CQGGUQNL.js";
+import "./chunk-DH6NDNLB.js";
 import "./chunk-WDMUDEB6.js";
 export {
   BrowserModule,

@@ -35,6 +35,15 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
   styleUrls: ['./signup.component.scss']
 })
 export class SignUpComponent {
+
+   // NOVO: Objeto para controlar a visibilidade de cada campo de senha
+   passwordVisibility: { [key: string]: boolean } = {
+    senhaCliente: true,
+    confirmSenhaCliente: true,
+    senhaRestaurante: true,
+    confirmSenhaRestaurante: true
+  };
+
   selectedTabIndex = 0;
   tiposCozinha = [
     'Italiana', 'Brasileira', 'Japonesa', 'Hamburgueria', 'Chinesa', 'Mexicana', 'Árabe', 'Francesa', 'Indiana', 'Outros'
@@ -118,6 +127,10 @@ export class SignUpComponent {
       erros['semCaractereEspecial'] = true;
     }
     return Object.keys(erros).length ? erros : null;
+  }
+
+  togglePasswordVisibility(field: string): void {
+    this.passwordVisibility[field] = !this.passwordVisibility[field];
   }
 
   passwordMatchValidator = (group: AbstractControl): ValidationErrors | null => {

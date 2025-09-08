@@ -34,6 +34,7 @@ export class LoginComponent {
   loginForm: FormGroup<ILoginForm>;
   showForgotInfo = false;
   showLoginError = false;
+  hidePassword = true;
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
