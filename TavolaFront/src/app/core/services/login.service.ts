@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { LoginResponse } from '../../types/login-response.type';
 import { Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 import { RefreshResponse } from '../../types/refresh-token.type';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoginService {
-  apiUrl: string = "http://64.181.187.11:8080/auth";
+  apiUrl: string = `${environment.apiUrl}/auth`;
 
   constructor(private httpClient: HttpClient, private auth: AuthService) {}
 

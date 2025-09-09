@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { IMesa } from '../../Interfaces/IMesa.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MesaService {
-  private apiUrl = 'http://64.181.187.11:8080/auth/mesas';
+  private apiUrl = `${environment.apiUrl}/auth/mesas`;
 
   constructor(private http: HttpClient) {}
 
