@@ -17,13 +17,13 @@ import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-
+import TavolaSoftware.TavolaApp.tools.Lexico;
 import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class AvaliacaoService {
 
-    @Autowired
+    @Autowired 
     private RestauranteRepository repoRestaurante;
 
     @Autowired
@@ -35,6 +35,8 @@ public class AvaliacaoService {
     // <<< NOVAS DEPENDÊNCIAS PARA ENVIO DE E-MAIL >>>
     @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    private Lexico lexico;
 
     @Value("${spring.mail.username}")
     private String emailRemetente;
@@ -61,20 +63,23 @@ public class AvaliacaoService {
             avaliacao = avaliacaoExistenteOpt.get();
             avaliacao.setScore(scoreFinal);
 
-            // <<< LÓGICA DE ATUALIZAÇÃO DO COMENTÁRIO >>>
-            // Só atualiza o comentário se um novo comentário não nulo e não vazio for enviado.
-            // Se o usuário enviar um comentário vazio, o antigo é mantido.
             if (comentario != null && !comentario.trim().isEmpty()) {
                 avaliacao.setComentario(comentario);
             }
         } else {
-            // Cria uma nova avaliação
             avaliacao = new Avaliacao(restaurante, cliente, scoreFinal, comentario);
         }
 
+        // <<< LÓGICA ADICIONADA AQUI >>>
+        // 1. Analisa o sentimento do comentário atual da avaliação
+        String sentimentoAnalisado = lexico.analisarComentario(avaliacao.getComentario());
+        // 2. Salva o resultado na entidade
+        avaliacao.setSentimento(sentimentoAnalisado);
+        // <<< FIM DA LÓGICA ADICIONADA >>>
+
         Avaliacao avaliacaoSalva = avaliacaoRepository.save(avaliacao);
         
-        calcularMedia(restauranteId); // Recalcula e salva a média
+        calcularMedia(restauranteId);
         
         return avaliacaoSalva;
     }
@@ -113,11 +118,6 @@ public class AvaliacaoService {
     // NOVA FUNCIONALIDADE: E-MAIL DE LEMBRETE DE AVALIAÇÃO
     // ===================================================================
 
-    /**
-     * Envia um e-mail para o cliente após a conclusão de uma reserva, incentivando a avaliação.
-     * Este método deve ser chamado pelo serviço de reservas quando o status de uma reserva for alterado para 'CONCLUIDA'.
-     * @param reserva A reserva que foi concluída.
-     */
     public void enviarEmailLembreteAvaliacao(Reserva reserva) {
         try {
             Cliente cliente = reserva.getCliente();
