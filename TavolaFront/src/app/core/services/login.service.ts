@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { LoginResponse } from '../../types/login-response.type';
+import { LoginResponse, RegisterResponse } from '../../types/login-response.type';
 import { Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
@@ -23,13 +23,8 @@ export class LoginService {
     );
   }
 
-  signup(data: any): Observable<LoginResponse> {
-    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/register`, data, { withCredentials: true }).pipe(
-      tap((value) => {
-        this.auth.setToken(value.token);
-        this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.nome, imagem: value.imagem });
-      })
-    );
+  signup(data: any): Observable<RegisterResponse> {
+    return this.httpClient.post<RegisterResponse>(`${this.apiUrl}/register`, data, { withCredentials: true });
   }
 
   refreshToken(): Observable<LoginResponse> {
@@ -42,8 +37,30 @@ export class LoginService {
           // atualiza token na AuthService
           this.auth.setToken(res.token);
           // se precisar atualizar perfil:
-          this.auth.setPerfil({ tipo: res.tipoUsuario, nome: res.nome, imagem: res.imagem });
+          this.auth.setPerfil({ tipo: res.tipoUsuario, nome: res.nome, imagem: res.imagem, id: res.id});
         })
       );
+  }
+
+  reenviarCodigo(email: string): Observable<any> {
+    return this.httpClient.post(`${this.apiUrl}/reenviar-codigo`, { email });
+  }
+
+  verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: boolean): Observable<LoginResponse> {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/verificar`, {
+      idVerificacao,
+      codigo,
+      mantenhaMeConectado
+    }).pipe(
+      tap((value) => {
+        this.auth.setToken(value.token);
+        this.auth.setPerfil({ 
+          tipo: value.tipoUsuario, 
+          nome: value.nome, 
+          id: value.id,
+          imagem: value.imagem 
+        });
+      })
+    );
   }
 }

@@ -2,11 +2,23 @@ import { Component, type OnInit, type OnDestroy } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router } from "@angular/router"
 import { NzButtonModule } from "ng-zorro-antd/button"
-import { NzIconModule } from "ng-zorro-antd/icon"
+import { NzIconModule, NZ_ICONS } from "ng-zorro-antd/icon"
 import { NzMessageService } from "ng-zorro-antd/message"
 import { NzSpinModule } from "ng-zorro-antd/spin"
 import { NzResultModule } from "ng-zorro-antd/result"
 import { DefaultLoginLayoutComponent } from "../default-login-layout/default-login-layout.component"
+import { LoginService } from "../../../core/services/login.service"
+import { ToastrService } from "ngx-toastr"
+import {
+  MailOutline,
+  CheckCircleFill,
+  UserAddOutline,
+  ReloadOutline,
+  ClockCircleOutline,
+  KeyOutline,
+  QuestionCircleOutline,
+  ArrowLeftOutline
+} from '@ant-design/icons-angular/icons'
 
 @Component({
   selector: "app-verificacao-email",
@@ -14,9 +26,25 @@ import { DefaultLoginLayoutComponent } from "../default-login-layout/default-log
   imports: [CommonModule, NzButtonModule, NzIconModule, NzSpinModule, NzResultModule, DefaultLoginLayoutComponent],
   templateUrl: "./verificacao-email.component.html",
   styleUrls: ["./verificacao-email.component.scss"],
+  providers: [
+    {
+      provide: NZ_ICONS,
+      useValue: [
+        MailOutline,
+        CheckCircleFill,
+        UserAddOutline,
+        ReloadOutline,
+        ClockCircleOutline,
+        KeyOutline,
+        QuestionCircleOutline,
+        ArrowLeftOutline
+      ]
+    }
+  ]
 })
 export class VerificacaoEmailComponent implements OnInit, OnDestroy {
   emailUsuario = ""
+  idVerificacao = ""
   reenviarDisabilitado = false
   tempoRestante = 0
   intervalId: any
@@ -26,11 +54,14 @@ export class VerificacaoEmailComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private message: NzMessageService,
+    private loginService: LoginService,
+    private toastService: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.emailUsuario =
       localStorage.getItem("emailCadastro") || sessionStorage.getItem("emailCadastro") || "seu-email@exemplo.com"
+    this.idVerificacao = localStorage.getItem("idVerificacao") || ""
   }
 
   async reenviarEmail(): Promise<void> {
@@ -39,15 +70,21 @@ export class VerificacaoEmailComponent implements OnInit, OnDestroy {
     this.isLoading = true
 
     try {
-      // Simula chamada para API de reenvio
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      this.message.success("E-mail reenviado com sucesso!")
-
-      this.iniciarCooldown()
+      this.loginService.reenviarCodigo(this.emailUsuario).subscribe({
+        next: () => {
+          this.toastService.success("E-mail reenviado com sucesso!")
+          this.iniciarCooldown()
+        },
+        error: (err: any) => {
+          const errorMessage = err.error?.message || "Erro ao reenviar e-mail. Tente novamente."
+          this.toastService.error(errorMessage)
+        },
+        complete: () => {
+          this.isLoading = false
+        }
+      })
     } catch (error) {
-      this.message.error("Erro ao reenviar e-mail. Tente novamente.")
-    } finally {
+      this.toastService.error("Erro ao reenviar e-mail. Tente novamente.")
       this.isLoading = false
     }
   }
@@ -70,7 +107,11 @@ export class VerificacaoEmailComponent implements OnInit, OnDestroy {
   }
 
   irParaConfirmacao(): void {
-    this.router.navigate(["/confirmar-codigo"])
+    if (this.idVerificacao) {
+      this.router.navigate(["/confirmar-codigo/", this.idVerificacao])
+    } else {
+      this.toastService.error("ID de verificação não encontrado. Tente fazer o cadastro novamente.")
+    }
   }
 
   ngOnDestroy(): void {

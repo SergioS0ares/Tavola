@@ -10,12 +10,6 @@ import {
   _ErrorStateTracker
 } from "./chunk-OVZQHFWT.js";
 import {
-  MatRippleLoader
-} from "./chunk-OS6JBNFZ.js";
-import {
-  _MatInternalFormField
-} from "./chunk-U24Y4LGI.js";
-import {
   MAT_OPTGROUP,
   MAT_OPTION_PARENT_COMPONENT,
   MatOptgroup,
@@ -28,6 +22,12 @@ import {
   _getOptionScrollPosition
 } from "./chunk-XN4ONKLR.js";
 import {
+  _MatInternalFormField
+} from "./chunk-U24Y4LGI.js";
+import {
+  MatRippleLoader
+} from "./chunk-OS6JBNFZ.js";
+import {
   MatRippleModule
 } from "./chunk-SNSFUIU5.js";
 import {
@@ -39,13 +39,13 @@ import {
   _StructuralStylesLoader,
   defaultRippleAnimationConfig
 } from "./chunk-ZZTHX5ZL.js";
-import "./chunk-KJMARGBT.js";
-import "./chunk-OSWLVLQR.js";
-import "./chunk-R2VP7ZZU.js";
 import {
   MATERIAL_SANITY_CHECKS,
   MatCommonModule
 } from "./chunk-OSG77INW.js";
+import "./chunk-KJMARGBT.js";
+import "./chunk-OSWLVLQR.js";
+import "./chunk-R2VP7ZZU.js";
 import "./chunk-GLVVVOMH.js";
 import "./chunk-JWBWZAEB.js";
 import "./chunk-YPGO4SMH.js";

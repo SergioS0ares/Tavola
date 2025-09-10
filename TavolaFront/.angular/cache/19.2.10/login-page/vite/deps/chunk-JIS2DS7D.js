@@ -16,6 +16,10 @@ import {
   NzStringTemplateOutletDirective
 } from "./chunk-PTFS5UWO.js";
 import {
+  CdkConnectedOverlay,
+  OverlayModule
+} from "./chunk-BTAD5MRR.js";
+import {
   NzConfigService,
   isPresetColor
 } from "./chunk-QK7325TP.js";
@@ -23,10 +27,6 @@ import {
   isNotNil,
   toBoolean
 } from "./chunk-4XXVZNE2.js";
-import {
-  CdkConnectedOverlay,
-  OverlayModule
-} from "./chunk-BTAD5MRR.js";
 import {
   _getEventTarget
 } from "./chunk-XRI5TUYR.js";
@@ -805,4 +805,4 @@ export {
   NzToolTipComponent,
   NzToolTipModule
 };
-//# sourceMappingURL=chunk-UMNZ3I7O.js.map
+//# sourceMappingURL=chunk-JIS2DS7D.js.map

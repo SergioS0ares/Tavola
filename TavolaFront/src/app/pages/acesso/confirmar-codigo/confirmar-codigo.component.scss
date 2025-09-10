@@ -151,6 +151,25 @@
     }
   }
 
+  .checkbox-section {
+    margin: 2rem 0;
+    display: flex;
+    justify-content: center;
+    
+    .keep-connected-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      
+      .checkbox-text {
+        color: #E8E8E8;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+    }
+  }
+
   .help-section {
     margin-top: 2rem;
     

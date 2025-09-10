@@ -1,5 +1,6 @@
 // auth.service.ts
 import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 export interface Perfil {
   tipo: 'CLIENTE' | 'RESTAURANTE';
@@ -18,7 +19,7 @@ export class AuthService {
 
   private _token: string | null = null;
   private _perfil: Perfil | null = null;
-  private readonly BASE_IMAGE_URL = 'http://64.181.187.11:8080';
+  private readonly BASE_IMAGE_URL = `${environment.apiUrl}`
 
   constructor() {
     this._token = localStorage.getItem(this.TOKEN_KEY);
@@ -39,7 +40,7 @@ export class AuthService {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_NAME_KEY, nome);
     localStorage.setItem(this.USER_TYPE_KEY, tipoUsuario);
-    if (id && tipoUsuario === 'RESTAURANTE') {
+    if (id) {
        localStorage.setItem(this.RESTAURANTE_ID_KEY, id);
     }
     if (imagem) {
@@ -62,7 +63,7 @@ export class AuthService {
     this._perfil = perfil;
     localStorage.setItem(this.USER_NAME_KEY, perfil.nome);
     localStorage.setItem(this.USER_TYPE_KEY, perfil.tipo);
-    if (perfil.tipo === 'RESTAURANTE' && perfil.id) {
+    if (perfil.id) {
         localStorage.setItem(this.RESTAURANTE_ID_KEY, perfil.id);
     }
     if (perfil.imagem) {

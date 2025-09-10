@@ -1,8 +1,9 @@
 <app-default-login-layout 
   title="Digite o código de verificação"
   primaryBtnText="Verificar Código"
-  secondaryBtnText="Não recebeu o código?"
+  secondaryBtnText="Voltar"
   [disablePrimaryBtn]="!isCodigoCompleto() || carregando"
+  [primaryBtnLoading]="carregando"
   (submit)="verificarCodigo()"
   (navigate)="voltarVerificacao()">
   
@@ -42,6 +43,13 @@
       <p class="status-text" [ngClass]="statusType">{{ statusMessage }}</p>
     </div>
     
+    <!-- Checkbox para manter conectado -->
+    <div class="checkbox-section">
+      <label nz-checkbox [(ngModel)]="mantenhaMeConectado" class="keep-connected-checkbox">
+        <span class="checkbox-text">Manter-me conectado</span>
+      </label>
+    </div>
+
     <!-- Melhorado o texto de ajuda com melhor hierarquia -->
     <div class="help-section">
       <div class="help-text">

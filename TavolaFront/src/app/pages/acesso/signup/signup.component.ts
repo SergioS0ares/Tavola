@@ -15,11 +15,10 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { HttpClient } from '@angular/common/http';
-import { LayoutPrincipalComponent } from '../../layout-principal/layout-principal.component';
-import { NgxMaskDirective} from 'ngx-mask';
 import { ISignupForm } from '../../../Interfaces/ISignupForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
-import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
+import { LoginOutline, UserAddOutline, ShopOutline } from '@ant-design/icons-angular/icons';
 
 @Component({
   selector: 'app-signup',
@@ -27,10 +26,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
   imports: [
     CommonModule, DefaultLoginLayoutComponent, ReactiveFormsModule, MatFormFieldModule,
     MatInputModule, MatIconModule, MatButtonModule, MatDividerModule, MatSelectModule,
-    MatRadioModule, MatTabsModule, MatCheckboxModule, LayoutPrincipalComponent, NgxMaskDirective,
-    NzIconModule
+    MatRadioModule, MatTabsModule, MatCheckboxModule, NzIconModule
   ],
-  providers: [],
+  providers: [
+    { provide: NZ_ICONS, useValue: [LoginOutline, UserAddOutline, ShopOutline] }
+  ],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
@@ -201,12 +201,14 @@ export class SignUpComponent {
     };
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.imagem);
-        this.toastService.success("Cadastro realizado com sucesso!");
+        // Salva o email e idVerificacao para usar na tela de verificação
+        localStorage.setItem('emailCadastro', formValue.email);
+        localStorage.setItem('idVerificacao', res.idVerificacao);
+        this.toastService.success(res.mensagem);
         this.router.navigate(['verificacao-email']);
       },
       error: (err: any) => {
-        const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
+        const errorMessage = err.error?.erro || err.error?.message || "Erro inesperado! Tente novamente mais tarde";
         this.toastService.error(errorMessage);
       }
     });
@@ -251,12 +253,14 @@ export class SignUpComponent {
 
     this.loginService.signup(payload).subscribe({
       next: (res) => {
-        this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id, res.imagem);
-        this.toastService.success("Cadastro realizado com sucesso!");
+        // Salva o email e idVerificacao para usar na tela de verificação
+        localStorage.setItem('emailCadastro', form.email);
+        localStorage.setItem('idVerificacao', res.idVerificacao);
+        this.toastService.success(res.mensagem);
         this.router.navigate(['verificacao-email']);
       },
       error: (err: any) => {
-        const errorMessage = err.error?.message || "Erro inesperado! Tente novamente mais tarde";
+        const errorMessage = err.error?.erro || err.error?.message || "Erro inesperado! Tente novamente mais tarde";
         this.toastService.error(errorMessage);
       }
     });

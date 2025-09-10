@@ -10,6 +10,7 @@ import {
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, EMPTY, throwError } from 'rxjs';
 import { catchError, switchMap, filter, take, finalize } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 import { AuthService } from '../services/auth.service';
 import { LoginService } from '../services/login.service';
@@ -26,7 +27,7 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const isApiRequest = request.url.startsWith('http://64.181.187.11:8080');
+    const isApiRequest = request.url.startsWith(`${environment.apiUrl}`);
     const token = this.auth.getToken();
     const authReq = isApiRequest
       ? request.clone({

@@ -3,11 +3,22 @@ import { CommonModule } from "@angular/common"
 import { Router, ActivatedRoute } from "@angular/router"
 import { FormsModule } from "@angular/forms"
 import { ToastrService } from "ngx-toastr"
+import { LoginService } from "../../../core/services/login.service"
 
 // NG-ZORRO IMPORTS
 import { NzInputOtpComponent } from "ng-zorro-antd/input"
 import { NzButtonModule } from "ng-zorro-antd/button"
-import { NzIconModule } from "ng-zorro-antd/icon"
+import { NzIconModule, NZ_ICONS } from "ng-zorro-antd/icon"
+import { NzCheckboxModule } from "ng-zorro-antd/checkbox"
+import {
+  SafetyCertificateOutline,
+  LoadingOutline,
+  ClockCircleOutline,
+  ReloadOutline,
+  CheckCircleOutline,
+  CloseCircleOutline,
+  InfoCircleOutline
+} from '@ant-design/icons-angular/icons'
 
 // SEU COMPONENTE DE LAYOUT
 import { DefaultLoginLayoutComponent } from "../default-login-layout/default-login-layout.component"
@@ -22,28 +33,47 @@ import { DefaultLoginLayoutComponent } from "../default-login-layout/default-log
     NzButtonModule,
     NzIconModule,
     NzInputOtpComponent,
+    NzCheckboxModule,
     // SEU COMPONENTE
     DefaultLoginLayoutComponent,
   ],
   templateUrl: "./confirmar-codigo.component.html",
   styleUrls: ["./confirmar-codigo.component.scss"],
+  providers: [
+    {
+      provide: NZ_ICONS,
+      useValue: [
+        SafetyCertificateOutline,
+        LoadingOutline,
+        ClockCircleOutline,
+        ReloadOutline,
+        CheckCircleOutline,
+        CloseCircleOutline,
+        InfoCircleOutline
+      ]
+    }
+  ]
 })
 export class ConfirmarCodigoComponent implements OnInit {
-  idUsuario = ""
+  idVerificacao = ""
   codigo = ""
   carregando = false
   reenviando = false
   hasError = false
   statusMessage = ""
   statusType: "success" | "error" | "info" = "info"
+  mantenhaMeConectado = false
+  emailUsuario = ""
 
   private router = inject(Router)
   private route = inject(ActivatedRoute)
   private toastr = inject(ToastrService)
+  private loginService = inject(LoginService)
 
   ngOnInit() {
-    this.idUsuario = this.route.snapshot.params["id"]
-    if (!this.idUsuario) {
+    this.idVerificacao = this.route.snapshot.params["id"]
+    this.emailUsuario = localStorage.getItem("emailCadastro") || ""
+    if (!this.idVerificacao) {
       this.toastr.warning("Sessão inválida. Redirecionando para login...")
       this.router.navigate(["/login"])
     }
@@ -75,25 +105,37 @@ export class ConfirmarCodigoComponent implements OnInit {
     this.statusMessage = "Verificando código..."
     this.statusType = "info"
 
-    // Simula a validação com a API
-    setTimeout(() => {
-      if (this.codigo === "123456") {
+    this.loginService.verificarCodigo(this.idVerificacao, this.codigo, this.mantenhaMeConectado).subscribe({
+      next: (res) => {
         this.statusMessage = "Código verificado com sucesso!"
         this.statusType = "success"
         this.toastr.success("Conta verificada com sucesso!")
 
+        // Limpa os dados temporários
+        localStorage.removeItem('emailCadastro')
+        localStorage.removeItem('idVerificacao')
+
         setTimeout(() => {
-          this.router.navigate(["/home"])
+          // Redireciona baseado no tipo de usuário
+          if (res.tipoUsuario === 'CLIENTE') {
+            this.router.navigate(["/home"])
+          } else {
+            this.router.navigate(["/reserva"])
+          }
         }, 1000)
-      } else {
+      },
+      error: (err: any) => {
         this.hasError = true
-        this.statusMessage = "Código inválido ou expirado."
+        const errorMessage = err.error?.erro || "Código inválido ou expirado. Tente novamente."
+        this.statusMessage = errorMessage
         this.statusType = "error"
-        this.toastr.error("Código inválido ou expirado. Tente novamente.")
+        this.toastr.error(errorMessage)
         this.limparCodigo()
+      },
+      complete: () => {
+        this.carregando = false
       }
-      this.carregando = false
-    }, 1500)
+    })
   }
 
   reenviarCodigo() {
@@ -101,18 +143,26 @@ export class ConfirmarCodigoComponent implements OnInit {
     this.statusMessage = "Reenviando código..."
     this.statusType = "info"
 
-    // Simula reenvio
-    setTimeout(() => {
-      this.reenviando = false
-      this.statusMessage = "Novo código enviado para seu e-mail!"
-      this.statusType = "success"
-      this.toastr.success("Novo código enviado!")
+    this.loginService.reenviarCodigo(this.emailUsuario).subscribe({
+      next: () => {
+        this.reenviando = false
+        this.statusMessage = "Novo código enviado para seu e-mail!"
+        this.statusType = "success"
+        this.toastr.success("Novo código enviado!")
 
-      // Limpa a mensagem após alguns segundos
-      setTimeout(() => {
-        this.statusMessage = ""
-      }, 3000)
-    }, 2000)
+        // Limpa a mensagem após alguns segundos
+        setTimeout(() => {
+          this.statusMessage = ""
+        }, 3000)
+      },
+      error: (err: any) => {
+        this.reenviando = false
+        const errorMessage = err.error?.message || "Erro ao reenviar código. Tente novamente."
+        this.statusMessage = errorMessage
+        this.statusType = "error"
+        this.toastr.error(errorMessage)
+      }
+    })
   }
 
   voltarVerificacao() {

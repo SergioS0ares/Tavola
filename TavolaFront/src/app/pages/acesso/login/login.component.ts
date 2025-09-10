@@ -11,7 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { ILoginForm } from '../../../Interfaces/ILoginForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
-import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
+import { LoginOutline, UserAddOutline } from '@ant-design/icons-angular/icons';
 
 @Component({
   selector: 'app-login',
@@ -26,7 +27,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     MatButtonModule,
     NzIconModule
   ],
-  providers: [],
+  providers: [
+    { provide: NZ_ICONS, useValue: [LoginOutline, UserAddOutline] }
+  ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -89,7 +92,7 @@ export class LoginComponent {
         },
         error: (err) => {
           this.showLoginError = true;
-          const errorMessage = err.error?.message || "Não foi possível acessar sua conta. Verifique seu e-mail e senha e tente novamente.";
+          const errorMessage = err.error?.erro || err.error?.message || "Não foi possível acessar sua conta. Verifique seu e-mail e senha e tente novamente.";
           this.toastService.error(errorMessage);
         }
       });
