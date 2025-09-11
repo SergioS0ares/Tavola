@@ -8,14 +8,18 @@ import TavolaSoftware.TavolaApp.REST.dto.VerificacaoRequest;
 import TavolaSoftware.TavolaApp.REST.model.AccessModel;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AccessRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import java.util.HashSet; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.Set; // <<< ADICIONE ESTA IMPORTAÇÃO
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -45,6 +49,8 @@ public class AccessController {
     @Autowired private RestauranteRepository repoRestaurante; // <<< ADICIONE ESTA LINHA
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
+    @Autowired private ServicoRepository repoServico; // <<< ADICIONE ESTA LINHA
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
@@ -130,33 +136,46 @@ public class AccessController {
             
             try {
                 ObjectMapper mapper = new ObjectMapper();
+                // Assumindo que seu RegistroRequest tem todos os campos do payload
                 RegistroRequest originalRequest = mapper.readValue(pending.getPayload(), RegistroRequest.class);
                 usuario.setEndereco(originalRequest.getEndereco());
                 usuario.setTelefone(originalRequest.getTelefone());
                 
-                // Salva o usuário primeiro para gerar o ID
-                repo.save(usuario);
+                repo.save(usuario); // Salva o usuário primeiro para gerar o ID
 
-                // <<< INÍCIO DA ALTERAÇÃO >>>
-                // Agora, com base no tipo, criamos a entidade específica (Cliente ou Restaurante)
                 if (usuario.getTipo() == TipoUsuario.CLIENTE) {
                     Cliente cliente = new Cliente();
                     cliente.setUsuario(usuario);
                     repoClient.save(cliente);
                 
                 } else if (usuario.getTipo() == TipoUsuario.RESTAURANTE) {
-                    // Lógica que estava faltando para criar o restaurante
                     Restaurante restaurante = new Restaurante();
-                    restaurante.setUsuario(usuario); // Associa o usuário ao restaurante
+                    restaurante.setUsuario(usuario);
                     
                     // Preenche com os dados que vieram na requisição original
                     restaurante.setDescricao(originalRequest.getDescricao());
                     restaurante.setTipoCozinha(originalRequest.getTipoCozinha());
+
+                    // <<< INÍCIO DA CORREÇÃO >>>
+                    // Popula os campos que estavam faltando
+                    if (originalRequest.getHoraFuncionamento() != null) {
+                        restaurante.setHorariosFuncionamento(originalRequest.getHoraFuncionamento());
+                    }
+
+                    if (originalRequest.getNomesServicos() != null && !originalRequest.getNomesServicos().isEmpty()) {
+                        Set<Servico> servicosParaAssociar = new HashSet<>();
+                        for (String nomeServico : originalRequest.getNomesServicos()) {
+                            // Encontra o serviço pelo nome ou cria um novo se não existir
+                            Servico serv = repoServico.findByNome(nomeServico)
+                                            .orElseGet(() -> repoServico.save(new Servico(nomeServico, ""))); // Usa o repoServico injetado
+                            servicosParaAssociar.add(serv);
+                        }
+                        restaurante.setServicos(servicosParaAssociar);
+                    }
+                    // <<< FIM DA CORREÇÃO >>>
                     
-                    // Salva a nova entidade Restaurante
-                    repoRestaurante.save(restaurante);
+                    repoRestaurante.save(restaurante); // Salva a nova entidade Restaurante
                 }
-                // <<< FIM DA ALTERAÇÃO >>>
 
             } catch (JsonProcessingException e) {
                  return ResponseEntity.internalServerError().body(Map.of("erro", "Falha ao recriar dados do usuário."));
@@ -170,6 +189,7 @@ public class AccessController {
     @PostMapping("/reenviar-codigo")
     public ResponseEntity<?> reenviarCodigo(@RequestBody ReenvioRequest request) {
         Optional<AccessModel> pendingOpt = accessRepository.findByEmail(request.getEmail());
+        
         if (pendingOpt.isPresent()) {
             AccessModel pending = pendingOpt.get();
             String novoCodigo = accessService.gerarCodigoDeVerificacao();
@@ -177,16 +197,17 @@ public class AccessController {
             pending.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
             accessRepository.save(pending);
             
-            // <<< ALTERAÇÃO AQUI >>>
-            // Agora também criamos a URL para o fluxo de reenvio
             String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pending.getId();
             accessService.enviarEmailVerificacao(pending.getEmail(), pending.getNome(), novoCodigo, urlDeVerificacao);
+
+            return ResponseEntity.ok(Map.of(
+                "mensagem", "Um novo código de verificação foi enviado para o seu e-mail.",
+                "idVerificacao", pending.getId()
+            ));
         }
+        
         return ResponseEntity.ok(Map.of("mensagem", "Se uma verificação estiver pendente para este e-mail, um novo código foi enviado."));
     }
-
-    // ... O resto dos seus métodos (refresh, logout, senha, etc.) e o método auxiliar 'gerarRespostaComTokens' continuam iguais ...
-    // Apenas para garantir, aqui estão eles:
     
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) { 

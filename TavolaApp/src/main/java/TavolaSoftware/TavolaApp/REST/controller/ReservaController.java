@@ -14,6 +14,7 @@ import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -239,33 +240,14 @@ public class ReservaController {
     
     @PutMapping("/{idReserva}/update")
     public ResponseEntity<?> atualizarReserva(@PathVariable("idReserva") UUID idReserva, @RequestBody ReservaRequest reservaRequest) { 
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        if (reservaRequest.getDataReserva() != null) {
-            handler.checkCondition(
-                "O campo 'Data da Reserva (dataReserva)' não pode ser vazio se fornecido.", 
-                reservaRequest.getDataReserva().isBlank()
-            );
-        }
-        if (reservaRequest.getHorarioReserva() != null) {
-            handler.checkCondition(
-                "O campo 'Horário da Reserva (horarioReserva)' não pode ser vazio se fornecido.",
-                reservaRequest.getHorarioReserva().isBlank()
-            );
-        }
-        if (reservaRequest.getQuantidadePessoasReserva() < 0) {
-            handler.checkCondition(
-                "O campo 'Quantidade de Pessoas (quantidadePessoasReserva)' não pode ser um valor negativo.",
-                true
-            );
-        }
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
-        }
+        // O bloco de validação manual foi removido.
+        // A validação de negócio agora é responsabilidade exclusiva do ReservaService.
 
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
             ReservaResponse reservaAtualizada = reservaService.atualizarReserva(idReserva, reservaRequest, emailUsuarioLogado); 
             return ResponseEntity.ok(reservaAtualizada); 
+        
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage())); 
         } catch (SecurityException e) {
