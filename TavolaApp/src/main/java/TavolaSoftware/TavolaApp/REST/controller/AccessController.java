@@ -7,9 +7,11 @@ import TavolaSoftware.TavolaApp.REST.dto.RegistroRequest;
 import TavolaSoftware.TavolaApp.REST.dto.VerificacaoRequest;
 import TavolaSoftware.TavolaApp.REST.model.AccessModel;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AccessRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
@@ -40,6 +42,7 @@ public class AccessController {
     @Autowired private AccessRepository accessRepository;
     @Autowired private UsuarioRepository repo;
     @Autowired private ClienteRepository repoClient;
+    @Autowired private RestauranteRepository repoRestaurante; // <<< ADICIONE ESTA LINHA
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
 
@@ -109,12 +112,15 @@ public class AccessController {
         if (pending == null || !pending.getCodigoVerificacao().equals(request.getCodigo()) || pending.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Código de verificação inválido ou expirado."));
         }
+        
         Usuario usuario;
+        
         if (pending.getUsuarioId() != null) {
             usuario = repo.findById(pending.getUsuarioId()).orElseThrow(() -> 
                 new RuntimeException("Usuário associado à verificação não encontrado.")
             );
         } else {
+            // Cria o usuário base a partir dos dados pendentes
             usuario = new Usuario();
             usuario.setNome(pending.getNome());
             usuario.setEmail(pending.getEmail());
@@ -127,16 +133,36 @@ public class AccessController {
                 RegistroRequest originalRequest = mapper.readValue(pending.getPayload(), RegistroRequest.class);
                 usuario.setEndereco(originalRequest.getEndereco());
                 usuario.setTelefone(originalRequest.getTelefone());
+                
+                // Salva o usuário primeiro para gerar o ID
+                repo.save(usuario);
+
+                // <<< INÍCIO DA ALTERAÇÃO >>>
+                // Agora, com base no tipo, criamos a entidade específica (Cliente ou Restaurante)
+                if (usuario.getTipo() == TipoUsuario.CLIENTE) {
+                    Cliente cliente = new Cliente();
+                    cliente.setUsuario(usuario);
+                    repoClient.save(cliente);
+                
+                } else if (usuario.getTipo() == TipoUsuario.RESTAURANTE) {
+                    // Lógica que estava faltando para criar o restaurante
+                    Restaurante restaurante = new Restaurante();
+                    restaurante.setUsuario(usuario); // Associa o usuário ao restaurante
+                    
+                    // Preenche com os dados que vieram na requisição original
+                    restaurante.setDescricao(originalRequest.getDescricao());
+                    restaurante.setTipoCozinha(originalRequest.getTipoCozinha());
+                    
+                    // Salva a nova entidade Restaurante
+                    repoRestaurante.save(restaurante);
+                }
+                // <<< FIM DA ALTERAÇÃO >>>
+
             } catch (JsonProcessingException e) {
                  return ResponseEntity.internalServerError().body(Map.of("erro", "Falha ao recriar dados do usuário."));
             }
-            repo.save(usuario);
-            if (usuario.getTipo() == TipoUsuario.CLIENTE) {
-                Cliente cliente = new Cliente();
-                cliente.setUsuario(usuario);
-                repoClient.save(cliente);
-            }
         }
+        
         accessRepository.delete(pending);
         return gerarRespostaComTokens(usuario, request.isMantenhaMeConectado(), response);
     }
