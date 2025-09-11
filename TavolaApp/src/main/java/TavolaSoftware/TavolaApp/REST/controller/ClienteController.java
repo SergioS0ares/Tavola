@@ -36,9 +36,12 @@ public class ClienteController {
     @Autowired
     private RestauranteService servRestaurante;
     
-    // ... (Seus métodos GET e POST como favoritar e avaliar permanecem os mesmos) ...
+    /*
+     * GET auth/clientes/favoritos
+     * Endpoint pro cliente se lembrar de quem ele gosta
+     * */ 
     @GetMapping("/favoritos")
-    public ResponseEntity<?> findAllFavoritos() { /* ... seu código ... */ 
+    public ResponseEntity<?> findAllFavoritos() {  
         try {
             String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             List<UUID> favoritos = serv.getFavoritos(emailCliente);
@@ -50,6 +53,10 @@ public class ClienteController {
         }
     }
     
+    /*
+     * GET auth/clientes/get
+     * Endpoint pro cliente lembrar quem ele é
+     * */
     @GetMapping("/get")
     public ResponseEntity<?> findSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -63,11 +70,18 @@ public class ClienteController {
         }
     }
 
+    /*
+     * Pega todos os clientes... simples assim
+     * */ 
     @GetMapping("/getall")
-    public ResponseEntity<List<Cliente>> findAll() { /* ... seu código ... */ 
+    public ResponseEntity<List<Cliente>> findAll() { 
         return ResponseEntity.ok(serv.findAll());
     }
 
+    /*
+     * POST auth/clientes/avaliar/{id}
+     * Endpoint para o cliente avaliar um restaurante
+     * */
     @PostMapping("/avaliar/{restauranteId}")
     public ResponseEntity<?> avaliar(@PathVariable UUID restauranteId, @RequestBody AvaliacaoRequest avaliacaoRequest) { /* ... seu código ... */
         try {
@@ -88,6 +102,10 @@ public class ClienteController {
         }
     }
 
+    /*
+     * POST auth/clientes/favoritar/{id}
+     * Endpoint para o cliente favoritar um restaurante
+     * */
     @PostMapping("/favoritar/{id}")
     public ResponseEntity<?> favoritar(@PathVariable("id") UUID restauranteId) { /* ... seu código ... */ 
         try {
@@ -128,8 +146,12 @@ public class ClienteController {
         }
     }
 
+    /*
+     * DELETE auth/clientes/delete
+     * Endpoint para o cliente se matar
+     * */
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> delete() { /* ... seu código ... */ 
+    public ResponseEntity<Void> delete() {  
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         serv.deleteByEmail(email);
         return ResponseEntity.noContent().build();

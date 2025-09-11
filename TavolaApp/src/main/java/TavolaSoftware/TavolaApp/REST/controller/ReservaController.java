@@ -1,36 +1,41 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
-import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.StatusUpdateRequest;
-import TavolaSoftware.TavolaApp.REST.model.Cliente;
-import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
-import TavolaSoftware.TavolaApp.REST.service.ClienteService;
-import TavolaSoftware.TavolaApp.REST.service.ReservaService;
-import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
-import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
-import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.HistoricoResponse;
+import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.StatusUpdateRequest;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.model.Usuario;
+import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.REST.service.ReservaService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
+import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
+import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 
 @RestController
 @RequestMapping("/auth/reservas")
 public class ReservaController {
 
     @Autowired private ReservaService reservaService;
-    @Autowired private ClienteService clienteService;
     @Autowired private RestauranteService restauranteService;
     @Autowired private UsuarioRepository usuarioRepository;
 
@@ -185,29 +190,28 @@ public class ReservaController {
         }
     }
     
-    @GetMapping("/cliente")
-    public ResponseEntity<?> listarMinhasReservasCliente(
-            @RequestParam(defaultValue = "latest") String ordem,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "20") int tamanho) {
+    /**
+     * NOVO ENDPOINT
+     * Retorna o histórico de reservas para o usuário autenticado.
+     * O formato da resposta varia se o usuário é um CLIENTE ou um RESTAURANTE.
+     */
+    @GetMapping("/meu-historico")
+    public ResponseEntity<?> getMeuHistorico() {
         try {
-            String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuarioLogado = usuarioRepository.findByEmail(emailCliente);
-            if (usuarioLogado == null || usuarioLogado.getTipo() != TipoUsuario.CLIENTE) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                     .body(Map.of("erro", "Apenas clientes podem acessar suas reservas por este endpoint."));
+            String emailUsuario = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuario);
+
+            if (usuarioLogado == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado ou não encontrado."));
             }
-            
-            Cliente cliente = clienteService.findByEmail(emailCliente)
-                .orElseThrow(() -> new RuntimeException("Cliente autenticado não encontrado."));
-            
-            List<ReservaResponse> reservas = reservaService.findAllByClienteOrdered(cliente.getId(), ordem, pagina, tamanho);
-            return ResponseEntity.ok(reservas);
-        } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) {
-                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar reservas do cliente: " + e.getMessage()));
+
+            // A lógica de serviço decide qual tipo de histórico retornar
+            List<HistoricoResponse> historico = reservaService.getHistorico(usuarioLogado);
+            return ResponseEntity.ok(historico);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(Map.of("erro", "Ocorreu um erro ao buscar o histórico de reservas: " + e.getMessage()));
         }
     }
 
@@ -239,33 +243,14 @@ public class ReservaController {
     
     @PutMapping("/{idReserva}/update")
     public ResponseEntity<?> atualizarReserva(@PathVariable("idReserva") UUID idReserva, @RequestBody ReservaRequest reservaRequest) { 
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        if (reservaRequest.getDataReserva() != null) {
-            handler.checkCondition(
-                "O campo 'Data da Reserva (dataReserva)' não pode ser vazio se fornecido.", 
-                reservaRequest.getDataReserva().isBlank()
-            );
-        }
-        if (reservaRequest.getHorarioReserva() != null) {
-            handler.checkCondition(
-                "O campo 'Horário da Reserva (horarioReserva)' não pode ser vazio se fornecido.",
-                reservaRequest.getHorarioReserva().isBlank()
-            );
-        }
-        if (reservaRequest.getQuantidadePessoasReserva() < 0) {
-            handler.checkCondition(
-                "O campo 'Quantidade de Pessoas (quantidadePessoasReserva)' não pode ser um valor negativo.",
-                true
-            );
-        }
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
-        }
+        // O bloco de validação manual foi removido.
+        // A validação de negócio agora é responsabilidade exclusiva do ReservaService.
 
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(); 
             ReservaResponse reservaAtualizada = reservaService.atualizarReserva(idReserva, reservaRequest, emailUsuarioLogado); 
             return ResponseEntity.ok(reservaAtualizada); 
+        
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage())); 
         } catch (SecurityException e) {

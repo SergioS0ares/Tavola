@@ -7,13 +7,21 @@ import TavolaSoftware.TavolaApp.REST.dto.RegistroRequest;
 import TavolaSoftware.TavolaApp.REST.dto.VerificacaoRequest;
 import TavolaSoftware.TavolaApp.REST.model.AccessModel;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AccessRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import io.jsonwebtoken.Claims;
+
+import java.util.HashSet; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.Set; // <<< ADICIONE ESTA IMPORTAÇÃO
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -40,8 +48,11 @@ public class AccessController {
     @Autowired private AccessRepository accessRepository;
     @Autowired private UsuarioRepository repo;
     @Autowired private ClienteRepository repoClient;
+    @Autowired private RestauranteRepository repoRestaurante; // <<< ADICIONE ESTA LINHA
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
+    @Autowired private ServicoRepository repoServico; // <<< ADICIONE ESTA LINHA
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest request) {
@@ -75,32 +86,56 @@ public class AccessController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest) { 
-        Usuario usuario = repo.findByEmail(loginRequest.getEmail());
-        if (usuario != null && BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
-            AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
-            
-            pendingLogin.setEmail(usuario.getEmail());
-            pendingLogin.setNome(usuario.getNome());
-            pendingLogin.setSenhaCriptografada(usuario.getSenha());
-            pendingLogin.setTipo(usuario.getTipo());
-            pendingLogin.setUsuarioId(usuario.getId());
-            pendingLogin.setCodigoVerificacao(accessService.gerarCodigoDeVerificacao());
-            pendingLogin.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
-            
-            accessRepository.save(pendingLogin);
-            
-            // <<< ALTERAÇÃO AQUI >>>
-            // Agora também criamos a URL para o fluxo de login
-            String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pendingLogin.getId();
-            accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), pendingLogin.getCodigoVerificacao(), urlDeVerificacao);
-            
-            return ResponseEntity.ok(Map.of(
-                "mensagem", "Código de verificação enviado para o seu e-mail.",
-                "idVerificacao", pendingLogin.getId()
-            ));
+    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+    	Usuario usuario = repo.findByEmail(loginRequest.getEmail());
+        if (usuario == null || !BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
+        
+        try {
+            String refreshTokenDoCookie = null;
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("refreshToken".equals(cookie.getName())) {
+                        refreshTokenDoCookie = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+
+            if (refreshTokenDoCookie != null && jwt.isTokenValid(refreshTokenDoCookie)) {
+                Claims claims = jwt.parseToken(refreshTokenDoCookie);
+                String emailDoToken = claims.getSubject();
+
+                if (emailDoToken != null && emailDoToken.equals(usuario.getEmail())) {
+                    System.out.println("Usuário confiável. Login direto para: " + usuario.getEmail());
+                    return gerarRespostaComTokens(usuario, true, response);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Cookie de refreshToken inválido, prosseguindo com verificação por e-mail: " + e.getMessage());
+        }
+
+        System.out.println("Acesso não confiável. Iniciando verificação por e-mail para: " + usuario.getEmail());
+        AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
+        
+        pendingLogin.setEmail(usuario.getEmail());
+        pendingLogin.setNome(usuario.getNome());
+        pendingLogin.setSenhaCriptografada(usuario.getSenha());
+        pendingLogin.setTipo(usuario.getTipo());
+        pendingLogin.setUsuarioId(usuario.getId());
+        pendingLogin.setCodigoVerificacao(accessService.gerarCodigoDeVerificacao());
+        pendingLogin.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
+        
+        accessRepository.save(pendingLogin);
+        
+        String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pendingLogin.getId();
+        accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), pendingLogin.getCodigoVerificacao(), urlDeVerificacao);
+        
+        return ResponseEntity.ok(Map.of(
+            "mensagem", "Código de verificação enviado para o seu e-mail.",
+            "idVerificacao", pendingLogin.getId()
+        ));
     }
 
     @PostMapping("/verificar")
@@ -109,12 +144,15 @@ public class AccessController {
         if (pending == null || !pending.getCodigoVerificacao().equals(request.getCodigo()) || pending.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Código de verificação inválido ou expirado."));
         }
+        
         Usuario usuario;
+        
         if (pending.getUsuarioId() != null) {
             usuario = repo.findById(pending.getUsuarioId()).orElseThrow(() -> 
                 new RuntimeException("Usuário associado à verificação não encontrado.")
             );
         } else {
+            // Cria o usuário base a partir dos dados pendentes
             usuario = new Usuario();
             usuario.setNome(pending.getNome());
             usuario.setEmail(pending.getEmail());
@@ -124,19 +162,47 @@ public class AccessController {
             
             try {
                 ObjectMapper mapper = new ObjectMapper();
+                // Assumindo que seu RegistroRequest tem todos os campos do payload
                 RegistroRequest originalRequest = mapper.readValue(pending.getPayload(), RegistroRequest.class);
                 usuario.setEndereco(originalRequest.getEndereco());
                 usuario.setTelefone(originalRequest.getTelefone());
+                
+                repo.save(usuario); 
+                
+                if (usuario.getTipo() == TipoUsuario.CLIENTE) {
+                    Cliente cliente = new Cliente();
+                    cliente.setUsuario(usuario);
+                    repoClient.save(cliente);
+                
+                } else if (usuario.getTipo() == TipoUsuario.RESTAURANTE) {
+                    Restaurante restaurante = new Restaurante();
+                    restaurante.setUsuario(usuario);
+                    
+                    restaurante.setDescricao(originalRequest.getDescricao());
+                    restaurante.setTipoCozinha(originalRequest.getTipoCozinha());
+
+                    if (originalRequest.getHoraFuncionamento() != null) {
+                        restaurante.setHorariosFuncionamento(originalRequest.getHoraFuncionamento());
+                    }
+
+                    if (originalRequest.getNomesServicos() != null && !originalRequest.getNomesServicos().isEmpty()) {
+                        Set<Servico> servicosParaAssociar = new HashSet<>();
+                        for (String nomeServico : originalRequest.getNomesServicos()) {
+                            Servico serv = repoServico.findByNome(nomeServico)
+                                            .orElseGet(() -> repoServico.save(new Servico(nomeServico, ""))); // Usa o repoServico injetado
+                            servicosParaAssociar.add(serv);
+                        }
+                        restaurante.setServicos(servicosParaAssociar);
+                    }
+                    
+                    repoRestaurante.save(restaurante); // Salva a nova entidade Restaurante
+                }
+
             } catch (JsonProcessingException e) {
                  return ResponseEntity.internalServerError().body(Map.of("erro", "Falha ao recriar dados do usuário."));
             }
-            repo.save(usuario);
-            if (usuario.getTipo() == TipoUsuario.CLIENTE) {
-                Cliente cliente = new Cliente();
-                cliente.setUsuario(usuario);
-                repoClient.save(cliente);
-            }
         }
+        
         accessRepository.delete(pending);
         return gerarRespostaComTokens(usuario, request.isMantenhaMeConectado(), response);
     }
@@ -144,6 +210,7 @@ public class AccessController {
     @PostMapping("/reenviar-codigo")
     public ResponseEntity<?> reenviarCodigo(@RequestBody ReenvioRequest request) {
         Optional<AccessModel> pendingOpt = accessRepository.findByEmail(request.getEmail());
+        
         if (pendingOpt.isPresent()) {
             AccessModel pending = pendingOpt.get();
             String novoCodigo = accessService.gerarCodigoDeVerificacao();
@@ -151,16 +218,17 @@ public class AccessController {
             pending.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
             accessRepository.save(pending);
             
-            // <<< ALTERAÇÃO AQUI >>>
-            // Agora também criamos a URL para o fluxo de reenvio
             String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pending.getId();
             accessService.enviarEmailVerificacao(pending.getEmail(), pending.getNome(), novoCodigo, urlDeVerificacao);
+
+            return ResponseEntity.ok(Map.of(
+                "mensagem", "Um novo código de verificação foi enviado para o seu e-mail.",
+                "idVerificacao", pending.getId()
+            ));
         }
+        
         return ResponseEntity.ok(Map.of("mensagem", "Se uma verificação estiver pendente para este e-mail, um novo código foi enviado."));
     }
-
-    // ... O resto dos seus métodos (refresh, logout, senha, etc.) e o método auxiliar 'gerarRespostaComTokens' continuam iguais ...
-    // Apenas para garantir, aqui estão eles:
     
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) { 

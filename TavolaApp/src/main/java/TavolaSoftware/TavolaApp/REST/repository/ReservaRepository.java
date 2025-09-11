@@ -1,17 +1,17 @@
 package TavolaSoftware.TavolaApp.REST.repository;
 
-import TavolaSoftware.TavolaApp.REST.model.Reserva;
-import TavolaSoftware.TavolaApp.tools.StatusReserva;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.UUID;
+import TavolaSoftware.TavolaApp.REST.model.Reserva;
+import TavolaSoftware.TavolaApp.tools.StatusReserva;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
@@ -77,6 +77,12 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
      * @return Uma lista de reservas dentro do período especificado.
      */
     List<Reserva> findByRestauranteIdAndDataReservaBetween(UUID restauranteId, LocalDate dataInicio, LocalDate dataFim);
+
+    
+    List<Reserva> findByClienteIdOrderByDataReservaDescHoraReservaDesc(UUID clienteId);
+
+    
+    List<Reserva> findByRestauranteIdOrderByDataReservaDescHoraReservaDesc(UUID restauranteId);
 
 
     void deleteAllByClienteId(UUID clienteId);

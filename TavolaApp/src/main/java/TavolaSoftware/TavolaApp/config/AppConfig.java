@@ -1,10 +1,10 @@
 package TavolaSoftware.TavolaApp.config; // Ou outro pacote de configuração
 
-import TavolaSoftware.TavolaApp.REST.model.Servico;
-import TavolaSoftware.TavolaApp.REST.service.ServicoService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import TavolaSoftware.TavolaApp.REST.service.ServicoService;
 
 @Configuration
 public class AppConfig {

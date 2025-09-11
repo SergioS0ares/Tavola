@@ -33,6 +33,19 @@ public class CategoriaService {
     }
 
     public Categoria save(Categoria categoria) {
+        if (categoria.getNome() == null || categoria.getNome().isBlank() || categoria.getRestaurante() == null) {
+            throw new IllegalArgumentException("O nome e o restaurante são obrigatórios para salvar uma categoria.");
+        }
+
+        Optional<Categoria> categoriaExistente = repo.findByNomeAndRestauranteId(
+            categoria.getNome(), 
+            categoria.getRestaurante().getId()
+        );
+
+        if (categoriaExistente.isPresent()) {
+            return categoriaExistente.get();
+        }
+
         return repo.save(categoria);
     }
 
