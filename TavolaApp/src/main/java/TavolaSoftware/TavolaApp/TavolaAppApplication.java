@@ -1,7 +1,5 @@
 package TavolaSoftware.TavolaApp;
 
-import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
-import io.jsonwebtoken.Claims;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;

@@ -18,6 +18,8 @@ import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import io.jsonwebtoken.Claims;
+
 import java.util.HashSet; // <<< ADICIONE ESTA IMPORTAÇÃO
 import java.util.Set; // <<< ADICIONE ESTA IMPORTAÇÃO
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -84,32 +86,56 @@ public class AccessController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest) { 
-        Usuario usuario = repo.findByEmail(loginRequest.getEmail());
-        if (usuario != null && BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
-            AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
-            
-            pendingLogin.setEmail(usuario.getEmail());
-            pendingLogin.setNome(usuario.getNome());
-            pendingLogin.setSenhaCriptografada(usuario.getSenha());
-            pendingLogin.setTipo(usuario.getTipo());
-            pendingLogin.setUsuarioId(usuario.getId());
-            pendingLogin.setCodigoVerificacao(accessService.gerarCodigoDeVerificacao());
-            pendingLogin.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
-            
-            accessRepository.save(pendingLogin);
-            
-            // <<< ALTERAÇÃO AQUI >>>
-            // Agora também criamos a URL para o fluxo de login
-            String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pendingLogin.getId();
-            accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), pendingLogin.getCodigoVerificacao(), urlDeVerificacao);
-            
-            return ResponseEntity.ok(Map.of(
-                "mensagem", "Código de verificação enviado para o seu e-mail.",
-                "idVerificacao", pendingLogin.getId()
-            ));
+    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+    	Usuario usuario = repo.findByEmail(loginRequest.getEmail());
+        if (usuario == null || !BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
+        
+        try {
+            String refreshTokenDoCookie = null;
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("refreshToken".equals(cookie.getName())) {
+                        refreshTokenDoCookie = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+
+            if (refreshTokenDoCookie != null && jwt.isTokenValid(refreshTokenDoCookie)) {
+                Claims claims = jwt.parseToken(refreshTokenDoCookie);
+                String emailDoToken = claims.getSubject();
+
+                if (emailDoToken != null && emailDoToken.equals(usuario.getEmail())) {
+                    System.out.println("Usuário confiável. Login direto para: " + usuario.getEmail());
+                    return gerarRespostaComTokens(usuario, true, response);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Cookie de refreshToken inválido, prosseguindo com verificação por e-mail: " + e.getMessage());
+        }
+
+        System.out.println("Acesso não confiável. Iniciando verificação por e-mail para: " + usuario.getEmail());
+        AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
+        
+        pendingLogin.setEmail(usuario.getEmail());
+        pendingLogin.setNome(usuario.getNome());
+        pendingLogin.setSenhaCriptografada(usuario.getSenha());
+        pendingLogin.setTipo(usuario.getTipo());
+        pendingLogin.setUsuarioId(usuario.getId());
+        pendingLogin.setCodigoVerificacao(accessService.gerarCodigoDeVerificacao());
+        pendingLogin.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(10));
+        
+        accessRepository.save(pendingLogin);
+        
+        String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pendingLogin.getId();
+        accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), pendingLogin.getCodigoVerificacao(), urlDeVerificacao);
+        
+        return ResponseEntity.ok(Map.of(
+            "mensagem", "Código de verificação enviado para o seu e-mail.",
+            "idVerificacao", pendingLogin.getId()
+        ));
     }
 
     @PostMapping("/verificar")
@@ -141,8 +167,8 @@ public class AccessController {
                 usuario.setEndereco(originalRequest.getEndereco());
                 usuario.setTelefone(originalRequest.getTelefone());
                 
-                repo.save(usuario); // Salva o usuário primeiro para gerar o ID
-
+                repo.save(usuario); 
+                
                 if (usuario.getTipo() == TipoUsuario.CLIENTE) {
                     Cliente cliente = new Cliente();
                     cliente.setUsuario(usuario);
@@ -152,12 +178,9 @@ public class AccessController {
                     Restaurante restaurante = new Restaurante();
                     restaurante.setUsuario(usuario);
                     
-                    // Preenche com os dados que vieram na requisição original
                     restaurante.setDescricao(originalRequest.getDescricao());
                     restaurante.setTipoCozinha(originalRequest.getTipoCozinha());
 
-                    // <<< INÍCIO DA CORREÇÃO >>>
-                    // Popula os campos que estavam faltando
                     if (originalRequest.getHoraFuncionamento() != null) {
                         restaurante.setHorariosFuncionamento(originalRequest.getHoraFuncionamento());
                     }
@@ -165,14 +188,12 @@ public class AccessController {
                     if (originalRequest.getNomesServicos() != null && !originalRequest.getNomesServicos().isEmpty()) {
                         Set<Servico> servicosParaAssociar = new HashSet<>();
                         for (String nomeServico : originalRequest.getNomesServicos()) {
-                            // Encontra o serviço pelo nome ou cria um novo se não existir
                             Servico serv = repoServico.findByNome(nomeServico)
                                             .orElseGet(() -> repoServico.save(new Servico(nomeServico, ""))); // Usa o repoServico injetado
                             servicosParaAssociar.add(serv);
                         }
                         restaurante.setServicos(servicosParaAssociar);
                     }
-                    // <<< FIM DA CORREÇÃO >>>
                     
                     repoRestaurante.save(restaurante); // Salva a nova entidade Restaurante
                 }

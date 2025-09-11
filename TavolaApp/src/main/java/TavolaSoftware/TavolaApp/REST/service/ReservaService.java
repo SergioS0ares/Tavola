@@ -1,6 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
 import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.HistoricoResponse;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
@@ -81,6 +82,35 @@ public class ReservaService {
 
         Reserva reservaSalva = reservaRepository.save(novaReserva);
         return new ReservaResponse(reservaSalva);
+    }
+    
+    /**
+     * NOVO MÉTODO
+     * Busca o histórico de reservas com base no tipo de usuário (Cliente ou Restaurante).
+     * @param usuarioLogado O usuário autenticado que está fazendo a requisição.
+     * @return Uma lista de HistoricoResponse formatada para a visão correta.
+     */
+    @Transactional(readOnly = true)
+    public List<HistoricoResponse> getHistorico(Usuario usuarioLogado) {
+        if (usuarioLogado.getTipo() == TipoUsuario.CLIENTE) {
+            // Busca as reservas do cliente
+            List<Reserva> reservas = reservaRepository.findByClienteIdOrderByDataReservaDescHoraReservaDesc(usuarioLogado.getId());
+            // Mapeia para o DTO de histórico do cliente
+            return reservas.stream()
+                    .map(HistoricoResponse::new) // Usa o construtor (Reserva reserva)
+                    .collect(Collectors.toList());
+
+        } else if (usuarioLogado.getTipo() == TipoUsuario.RESTAURANTE) {
+            // Busca as reservas do restaurante
+            List<Reserva> reservas = reservaRepository.findByRestauranteIdOrderByDataReservaDescHoraReservaDesc(usuarioLogado.getId());
+            // Mapeia para o DTO de histórico do restaurante
+            return reservas.stream()
+                    .map(reserva -> new HistoricoResponse(reserva, reserva.getCliente().getUsuario())) // Usa o construtor (Reserva r, Usuario u)
+                    .collect(Collectors.toList());
+        }
+
+        // Se o usuário não for nem cliente nem restaurante, retorna lista vazia
+        return Collections.emptyList();
     }
     
     @Transactional(readOnly = true)

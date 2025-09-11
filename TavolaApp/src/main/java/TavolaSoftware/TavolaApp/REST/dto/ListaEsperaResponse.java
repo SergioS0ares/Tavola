@@ -1,14 +1,13 @@
 package TavolaSoftware.TavolaApp.REST.dto;
 
-import TavolaSoftware.TavolaApp.REST.model.Mesa;
-import TavolaSoftware.TavolaApp.REST.model.Reserva;
-import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import TavolaSoftware.TavolaApp.REST.model.Mesa;
+import TavolaSoftware.TavolaApp.REST.model.Reserva;
+import TavolaSoftware.TavolaApp.REST.model.Usuario;
 
 public class ListaEsperaResponse {
     private UUID id;
