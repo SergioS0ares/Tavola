@@ -3,93 +3,186 @@ package TavolaSoftware.TavolaApp.REST.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// Removido o import de AvaliacaoResponse, pois não será mais usado diretamente aqui para retorno.
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-// ClienteRepository já era importado, mantido.
+import TavolaSoftware.TavolaApp.tools.Lexico;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class AvaliacaoService {
 
-    @Autowired
-    private RestauranteRepository repoRestaurante; // Usaremos para buscar o restaurante
+    @Autowired 
+    private RestauranteRepository repoRestaurante;
 
     @Autowired
     private ClienteService servCliente; 
 
     @Autowired
-    private AvaliacaoRepository avaliacaoRepository; // Renomeado para consistência
+    private AvaliacaoRepository avaliacaoRepository;
 
-    // Removido o autowired para RestauranteService se não for mais usado diretamente aqui para salvar média.
-    // A lógica de salvar média já está no calcularMedia que usa restauranteRepository.
+    // <<< NOVAS DEPENDÊNCIAS PARA ENVIO DE E-MAIL >>>
+    @Autowired
+    private JavaMailSender mailSender;
+    @Autowired
+    private Lexico lexico;
 
+    @Value("${spring.mail.username}")
+    private String emailRemetente;
+
+
+    // ===================================================================
+    // LÓGICA DE AVALIAÇÃO (COM GESTÃO DE COMENTÁRIOS APRIMORADA)
+    // ===================================================================
+    
     @Transactional
-    public double calcularMedia(UUID restauranteId) {
-        List<Avaliacao> avaliacoes = avaliacaoRepository.findByRestauranteId(restauranteId); //
-
-        Restaurante restaurante = repoRestaurante.findById(restauranteId)
-            .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado para calcular/salvar média e total de avaliações."));
-
-        if (avaliacoes.isEmpty()) {
-            restaurante.setMediaAvaliacao(0.0);
-            restaurante.setTotalDeAvaliacoes(0); // Define o total de avaliações como 0
-            repoRestaurante.save(restaurante);
-            return 0.0;
-        }
-
-        double somaScores = avaliacoes.stream()
-                                     .mapToDouble(Avaliacao::getScore)
-                                     .sum();
-        double media = somaScores / avaliacoes.size();
-        media = Math.round(media * 10.0) / 10.0;
-
-        restaurante.setMediaAvaliacao(media);
-        restaurante.setTotalDeAvaliacoes(avaliacoes.size()); // Define o total de avaliações com o tamanho da lista
-        repoRestaurante.save(restaurante);
-        return media;
-    }
-
-    @Transactional
-    public Avaliacao avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) { // MUDANÇA: Retorna Avaliacao
+    public Avaliacao avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) {
         int scoreFinal = formatarScore(score);
 
         Cliente cliente = servCliente.findByEmail(emailCliente)
                                         .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado para o email: " + emailCliente));
 
-        Restaurante restaurante = repoRestaurante.findById(restauranteId) // Busca pelo RestauranteRepository
+        Restaurante restaurante = repoRestaurante.findById(restauranteId)
                                                  .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado."));
 
-        Optional<Avaliacao> avaliacaoExistente = avaliacaoRepository.findByClienteAndRestaurante(cliente, restaurante);
+        Optional<Avaliacao> avaliacaoExistenteOpt = avaliacaoRepository.findByClienteAndRestaurante(cliente, restaurante);
 
         Avaliacao avaliacao;
-        if (avaliacaoExistente.isPresent()) {
-            avaliacao = avaliacaoExistente.get();
+        if (avaliacaoExistenteOpt.isPresent()) {
+            avaliacao = avaliacaoExistenteOpt.get();
             avaliacao.setScore(scoreFinal);
-            avaliacao.setComentario(comentario);
+
+            if (comentario != null && !comentario.trim().isEmpty()) {
+                avaliacao.setComentario(comentario);
+            }
         } else {
             avaliacao = new Avaliacao(restaurante, cliente, scoreFinal, comentario);
         }
 
+        // <<< LÓGICA ADICIONADA AQUI >>>
+        // 1. Analisa o sentimento do comentário atual da avaliação
+        String sentimentoAnalisado = lexico.analisarComentario(avaliacao.getComentario());
+        // 2. Salva o resultado na entidade
+        avaliacao.setSentimento(sentimentoAnalisado);
+        // <<< FIM DA LÓGICA ADICIONADA >>>
+
         Avaliacao avaliacaoSalva = avaliacaoRepository.save(avaliacao);
         
-        calcularMedia(restauranteId); // Recalcula e salva a média
+        calcularMedia(restauranteId);
         
-        return avaliacaoSalva; // MUDANÇA: Retorna a entidade Avaliacao salva
+        return avaliacaoSalva;
+    }
+
+    @Transactional
+    public double calcularMedia(UUID restauranteId) {
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findByRestauranteId(restauranteId);
+
+        Restaurante restaurante = repoRestaurante.findById(restauranteId)
+            .orElseThrow(() -> new IllegalArgumentException("Restaurante não encontrado para calcular média."));
+
+        if (avaliacoes.isEmpty()) {
+            restaurante.setMediaAvaliacao(0.0);
+            restaurante.setTotalDeAvaliacoes(0);
+            repoRestaurante.save(restaurante);
+            return 0.0;
+        }
+
+        double somaScores = avaliacoes.stream().mapToDouble(Avaliacao::getScore).sum();
+        double media = somaScores / avaliacoes.size();
+        media = Math.round(media * 10.0) / 10.0;
+
+        restaurante.setMediaAvaliacao(media);
+        restaurante.setTotalDeAvaliacoes(avaliacoes.size());
+        repoRestaurante.save(restaurante);
+        return media;
     }
 
     private int formatarScore(double score) {
         if (score < 0.5) return 1; 
         if (score > 10.0) score = 10.0; 
-        double scoreDivided = score / 2.0;
-        return (int) Math.round(scoreDivided); 
+        return (int) Math.round(score / 2.0);
+    }
+
+    // ===================================================================
+    // NOVA FUNCIONALIDADE: E-MAIL DE LEMBRETE DE AVALIAÇÃO
+    // ===================================================================
+
+    public void enviarEmailLembreteAvaliacao(Reserva reserva) {
+        try {
+            Cliente cliente = reserva.getCliente();
+            Restaurante restaurante = reserva.getRestaurante();
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailRemetente, "Equipe Tavola");
+            helper.setTo(cliente.getUsuario().getEmail());
+            helper.setSubject("O que você achou do " + restaurante.getNome() + "?");
+
+            String corpoEmail = criarCorpoEmailLembrete(cliente.getUsuario().getNome(), restaurante.getNome(), restaurante.getId());
+            helper.setText(corpoEmail, true);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            // Em um sistema real, aqui você logaria o erro em vez de apenas imprimir
+            System.err.println("Erro ao enviar e-mail de lembrete de avaliação: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Gera o corpo HTML para o e-mail de lembrete de avaliação.
+     */
+    private String criarCorpoEmailLembrete(String nomeCliente, String nomeRestaurante, UUID restauranteId) {
+        // TODO: Substituir o link '#' pela URL real da tela do restaurante no frontend.
+        // Ex: String linkParaAvaliar = "https://www.seusite.com/restaurantes/" + restauranteId;
+        String linkParaAvaliar = "#"; 
+
+        return """
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+              <meta charset="UTF-8"/>
+              <title>Avalie sua Experiência - Tavola</title>
+              <style>
+                body{font-family:'Segoe UI',sans-serif;background-color:#f4f4f4;margin:0;padding:20px;}
+                .email-container{max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,.1);}
+                .header{background:linear-gradient(135deg, #f5ba3f, #eeaa17);color:#fff;padding:40px;text-align:center;}
+                .header h1{margin:0;font-size:28px;}
+                .content{padding:40px;text-align:center;color:#555;line-height:1.7;}
+                .content h2{color:#333;margin-bottom:15px;}
+                .content p{margin-bottom:30px;}
+                .cta-button{display:inline-block;background:#DA4A24;color:#ffffff !important;text-decoration:none;padding:15px 30px;border-radius:50px;font-weight:600;transition:all .3s ease;}
+                .cta-button:hover{background:#c8411f;transform:translateY(-2px);}
+                .footer{background:#f8f9fa;padding:20px;text-align:center;font-size:14px;color:#888;}
+              </style>
+            </head>
+            <body>
+              <div class="email-container">
+                <div class="header"><h1>Sua Opinião é Importante!</h1></div>
+                <div class="content">
+                  <h2>Olá, %s!</h2>
+                  <p>
+                    Obrigado por visitar o <strong>%s</strong> através do Tavola.<br/>
+                    Esperamos que sua experiência tenha sido incrível! Que tal compartilhar sua opinião para ajudar outros usuários?
+                  </p>
+                  <a href="%s" class="cta-button">Deixar uma Avaliação</a>
+                </div>
+                <div class="footer">Equipe Tavola 🍽️</div>
+              </div>
+            </body>
+            </html>
+            """.formatted(nomeCliente, nomeRestaurante, linkParaAvaliar);
     }
 }

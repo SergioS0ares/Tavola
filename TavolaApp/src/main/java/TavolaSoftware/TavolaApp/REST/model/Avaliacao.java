@@ -36,6 +36,10 @@ public class Avaliacao {
 
     @Column(name = "comentario_avaliacao", length = 500)
     private String comentario;
+    
+ // <<< NOVO CAMPO ADICIONADO >>>
+    @Column(name = "sentimento_comentario", length = 20)
+    private String sentimento; // Armazenará "POSITIVO", "NEGATIVO" ou "NEUTRO"
 
     // Construtores (vazio e com todos os campos)
     public Avaliacao() {}
@@ -86,5 +90,12 @@ public class Avaliacao {
 
     public void setComentario(String comentario) {
         this.comentario = comentario;
+    }
+    public String getSentimento() {
+        return sentimento;
+    }
+
+    public void setSentimento(String sentimento) {
+        this.sentimento = sentimento;
     }
 }

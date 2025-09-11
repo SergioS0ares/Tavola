@@ -41,6 +41,7 @@ public class ReservaService {
     @Autowired private RestauranteRepository restauranteRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private MesaRepository mesaRepository;
+    @Autowired private AvaliacaoService avaliacaoService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -151,8 +152,13 @@ public class ReservaService {
         }
 
         reserva.setStatus(novoStatus);
-        Reserva reservaSalva = reservaRepository.save(reserva);
-        return new ReservaResponse(reservaSalva);
+        Reserva reservaAtualizada = reservaRepository.save(reserva);
+        
+        if (novoStatus == StatusReserva.CONCLUIDA) {
+            avaliacaoService.enviarEmailLembreteAvaliacao(reservaAtualizada);
+        }
+        
+        return new ReservaResponse(reservaAtualizada);
     }
     
     public Optional<ReservaResponse> findById(UUID idReserva) {
