@@ -9,7 +9,7 @@ import { RefreshResponse } from '../../types/refresh-token.type';
 @Injectable({
   providedIn: 'root'
 })
-export class LoginService {
+export class AcessService {
   apiUrl: string = `${environment.apiUrl}/auth`;
 
   constructor(private httpClient: HttpClient, private auth: AuthService) {}
@@ -60,6 +60,14 @@ export class LoginService {
           id: value.id,
           imagem: value.imagem 
         });
+      })
+    );
+  }
+
+  logout(): Observable<any> {
+    return this.httpClient.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
+      tap(() => {
+        this.auth.clearAuthData();
       })
     );
   }

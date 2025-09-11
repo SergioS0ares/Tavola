@@ -13,7 +13,7 @@ import { catchError, switchMap, filter, take, finalize } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 import { AuthService } from '../services/auth.service';
-import { LoginService } from '../services/login.service';
+import { AcessService } from '../services/access.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -22,7 +22,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
   constructor(
     private auth: AuthService, // Seu AuthService
-    private loginService: LoginService,
+    private loginService: AcessService,
     private router: Router
   ) {}
 

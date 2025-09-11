@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { DefaultLoginLayoutComponent } from '../default-login-layout/default-login-layout.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '../../../core/services/login.service';
+import { AcessService } from '../../../core/services/access.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,9 +27,6 @@ import { LoginOutline, UserAddOutline } from '@ant-design/icons-angular/icons';
     MatButtonModule,
     NzIconModule
   ],
-  providers: [
-    { provide: NZ_ICONS, useValue: [LoginOutline, UserAddOutline] }
-  ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -41,7 +38,7 @@ export class LoginComponent {
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
-  private loginService = inject(LoginService);
+  private loginService = inject(AcessService);
   private toastService = inject(ToastrService);
   private authService = inject(AuthService);
 

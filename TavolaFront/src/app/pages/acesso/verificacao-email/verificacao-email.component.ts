@@ -7,7 +7,7 @@ import { NzMessageService } from "ng-zorro-antd/message"
 import { NzSpinModule } from "ng-zorro-antd/spin"
 import { NzResultModule } from "ng-zorro-antd/result"
 import { DefaultLoginLayoutComponent } from "../default-login-layout/default-login-layout.component"
-import { LoginService } from "../../../core/services/login.service"
+import { AcessService } from "../../../core/services/access.service"
 import { ToastrService } from "ngx-toastr"
 import {
   MailOutline,
@@ -54,7 +54,7 @@ export class VerificacaoEmailComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private message: NzMessageService,
-    private loginService: LoginService,
+    private loginService: AcessService,
     private toastService: ToastrService
   ) {}
 

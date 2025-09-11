@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { DefaultLoginLayoutComponent } from '../default-login-layout/default-login-layout.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormArray, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '../../../core/services/login.service';
+import { AcessService } from '../../../core/services/access.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,9 +27,6 @@ import { LoginOutline, UserAddOutline, ShopOutline } from '@ant-design/icons-ang
     CommonModule, DefaultLoginLayoutComponent, ReactiveFormsModule, MatFormFieldModule,
     MatInputModule, MatIconModule, MatButtonModule, MatDividerModule, MatSelectModule,
     MatRadioModule, MatTabsModule, MatCheckboxModule, NzIconModule
-  ],
-  providers: [
-    { provide: NZ_ICONS, useValue: [LoginOutline, UserAddOutline, ShopOutline] }
   ],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
@@ -59,7 +56,7 @@ export class SignUpComponent {
   restauranteForm: FormGroup;
 
   private router = inject(Router);
-  private loginService = inject(LoginService);
+  private loginService = inject(AcessService);
   private toastService = inject(ToastrService);
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);

@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common"
 import { Router, ActivatedRoute } from "@angular/router"
 import { FormsModule } from "@angular/forms"
 import { ToastrService } from "ngx-toastr"
-import { LoginService } from "../../../core/services/login.service"
+import { AcessService } from "../../../core/services/access.service"
 
 // NG-ZORRO IMPORTS
 import { NzInputOtpComponent } from "ng-zorro-antd/input"
@@ -68,7 +68,7 @@ export class ConfirmarCodigoComponent implements OnInit {
   private router = inject(Router)
   private route = inject(ActivatedRoute)
   private toastr = inject(ToastrService)
-  private loginService = inject(LoginService)
+  private loginService = inject(AcessService)
 
   ngOnInit() {
     this.idVerificacao = this.route.snapshot.params["id"]

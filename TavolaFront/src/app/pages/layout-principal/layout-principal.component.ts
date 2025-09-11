@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
+import { AcessService } from '../../core/services/access.service';
 import { CommonModule } from '@angular/common';
 import { StickySearchService } from '../../core/services/sticky-search.service';
 import { SearchBarComponent } from '../home/search-bar/search-bar.component';
@@ -14,6 +15,7 @@ import { Observable, of, startWith, map } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { HomeComponent } from '../home/home.component'; // Importe HomeComponent para verificar a instância
 import { RestauranteService } from '../../core/services/restaurante.service'; // NEW IMPORT
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-layout-principal',
@@ -54,8 +56,10 @@ export class LayoutPrincipalComponent implements OnInit {
 
   private router = inject(Router);
   private auth = inject(AuthService);
+  private accessService = inject(AcessService);
   private stickyService = inject(StickySearchService);
   private restauranteService = inject(RestauranteService); // NEW INJECTION
+  private toastService = inject(ToastrService);
 
   constructor() {
     // Assina o estado da search bar sticky do StickySearchService
@@ -148,8 +152,18 @@ export class LayoutPrincipalComponent implements OnInit {
   }
 
   logout() {
-    this.auth.clearAuthData(); // Usa o método centralizado do AuthService
-    this.router.navigate(['/login']);
+    this.accessService.logout().subscribe({
+      next: () => {
+        this.toastService.success("Logout realizado com sucesso!");
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        // Mesmo se der erro no servidor, limpa os dados locais
+        this.auth.clearAuthData();
+        this.toastService.warning("Logout realizado localmente");
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
   // --- Métodos para a SearchBarComponent (na toolbar sticky) ---
