@@ -19,6 +19,7 @@ import { ISignupForm } from '../../../Interfaces/ISignupForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
 import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
 import { LoginOutline, UserAddOutline, ShopOutline } from '@ant-design/icons-angular/icons';
+import { NgxMaskDirective } from 'ngx-mask';
 
 @Component({
   selector: 'app-signup',
@@ -26,7 +27,7 @@ import { LoginOutline, UserAddOutline, ShopOutline } from '@ant-design/icons-ang
   imports: [
     CommonModule, DefaultLoginLayoutComponent, ReactiveFormsModule, MatFormFieldModule,
     MatInputModule, MatIconModule, MatButtonModule, MatDividerModule, MatSelectModule,
-    MatRadioModule, MatTabsModule, MatCheckboxModule, NzIconModule
+    MatRadioModule, MatTabsModule, MatCheckboxModule, NzIconModule, NgxMaskDirective
   ],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']

@@ -1,15 +1,18 @@
-import { Component, type OnInit, inject } from "@angular/core"
+import { Component, type OnInit, type OnDestroy, inject } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router, ActivatedRoute } from "@angular/router"
 import { FormsModule } from "@angular/forms"
 import { ToastrService } from "ngx-toastr"
 import { AcessService } from "../../../core/services/access.service"
+import { GlobalSpinnerService } from "../../../core/services/global-spinner.service"
 
 // NG-ZORRO IMPORTS
 import { NzInputOtpComponent } from "ng-zorro-antd/input"
 import { NzButtonModule } from "ng-zorro-antd/button"
 import { NzIconModule, NZ_ICONS } from "ng-zorro-antd/icon"
-import { NzCheckboxModule } from "ng-zorro-antd/checkbox"
+
+// ANGULAR MATERIAL IMPORTS
+import { MatCheckboxModule } from "@angular/material/checkbox"
 import {
   SafetyCertificateOutline,
   LoadingOutline,
@@ -33,7 +36,8 @@ import { DefaultLoginLayoutComponent } from "../default-login-layout/default-log
     NzButtonModule,
     NzIconModule,
     NzInputOtpComponent,
-    NzCheckboxModule,
+    // ANGULAR MATERIAL MODULES
+    MatCheckboxModule,
     // SEU COMPONENTE
     DefaultLoginLayoutComponent,
   ],
@@ -54,7 +58,7 @@ import { DefaultLoginLayoutComponent } from "../default-login-layout/default-log
     }
   ]
 })
-export class ConfirmarCodigoComponent implements OnInit {
+export class ConfirmarCodigoComponent implements OnInit, OnDestroy {
   idVerificacao = ""
   codigo = ""
   carregando = false
@@ -64,11 +68,17 @@ export class ConfirmarCodigoComponent implements OnInit {
   statusType: "success" | "error" | "info" = "info"
   mantenhaMeConectado = false
   emailUsuario = ""
+  
+  // Propriedades para cooldown
+  reenviarDisabilitado = false
+  tempoRestante = 0
+  intervalId: any
 
   private router = inject(Router)
   private route = inject(ActivatedRoute)
   private toastr = inject(ToastrService)
   private loginService = inject(AcessService)
+  private globalSpinner = inject(GlobalSpinnerService)
 
   ngOnInit() {
     this.idVerificacao = this.route.snapshot.params["id"]
@@ -104,6 +114,9 @@ export class ConfirmarCodigoComponent implements OnInit {
     this.carregando = true
     this.statusMessage = "Verificando código..."
     this.statusType = "info"
+    
+    // Mostra o spinner global
+    this.globalSpinner.mostrar()
 
     this.loginService.verificarCodigo(this.idVerificacao, this.codigo, this.mantenhaMeConectado).subscribe({
       next: (res) => {
@@ -134,11 +147,15 @@ export class ConfirmarCodigoComponent implements OnInit {
       },
       complete: () => {
         this.carregando = false
+        // Esconde o spinner global
+        this.globalSpinner.ocultar()
       }
     })
   }
 
   reenviarCodigo() {
+    if (this.reenviarDisabilitado) return
+
     this.reenviando = true
     this.statusMessage = "Reenviando código..."
     this.statusType = "info"
@@ -149,6 +166,9 @@ export class ConfirmarCodigoComponent implements OnInit {
         this.statusMessage = "Novo código enviado para seu e-mail!"
         this.statusType = "success"
         this.toastr.success("Novo código enviado!")
+        
+        // Inicia o cooldown
+        this.iniciarCooldown()
 
         // Limpa a mensagem após alguns segundos
         setTimeout(() => {
@@ -188,5 +208,50 @@ export class ConfirmarCodigoComponent implements OnInit {
     this.codigo = ""
     this.hasError = false
     this.statusMessage = ""
+  }
+
+  /**
+   * Inicia o cooldown de 60 segundos
+   */
+  private iniciarCooldown(): void {
+    this.reenviarDisabilitado = true
+    this.tempoRestante = 60
+
+    this.intervalId = setInterval(() => {
+      this.tempoRestante--
+      if (this.tempoRestante <= 0) {
+        this.reenviarDisabilitado = false
+        clearInterval(this.intervalId)
+      }
+    }, 1000)
+  }
+
+  /**
+   * Verifica se o botão de reenvio deve estar desabilitado
+   */
+  get isReenviarDisabled(): boolean {
+    return this.reenviarDisabilitado || this.reenviando
+  }
+
+  /**
+   * Retorna o texto do botão de reenvio
+   */
+  get reenviarButtonText(): string {
+    if (this.reenviando) {
+      return "Reenviando..."
+    }
+    if (this.reenviarDisabilitado) {
+      return `Aguarde ${this.tempoRestante}s`
+    }
+    return "Reenviar código"
+  }
+
+  /**
+   * Limpa o intervalo quando o componente é destruído
+   */
+  ngOnDestroy(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+    }
   }
 }

@@ -1,0 +1,60 @@
+<div class="avaliacao-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Avalie sua experiência</h2>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div mat-dialog-content class="dialog-content">
+    <div class="restaurante-info">
+      <h3>{{ data.nomeRestaurante }}</h3>
+      <p class="data-reserva">Reserva de {{ dataFormatada }}</p>
+    </div>
+
+    <div class="avaliacao-section">
+      <div class="rating-section">
+        <label class="rating-label">Como foi sua experiência?</label>
+        <nz-rate 
+          [(ngModel)]="nota" 
+          [nzCount]="5"
+          nzAllowHalf="false">
+        </nz-rate>
+        <p class="rating-hint" *ngIf="nota > 0">
+          {{ getRatingText(nota) }}
+        </p>
+      </div>
+
+      <div class="comment-section">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Compartilhe sua experiência (mínimo 10 caracteres)</mat-label>
+          <textarea 
+            matInput 
+            [(ngModel)]="comentario" 
+            rows="4" 
+            maxlength="500"
+            placeholder="Conte-nos como foi sua experiência no restaurante...">
+          </textarea>
+          <mat-hint align="end">{{ comentario.length }}/500</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button 
+      mat-button 
+      (click)="cancelar()" 
+      [disabled]="enviando">
+      Cancelar
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="enviarAvaliacao()" 
+      [disabled]="!isFormValid || enviando">
+      <mat-icon *ngIf="enviando">hourglass_empty</mat-icon>
+      {{ enviando ? 'Enviando...' : 'Enviar Avaliação' }}
+    </button>
+  </div>
+</div>

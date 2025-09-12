@@ -5,22 +5,32 @@ import { RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../core/services/auth.service';
 import { AcessService } from '../../core/services/access.service';
 import { CommonModule } from '@angular/common';
 import { StickySearchService } from '../../core/services/sticky-search.service';
 import { SearchBarComponent } from '../home/search-bar/search-bar.component';
 import { FormControl } from '@angular/forms';
-import { Observable, of, startWith, map } from 'rxjs';
+import { Observable, of, startWith, map, shareReplay } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { HomeComponent } from '../home/home.component'; // Importe HomeComponent para verificar a instância
 import { RestauranteService } from '../../core/services/restaurante.service'; // NEW IMPORT
 import { ToastrService } from 'ngx-toastr';
+import { AvaliacaoService, AvaliacaoPendente } from '../../core/services/avaliacao.service';
+import { AvaliacaoDialogComponent, AvaliacaoDialogData } from '../avaliacao-dialog/avaliacao-dialog.component';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-layout-principal',
   standalone: true,
-  imports: [RouterOutlet, RouterModule, MatIconModule, MatButtonModule, MatMenuModule, CommonModule, SearchBarComponent],
+  imports: [RouterOutlet, RouterModule, MatIconModule, MatButtonModule, MatMenuModule, CommonModule, SearchBarComponent, NzBadgeModule, NzDropDownModule, NzLayoutModule, NzMenuModule, NzDrawerModule, NzButtonModule],
   templateUrl: './layout-principal.component.html',
   styleUrls: ['./layout-principal.component.scss'],
   animations: [
@@ -54,12 +64,27 @@ export class LayoutPrincipalComponent implements OnInit {
   // Referência para o HomeComponent ativo no router-outlet
   private currentHomeComponent: HomeComponent | null = null;
 
+  // Propriedades para avaliações pendentes
+  avaliacoesPendentes: AvaliacaoPendente[] = [];
+  carregandoAvaliacoes = false;
+
   private router = inject(Router);
   private auth = inject(AuthService);
   private accessService = inject(AcessService);
   private stickyService = inject(StickySearchService);
   private restauranteService = inject(RestauranteService); // NEW INJECTION
   private toastService = inject(ToastrService);
+  private avaliacaoService = inject(AvaliacaoService);
+  private dialog = inject(MatDialog);
+  private breakpointObserver = inject(BreakpointObserver);
+
+  // Propriedades para responsividade
+  isDrawerVisible = false;
+  isMobile$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
+    .pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
 
   constructor() {
     // Assina o estado da search bar sticky do StickySearchService
@@ -107,6 +132,11 @@ export class LayoutPrincipalComponent implements OnInit {
   ngOnInit() {
     // Inicializa o estado da sidebar no serviço ao carregar o LayoutPrincipal
     this.stickyService.setSidebarAberta(this.sidebarAberta);
+    
+    // Carrega avaliações pendentes se for cliente
+    if (this.isCliente) {
+      this.carregarAvaliacoesPendentes();
+    }
   }
 
   get userName(): string {
@@ -276,5 +306,87 @@ export class LayoutPrincipalComponent implements OnInit {
       this.currentHomeComponent = null; 
       console.log('onOutletActivate - Componente NÃO é HomeComponent. currentHomeComponent nulo.');
     }
+  }
+
+  // --- Métodos para avaliações pendentes ---
+  
+  /**
+   * Carrega as avaliações pendentes
+   */
+  carregarAvaliacoesPendentes(): void {
+    this.carregandoAvaliacoes = true;
+    this.avaliacaoService.getAvaliacoesPendentes().subscribe({
+      next: (avaliacoes) => {
+        this.avaliacoesPendentes = avaliacoes;
+        this.carregandoAvaliacoes = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar avaliações pendentes:', error);
+        this.carregandoAvaliacoes = false;
+      }
+    });
+  }
+
+  /**
+   * Verifica se há avaliações pendentes
+   */
+  get temAvaliacoesPendentes(): boolean {
+    return this.avaliacoesPendentes.length > 0;
+  }
+
+  /**
+   * Formata a data da reserva para exibição
+   */
+  formatarDataReserva(dataReserva: string): string {
+    const data = new Date(dataReserva);
+    return data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  /**
+   * Abre o diálogo de avaliação
+   */
+  abrirDialogoAvaliacao(avaliacao: AvaliacaoPendente): void {
+    const dialogData: AvaliacaoDialogData = {
+      idReserva: avaliacao.idReserva,
+      nomeRestaurante: avaliacao.nomeRestaurante,
+      dataReserva: avaliacao.dataReserva
+    };
+
+    const dialogRef = this.dialog.open(AvaliacaoDialogComponent, {
+      data: dialogData,
+      width: '600px',
+      maxWidth: '90vw',
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.success) {
+        // Remove a avaliação da lista de pendentes
+        this.avaliacoesPendentes = this.avaliacoesPendentes.filter(
+          a => a.idReserva !== result.idReserva
+        );
+        this.toastService.success('Avaliação enviada com sucesso!');
+      }
+    });
+  }
+
+  // --- Métodos para responsividade ---
+  
+  /**
+   * Abre o drawer mobile
+   */
+  openDrawer(): void {
+    this.isDrawerVisible = true;
+  }
+
+  /**
+   * Fecha o drawer mobile
+   */
+  closeDrawer(): void {
+    this.isDrawerVisible = false;
   }
 }

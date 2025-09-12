@@ -136,6 +136,7 @@ mat-card {
         display: flex;
         align-items: center;
         justify-content: center;
+        line-height: normal;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
         z-index: 1;
 
@@ -219,6 +220,7 @@ mat-card {
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: normal;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
     z-index: 1;
 
@@ -292,6 +294,7 @@ mat-card {
         display: flex;
         align-items: center;
         justify-content: center;
+        line-height: normal;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         z-index: 2;
         pointer-events: all;
@@ -436,6 +439,7 @@ mat-card {
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: normal;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
       z-index: 2;
 
@@ -607,16 +611,18 @@ mat-card {
 }
 
 .add-horario-btn {
-  background: white;
-  color: $primary-color; /* Marrom Tavola para o texto */
-  border: 2px dashed rgba(59, 34, 27, 0.4); /* Borda marrom transparente */
+  background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
+  color: #3B221B;
+  border: none;
   border-radius: 12px;
   padding: 12px 24px;
   font-weight: 600;
+  transition: all 0.3s ease;
   
   &:hover {
-    background: rgba(59, 34, 27, 0.05); /* Fundo levemente transparente no hover */
-    border-color: rgba(59, 34, 27, 0.6); /* Borda um pouco mais escura no hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
+    background: linear-gradient(135deg, #f4b942 0%, #F6BD38 100%);
   }
 }
 

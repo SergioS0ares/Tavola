@@ -45,9 +45,9 @@
     
     <!-- Checkbox para manter conectado -->
     <div class="checkbox-section">
-      <label nz-checkbox [(ngModel)]="mantenhaMeConectado" class="keep-connected-checkbox">
-        <span class="checkbox-text">Manter-me conectado</span>
-      </label>
+      <mat-checkbox [(ngModel)]="mantenhaMeConectado" class="keep-connected-checkbox">
+        Manter-me conectado
+      </mat-checkbox>
     </div>
 
     <!-- Melhorado o texto de ajuda com melhor hierarquia -->
@@ -70,9 +70,10 @@
           nzSize="small"
           class="resend-btn"
           (click)="reenviarCodigo()"
+          [disabled]="isReenviarDisabled"
           [nzLoading]="reenviando">
-          <i nz-icon nzType="reload" nzTheme="outline"></i>
-          Reenviar código
+          <i nz-icon nzType="reload" nzTheme="outline" *ngIf="!reenviando"></i>
+          {{ reenviarButtonText }}
         </button>
       </div>
     </div>
