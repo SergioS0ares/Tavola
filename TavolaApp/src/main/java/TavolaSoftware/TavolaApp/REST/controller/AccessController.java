@@ -1,5 +1,26 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashSet; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import TavolaSoftware.TavolaApp.REST.dto.LoginRequest;
 import TavolaSoftware.TavolaApp.REST.dto.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.dto.ReenvioRequest;
@@ -19,27 +40,9 @@ import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
 import TavolaSoftware.TavolaApp.REST.service.RememberMeService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
-import io.jsonwebtoken.Claims;
-
-import java.util.HashSet; // <<< ADICIONE ESTA IMPORTAÇÃO
-import java.util.Set; // <<< ADICIONE ESTA IMPORTAÇÃO
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
@@ -88,62 +91,39 @@ public class AccessController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
-        // --- ETAPA 1: Autenticação Primária (Sempre obrigatória) ---
-        // Primeiro, validamos o e-mail e a senha que o usuário digitou na tela.
-    	System.out.println("[Login] " + "inicando login");
+    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+        // ETAPA 1: Autenticação Primária (Usuário e Senha)
         Usuario usuario = repo.findByEmail(loginRequest.getEmail());
         if (usuario == null || !BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
-        	System.out.println("[Login] " + "credenciais invalidas, encerrando login");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
         }
 
-        // Se a senha está correta, prosseguimos. Agora vamos decidir se o dispositivo é confiável.
-
-        // --- ETAPA 2: Verificação de Confiança (Uso do "Remember Me" Token) ---
-        String rememberMeTokenValue = null;
+        // ETAPA 2: Verificação de Confiança (Uso do "TrustToken")
+        String trustTokenValue = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("rememberMeToken".equals(cookie.getName())) {
-                	System.out.println("[Login] " + "Token de logback encontrado");
-                    rememberMeTokenValue = cookie.getValue();
+                // Usamos o novo nome "trustToken"
+                if ("trustToken".equals(cookie.getName())) {
+                    trustTokenValue = cookie.getValue();
                     break;
                 }
             }
         }
 
-        if (rememberMeTokenValue != null) {
-            Optional<Usuario> usuarioDoTokenOpt = rememberMeService.validateTokenAndGetUser(rememberMeTokenValue);
-            System.out.println("[Login] " + "Token validado, continuando login");
+        if (trustTokenValue != null) {
+            // Renomeie seu RememberMeService para TrustTokenService se desejar
+            Optional<Usuario> usuarioDoTokenOpt = rememberMeService.validateTokenAndGetUser(trustTokenValue);
 
-            // Validação de segurança: O token é válido E pertence ao usuário que acabou de digitar a senha?
+            // O token é válido E pertence ao usuário que acabou de digitar a senha?
             if (usuarioDoTokenOpt.isPresent() && usuarioDoTokenOpt.get().getId().equals(usuario.getId())) {
-                // SIM! Dispositivo confiável. Login direto, sem 2FA.
                 System.out.println("[Login] Dispositivo confiável para " + usuario.getEmail() + ". Pulando 2FA.");
-                
-                // Geramos a resposta com os tokens de sessão.
-                ResponseEntity<LoginResponse> resposta = gerarRespostaComTokens(usuario, loginRequest.isMantenhaMeConectado(), response);
-                
-                // Se ele marcou "mantenha-me conectado", renovamos o token de lembrança (boa prática de segurança).
-                if (loginRequest.isMantenhaMeConectado()) {
-                	System.out.println("[Login] " + "mantenha-me conectado como true, configurando token");
-                    String newRememberToken = rememberMeService.generateNewToken();
-                    rememberMeService.storeToken(newRememberToken, usuario);
-                    Cookie rememberMeCookie = new Cookie("rememberMeToken", newRememberToken);
-                    rememberMeCookie.setHttpOnly(true);
-                    rememberMeCookie.setSecure(false); // Mudar para true em produção (HTTPS)
-                    rememberMeCookie.setPath("/");
-                    rememberMeCookie.setMaxAge(60 * 24 * 60 * 60); // 60 dias
-                    response.addCookie(rememberMeCookie);
-                    System.out.println("[Login] " + "token de logback configurado");
-                }
-                
-                return resposta;
+                // Login direto, sem 2FA e sem gerar um NOVO trust token.
+                // Passamos 'null' para o trust token para não gerar um novo.
+                return gerarRespostaComTokens(usuario, null);
             }
         }
 
-        // --- ETAPA 3: Fluxo de Verificação por E-mail (Para acessos não confiáveis) ---
-        // Se o código chegou aqui, é porque não havia um cookie confiável para este usuário.
+        // ETAPA 3: Fluxo de Verificação por E-mail (Dispositivo não confiável)
         System.out.println("[Login] Dispositivo não confiável para " + usuario.getEmail() + ". Iniciando verificação por e-mail.");
         AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
         
@@ -167,7 +147,7 @@ public class AccessController {
     }
 
     @PostMapping("/verificar")
-    public ResponseEntity<?> verificarCodigo(@RequestBody VerificacaoRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> verificarCodigo(@RequestBody VerificacaoRequest request) { // Removi HttpServletResponse, pois não é mais necessário
         AccessModel pending = accessRepository.findById(request.getIdVerificacao()).orElse(null);
         if (pending == null || !pending.getCodigoVerificacao().equals(request.getCodigo()) || pending.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Código de verificação inválido ou expirado."));
@@ -231,8 +211,17 @@ public class AccessController {
             }
         }
         
+        String novoTrustToken = null;
+        if (request.isMantenhaMeConectado()) {
+            System.out.println("[Verificar] Usuário " + usuario.getEmail() + " marcou 'Mantenha-me conectado'. Gerando novo TrustToken.");
+            novoTrustToken = rememberMeService.generateNewToken();
+            rememberMeService.storeToken(novoTrustToken, usuario);
+        }
+        
         accessRepository.delete(pending);
-        return gerarRespostaComTokens(usuario, request.isMantenhaMeConectado(), response);
+        
+        return gerarRespostaComTokens(usuario, novoTrustToken);
+
     }
     
     @PostMapping("/reenviar-codigo")
@@ -311,26 +300,52 @@ public class AccessController {
         return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso."));
     }
 
-    private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, boolean mantenhaConectado, HttpServletResponse response) {
+//====================================================================================================================================================================================
+    
+ // Em AccessController.java
+
+    private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, String novoTrustToken) {
+        // 1. Gera o Access Token (para o corpo da resposta) e o Refresh Token (para o cookie)
         String accessToken = jwt.generateAccessToken(usuario.getEmail());
         String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
-        
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshTokenString);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/auth/refresh");
-        refreshTokenCookie.setMaxAge(mantenhaConectado ? 30 * 24 * 60 * 60 : 2 * 24 * 60 * 60);
-        
-        response.addCookie(refreshTokenCookie);
 
-        return ResponseEntity.ok(new LoginResponse(
-            accessToken, 
-            usuario.getNome(), 
-            usuario.getTipo().toString(), 
-            usuario.getId(), 
-            usuario.getEmail(), 
-            usuario.getImagem(), 
+        // 2. Constrói o cookie do Refresh Token (duração curta/média)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshTokenString)
+            .httpOnly(true)
+            .secure(false) // Mudar para 'true' em produção (HTTPS)
+            .path("/")
+            .maxAge(30 * 24 * 60 * 60) // 30 dias de validade
+            .sameSite("Lax")
+            .build();
+
+        // 3. Prepara a resposta e adiciona o primeiro cookie
+        LoginResponse loginResponse = new LoginResponse(
+            accessToken,
+            usuario.getNome(),
+            usuario.getTipo().toString(),
+            usuario.getId(),
+            usuario.getEmail(),
+            usuario.getImagem(),
             usuario.getImagemBackground()
-        ));
+        );
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        // 4. Se um novo TrustToken foi gerado, constrói e adiciona o segundo cookie
+        if (novoTrustToken != null && !novoTrustToken.isEmpty()) {
+            ResponseCookie trustTokenCookie = ResponseCookie.from("trustToken", novoTrustToken) // << Novo nome do cookie
+                .httpOnly(true)
+                .secure(false) // Mudar para 'true' em produção (HTTPS)
+                .path("/")
+                .maxAge(60 * 24 * 60 * 60) // << Duração bem longa, 60 dias
+                .sameSite("Lax")
+                .build();
+            
+            responseBuilder.header(HttpHeaders.SET_COOKIE, trustTokenCookie.toString());
+        }
+
+        // 5. Retorna a resposta com os cookies nos cabeçalhos e o JSON no corpo
+        return responseBuilder.body(loginResponse);
     }
 }
