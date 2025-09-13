@@ -17,6 +17,7 @@ import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
+import TavolaSoftware.TavolaApp.REST.service.RememberMeService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import io.jsonwebtoken.Claims;
 
@@ -52,6 +53,7 @@ public class AccessController {
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
     @Autowired private ServicoRepository repoServico; // <<< ADICIONE ESTA LINHA
+    @Autowired private RememberMeService rememberMeService;
 
 
     @PostMapping("/register")
@@ -87,36 +89,62 @@ public class AccessController {
 
     @PostMapping("/login")
     public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
-    	Usuario usuario = repo.findByEmail(loginRequest.getEmail());
+        // --- ETAPA 1: Autenticação Primária (Sempre obrigatória) ---
+        // Primeiro, validamos o e-mail e a senha que o usuário digitou na tela.
+    	System.out.println("[Login] " + "inicando login");
+        Usuario usuario = repo.findByEmail(loginRequest.getEmail());
         if (usuario == null || !BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
+        	System.out.println("[Login] " + "credenciais invalidas, encerrando login");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
         }
-        
-        try {
-            String refreshTokenDoCookie = null;
-            if (request.getCookies() != null) {
-                for (Cookie cookie : request.getCookies()) {
-                    if ("refreshToken".equals(cookie.getName())) {
-                        refreshTokenDoCookie = cookie.getValue();
-                        break;
-                    }
+
+        // Se a senha está correta, prosseguimos. Agora vamos decidir se o dispositivo é confiável.
+
+        // --- ETAPA 2: Verificação de Confiança (Uso do "Remember Me" Token) ---
+        String rememberMeTokenValue = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("rememberMeToken".equals(cookie.getName())) {
+                	System.out.println("[Login] " + "Token de logback encontrado");
+                    rememberMeTokenValue = cookie.getValue();
+                    break;
                 }
             }
-
-            if (refreshTokenDoCookie != null && jwt.isTokenValid(refreshTokenDoCookie)) {
-                Claims claims = jwt.parseToken(refreshTokenDoCookie);
-                String emailDoToken = claims.getSubject();
-
-                if (emailDoToken != null && emailDoToken.equals(usuario.getEmail())) {
-                    System.out.println("Usuário confiável. Login direto para: " + usuario.getEmail());
-                    return gerarRespostaComTokens(usuario, true, response);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Cookie de refreshToken inválido, prosseguindo com verificação por e-mail: " + e.getMessage());
         }
 
-        System.out.println("Acesso não confiável. Iniciando verificação por e-mail para: " + usuario.getEmail());
+        if (rememberMeTokenValue != null) {
+            Optional<Usuario> usuarioDoTokenOpt = rememberMeService.validateTokenAndGetUser(rememberMeTokenValue);
+            System.out.println("[Login] " + "Token validado, continuando login");
+
+            // Validação de segurança: O token é válido E pertence ao usuário que acabou de digitar a senha?
+            if (usuarioDoTokenOpt.isPresent() && usuarioDoTokenOpt.get().getId().equals(usuario.getId())) {
+                // SIM! Dispositivo confiável. Login direto, sem 2FA.
+                System.out.println("[Login] Dispositivo confiável para " + usuario.getEmail() + ". Pulando 2FA.");
+                
+                // Geramos a resposta com os tokens de sessão.
+                ResponseEntity<LoginResponse> resposta = gerarRespostaComTokens(usuario, loginRequest.isMantenhaMeConectado(), response);
+                
+                // Se ele marcou "mantenha-me conectado", renovamos o token de lembrança (boa prática de segurança).
+                if (loginRequest.isMantenhaMeConectado()) {
+                	System.out.println("[Login] " + "mantenha-me conectado como true, configurando token");
+                    String newRememberToken = rememberMeService.generateNewToken();
+                    rememberMeService.storeToken(newRememberToken, usuario);
+                    Cookie rememberMeCookie = new Cookie("rememberMeToken", newRememberToken);
+                    rememberMeCookie.setHttpOnly(true);
+                    rememberMeCookie.setSecure(false); // Mudar para true em produção (HTTPS)
+                    rememberMeCookie.setPath("/");
+                    rememberMeCookie.setMaxAge(60 * 24 * 60 * 60); // 60 dias
+                    response.addCookie(rememberMeCookie);
+                    System.out.println("[Login] " + "token de logback configurado");
+                }
+                
+                return resposta;
+            }
+        }
+
+        // --- ETAPA 3: Fluxo de Verificação por E-mail (Para acessos não confiáveis) ---
+        // Se o código chegou aqui, é porque não havia um cookie confiável para este usuário.
+        System.out.println("[Login] Dispositivo não confiável para " + usuario.getEmail() + ". Iniciando verificação por e-mail.");
         AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
         
         pendingLogin.setEmail(usuario.getEmail());
@@ -131,7 +159,7 @@ public class AccessController {
         
         String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pendingLogin.getId();
         accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), pendingLogin.getCodigoVerificacao(), urlDeVerificacao);
-        
+        System.out.println("[Login] " + "email enviado para " + usuario.getEmail());
         return ResponseEntity.ok(Map.of(
             "mensagem", "Código de verificação enviado para o seu e-mail.",
             "idVerificacao", pendingLogin.getId()
@@ -233,6 +261,7 @@ public class AccessController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) { 
         try {
+        	System.out.println("[RefreshToken] " + "Método de refresh foi chamado, iniciando refresh do token de acesso");
             String refreshToken = null;
             if (request.getCookies() != null) {
                 for (Cookie cookie : request.getCookies()) {
@@ -243,9 +272,11 @@ public class AccessController {
                 }
             }
             if (refreshToken == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token não encontrado no cookie.");
+            	System.out.println("[RefreshToken] " + "Token não encontrado ou cookie inexistente");
+            	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token não encontrado no cookie.");
             }
             if (!jwt.isTokenValid(refreshToken)) { 
+            	System.out.println("[RefreshToken] " + "Token invalido");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido ou expirado.");
             }
             Usuario usuario = repo.findById(jwt.parseToken(refreshToken).get("id", UUID.class))
@@ -268,13 +299,16 @@ public class AccessController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
+    	System.out.println("[Logout] " + "Método de logout chamado, iniciando remoção dos tokens");
         Cookie refreshTokenCookie = new Cookie("refreshToken", null);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/auth/refresh");
-        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setMaxAge(0); 
         response.addCookie(refreshTokenCookie);
-        return ResponseEntity.ok(Map.of("mensagem", "Logout realizado com sucesso."));
+
+        System.out.println("[Logout] " + "Logout concluido, tokens desabilitados");
+        return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso."));
     }
 
     private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, boolean mantenhaConectado, HttpServletResponse response) {
