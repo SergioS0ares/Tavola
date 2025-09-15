@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import TavolaSoftware.TavolaApp.REST.dto.LoginRequest;
-import TavolaSoftware.TavolaApp.REST.dto.LoginResponse;
-import TavolaSoftware.TavolaApp.REST.dto.ReenvioRequest;
-import TavolaSoftware.TavolaApp.REST.dto.RegistroRequest;
-import TavolaSoftware.TavolaApp.REST.dto.VerificacaoRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.ReenvioRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.RegistroRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.VerificacaoRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.LoginRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.model.AccessModel;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
@@ -38,7 +38,7 @@ import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
-import TavolaSoftware.TavolaApp.REST.service.RememberMeService;
+import TavolaSoftware.TavolaApp.REST.service.TrustTokenService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +56,7 @@ public class AccessController {
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
     @Autowired private ServicoRepository repoServico; // <<< ADICIONE ESTA LINHA
-    @Autowired private RememberMeService rememberMeService;
+    @Autowired private TrustTokenService rememberMeService;
 
 
     @PostMapping("/register")

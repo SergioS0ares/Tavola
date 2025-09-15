@@ -1,7 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.AmbienteRequest;
-import TavolaSoftware.TavolaApp.REST.dto.AmbienteResponse;
+import TavolaSoftware.TavolaApp.REST.dto.requests.AmbienteRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.AmbienteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.AmbienteService;
 import TavolaSoftware.TavolaApp.REST.service.RestauranteService;

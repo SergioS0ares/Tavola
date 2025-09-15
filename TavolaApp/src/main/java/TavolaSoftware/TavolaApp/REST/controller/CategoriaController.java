@@ -1,6 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.CategoriaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.CategoriaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Categoria;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.CategoriaService;

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import TavolaSoftware.TavolaApp.REST.dto.CardapioResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.CardapioResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.CardapioService;
