@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.HistoricoResponse;
-import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
-import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.StatusUpdateRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.ReservaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.StatusUpdateRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.CalendarioReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.HistoricoResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;

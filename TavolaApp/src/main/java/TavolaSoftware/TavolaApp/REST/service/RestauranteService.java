@@ -1,8 +1,8 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
-import TavolaSoftware.TavolaApp.REST.dto.ClienteHomeResponse; // <<< NOVO IMPORT
-import TavolaSoftware.TavolaApp.REST.dto.RestauranteRequest;
-import TavolaSoftware.TavolaApp.REST.dto.RestauranteResponse;
+import TavolaSoftware.TavolaApp.REST.dto.requests.RestauranteRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Servico;
@@ -63,131 +63,6 @@ public class RestauranteService {
     
     @Autowired
     private ClienteRepository clienteRepository;
-
-    
-    
-    
-    // === CONSTANTES PARA A PESQUISA POR RELEVÂNCIA ===
-    private static final double MEDIA_GERAL_AVALIACAO_APP = 3.5;
-    private static final int C_CONFIANCA = 10;
-    private static final double PESO_FTS_BASE = 0.45;
-    private static final double PESO_SERVICOS = 0.10;
-    private static final double PESO_CARDAPIO = 0.20;
-    private static final double PESO_TAGS = 0.10;
-    private static final double PESO_QUALIDADE = 0.15;
-
-    /**
-     * Realiza uma busca completa por restaurantes, ordenando por relevância.
-     * @param termoOriginal O termo de busca inserido pelo usuário.
-     * @param pageable Objeto de paginação.
-     * @return Uma página de ClienteHomeResponse ordenada por relevância.
-     */
-    @Transactional(readOnly = true)
-    // >>> ALTERAÇÃO 1: O tipo de retorno agora é Page<ClienteHomeResponse> <<<
-    public Page<ClienteHomeResponse> pesquisarRestaurantesPorRelevancia(String termoOriginal, Pageable pageable) {
-        
-        String termoFts = Arrays.stream(termoOriginal.trim().toLowerCase().split("\\s+"))
-                                .filter(palavra -> palavra.length() > 1) 
-                                .collect(Collectors.joining(" | "));
-
-        Page<Object[]> resultadosFtsBase = repoRestaurante.searchRestaurantesByFtsBase(termoFts, pageable);
-
-        if (resultadosFtsBase.isEmpty()) {
-            return Page.empty(pageable);
-        }
-
-        Map<UUID, Double> ftsBaseScoresMap = resultadosFtsBase.getContent().stream()
-            .collect(Collectors.toMap(
-                result -> UUID.fromString(result[0].toString()),
-                result -> result[1] != null ? ((Number) result[1]).doubleValue() : 0.0
-            ));
-        
-        List<UUID> restauranteIds = new ArrayList<>(ftsBaseScoresMap.keySet());
-        Map<UUID, Restaurante> restauranteMap = repoRestaurante.findAllById(restauranteIds).stream().collect(Collectors.toMap(Restaurante::getId, r -> r));
-        List<Restaurante> restaurantesOrdenadosPeloFts = restauranteIds.stream()
-                                                                    .map(restauranteMap::get)
-                                                                    .filter(java.util.Objects::nonNull)
-                                                                    .collect(Collectors.toList());
-
-        List<String> palavrasDoTermo = Arrays.asList(termoOriginal.trim().toLowerCase().split("\\s+"));
-
-        List<RestauranteComScore> restaurantesComScore = restaurantesOrdenadosPeloFts.stream().map(r -> {
-            double ftsScoreBase = ftsBaseScoresMap.getOrDefault(r.getId(), 0.0);
-            double boostServicos = calcularBoostServicos(r, palavrasDoTermo);
-            double boostCardapio = calcularBoostCardapio(r, palavrasDoTermo);
-            double boostTags = calcularBoostTags(r, palavrasDoTermo);
-            double scoreQualidade = calcularScoreQualidade(r);
-            double scoreQualidadeNormalizado = scoreQualidade / 5.0;
-
-            double finalScore = (PESO_FTS_BASE * ftsScoreBase) +
-                                (PESO_SERVICOS * boostServicos) +
-                                (PESO_CARDAPIO * boostCardapio) +
-                                (PESO_TAGS * boostTags) +
-                                (PESO_QUALIDADE * scoreQualidadeNormalizado);
-            
-            return new RestauranteComScore(r, finalScore);
-        }).collect(Collectors.toList());
-
-        restaurantesComScore.sort(Comparator.comparingDouble(RestauranteComScore::getFinalScore).reversed());
-
-        // >>> ALTERAÇÃO 2: Convertendo a lista de restaurantes para uma lista de ClienteHomeResponse. <<<
-        // Usamos o construtor de ClienteHomeResponse que aceita um Restaurante.
-        List<ClienteHomeResponse> responses = restaurantesComScore.stream()
-                .map(rsc -> new ClienteHomeResponse(rsc.getRestaurante()))
-                .collect(Collectors.toList());
-        
-        return new PageImpl<>(responses, pageable, resultadosFtsBase.getTotalElements());
-    }
-
-    private double calcularBoostServicos(Restaurante r, List<String> palavrasDoTermo) {
-        if (r.getServicos() == null || r.getServicos().isEmpty() || palavrasDoTermo.isEmpty()) return 0.0;
-        for (Servico servico : r.getServicos()) {
-            for (String palavra : palavrasDoTermo) {
-                if (servico.getNome() != null && servico.getNome().toLowerCase().contains(palavra)) {
-                    return 1.0;
-                }
-            }
-        }
-        return 0.0;
-    }
-
-    private double calcularBoostCardapio(Restaurante r, List<String> palavrasDoTermo) {
-        if (r.getCardapio() == null || r.getCardapio().isEmpty() || palavrasDoTermo.isEmpty()) return 0.0;
-        for (Cardapio item : r.getCardapio()) {
-            for (String palavra : palavrasDoTermo) {
-                if (item.getNome() != null && item.getNome().toLowerCase().contains(palavra)) {
-                    return 1.0;
-                }
-            }
-        }
-        return 0.0;
-    }
-
-    private double calcularBoostTags(Restaurante r, List<String> palavrasDoTermo) {
-        if (r.getCardapio() == null || r.getCardapio().isEmpty() || palavrasDoTermo.isEmpty()) return 0.0;
-        for (Cardapio item : r.getCardapio()) {
-            if (item.getTags() != null && !item.getTags().isEmpty()) {
-                for (Tags tag : item.getTags()) {
-                    for (String palavra : palavrasDoTermo) {
-                        if (tag.getTag() != null && tag.getTag().toLowerCase().contains(palavra)) {
-                            return 1.0;
-                        }
-                    }
-                }
-            }
-        }
-        return 0.0;
-    }
-
-    private double calcularScoreQualidade(Restaurante restaurante) {
-        int totalAvaliacoes = restaurante.getTotalDeAvaliacoes();
-        double mediaAvaliacao = restaurante.getMediaAvaliacao();
-        if (totalAvaliacoes == 0) return MEDIA_GERAL_AVALIACAO_APP; 
-        if (totalAvaliacoes >= 100) return mediaAvaliacao;
-        double scorePonderado = ((MEDIA_GERAL_AVALIACAO_APP * C_CONFIANCA) + (mediaAvaliacao * totalAvaliacoes))
-                                / (C_CONFIANCA + totalAvaliacoes);
-        return BigDecimal.valueOf(scorePonderado).setScale(2, RoundingMode.HALF_UP).doubleValue();
-    }
     
     /**
      * Busca restaurantes filtrando pela cidade.

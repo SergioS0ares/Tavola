@@ -1,7 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.MesaRequest;
-import TavolaSoftware.TavolaApp.REST.dto.MesaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.MesaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.MesaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.service.MesaService;
 import org.springframework.beans.factory.annotation.Autowired;

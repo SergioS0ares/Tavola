@@ -1,6 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
-import TavolaSoftware.TavolaApp.REST.dto.ClienteUpdateRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;

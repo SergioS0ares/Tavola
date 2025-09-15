@@ -1,19 +1,15 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.ClienteHomeResponse; // <<< NOVO IMPORT
-import TavolaSoftware.TavolaApp.REST.dto.RestauranteRequest;
-import TavolaSoftware.TavolaApp.REST.dto.RestauranteResponse;
+import TavolaSoftware.TavolaApp.REST.dto.requests.PesquisaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.RestauranteRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.REST.service.PesquisaService;
 import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
-import TavolaSoftware.TavolaApp.tools.TipoUsuario; 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,67 +25,16 @@ public class RestauranteController {
 
     @Autowired
     private RestauranteService servRestaurante;
-
+    
     @Autowired
-    private UsuarioRepository usuarioRepository;
-
+    private PesquisaService servPesquisa;
     
-    @GetMapping("/por-cidade")
-    public ResponseEntity<?> findByCity(@RequestParam String cidade) {
-        String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
-
-        if (usuarioLogado == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado ou não encontrado."));
-        }
-        if (usuarioLogado.getTipo() != TipoUsuario.CLIENTE) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                 .body(Map.of("erro", "Apenas clientes podem realizar esta busca."));
-        }
-        
-        if (cidade == null || cidade.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(Map.of("erro", "O parâmetro 'cidade' não pode ser vazio."));
-        }
-
-        // >>> ALTERAÇÃO 5: A variável 'resultados' agora é do tipo List<ClienteHomeResponse> <<<
-        List<ClienteHomeResponse> resultados = servRestaurante.findByCidade(cidade.trim());
-        return ResponseEntity.ok(resultados);
-    }
-    
-    @GetMapping("/pesquisar")
-    public ResponseEntity<?> pesquisarRestaurantes(
-            @RequestParam String termo,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int tamanho) {
-
-        String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
-
-        if (usuarioLogado == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado ou não encontrado."));
-        }
-        if (usuarioLogado.getTipo() != TipoUsuario.CLIENTE) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                 .body(Map.of("erro", "Apenas clientes podem realizar pesquisas."));
-        }
-
-        if (termo == null || termo.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(Map.of("erro", "O termo de pesquisa não pode ser vazio."));
-        }
-
-        Pageable pageable = PageRequest.of(pagina, tamanho);
-        
-        // >>> ALTERAÇÃO 6: A variável 'resultados' agora é do tipo Page<ClienteHomeResponse> <<<
-        Page<ClienteHomeResponse> resultados = servRestaurante.pesquisarRestaurantesPorRelevancia(termo.trim(), pageable);
-
+    @PostMapping("/pesquisar") // Mudado para POST para aceitar um corpo de requisição com os filtros
+    public ResponseEntity<List<ClienteHomeResponse>> pesquisarRestaurantes(@RequestBody PesquisaRequest request) {
+        List<ClienteHomeResponse> resultados = servPesquisa.pesquisar(request);
         return ResponseEntity.ok(resultados);
     }
 
-    
-    
-    
     // === SEUS MÉTODOS EXISTENTES (permanecem inalterados) ===
     @GetMapping("/self")
     public ResponseEntity<RestauranteResponse> findSelf() {

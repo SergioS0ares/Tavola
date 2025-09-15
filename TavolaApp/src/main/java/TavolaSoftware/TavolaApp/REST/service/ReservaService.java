@@ -1,9 +1,9 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
-import TavolaSoftware.TavolaApp.REST.dto.CalendarioReservaResponse;
-import TavolaSoftware.TavolaApp.REST.dto.HistoricoResponse;
-import TavolaSoftware.TavolaApp.REST.dto.ReservaRequest;
-import TavolaSoftware.TavolaApp.REST.dto.ReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.requests.ReservaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.CalendarioReservaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.HistoricoResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;

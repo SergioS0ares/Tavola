@@ -1,6 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
-import TavolaSoftware.TavolaApp.REST.dto.UsuarioUpdateRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.UsuarioUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
