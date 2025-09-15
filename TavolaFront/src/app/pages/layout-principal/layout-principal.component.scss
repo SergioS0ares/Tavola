@@ -1,36 +1,52 @@
 .layout-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   height: 100vh;
   position: relative;
+  background: #f8f6f2;
+  overflow: hidden;
 }
 
-// toolbar no topo
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
-  height: 60px;
-  background-color: #c22523;
+  padding: 0 24px;
+  height: 72px;
+  background: #3B221B;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(246, 189, 56, 0.2);
   color: white;
-  z-index: 10;
-  width: 100%;
+  z-index: 1000;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 4px 20px rgba(59, 34, 27, 0.3);
 
   .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
     background: transparent;
     border: none;
     color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
     mat-icon {
       font-size: 24px;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background: rgba(246, 189, 56, 0.2);
+      transform: scale(1.05);
+      
+      mat-icon {
+        color: #F6BD38;
+      }
     }
   }
 
@@ -42,92 +58,122 @@
 
   .notifications {
     .notification-btn {
-      // Esses estilos já devem existir, apenas confirme
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
       background: transparent;
       border: none;
       color: white;
       cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &:hover {
+        background: rgba(246, 189, 56, 0.2);
+        transform: scale(1.05);
+        
+        mat-icon {
+          color: #F6BD38 !important;
+        }
+      }
     }
   }
-  
-  // O ::ng-deep é necessário para estilizar o painel do mat-menu,
-  // que é renderizado fora do componente.
+
   ::ng-deep {
     .notification-dropdown.mat-mdc-menu-panel {
-      max-width: 400px !important;
-      min-width: 320px !important;
-      border-radius: 12px !important;
+      max-width: 420px !important;
+      min-width: 360px !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+      border: 1px solid rgba(246, 189, 56, 0.2) !important;
+      overflow: hidden !important;
     }
-  
+
     .notification-dropdown .mat-mdc-menu-content {
       padding: 0 !important;
     }
-  
+
     .dropdown-header {
       background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
-      padding: 16px 20px;
-      border-bottom: 1px solid #f0f0f0;
-  
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
       h4 {
         margin: 0;
         color: #3B221B;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
+        letter-spacing: -0.025em;
       }
     }
-  
+
     .dropdown-content {
-      max-height: 300px;
+      max-height: 320px;
       overflow-y: auto;
-  
+
       .loading-state,
       .empty-state {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 40px 20px;
+        padding: 48px 24px;
         color: #666;
         text-align: center;
-  
+
         mat-icon {
-          font-size: 32px;
-          width: 32px;
-          height: 32px;
-          margin-bottom: 12px;
+          font-size: 40px;
+          width: 40px;
+          height: 40px;
+          margin-bottom: 16px;
           color: #F6BD38;
         }
-        span { font-size: 14px; }
+        
+        span { 
+          font-size: 15px;
+          font-weight: 500;
+        }
       }
-  
+
       .avaliacao-item.mat-mdc-menu-item {
         height: auto !important;
-        padding: 16px 20px !important;
+        padding: 20px 24px !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
-  
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(246, 189, 56, 0.05);
+        }
+
         .mat-mdc-menu-item-text {
           width: 100%;
         }
-  
+
         .avaliacao-content {
           white-space: normal;
           flex: 1;
-  
+
           h5 {
-            margin: 0 0 4px 0;
+            margin: 0 0 6px 0;
             color: #3B221B;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
+            letter-spacing: -0.025em;
           }
+          
           p {
             margin: 0;
             color: #666;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
           }
         }
-  
+
         mat-icon {
           color: #F6BD38;
           margin-left: 16px;
@@ -139,14 +185,17 @@
   .user-menu {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    padding: 8px 16px;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+      background: rgba(246, 189, 56, 0.2);
+      border-color: rgba(246, 189, 56, 0.3);
+      transform: translateY(-1px);
     }
 
     .user-info {
@@ -155,11 +204,12 @@
       gap: 12px;
 
       .avatar {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         overflow: hidden;
         border: 2px solid #F6BD38;
+        box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
 
         img {
           width: 100%;
@@ -173,162 +223,70 @@
         flex-direction: column;
         
         .user-name {
-          font-size: 14px;
-          font-weight: 500;
+          font-size: 15px;
+          font-weight: 600;
           color: white;
+          letter-spacing: -0.025em;
         }
 
         .user-type {
-          font-size: 12px;
+          font-size: 13px;
           color: rgba(255, 255, 255, 0.8);
+          font-weight: 500;
         }
       }
     }
 
     mat-icon {
       color: rgba(255, 255, 255, 0.8);
+      transition: transform 0.3s ease;
+    }
+
+    &:hover mat-icon {
+      transform: rotate(180deg);
     }
   }
 }
 
-// wrapper em flex-row para sidebar + content
 .main-wrapper {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
-  background-color: #ebe8e2;
-  min-height: 100vh;
+  min-height: 0;
 }
 
-// sidebar para desktop
 .desktop-sidebar {
-  margin: 16px;           // distancia do topo e das laterais
-  width: 240px;
-  background-color: #3B221B;
-  color: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 16px;
+  width: 280px;
+  background: #3B221B;
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(246, 189, 56, 0.2);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  height: calc(100vh - 32px);
-  position: fixed;
-  left: 16px;
-  top: 16px;
-  z-index: 5;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 100;
+  box-shadow: 4px 0 20px rgba(59, 34, 27, 0.2);
 
   &.fechada {
-    width: 70px;
-    padding: 16px 8px;
+    width: 80px;
 
     .sidebar-header {
       justify-content: center;
+      padding: 24px 16px;
+      
       .logo {
-        width: 30px;
+        width: 32px;
       }
     }
 
     .menu button {
       justify-content: center;
+      padding: 16px;
+      
       span {
         display: none;
       }
-    }
-  }
-
-  .sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-
-    .logo {
-      width: 50px;
-      height: auto;
-    }
-
-    .close-button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-    }
-  }
-
-  .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    button {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: transparent;
-      border: 1px solid #F6BD38;
-      color: #F6BD38;
-      padding: 12px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 500;
-      width: 100%;
-      transition: all 0.2s ease;
-      box-sizing: border-box;
-
-      mat-icon {
-        font-size: 20px;
-      }
-
-      &:hover, &.active {
-        background-color: #F6BD38;
-        color: #3B221B;
-        border: 1px solid #F6BD38;
-      }
-    }
-  }
-}
-
-// conteúdo ao lado da sidebar
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin-left: 0; // Para mobile
-
-  .router-container {
-    flex: 1;
-    padding: 24px;
-    background-color: #ebe8e2;
-    overflow-y: auto;
-  }
-}
-
-// botão hamburguer (reabre)
-.menu-toggle {
-  background: transparent;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 24px;
-}
-
-::ng-deep {
-  .user-dropdown {
-    margin-top: 8px;
-    
-    .mat-mdc-menu-content {
-      padding: 0;
-    }
-
-    .mat-mdc-menu-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
       
       mat-icon {
         margin: 0;
@@ -336,97 +294,112 @@
     }
   }
 
-  // Estilos para o dropdown de notificações
-  .notification-dropdown {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    min-width: 320px;
-    max-width: 400px;
-    overflow: hidden;
+  .sidebar-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 32px 24px;
+    border-bottom: 1px solid rgba(246, 189, 56, 0.2);
 
-    .dropdown-header {
-      background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
+    .logo {
+      width: 48px;
+      height: auto;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 2px 8px rgba(246, 189, 56, 0.3));
+    }
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px;
+    flex: 1;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: transparent;
+      border: 1px solid #F6BD38;
+      color: #F6BD38;
       padding: 16px 20px;
-      border-bottom: 1px solid #f0f0f0;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 15px;
+      width: 100%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
 
-      h4 {
-        margin: 0;
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        color: #F6BD38;
+        transition: all 0.3s ease;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(246, 189, 56, 0.1), transparent);
+        transition: left 0.5s ease;
+      }
+
+      &:hover, &.active {
+        background: #F6BD38;
         color: #3B221B;
-        font-size: 16px;
-        font-weight: 600;
+        border-color: #F6BD38;
+        transform: translateX(4px);
+        
+        &::before {
+          left: 100%;
+        }
+        
+        mat-icon {
+          color: #3B221B;
+          transform: scale(1.1);
+        }
       }
     }
+  }
+}
 
-    .dropdown-content {
-      max-height: 300px;
-      overflow-y: auto;
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #f8f6f2;
 
-      .loading-state,
-      .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px;
-        color: #666;
-        text-align: center;
+  .router-container {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
 
-        mat-icon {
-          font-size: 32px;
-          width: 32px;
-          height: 32px;
-          margin-bottom: 12px;
-          color: #F6BD38;
-        }
+    &::-webkit-scrollbar-track {
+      background: rgba(246, 189, 56, 0.1);
+      border-radius: 4px;
+    }
 
-        span {
-          font-size: 14px;
-        }
-      }
-
-      .avaliacoes-list {
-        .avaliacao-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 20px;
-          border-bottom: 1px solid #f0f0f0;
-          cursor: pointer;
-          transition: background-color 0.2s;
-
-          &:hover {
-            background-color: #f8f9fa;
-          }
-
-          &:last-child {
-            border-bottom: none;
-          }
-
-          .avaliacao-content {
-            flex: 1;
-
-            h5 {
-              margin: 0 0 4px 0;
-              color: #3B221B;
-              font-size: 14px;
-              font-weight: 600;
-            }
-
-            p {
-              margin: 0;
-              color: #666;
-              font-size: 12px;
-            }
-          }
-
-          mat-icon {
-            color: #F6BD38;
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-          }
-        }
+    &::-webkit-scrollbar-thumb {
+      background: #F6BD38;
+      border-radius: 4px;
+      
+      &:hover {
+        background: #3B221B;
       }
     }
   }
@@ -434,57 +407,164 @@
 
 .toolbar-search-bar {
   flex: 1;
-  max-width: 700px;
+  max-width: 600px;
   margin: 0 32px;
-  align-self: center;
-  z-index: 20;
-  transition: margin-left 0.3s, box-shadow 0.3s, transform 0.3s;
-}
-
-.sidebar-fechada {
-  margin-left: 0 !important;
-}
-
-@media (min-width: 900px) {
-  .toolbar-search-bar {
-    margin-left: 80px;
-  }
-  .sidebar-fechada.toolbar-search-bar {
-    margin-left: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.sidebar-fechada {
+    margin-left: 16px;
   }
 }
 
-.toolbar-search-bar {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.3s, transform 0.3s;
-}
+::ng-deep {
+  .user-dropdown {
+    margin-top: 8px;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(246, 189, 56, 0.2) !important;
+    overflow: hidden !important;
+    
+    .mat-mdc-menu-content {
+      padding: 8px !important;
+    }
 
-:host ::ng-deep .toolbar-search-bar.ng-animating {
-  opacity: 0;
-  transform: translateY(-30px);
-}
+    .mat-mdc-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px !important;
+      border-radius: 12px !important;
+      margin: 4px 0 !important;
+      transition: all 0.2s ease !important;
+      font-weight: 500 !important;
+      
+      &:hover {
+        background: rgba(246, 189, 56, 0.1) !important;
+        transform: translateX(4px) !important;
+      }
+      
+      mat-icon {
+        margin: 0 !important;
+        color: #F6BD38 !important;
+      }
+    }
+  }
 
-@media (max-width: 900px) {
-  .toolbar-search-bar {
-    max-width: 98vw;
-    margin: 0 8px;
+  .notification-dropdown.mat-mdc-menu-panel {
+    max-width: 420px !important;
+    min-width: 360px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(246, 189, 56, 0.2) !important;
+    overflow: hidden !important;
+  }
+
+  .notification-dropdown .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+
+  .dropdown-header {
+    background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+    h4 {
+      margin: 0;
+      color: #3B221B;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+  }
+
+  .dropdown-content {
+    max-height: 320px;
+    overflow-y: auto;
+
+    .loading-state,
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      color: #666;
+      text-align: center;
+
+      mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 16px;
+        color: #F6BD38;
+      }
+      
+      span { 
+        font-size: 15px;
+        font-weight: 500;
+      }
+    }
+
+    .avaliacao-item.mat-mdc-menu-item {
+      height: auto !important;
+      padding: 20px 24px !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(246, 189, 56, 0.05);
+      }
+
+      .mat-mdc-menu-item-text {
+        width: 100%;
+      }
+
+      .avaliacao-content {
+        white-space: normal;
+        flex: 1;
+
+        h5 {
+          margin: 0 0 6px 0;
+          color: #3B221B;
+          font-size: 15px;
+          font-weight: 600;
+          letter-spacing: -0.025em;
+        }
+        
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 13px;
+          font-weight: 500;
+        }
+      }
+
+      mat-icon {
+        color: #F6BD38;
+        margin-left: 16px;
+      }
+    }
   }
 }
 
-.toolbar-search-bar .mat-icon, .toolbar-search-bar .icon, .toolbar-search-bar .brown {
-  color: #3B221B !important;
-}
-
-// Estilos para o drawer mobile
 ::ng-deep .mobile-drawer {
   .ant-drawer-body {
     padding: 0;
-    background-color: #3B221B;
+    background: #3B221B;
+    backdrop-filter: blur(20px);
   }
   
   .ant-drawer-content {
-    background-color: #3B221B;
+    background: #3B221B;
+    backdrop-filter: blur(20px);
+  }
+  
+  .ant-drawer-mask {
+    background: rgba(59, 34, 27, 0.4);
+    backdrop-filter: blur(4px);
   }
 }
 
@@ -492,17 +572,20 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 32px 24px;
   
   .sidebar-header {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(246, 189, 56, 0.2);
     
     .logo {
-      width: 50px;
+      width: 56px;
       height: auto;
+      filter: drop-shadow(0 4px 12px rgba(246, 189, 56, 0.4));
     }
   }
   
@@ -514,57 +597,70 @@
     button {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 16px;
       background: transparent;
       border: 1px solid #F6BD38;
       color: #F6BD38;
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 20px 24px;
+      border-radius: 16px;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 16px;
       width: 100%;
-      transition: all 0.2s ease;
-      box-sizing: border-box;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       
       mat-icon {
-        font-size: 20px;
+        font-size: 24px;
+        color: #F6BD38;
+        transition: all 0.3s ease;
       }
       
       &:hover, &.active {
-        background-color: #F6BD38;
+        background: #F6BD38;
         color: #3B221B;
-        border: 1px solid #F6BD38;
+        border-color: #F6BD38;
+        transform: translateX(8px);
+        
+        mat-icon {
+          color: #3B221B;
+          transform: scale(1.1);
+        }
       }
     }
   }
 }
 
-// Responsividade
 @media (min-width: 768px) {
   .content {
-    margin-left: 272px; // 240px + 32px de margin
-  }
-  
-  .desktop-sidebar.fechada + .main-wrapper .content {
-    margin-left: 102px; // 70px + 32px de margin
+    margin-left: 0;
   }
 }
 
 @media (max-width: 767px) {
   .toolbar {
-    padding: 0 12px;
+    padding: 0 16px;
+    height: 64px;
     
     .toolbar-search-bar {
-      display: none; // Esconde a search bar em mobile por enquanto
+      display: none;
     }
     
     .user-details {
-      display: none; // Esconde detalhes do usuário em mobile
+      display: none !important;
+    }
+    
+    .user-menu {
+      padding: 8px;
+      
+      .avatar {
+        width: 40px !important;
+        height: 40px !important;
+      }
     }
   }
   
   .content .router-container {
-    padding: 16px;
+    padding: 20px 16px;
   }
   
   .desktop-sidebar {
@@ -572,3 +668,32 @@
   }
 }
 
+@keyframes slideInRight {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.desktop-sidebar {
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar {
+  animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
