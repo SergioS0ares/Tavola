@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import TavolaSoftware.TavolaApp.REST.dto.requests.ReenvioRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.RegistroRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.SenhaResetConfirmRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.SenhaResetRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.VerificacaoRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.LoginRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.LoginResponse;
@@ -298,6 +300,23 @@ public class AccessController {
 
         System.out.println("[Logout] " + "Logout concluido, tokens desabilitados");
         return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso."));
+    }
+    
+    @PostMapping("/esqueci-senha")
+    public ResponseEntity<?> solicitarResetSenha(@RequestBody SenhaResetRequest request) {
+        accessService.solicitarResetDeSenha(request.getEmail());
+        // Resposta genérica para não revelar se o e-mail existe ou não
+        return ResponseEntity.ok(Map.of("mensagem", "Se um usuário com este e-mail existir em nosso sistema, um link de redefinição será enviado."));
+    }
+    
+    @PostMapping("/redefinir-senha")
+    public ResponseEntity<?> redefinirSenha(@RequestBody SenhaResetConfirmRequest request) {
+        try {
+            accessService.executarResetDeSenha(request.getToken(), request.getNovaSenha());
+            return ResponseEntity.ok(Map.of("mensagem", "Sua senha foi redefinida com sucesso."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+        }
     }
 
 //====================================================================================================================================================================================
