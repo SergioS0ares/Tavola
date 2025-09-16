@@ -5,11 +5,11 @@ import {
   NG_VALUE_ACCESSOR
 } from "./chunk-2ZAX7M67.js";
 import {
-  _MatInternalFormField
-} from "./chunk-FMURBE5J.js";
-import {
   MatRippleModule
 } from "./chunk-HZSZSJLO.js";
+import {
+  _MatInternalFormField
+} from "./chunk-FMURBE5J.js";
 import {
   MatRipple,
   _StructuralStylesLoader

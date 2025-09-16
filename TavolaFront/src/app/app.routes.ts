@@ -25,6 +25,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/acesso/confirmar-codigo/confirmar-codigo.component').then(m => m.ConfirmarCodigoComponent)
   },
   {
+    path: 'redefinir-senha/:token',
+    loadComponent: () => import('./pages/acesso/redefinir-senha/redefinir-senha.component').then(m => m.RedefinirSenhaComponent)
+  },
+  {
     path: '',
     loadComponent: () => import('./pages/layout-principal/layout-principal.component').then(m => m.LayoutPrincipalComponent),
     canActivate: [AuthGuard],

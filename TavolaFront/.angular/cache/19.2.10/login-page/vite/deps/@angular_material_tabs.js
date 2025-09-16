@@ -1,3 +1,9 @@
+import "./chunk-OIBNGD5S.js";
+import {
+  CdkPortal,
+  CdkPortalOutlet,
+  TemplatePortal
+} from "./chunk-2ET3CX5M.js";
 import {
   SharedResizeObserver
 } from "./chunk-JHVY26RY.js";
@@ -7,12 +13,6 @@ import {
   _StructuralStylesLoader
 } from "./chunk-4FW5XKLR.js";
 import "./chunk-MP5B2SRU.js";
-import "./chunk-OIBNGD5S.js";
-import {
-  CdkPortal,
-  CdkPortalOutlet,
-  TemplatePortal
-} from "./chunk-2ET3CX5M.js";
 import "./chunk-OHWI2S6G.js";
 import "./chunk-37JVYMH4.js";
 import {
