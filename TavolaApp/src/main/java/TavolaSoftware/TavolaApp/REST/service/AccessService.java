@@ -10,12 +10,16 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import TavolaSoftware.TavolaApp.REST.model.PasswordResetToken;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
+import TavolaSoftware.TavolaApp.REST.repository.PasswordResetTokenRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AccessService {
@@ -29,26 +33,68 @@ public class AccessService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+    
     @Value("${spring.mail.username}")
     private String emailRemetente;
 
     @Transactional
-    public Usuario iniciarResetSenha(String email) {
-        Usuario usuario = usuarioRepository.findByEmail(email);
-        if (usuario != null) {
-            String codigo = gerarCodigoDeVerificacao();
-            usuario.setCodigoVerificacao(codigo);
-            usuario.setExpiracaoCodigo(LocalDateTime.now().plusMinutes(15));
-            usuarioRepository.save(usuario);
-            // Envio de e-mail desativado conforme solicitado.
+    public void solicitarResetDeSenha(String email) {
+        Optional<Usuario> usuarioOpt = Optional.ofNullable(usuarioRepository.findByEmail(email));
+
+        if (usuarioOpt.isEmpty()) {
+            // Não retorne erro para não expor quais e-mails existem.
+            System.out.println("Solicitação de reset para e-mail não cadastrado: " + email);
+            return;
         }
-        return usuario;
+
+        Usuario usuario = usuarioOpt.get();
+        
+        // Invalida quaisquer tokens de reset antigos para este usuário
+        passwordResetTokenRepository.deleteByUsuarioId(usuario.getId());
+
+        // 1. Gera o token seguro
+        String token = UUID.randomUUID().toString();
+
+        // 2. Cria a entidade do token
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setUsuario(usuario);
+        resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30)); // Token válido por 30 minutos
+        resetToken.setTokenHash(new BCryptPasswordEncoder().encode(token)); // Salva o HASH
+
+        passwordResetTokenRepository.save(resetToken);
+
+        // 3. Monta a URL e envia o e-mail
+        // A URL que seu frontend usará para a página de redefinição
+        String urlDeRedefinicao = "http://localhost:4200/redefinir-senha?token=" + token;
+
+        enviarEmailResetSenha(usuario.getEmail(), usuario.getNome(), urlDeRedefinicao);
     }
     
     public String gerarCodigoDeVerificacao() {
         SecureRandom random = new SecureRandom();
         int numero = random.nextInt(999999);
         return new DecimalFormat("000000").format(numero);
+    }
+    
+    public void enviarEmailResetSenha(String destinatario, String nomeUsuario, String urlDeRedefinicao) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailRemetente, "Equipe Tavola");
+            helper.setTo(destinatario);
+            helper.setSubject("Redefinição de Senha - Tavola");
+
+            String corpoEmail = criarCorpoEmailResetSenha(nomeUsuario, urlDeRedefinicao);
+            helper.setText(corpoEmail, true);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao enviar e-mail de redefinição: " + e.getMessage());
+        }
     }
 
     // <<< MÉTODO DE ENVIO DE E-MAIL UNIFICADO >>>
@@ -72,28 +118,27 @@ public class AccessService {
     }
     
     @Transactional
-    public Usuario confirmarResetSenha(String email, String codigo, String novaSenha) {
-        Usuario usuario = usuarioRepository.findByEmail(email);
+    public void executarResetDeSenha(String token, String novaSenha) {
+        // É preciso iterar pois não podemos buscar pelo token puro
+        for (PasswordResetToken pToken : passwordResetTokenRepository.findAll()) {
+            if (new BCryptPasswordEncoder().matches(token, pToken.getTokenHash())) {
+                
+                if (pToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                    passwordResetTokenRepository.delete(pToken); // Limpa o token expirado
+                    throw new RuntimeException("Token de redefinição de senha expirado.");
+                }
 
-        if (usuario == null || usuario.getCodigoVerificacao() == null ||
-            !usuario.getCodigoVerificacao().equals(codigo) ||
-            usuario.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
-            
-            throw new RuntimeException("Código de verificação inválido ou expirado.");
+                Usuario usuario = pToken.getUsuario();
+                usuario.setSenha(passwordEncoder.encode(novaSenha)); // Usa o passwordEncoder da classe
+                usuarioRepository.save(usuario);
+
+                // PONTO CRÍTICO: Deleta o token após o uso para que ele seja de uso único
+                passwordResetTokenRepository.delete(pToken);
+                return; // Sucesso
+            }
         }
-
-        if (passwordEncoder.matches(novaSenha, usuario.getSenha())) {
-            usuario.setCodigoVerificacao(null);
-            usuario.setExpiracaoCodigo(null);
-            usuarioRepository.save(usuario);
-            return usuario;
-        }
-
-        usuario.setSenha(passwordEncoder.encode(novaSenha));
-        usuario.setCodigoVerificacao(null);
-        usuario.setExpiracaoCodigo(null);
         
-        return usuarioRepository.save(usuario);
+        throw new RuntimeException("Token de redefinição de senha inválido.");
     }
 
     // <<< TEMPLATE HTML UNIFICADO E CORRIGIDO >>>
@@ -183,4 +228,58 @@ public class AccessService {
                 .replace("[CODIGO]", codigo)
                 .replace("[URL_VERIFICACAO]", urlVerificacao);
     }
+    
+    private String criarCorpoEmailResetSenha(String nomeUsuario, String urlRedefinicao) {
+        String htmlTemplate = """
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+              <meta charset="UTF-8"/>
+              <title>Redefinição de Senha - Tavola</title>
+              <style>
+                /* Estilos identicos ao seu template anterior para manter a consistência */
+                *{margin:0;padding:0;box-sizing:border-box}
+                body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#ebe8e2;margin:0;padding:20px;min-height:100vh}
+                .email-container{max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.15)}
+                .header{background:linear-gradient(135deg,#f5ba3f 0%,#eeaa17 100%);padding:40px 30px;text-align:center;position:relative}
+                .header h1{color:#fff;font-size:32px;font-weight:700;margin-bottom:10px;text-shadow:0 2px 4px rgba(0,0,0,.2);position:relative;z-index:1}
+                .content{padding:50px 40px;text-align:center}
+                .greeting{font-size:24px;color:#333;margin-bottom:20px;font-weight:600}
+                .message{font-size:16px;color:#666;line-height:1.6;margin-bottom:40px}
+                .expiry-info{background:#fff3e0;border-left:4px solid #F6BD38;padding:20px;margin:30px 0;border-radius:0 10px 10px 0;font-size:14px;color:#666}
+                .cta-section{margin:40px 0}
+                .cta-button{display:inline-block;background:linear-gradient(135deg,#f5ba3f 0%,#eeaa17 100%);color:#ffffff !important;text-decoration:none;padding:18px 40px;border-radius:50px;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;box-shadow:0 8px 25px rgba(218,74,36,.3);transition:all .3s ease;}
+                .cta-button:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(218,74,36,.4)}
+                .footer{background:#f8f9fa;padding:30px;text-align:center;border-top:1px solid #eee}
+                .footer-text{font-size:14px;color:#666;margin-bottom:15px}
+                .brand-signature{font-size:16px;font-weight:600;color:#DA4A24}
+              </style>
+            </head>
+            <body>
+              <div class="email-container">
+                <div class="header"><h1>TAVOLA</h1></div>
+                <div class="content">
+                  <h2 class="greeting">Olá, [NOME_USUARIO]! 👋</h2>
+                  <p class="message">
+                    Recebemos uma solicitação para redefinir a senha da sua conta. Se você não fez esta solicitação, pode ignorar este e-mail.<br/><br/>
+                    Para continuar, clique no botão abaixo:
+                  </p>
+                  <div class="cta-section"> <a href="[URL_REDEFINICAO]" class="cta-button">Redefinir Minha Senha</a>
+                  </div>
+                  <div class="expiry-info">
+                    ⏰ <strong>Atenção:</strong> Este link é de uso único e expira em <strong>30 minutos</strong>.
+                  </div>
+                </div>
+                <div class="footer">
+                  <p class="footer-text">Dúvidas? Entre em contato conosco.</p>
+                  <div class="brand-signature">Com carinho,<br/><strong>Equipe Tavola</strong> 🍽️</div>
+                </div>
+              </div>
+            </body>
+            </html>""";
+        return htmlTemplate
+                .replace("[NOME_USUARIO]", nomeUsuario)
+                .replace("[URL_REDEFINICAO]", urlRedefinicao);
+    }
 }
+
