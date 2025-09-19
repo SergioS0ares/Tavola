@@ -33,7 +33,7 @@
         (click)="closeDrawer()"
         type="button"
         aria-label="Gerenciar reservas">
-        <mat-icon aria-hidden="true">event</mat-icon>
+        <mat-icon aria-hidden="true">event_available</mat-icon>
         <span>Reservas</span>
       </button>
       <button 
@@ -42,7 +42,7 @@
         (click)="closeDrawer()"
         type="button"
         aria-label="Gerenciar meu restaurante">
-        <mat-icon aria-hidden="true">restaurant</mat-icon>
+        <mat-icon aria-hidden="true">restaurant_menu</mat-icon>
         <span>Meu Restaurante</span>
       </button>
       <button 
@@ -79,7 +79,7 @@
       type="button"
       aria-label="Abrir menu de navegação"
       [attr.aria-expanded]="isDrawerVisible">
-      <!-- Adicionando classe rotated para animação do ícone hamburguer -->
+      <!-- Melhorado ícone hamburguer com animação mais suave -->
       <mat-icon [class.rotated]="isDrawerVisible" aria-hidden="true">menu</mat-icon>
     </button>
     
@@ -115,8 +115,8 @@
     </app-search-bar>
 
     <!-- Agrupando notificações e menu do usuário em header-actions -->
-    <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
-      <!-- Enhanced Notifications for clients -->
+    <div class="header-actions" style="display: flex; align-items: center; gap: 20px;">
+      <!-- Enhanced Notifications for clients with restaurant bell icon -->
       <div class="notifications" *ngIf="isCliente">
         <button 
           mat-icon-button 
@@ -127,9 +127,10 @@
           [attr.aria-describedby]="temAvaliacoesPendentes ? 'notifications-badge' : null">
           <nz-badge 
             [nzDot]="temAvaliacoesPendentes" 
-            [nzOffset]="[8, 0]"
+            [nzOffset]="[10, 0]"
             [attr.aria-label]="temAvaliacoesPendentes ? 'Há avaliações pendentes' : 'Sem notificações'">
-            <mat-icon aria-hidden="true">notifications</mat-icon>
+            <!-- Ícone de sino específico para restaurante -->
+            <mat-icon aria-hidden="true">notifications_active</mat-icon>
           </nz-badge>
         </button>
       
@@ -225,7 +226,7 @@
   [nzVisible]="isDrawerVisible"
   nzPlacement="left"
   (nzOnClose)="closeDrawer()"
-  nzWidth="320px"
+  nzWidth="340px"
   class="mobile-drawer"
   [attr.aria-label]="'Menu de navegação ' + (isDrawerVisible ? 'aberto' : 'fechado')">
   <ng-container *nzDrawerContent>
