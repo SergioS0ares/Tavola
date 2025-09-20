@@ -1,7 +1,9 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ClienteService {
@@ -42,7 +45,6 @@ public class ClienteService {
     @Autowired
     private UploadUtils uplUtil;
     
-    // ... (Seus outros métodos: save, findAll, etc. permanecem aqui) ...
     public Cliente save(Cliente client) { return repo.save(client); }
     public List<Cliente> findAll() { return repo.findAll(); }
     public Optional<Cliente> findById(UUID id) { return repo.findById(id); }
@@ -70,7 +72,7 @@ public class ClienteService {
         repo.save(cliente); 
         return mensagem;
     }
-    
+
     public List<UUID> getFavoritos(String emailCliente) {
         Cliente cliente = repo.findByUsuarioEmail(emailCliente);
         if (cliente == null) {
@@ -155,17 +157,26 @@ public class ClienteService {
             repoUsuario.delete(usuario);
         }
     }
+    
+    @Transactional(readOnly = true)
+    public List<ClienteHomeResponse> getFavoritosComDetalhes(String emailCliente) {
+        // 1. Busca o cliente para obter a lista de IDs de favoritos
+        Cliente cliente = repo.findByUsuarioEmail(emailCliente);
+        if (cliente == null) {
+            throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
+        }
+
+        List<UUID> favoritosIds = cliente.getFavoritos();
+        if (favoritosIds == null || favoritosIds.isEmpty()) {
+            return new ArrayList<>(); // Retorna lista vazia se não houver favoritos
+        }
+
+        // 2. Busca todos os restaurantes da lista de IDs de uma só vez
+        List<Restaurante> restaurantesFavoritos = repoRestaurante.findAllById(favoritosIds);
+
+        // 3. Converte a lista de entidades Restaurante para uma lista de DTOs
+        return restaurantesFavoritos.stream()
+                .map(ClienteHomeResponse::new) // Reutiliza o construtor do ClienteHomeResponse
+                .collect(Collectors.toList());
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
