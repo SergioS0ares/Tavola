@@ -1,6 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.dto.responses.AvaliacaoRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
@@ -39,12 +40,14 @@ public class ClienteController {
     /*
      * GET auth/clientes/favoritos
      * Endpoint pro cliente se lembrar de quem ele gosta
+     * <<< MÉTODO ATUALIZADO >>>
      * */ 
     @GetMapping("/favoritos")
     public ResponseEntity<?> findAllFavoritos() {  
         try {
             String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            List<UUID> favoritos = serv.getFavoritos(emailCliente);
+            // Chama o novo método que retorna os detalhes completos
+            List<ClienteHomeResponse> favoritos = serv.getFavoritosComDetalhes(emailCliente);
             return ResponseEntity.ok(favoritos);
         } catch (RuntimeException e) { 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
