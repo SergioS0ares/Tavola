@@ -77,14 +77,23 @@ export class LoginComponent {
       this.loginService.login(email, senha).subscribe({
         next: (res) => {
           this.showLoginError = false;
-          // Centraliza o armazenamento no AuthService       
-          this.toastService.success("Login feito com sucesso!");
           
-          if (res.tipoUsuario === 'RESTAURANTE') {
-            this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id, res.imagem);
-            this.router.navigate(['reserva']);
+          // Verifica se a resposta contém 'idVerificacao'
+          if (res.idVerificacao) {
+            // CENÁRIO B: Conta não verificada
+            this.toastService.info(res.mensagem || "Código de verificação enviado para seu e-mail.");
+            // Navega para a tela de confirmar código, passando o ID na URL
+            this.router.navigate(['/confirmar-codigo', res.idVerificacao]);
           } else {
-            this.router.navigate(['home']);
+            // CENÁRIO A: Login normal e bem-sucedido
+            this.toastService.success("Login feito com sucesso!");
+            this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id, res.imagem);
+            
+            if (res.tipoUsuario === 'RESTAURANTE') {
+              this.router.navigate(['reserva']);
+            } else {
+              this.router.navigate(['home']);
+            }
           }
         },
         error: (err) => {

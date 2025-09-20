@@ -4,7 +4,6 @@ import { LoginResponse, RegisterResponse } from '../../types/login-response.type
 import { Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
-import { RefreshResponse } from '../../types/refresh-token.type';
 
 @Injectable({
   providedIn: 'root'
@@ -46,13 +45,15 @@ export class AcessService {
     return this.httpClient.post(`${this.apiUrl}/reenviar-codigo`, { email });
   }
 
-  verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: boolean): Observable<LoginResponse> {
-    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/verificar`, {
-      idVerificacao,
-      codigo,
-      mantenhaMeConectado
-    }).pipe(
-      tap((value) => {
+// access.service.ts
+verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: boolean): Observable<LoginResponse> {
+  return this.httpClient.post<LoginResponse>(`${this.apiUrl}/verificar`, {
+    idVerificacao,
+    codigo,
+    mantenhaMeConectado
+  }).pipe(
+    tap((value: any) => { 
+      if (value.token && !value.erro) { 
         this.auth.setToken(value.token);
         this.auth.setPerfil({ 
           tipo: value.tipoUsuario, 
@@ -60,9 +61,11 @@ export class AcessService {
           id: value.id,
           imagem: value.imagem 
         });
-      })
-    );
-  }
+      }
+    })
+  );
+}
+// ...
 
   logout(): Observable<any> {
     return this.httpClient.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(

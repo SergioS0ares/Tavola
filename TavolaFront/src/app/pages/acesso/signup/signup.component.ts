@@ -17,8 +17,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { HttpClient } from '@angular/common/http';
 import { ISignupForm } from '../../../Interfaces/ISignupForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
-import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
-import { LoginOutline, UserAddOutline, ShopOutline } from '@ant-design/icons-angular/icons';
+import { NzIconModule} from 'ng-zorro-antd/icon';
 import { NgxMaskDirective } from 'ngx-mask';
 
 @Component({

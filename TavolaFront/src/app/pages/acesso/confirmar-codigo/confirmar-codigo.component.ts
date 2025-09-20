@@ -103,52 +103,65 @@ export class ConfirmarCodigoComponent implements OnInit, OnDestroy {
   }
 
   verificarCodigo() {
-    if (!this.isCodigoCompleto()) {
-      this.hasError = true
-      this.statusMessage = "Por favor, digite o código completo de 6 dígitos."
-      this.statusType = "error"
-      this.toastr.error("Por favor, digite o código completo de 6 dígitos.")
-      return
-    }
-
+  
     this.carregando = true
     this.statusMessage = "Verificando código..."
     this.statusType = "info"
-    
-    // Mostra o spinner global
     this.globalSpinner.mostrar()
 
     this.loginService.verificarCodigo(this.idVerificacao, this.codigo, this.mantenhaMeConectado).subscribe({
-      next: (res) => {
-        this.statusMessage = "Código verificado com sucesso!"
-        this.statusType = "success"
-        this.toastr.success("Conta verificada com sucesso!")
+      next: (res: any) => { // O bloco 'next' é executado por causa do status 200
+        if (res.erro) {
+          // Se tiver, nós tratamos como um erro.
+          this.hasError = true;
+          const errorMessage = res.erro || "Código inválido ou expirado. Tente novamente.";
+          this.statusMessage = errorMessage;
+          this.statusType = "error";
 
-        // Limpa os dados temporários
-        localStorage.removeItem('emailCadastro')
-        localStorage.removeItem('idVerificacao')
-
+          // 1. EXIBE O ERRO NO TOAST, COMO VOCÊ QUERIA!
+          this.toastr.error(errorMessage);
+          
+          this.limparCodigo();
+    
+          // Para os indicadores de carregamento
+          this.carregando = false;
+          this.globalSpinner.ocultar();
+    
+          // 2. IMPEDE A NAVEGAÇÃO!
+          // Esta é a linha mais importante. Ela para a execução da função aqui.
+          return; 
+        }
+        // ===================================
+    
+        // Se o `if` de cima for falso, significa que não houve erro.
+        // O código continua para o fluxo de SUCESSO.
+        this.statusMessage = "Código verificado com sucesso!";
+        this.statusType = "success";
+        this.toastr.success("Conta verificada com sucesso!");
+    
+        // ... (seu código de sucesso para remover itens do localStorage e navegar)
         setTimeout(() => {
-          // Redireciona baseado no tipo de usuário
           if (res.tipoUsuario === 'CLIENTE') {
-            this.router.navigate(["/home"])
+            this.router.navigate(["/home"]);
           } else {
-            this.router.navigate(["/reserva"])
+            this.router.navigate(["/reserva"]);
           }
-        }, 1000)
+        }, 1000);
       },
       error: (err: any) => {
-        this.hasError = true
-        const errorMessage = err.error?.erro || "Código inválido ou expirado. Tente novamente."
-        this.statusMessage = errorMessage
-        this.statusType = "error"
-        this.toastr.error(errorMessage)
-        this.limparCodigo()
+        // Este bloco continua funcionando para erros de verdade (4xx/5xx)
+        this.hasError = true;
+        const errorMessage = err.error?.erro || "Código inválido ou expirado. Tente novamente.";
+        this.statusMessage = errorMessage;
+        this.statusType = "error";
+        this.toastr.error(errorMessage);
+        this.limparCodigo();
       },
       complete: () => {
-        this.carregando = false
-        // Esconde o spinner global
-        this.globalSpinner.ocultar()
+        // A lógica de parada de carregamento continua aqui, mas adicionamos
+        // também no 'if (res.erro)' para garantir que pare em todos os cenários.
+        this.carregando = false;
+        this.globalSpinner.ocultar();
       }
     })
   }

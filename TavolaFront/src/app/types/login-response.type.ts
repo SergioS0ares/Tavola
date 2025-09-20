@@ -7,6 +7,8 @@ export interface LoginResponse {
   imagem: string;
   email?: string;
   imagemBackground?: string | null;
+  idVerificacao?: string; // Para quando a conta precisa de verificação
+  mensagem?: string; // Mensagem de resposta do backend
 }
 
 export interface RegisterResponse {

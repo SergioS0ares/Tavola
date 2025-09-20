@@ -1,4 +1,3 @@
-// auth.interceptor.ts
 import { Injectable } from '@angular/core';
 import {
   HttpInterceptor,
@@ -20,21 +19,39 @@ export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject = new BehaviorSubject<string|null>(null);
 
+  // NOVO: Lista de rotas que NÃO precisam de token de autorização
+  private publicRoutes = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/verificar',
+    '/auth/reenviar-codigo',
+    '/auth/refresh' // Adicionar refresh aqui também é uma boa prática
+  ];
+
   constructor(
-    private auth: AuthService, // Seu AuthService
+    private auth: AuthService,
     private loginService: AcessService,
     private router: Router
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const isApiRequest = request.url.startsWith(`${environment.apiUrl}`);
+    
+    // NOVO: Verifica se a rota da requisição está na nossa lista de rotas públicas
+    const isPublicRoute = this.publicRoutes.some(route => request.url.includes(route));
+
+    // Se não for uma requisição para a nossa API ou se for uma rota pública,
+    // simplesmente passamos a requisição adiante sem modificá-la.
+    if (!isApiRequest || isPublicRoute) {
+      return next.handle(request);
+    }
+    
+    // Se for uma rota privada da API, adicionamos o token
     const token = this.auth.getToken();
-    const authReq = isApiRequest
-      ? request.clone({
-          setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-          withCredentials: true
-        })
-      : request.clone({ withCredentials: false });
+    const authReq = request.clone({
+      setHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+      withCredentials: true
+    });
 
     return next.handle(authReq).pipe(
       catchError(err => {
@@ -42,24 +59,22 @@ export class AuthInterceptor implements HttpInterceptor {
           return throwError(() => err);
         }
 
-        // 1) se vier 401 no próprio /auth/refresh → logout e redirect imediato
-        if (err.status === 401 && request.url.endsWith('/auth/refresh')) {
+        if (err.status === 401 && request.url.includes('/auth/refresh')) {
           this.auth.clearAuthData();
           this.router.navigate(['/login']);
           return EMPTY;
         }
 
-        // 2) se vier 401 em qualquer outra → tenta renovar com refresh
         if (err.status === 401) {
           return this.handle401Error(authReq, next);
         }
 
-        // outros erros (403, 500...) → propagar
         return throwError(() => err);
       })
     );
   }
-
+  
+  // O resto do seu ficheiro handle401Error(...) permanece igual...
   private handle401Error(
     request: HttpRequest<any>,
     next: HttpHandler
@@ -78,7 +93,6 @@ export class AuthInterceptor implements HttpInterceptor {
           return next.handle(retry);
         }),
         catchError(_ => {
-          // refresh estourou → limpa tudo e manda pra login
           this.auth.clearAuthData();
           this.router.navigate(['/login']);
           return EMPTY;
@@ -89,7 +103,6 @@ export class AuthInterceptor implements HttpInterceptor {
       );
     }
 
-    // se já estiver fazendo refresh, aguarda um token válido sair
     return this.refreshTokenSubject.pipe(
       filter(t => t != null),
       take(1),
