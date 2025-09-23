@@ -280,6 +280,26 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     window.scrollTo(0, 0)
     this.selectedDate = new Date()
     this.selectedDate.setHours(0, 0, 0, 0) // Zerando hora para evitar problemas na comparação
+    
+    // Verificar query parameters para pré-preencher dados
+    this.route.queryParams.subscribe(params => {
+      if (params['data']) {
+        this.selectedDate = new Date(params['data'])
+        this.bookingStep = 2 // Avança para horário se data foi fornecida
+      }
+      if (params['horario']) {
+        this.selectedTime = params['horario']
+        this.bookingStep = 3 // Avança para pessoas se horário foi fornecido
+      }
+      if (params['pessoas']) {
+        this.selectedGuests = parseInt(params['pessoas'])
+        this.bookingStep = 4 // Avança para confirmação se pessoas foram fornecidas
+      }
+      if (params['comentarios']) {
+        this.selectedComments = params['comentarios']
+      }
+    })
+    
     this.route.params.subscribe(params => {
       this.restauranteId = params['id']
       if (this.restauranteId) {

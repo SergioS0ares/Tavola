@@ -1,0 +1,76 @@
+<div class="favoritos-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>favorite</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Meus Favoritos</h1>
+        <p>Seus restaurantes preferidos em um só lugar.</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="favoritos.length === 0" class="sem-favoritos">
+    <div class="empty-state-icon">
+      <mat-icon>favorite_border</mat-icon>
+    </div>
+    <h3>Nenhum favorito ainda</h3>
+    <p>Explore restaurantes e adicione seus favoritos para encontrá-los facilmente.</p>
+    <a mat-flat-button color="primary" routerLink="/home" class="cta-button">
+      <mat-icon>explore</mat-icon>
+      Explorar Restaurantes
+    </a>
+  </div>
+
+  <div *ngIf="favoritos.length > 0" class="favoritos-grid">
+    <mat-card *ngFor="let favorito of favoritos" class="favorito-card">
+      <div class="card-image-container">
+        <img mat-card-image 
+             class="restaurante-imagem" 
+             [src]="getImagemUrl(favorito.imagemRestaurante)" 
+             alt="Foto de {{ favorito.nomeRestaurante }}">
+        
+        <div class="favorite-badge">
+          <mat-icon>favorite</mat-icon>
+        </div>
+      </div>
+      
+      <mat-card-header class="card-header">
+        <mat-card-title>{{ favorito.nomeRestaurante }}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-icon>location_on</mat-icon>
+          {{ favorito.enderecoResumido }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="card-content">
+        <div class="rating-section">
+          <div class="rating-stars">
+          <nz-rate [ngModel]="favorito.mediaAvaliacao" nzDisabled [nzCount]="5"></nz-rate>
+          </div>
+          <span class="rating-text">{{ getAvaliacaoFormatada(favorito.mediaAvaliacao, favorito.totalDeAvaliacoes) }}</span>
+        </div>
+
+        <div class="info-section">
+          <div class="info-item">
+            <mat-icon>restaurant</mat-icon>
+            <span>{{ favorito.tipoCozinha }}</span>
+          </div>
+          
+          <div class="info-item">
+            <mat-icon>attach_money</mat-icon>
+            <span>{{ getPrecoMedio(favorito.valorMedioPorPessoa) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions class="card-actions">
+        <button mat-flat-button color="primary" (click)="verRestaurante(favorito.idRestaurante)" class="action-btn">
+          <mat-icon>visibility</mat-icon>
+          Ver Restaurante
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

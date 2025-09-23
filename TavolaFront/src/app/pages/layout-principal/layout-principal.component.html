@@ -24,6 +24,15 @@
         <mat-icon aria-hidden="true">history</mat-icon>
         <span>Histórico</span>
       </button>
+      <button 
+        routerLink="/favoritos" 
+        routerLinkActive="active" 
+        (click)="closeDrawer()"
+        type="button"
+        aria-label="Ver restaurantes favoritos">
+        <mat-icon aria-hidden="true">favorite</mat-icon>
+        <span>Favoritos</span>
+      </button>
     </ng-container>
 
     <ng-container *ngIf="isRestaurante">
