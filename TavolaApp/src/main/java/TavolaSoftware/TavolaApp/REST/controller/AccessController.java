@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,20 +22,23 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import TavolaSoftware.TavolaApp.REST.dto.requests.GarcomLoginRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.LoginRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.ReenvioRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.RegistroRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.SenhaResetConfirmRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.SenhaResetRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.VerificacaoRequest;
-import TavolaSoftware.TavolaApp.REST.dto.responses.LoginRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.model.AccessModel;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Garcom;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AccessRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.GarcomRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
@@ -59,6 +63,7 @@ public class AccessController {
     @Autowired private AccessService accessService;
     @Autowired private ServicoRepository repoServico; // <<< ADICIONE ESTA LINHA
     @Autowired private TrustTokenService rememberMeService;
+    @Autowired private GarcomRepository repoGarcom;
 
 
     @PostMapping("/register")
@@ -146,6 +151,54 @@ public class AccessController {
             "mensagem", "Código de verificação enviado para o seu e-mail.",
             "idVerificacao", pendingLogin.getId()
         ));
+    }
+    
+    /**
+     * Realiza o login de um funcionário (Garçom) com base no e-mail do restaurante.
+     * @param request DTO contendo e-mail do restaurante, código e senha.
+     * @return um LoginResponse com o token JWT.
+     */
+    @Transactional(readOnly = true)
+    public LoginResponse loginGarcom(GarcomLoginRequest request) {
+        // 1. Encontra o restaurante pelo e-mail
+        Restaurante restaurante = repoRestaurante.findByUsuarioEmail(request.getEmailRestaurante());
+        if (restaurante == null) {
+            throw new RuntimeException("Credenciais inválidas."); // Mensagem genérica por segurança
+        }
+
+        // 2. Busca o garçom pelo código DENTRO do restaurante encontrado
+        Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade())
+                .orElseThrow(() -> new RuntimeException("Credenciais inválidas."));
+
+        // 3. Verifica se o garçom está ativo
+        if (!garcom.isAtivo()) {
+            throw new RuntimeException("Este usuário de funcionário está inativo.");
+        }
+
+        // 4. Valida a senha do garçom
+        if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) {
+            throw new RuntimeException("Credenciais inválidas.");
+        }
+
+        // 5. Gera o token JWT
+        // A lógica de geração do token deve ser adaptada para incluir as informações do funcionário.
+        // O "subject" do token será o e-mail do restaurante, como você sugeriu.
+        String accessToken = jwt.generateFuncionarioToken(
+                restaurante.getEmail(), // Subject
+                garcom.getId(),
+                restaurante.getId()
+        );
+
+        // Retorna o token, nome do garçom e tipo FUNCIONARIO
+        return new LoginResponse(
+            accessToken,
+            garcom.getNome(),
+            TipoUsuario.FUNCIONARIO.toString(),
+            garcom.getId(),
+            restaurante.getEmail(), // E-mail de referência é o do restaurante
+            garcom.getFotoUrl(),
+            null // Background
+        );
     }
 
     @PostMapping("/verificar")

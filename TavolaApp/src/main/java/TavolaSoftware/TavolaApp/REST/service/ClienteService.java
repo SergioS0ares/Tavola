@@ -1,7 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import TavolaSoftware.TavolaApp.REST.dto.requests.ClienteUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
-import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;

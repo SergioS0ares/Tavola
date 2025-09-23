@@ -1,4 +1,4 @@
-package TavolaSoftware.TavolaApp.REST.dto.responses;
+package TavolaSoftware.TavolaApp.REST.dto.requests;
 
 //Classe DTO para receber os dados da avaliação
 public class AvaliacaoRequest {

@@ -1,6 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.responses.MesaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.requests.MesaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.MesaResponse;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.service.MesaService;

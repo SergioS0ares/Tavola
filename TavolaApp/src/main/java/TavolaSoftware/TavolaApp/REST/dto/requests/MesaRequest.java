@@ -1,4 +1,4 @@
-package TavolaSoftware.TavolaApp.REST.dto.responses;
+package TavolaSoftware.TavolaApp.REST.dto.requests;
 
 public class MesaRequest {
     private String nome;
