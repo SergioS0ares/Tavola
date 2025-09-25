@@ -6,17 +6,19 @@ import { Router, RouterModule } from "@angular/router"
 import { FavoritosService, type IFavorito } from "../../core/services/favoritos.service"
 import { GlobalSpinnerService } from "../../core/services/global-spinner.service"
 import { AuthService } from "../../core/services/auth.service"
+import { RestauranteService } from "../../core/services/restaurante.service"
 
 // COMPONENTES DE UI
 import { MatCardModule } from "@angular/material/card"
 import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
 import { MatChipsModule } from "@angular/material/chips"
+import { MatSnackBarModule } from "@angular/material/snack-bar"
 
 @Component({
   selector: "app-favoritos",
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule],
+  imports: [CommonModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule, MatSnackBarModule],
   templateUrl: "./favoritos.component.html",
   styleUrl: "./favoritos.component.scss",
 })
@@ -25,6 +27,7 @@ export class FavoritosComponent implements OnInit {
   private router = inject(Router)
   private spinnerService = inject(GlobalSpinnerService)
   private authService = inject(AuthService)
+  private restauranteService = inject(RestauranteService)
 
   public favoritos: IFavorito[] = []
 
@@ -48,11 +51,24 @@ export class FavoritosComponent implements OnInit {
       })
   }
 
-  public getImagemUrl(path: string | null): string {
-    if (path && path.startsWith("assets/")) {
-      return path
+  public getImagemUrl(imagens: string[] | null): string {
+    // Se o array de imagens existir e não estiver vazio
+    if (imagens && imagens.length > 0) {
+      const path = imagens[0]; // Pega o primeiro caminho da imagem do array
+      if (path && path.startsWith("assets/")) {
+        return path;
+      }
+      return this.authService.getAbsoluteImageUrl(path);
     }
-    return this.authService.getAbsoluteImageUrl(path)
+    // Se não houver imagem, retorna uma imagem padrão
+    return 'assets/png/avatar-padrao-restaurante-tavola.png';
+  }
+
+  public getEnderecoResumido(endereco: any): string {
+    if (endereco && endereco.bairro && endereco.cidade) {
+      return `${endereco.bairro}, ${endereco.cidade}`;
+    }
+    return endereco?.cidade || 'Endereço não disponível';
   }
 
   public verRestaurante(idRestaurante: string): void {
@@ -61,7 +77,22 @@ export class FavoritosComponent implements OnInit {
     }
   }
 
-  public getPrecoMedio(valor: number): string {
+  public desfavoritarRestaurante(idRestaurante: string): void {
+    this.restauranteService.favoritarRestaurante(idRestaurante).subscribe({
+      next: () => {
+        // Remove o favorito da lista local
+        this.favoritos = this.favoritos.filter(fav => fav.id !== idRestaurante);
+        // Mostra mensagem de sucesso
+        console.log('Restaurante removido dos favoritos!');
+      },
+      error: (err) => {
+        console.error('Erro ao remover favorito:', err);
+      }
+    });
+  }
+
+  public getPrecoMedio(valor: number | undefined): string {
+    if (!valor) return 'Preço não informado';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'

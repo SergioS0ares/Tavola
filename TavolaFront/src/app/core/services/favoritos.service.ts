@@ -4,14 +4,22 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface IFavorito {
-  idRestaurante: string;
-  nomeRestaurante: string;
-  imagemRestaurante: string | null;
-  enderecoResumido: string;
+  id: string;
+  nome: string;
+  imagem: string[];
+  endereco: {
+    cep: string;
+    estado: string;
+    cidade: string;
+    bairro: string;
+    rua: string;
+    numero: string;
+    complemento?: string;
+  };
   tipoCozinha: string;
   mediaAvaliacao: number;
-  totalDeAvaliacoes: number;
-  valorMedioPorPessoa: number;
+  totalAvaliacao: number;
+  valorMedioPorPessoa?: number;
 }
 
 @Injectable({ providedIn: 'root' })

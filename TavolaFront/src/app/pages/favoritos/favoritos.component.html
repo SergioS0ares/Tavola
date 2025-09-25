@@ -25,50 +25,53 @@
 
   <div *ngIf="favoritos.length > 0" class="favoritos-grid">
     <mat-card *ngFor="let favorito of favoritos" class="favorito-card">
+      
       <div class="card-image-container">
         <img mat-card-image 
-             class="restaurante-imagem" 
-             [src]="getImagemUrl(favorito.imagemRestaurante)" 
-             alt="Foto de {{ favorito.nomeRestaurante }}">
+             [src]="getImagemUrl(favorito.imagem)" 
+             alt="Foto de {{ favorito.nome }}">
         
-        <div class="favorite-badge">
+        <button mat-icon-button 
+                class="unfavorite-btn" 
+                (click)="desfavoritarRestaurante(favorito.id)"
+                aria-label="Remover dos favoritos">
           <mat-icon>favorite</mat-icon>
-        </div>
+        </button>
       </div>
       
-      <mat-card-header class="card-header">
-        <mat-card-title>{{ favorito.nomeRestaurante }}</mat-card-title>
-        <mat-card-subtitle>
-          <mat-icon>location_on</mat-icon>
-          {{ favorito.enderecoResumido }}
-        </mat-card-subtitle>
-      </mat-card-header>
-
       <mat-card-content class="card-content">
-        <div class="rating-section">
-          <div class="rating-stars">
-          <nz-rate [ngModel]="favorito.mediaAvaliacao" nzDisabled [nzCount]="5"></nz-rate>
-          </div>
-          <span class="rating-text">{{ getAvaliacaoFormatada(favorito.mediaAvaliacao, favorito.totalDeAvaliacoes) }}</span>
-        </div>
+        
+        <h3 class="card-title">{{ favorito.nome }}</h3>
+        <p class="card-subtitle">
+          <mat-icon>location_on</mat-icon>
+          {{ getEnderecoResumido(favorito.endereco) }}
+        </p>
 
-        <div class="info-section">
-          <div class="info-item">
-            <mat-icon>restaurant</mat-icon>
-            <span>{{ favorito.tipoCozinha }}</span>
+        <div class="info-row">
+          <div class="rating-section">
+            <mat-icon class="star-icon">star</mat-icon>
+            <span>{{ favorito.mediaAvaliacao.toFixed(1) }}</span>
+            <span class="total-avaliacoes">({{ favorito.totalAvaliacao }} avaliações)</span>
           </div>
-          
-          <div class="info-item">
-            <mat-icon>attach_money</mat-icon>
-            <span>{{ getPrecoMedio(favorito.valorMedioPorPessoa) }}</span>
-          </div>
+          <mat-chip-listbox>
+            <mat-chip>{{ favorito.tipoCozinha }}</mat-chip>
+          </mat-chip-listbox>
         </div>
+        
+        <div *ngIf="favorito.valorMedioPorPessoa" class="preco-section">
+          <mat-icon>attach_money</mat-icon>
+          <span>{{ getPrecoMedio(favorito.valorMedioPorPessoa) }}</span>
+        </div>
+        
       </mat-card-content>
-      
+
       <mat-card-actions class="card-actions">
-        <button mat-flat-button color="primary" (click)="verRestaurante(favorito.idRestaurante)" class="action-btn">
-          <mat-icon>visibility</mat-icon>
-          Ver Restaurante
+        <button mat-flat-button 
+                color="primary" 
+                (click)="verRestaurante(favorito.id)" 
+                class="action-btn">
+          <mat-icon>restaurant</mat-icon>
+          Reservar Agora
         </button>
       </mat-card-actions>
     </mat-card>

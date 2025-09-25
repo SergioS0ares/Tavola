@@ -36,8 +36,8 @@ public interface RestauranteRepository extends JpaRepository<Restaurante, UUID> 
                     ts_rank_cd(
                         -- Pesos: A=Nome, B=Cozinha/Cardápio, C=Descrição, D=Serviços/Endereço
                         setweight(to_tsvector('portuguese', u.nome_usuario), 'A') ||
-                        setweight(to_tsvector('portuguese', r.tipo_cozinha), 'B') ||
-                        setweight(to_tsvector('portuguese', COALESCE(r.descricao, '')), 'C') ||
+                        setweight(to_tsvector('portuguese', r.cozinha_restaurante), 'B') ||       -- <<< CORREÇÃO AQUI
+                        setweight(to_tsvector('portuguese', COALESCE(r.descricao_restaurante, '')), 'C') || -- <<< CORREÇÃO AQUI
                         setweight(to_tsvector('portuguese', COALESCE(
                             (SELECT string_agg(c.nome || ' ' || c.descricao, ' ') FROM cardapio_table c WHERE c.restaurante_id = r.usuario_id), '')), 'B') ||
                         setweight(to_tsvector('portuguese', COALESCE(
@@ -47,7 +47,7 @@ public interface RestauranteRepository extends JpaRepository<Restaurante, UUID> 
                     ) as fts_score
                 FROM restaurante_table r
                 JOIN usuario_table u ON r.usuario_id = u.usuario_id
-                WHERE to_tsvector('portuguese', u.nome_usuario || ' ' || r.tipo_cozinha || ' ' || COALESCE(r.descricao, '') || ' ' || u.endereco || ' ' ||
+                WHERE to_tsvector('portuguese', u.nome_usuario || ' ' || r.cozinha_restaurante || ' ' || COALESCE(r.descricao_restaurante, '') || ' ' || u.endereco || ' ' || -- <<< CORREÇÃO AQUI (ambas colunas)
                     COALESCE((SELECT string_agg(c.nome || ' ' || c.descricao, ' ') FROM cardapio_table c WHERE c.restaurante_id = r.usuario_id), '') || ' ' ||
                     COALESCE((SELECT string_agg(s.nome_servico, ' ') FROM servico_table s JOIN restaurante_servicos rs ON s.id = rs.servico_id WHERE rs.restaurante_id = r.usuario_id), ''))
                 @@ to_tsquery('portuguese', :termoFts)
@@ -62,19 +62,16 @@ public interface RestauranteRepository extends JpaRepository<Restaurante, UUID> 
             LEFT JOIN avaliacao_table av ON r.usuario_id = av.restaurante_id
             LEFT JOIN restaurante_servicos rs ON r.usuario_id = rs.restaurante_id
             LEFT JOIN servico_table s ON rs.servico_id = s.id
+            LEFT JOIN horario_funcionamento_table hf ON r.usuario_id = hf.restaurante_id -- <<< JUNÇÃO PARA HORÁRIOS
             WHERE
                 (:cidade IS NULL OR u.cidade ILIKE :cidade)
                 AND
                 (:servicos IS NULL OR s.nome_servico IN (:servicos))
                 AND
-                -- <<< AQUI ESTÁ A CORREÇÃO >>>
-                -- A lógica ainda é simplificada, mas agora usa todos os parâmetros.
+                -- Lógica de horário corrigida para funcionar com a tabela de horários
                 (
                     :horaInicio IS NULL OR 
-                    (r.horarios_funcionamento LIKE '%' || :diaDaSemana || '%' AND r.horarios_funcionamento LIKE '%' || :horaInicio || '%')
-                    -- Adicionamos uma referência ao :horaFim para a query ser válida
-                    -- A lógica real de intervalo será feita no service ou em uma versão futura.
-                    AND :horaFim IS NOT NULL
+                    (hf.dia_semana = :diaDaSemana AND hf.abertura <= CAST(:horaInicio AS time) AND hf.fechamento >= CAST(:horaFim AS time))
                 )
             GROUP BY r.usuario_id, fts.fts_score
             HAVING
