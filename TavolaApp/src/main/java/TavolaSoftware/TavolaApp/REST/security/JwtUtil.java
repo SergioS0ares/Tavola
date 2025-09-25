@@ -34,6 +34,18 @@ public class JwtUtil {
         this.privateKey = loadPrivateKeyFromResource("private_key.pem"); //
         this.publicKey = loadPublicKeyFromResource("public_key.pem"); //
     }
+    
+    public String generateFuncionarioToken(String emailRestaurante, UUID garcomId, UUID restauranteId) {
+        return Jwts.builder()
+                .setSubject(emailRestaurante) // Identifica a qual "empresa" o token pertence
+                .claim("role", "FUNCIONARIO") // Claim para identificar o tipo de usuário
+                .claim("garcomId", garcomId.toString())
+                .claim("restauranteId", restauranteId.toString())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION)) // 1 dia de validade
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+    }
 
     public String generateAccessToken(String username) {
         return Jwts.builder()

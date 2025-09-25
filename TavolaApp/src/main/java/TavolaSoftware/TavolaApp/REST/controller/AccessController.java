@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,12 +59,13 @@ public class AccessController {
     @Autowired private AccessRepository accessRepository;
     @Autowired private UsuarioRepository repo;
     @Autowired private ClienteRepository repoClient;
-    @Autowired private RestauranteRepository repoRestaurante; // <<< ADICIONE ESTA LINHA
+    @Autowired private RestauranteRepository repoRestaurante; 
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
-    @Autowired private ServicoRepository repoServico; // <<< ADICIONE ESTA LINHA
+    @Autowired private ServicoRepository repoServico; 
     @Autowired private TrustTokenService rememberMeService;
     @Autowired private GarcomRepository repoGarcom;
+    @Autowired private BCryptPasswordEncoder passwordEncoder;
 
 
     @PostMapping("/register")
