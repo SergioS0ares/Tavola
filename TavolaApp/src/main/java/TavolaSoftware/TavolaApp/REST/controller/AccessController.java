@@ -101,17 +101,23 @@ public class AccessController {
 
     @PostMapping("/login")
     public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        // ETAPA 1: Autenticação Primária (Usuário e Senha)
-        Usuario usuario = repo.findByEmail(loginRequest.getEmail());
-        if (usuario == null || !BCrypt.checkpw(loginRequest.getSenha(), usuario.getSenha())) {
+        
+    	Optional<Usuario> usuarioOpt = repo.findByEmail(loginRequest.getEmail());
+
+        if (usuarioOpt.isEmpty() || !BCrypt.checkpw(loginRequest.getSenha(), usuarioOpt.get().getSenha())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
         }
 
+        Usuario usuario = usuarioOpt.get();
+
+        // --- FIM DO TRECHO MODIFICADO ---
+
+
         // ETAPA 2: Verificação de Confiança (Uso do "TrustToken")
+        // O restante do seu código continua funcionando perfeitamente, pois ele já usa a variável 'usuario'.
         String trustTokenValue = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                // Usamos o novo nome "trustToken"
                 if ("trustToken".equals(cookie.getName())) {
                     trustTokenValue = cookie.getValue();
                     break;
@@ -120,14 +126,10 @@ public class AccessController {
         }
 
         if (trustTokenValue != null) {
-            // Renomeie seu RememberMeService para TrustTokenService se desejar
             Optional<Usuario> usuarioDoTokenOpt = rememberMeService.validateTokenAndGetUser(trustTokenValue);
 
-            // O token é válido E pertence ao usuário que acabou de digitar a senha?
             if (usuarioDoTokenOpt.isPresent() && usuarioDoTokenOpt.get().getId().equals(usuario.getId())) {
                 System.out.println("[Login] Dispositivo confiável para " + usuario.getEmail() + ". Pulando 2FA.");
-                // Login direto, sem 2FA e sem gerar um NOVO trust token.
-                // Passamos 'null' para o trust token para não gerar um novo.
                 return gerarRespostaComTokens(usuario, null);
             }
         }

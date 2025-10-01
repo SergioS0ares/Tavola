@@ -54,12 +54,15 @@ public class ReservaController {
         }
 
         try {
-            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        	String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (emailUsuarioLogado == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado."));
             }
 
-            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+            // --- CORREÇÃO AQUI ---
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                .orElseThrow(() -> new RuntimeException("Detalhes do usuário não encontrados."));
+
             if (usuarioLogado == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Detalhes do usuário não encontrados."));
             }
@@ -95,8 +98,8 @@ public class ReservaController {
         
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
-
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                    .orElseThrow(() -> new RuntimeException("Detalhes do usuário não encontrados."));
             if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
                  return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                      .body(Map.of("erro", "Apenas usuários do tipo restaurante podem acessar este recurso."));
@@ -124,8 +127,8 @@ public class ReservaController {
     public ResponseEntity<?> listarListaDeEspera(@PathVariable UUID idRestaurante) {
         try {
              String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
-            if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
+             Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                     .orElseThrow(() -> new RuntimeException("Detalhes do usuário não encontrados."));            if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
                  return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Apenas usuários do tipo restaurante podem acessar este recurso."));
             }
             Restaurante restaurante = restauranteService.getByEmail(emailUsuarioLogado);
@@ -148,8 +151,8 @@ public class ReservaController {
 
         try {
              String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
-            if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
+             Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                     .orElseThrow(() -> new RuntimeException("Detalhes do usuário não encontrados."));            if (usuarioLogado.getTipo() != TipoUsuario.RESTAURANTE) {
                  return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Apenas usuários do tipo restaurante podem acessar este recurso."));
             }
             Restaurante restaurante = restauranteService.getByEmail(emailUsuarioLogado);
@@ -198,8 +201,15 @@ public class ReservaController {
     @GetMapping("/meu-historico")
     public ResponseEntity<?> getMeuHistorico() {
         try {
-            String emailUsuario = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuario);
+        	String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (emailUsuarioLogado == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado."));
+            }
+
+            // --- CORREÇÃO AQUI ---
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                .orElseThrow(() -> new RuntimeException("Detalhes do usuário não encontrados."));
+
 
             if (usuarioLogado == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado ou não encontrado."));

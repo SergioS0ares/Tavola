@@ -4,6 +4,7 @@ import TavolaSoftware.TavolaApp.REST.dto.requests.RestauranteRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
+import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.model.Tags;
@@ -109,30 +110,30 @@ public class RestauranteService {
     private List<UUID> getFavoritosDoClienteLogado() {
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuario = repoUsuario.findByEmail(emailUsuarioLogado);
-            if (usuario != null && usuario.getTipo() == TipoUsuario.CLIENTE) {
-                return clienteRepository.findById(usuario.getId())
-                                        .map(cliente -> cliente.getFavoritos())
-                                        .orElse(Collections.emptyList());
-            }
+            
+            // --- CORREÇÃO AQUI ---
+            return repoUsuario.findByEmail(emailUsuarioLogado)
+                    .filter(usuario -> usuario.getTipo() == TipoUsuario.CLIENTE)
+                    .flatMap(usuario -> clienteRepository.findById(usuario.getId()))
+                    .map(Cliente::getFavoritos)
+                    .orElse(Collections.emptyList());
         } catch (Exception e) {
-            // Ignora
+            // Ignora e retorna lista vazia em caso de qualquer erro
         }
         return Collections.emptyList();
     }
-
-    // Os métodos abaixo (findAll, findById, save, update, delete) permanecem sem alterações
-    // pois eles são usados em outros contextos (gestão do restaurante, detalhes, etc.)
-    // e devem continuar retornando o DTO completo (RestauranteResponse).
 
     public List<RestauranteResponse> findAll() {
         List<Restaurante> restaurantes = repoRestaurante.findAll();
         
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Usuario usuario = repoUsuario.findByEmail(emailUsuarioLogado);
-            if (usuario != null && usuario.getTipo() == TipoUsuario.CLIENTE) {
-                restaurantes = recomendacaoService.ordenarRestaurantesPorRecomendacao(restaurantes, usuario.getId());
+
+            // --- CORREÇÃO AQUI ---
+            Optional<Usuario> usuarioOpt = repoUsuario.findByEmail(emailUsuarioLogado);
+            if (usuarioOpt.isPresent() && usuarioOpt.get().getTipo() == TipoUsuario.CLIENTE) {
+                // A ordenação modifica a lista 'restaurantes' diretamente
+                recomendacaoService.ordenarRestaurantesPorRecomendacao(restaurantes, usuarioOpt.get().getId());
             }
         } catch (Exception e) {
             System.err.println("Não foi possível ordenar por recomendação (usuário não é cliente ou não está logado): " + e.getMessage());
@@ -176,7 +177,7 @@ public class RestauranteService {
     
     @Transactional
     public Restaurante saveFromRequest(RestauranteRequest request) {
-        if (repoUsuario.findByEmail(request.getEmailUsuario()) != null) {
+    	if (repoUsuario.findByEmail(request.getEmailUsuario()).isPresent()) {
             throw new RuntimeException("Email já está em uso.");
         }
 
@@ -298,11 +299,10 @@ public class RestauranteService {
     }
     
     public Restaurante getByEmail(String email) {
-        Usuario usuario = repoUsuario.findByEmail(email);
-        if (usuario == null) {
-            throw new RuntimeException("Usuário não encontrado: " + email);
-        }
-        return repoRestaurante.findByUsuario(usuario)
-            .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
+    	Usuario usuario = repoUsuario.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + email));
+
+            return repoRestaurante.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
     }
 }

@@ -32,19 +32,16 @@ public class UsuarioService {
     private UploadUtils uploadUtils; // Injetar para processar imagens
 
     public UUID getIdByEmail(String email) {
-        Usuario usuario = usuarioRepo.findByEmail(email);
-        if (usuario == null) {
-            throw new RuntimeException("Usuário não encontrado para o email: " + email);
-        }
-        return usuario.getId();
+        // --- CORREÇÃO AQUI ---
+        return usuarioRepo.findByEmail(email)
+                .map(Usuario::getId) // Extrai o ID se o usuário existir
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado para o email: " + email));
     }
 
     public Usuario getUsuarioByEmail(String email) {
-        Usuario usuario = usuarioRepo.findByEmail(email);
-        if (usuario == null) {
-            throw new RuntimeException("Usuário não encontrado para o email: " + email);
-        }
-        return usuario;
+        // --- CORREÇÃO AQUI ---
+        return usuarioRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado para o email: " + email));
     }
 
     public boolean isRestaurante(String email) {

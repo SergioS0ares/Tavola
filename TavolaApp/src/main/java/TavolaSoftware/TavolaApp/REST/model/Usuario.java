@@ -1,5 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import TavolaSoftware.TavolaApp.tools.Endereco;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
@@ -98,5 +100,25 @@ public class Usuario {
 
     public boolean isEmailVerificado() { return emailVerificado; }
     public void setEmailVerificado(boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+    
+    public String getEnderecoResumido() {
+        if (this.endereco == null) {
+            return "Endereço não informado";
+        }
+
+        List<String> partes = new ArrayList<>();
+        if (this.endereco.getBairro() != null && !this.endereco.getBairro().isBlank()) {
+            partes.add(this.endereco.getBairro());
+        }
+        if (this.endereco.getCidade() != null && !this.endereco.getCidade().isBlank()) {
+            partes.add(this.endereco.getCidade());
+        }
+
+        if (partes.isEmpty()) {
+            return "Endereço não informado";
+        }
+
+        return String.join(", ", partes);
+    }
     
 }

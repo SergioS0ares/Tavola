@@ -41,32 +41,31 @@ public class AccessService {
 
     @Transactional
     public void solicitarResetDeSenha(String email) {
-        Optional<Usuario> usuarioOpt = Optional.ofNullable(usuarioRepository.findByEmail(email));
+        // --- CORREÇÃO AQUI ---
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
+        // Se o Optional estiver vazio (usuário não encontrado), simplesmente paramos a execução.
+        // Isso evita que um atacante descubra quais e-mails estão cadastrados no sistema.
         if (usuarioOpt.isEmpty()) {
-            // Não retorne erro para não expor quais e-mails existem.
             System.out.println("Solicitação de reset para e-mail não cadastrado: " + email);
             return;
         }
 
+        // Se chegamos aqui, o usuário existe. Podemos extraí-lo com segurança.
         Usuario usuario = usuarioOpt.get();
         
-        // Invalida quaisquer tokens de reset antigos para este usuário
+        // O restante do método continua exatamente igual
         passwordResetTokenRepository.deleteByUsuarioId(usuario.getId());
 
-        // 1. Gera o token seguro
         String token = UUID.randomUUID().toString();
 
-        // 2. Cria a entidade do token
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setUsuario(usuario);
-        resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30)); // Token válido por 30 minutos
-        resetToken.setTokenHash(new BCryptPasswordEncoder().encode(token)); // Salva o HASH
+        resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30));
+        resetToken.setTokenHash(new BCryptPasswordEncoder().encode(token));
 
         passwordResetTokenRepository.save(resetToken);
 
-        // 3. Monta a URL e envia o e-mail
-        // A URL que seu frontend usará para a página de redefinição
         String urlDeRedefinicao = "http://localhost:4200/redefinir-senha?token=" + token;
 
         enviarEmailResetSenha(usuario.getEmail(), usuario.getNome(), urlDeRedefinicao);
