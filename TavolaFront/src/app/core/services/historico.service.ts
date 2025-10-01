@@ -14,3 +14,4 @@ export class HistoricoService {
     return this.http.get<IReservaHistorico[]>(`${this.apiUrl}/meu-historico`);
   }
 }
+

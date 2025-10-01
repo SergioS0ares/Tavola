@@ -43,6 +43,7 @@ export const routes: Routes = [
       { path: 'meu-restaurante', loadComponent: () => import('./pages/meu-restaurante/meu-restaurante.component').then(m => m.MeuRestauranteComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
       { path: 'cadastro-cardapio', loadComponent: () => import('./pages/cadastro-cardapio/cadastro-cardapio.component').then(m => m.CadastroCardapioComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
       { path: 'reserva', loadComponent: () => import('./pages/reservas/reservas.component').then(m => m.ReservasComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
+      { path: 'gerenciar-equipe', loadComponent: () => import('./pages/gerenciar-equipe/gerenciar-equipe.component').then(m => m.GerenciarEquipeComponent), canActivate: [roleGuard], data: { roles: ['RESTAURANTE'] } },
       { path: 'historico', loadComponent: () => import('./pages/historico-reservas/historico-reservas.component').then(m => m.HistoricoReservasComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
       { path: 'favoritos', loadComponent: () => import('./pages/favoritos/favoritos.component').then(m => m.FavoritosComponent), canActivate: [roleGuard], data: { roles: ['CLIENTE'] } },
       { path: 'configuracoes', loadComponent: () => import('./pages/configuracoes/configuracoes.component').then(m => m.ConfiguracoesComponent), canActivate: [AuthGuard] },

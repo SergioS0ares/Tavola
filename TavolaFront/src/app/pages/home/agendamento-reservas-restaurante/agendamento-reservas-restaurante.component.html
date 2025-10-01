@@ -127,7 +127,8 @@
               <button 
                 nz-button 
                 nzType="text" 
-                class="copy-button" 
+                class="tavola-copy-btn" 
+                [class.copied]="copiado"
                 (click)="copiarEndereco()" 
                 nz-tooltip 
                 [nzTooltipTitle]="copiado ? 'Copiado!' : 'Copiar endereço'"

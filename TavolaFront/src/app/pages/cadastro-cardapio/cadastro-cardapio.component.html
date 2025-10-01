@@ -1,20 +1,22 @@
 <!-- topo -->
 <div class="container-rounded">
-  <div class="top-bar">
+  <div class="tavola-menu-bar">
     <div class="title-section">
       <mat-icon class="menu-icon">restaurant_menu</mat-icon>
       <h2>Cadastro de Cardápio</h2>
     </div>
-    <button
-      mat-fab
-      color="primary"
-      class="fab-add"
-      aria-label="Adicionar item"
-      matTooltip="Adicionar novo item ao cardápio"
-      matTooltipClass="tavola-tooltip"
-      (click)="adicionar()">
-      <mat-icon>add</mat-icon>
-    </button>
+    <div class="menu-actions">
+      <button
+        mat-fab
+        color="primary"
+        class="tavola-fab"
+        aria-label="Adicionar item"
+        matTooltip="Adicionar novo item ao cardápio"
+        matTooltipClass="tavola-tooltip"
+        (click)="adicionar()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
   </div>
 
   <span *ngIf="mensagemSucesso" class="mensagem-sucesso">{{ mensagemSucesso }}</span>
