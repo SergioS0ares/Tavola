@@ -14,13 +14,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface RestauranteRepository extends JpaRepository<Restaurante, UUID>, JpaSpecificationExecutor<Restaurante>, RestauranteRepositoryCustom {
+public interface RestauranteRepository extends JpaRepository<Restaurante, UUID>, JpaSpecificationExecutor<Restaurante> {
 
     Restaurante findByUsuarioEmail(String email);
     Optional<Restaurante> findByUsuario(Usuario usuario);
 
     List<Restaurante> findByUsuarioEnderecoCidadeIgnoreCase(String cidade);
     
+    @Query(value = """
+            SELECT r.usuario_id
+            FROM restaurante_table r
+            WHERE r.usuario_id IN (:ids)
+            AND to_tsvector('portuguese', public.get_restaurante_fts_document(r.usuario_id)) @@ plainto_tsquery('portuguese', :termo)
+            ORDER BY ts_rank_cd(
+                to_tsvector('portuguese', public.get_restaurante_fts_document(r.usuario_id)),
+                plainto_tsquery('portuguese', :termo)
+            ) DESC
+        """, nativeQuery = true)
+        List<UUID> filterAndSortByFts(@Param("ids") List<UUID> ids, @Param("termo") String termo);
 /*
         @Query(value = """
             SELECT
