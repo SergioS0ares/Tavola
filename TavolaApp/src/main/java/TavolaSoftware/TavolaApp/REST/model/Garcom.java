@@ -73,4 +73,8 @@ public class Garcom {
 	public String getSenha() {
 		return this.senha;
 	}
+
+	public Restaurante getRestaurante() {
+		return this.restaurante;	
+	}
 }

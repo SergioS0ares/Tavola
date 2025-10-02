@@ -74,4 +74,45 @@ public class GarcomController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
         }
     }
+    
+    /**
+     * Endpoint para o RESTAURANTE LOGADO atualizar um garçom de sua equipe.
+     */
+    @PutMapping("/{idGarcom}")
+    public ResponseEntity<?> updateGarcom(@PathVariable UUID idRestaurante, @PathVariable UUID idGarcom, @RequestBody GarcomRequest request) throws SecurityException {
+        try {
+            // VALIDAÇÃO DE SEGURANÇA
+            String emailRestauranteLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Restaurante restauranteLogado = restauranteService.getByEmail(emailRestauranteLogado);
+
+            if (!restauranteLogado.getId().equals(idRestaurante)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para gerenciar a equipe deste restaurante."));
+            }
+
+            Garcom garcomAtualizado = garcomService.updateGarcom(idGarcom, request, idRestaurante);
+            return ResponseEntity.ok(new GarcomResponse(garcomAtualizado));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/{idGarcom}")
+    public ResponseEntity<?> deleteGarcom(@PathVariable UUID idRestaurante, @PathVariable UUID idGarcom) throws SecurityException {
+        try {
+            // VALIDAÇÃO DE SEGURANÇA
+            String emailRestauranteLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Restaurante restauranteLogado = restauranteService.getByEmail(emailRestauranteLogado);
+
+            if (!restauranteLogado.getId().equals(idRestaurante)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para gerenciar a equipe deste restaurante."));
+            }
+
+            garcomService.desativarGarcom(idGarcom, idRestaurante);
+            return ResponseEntity.noContent().build(); // Retorna 204 No Content, indicando sucesso
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+        }
+    }
 }

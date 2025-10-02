@@ -31,20 +31,27 @@ public class GarcomService {
         Restaurante restaurante = restauranteRepository.findById(restauranteId)
                 .orElseThrow(() -> new RuntimeException("Restaurante não encontrado."));
 
-        // Validação para não repetir código de identidade no mesmo restaurante
-        garcomRepository.findByRestauranteIdAndCodigoIdentidade(restauranteId, request.getCodigoIdentidade())
-                .ifPresent(g -> {
-                    throw new RuntimeException("Código de identidade já está em uso neste restaurante.");
-                });
+        // O código agora é gerado pelo sistema
+        String novoCodigo = gerarCodigoUnico(restauranteId);
 
         Garcom garcom = new Garcom();
         garcom.setNome(request.getNome());
-        garcom.setCodigoIdentidade(request.getCodigoIdentidade());
+        garcom.setCodigoIdentidade(novoCodigo); // Usamos o código gerado
         garcom.setSenha(passwordEncoder.encode(request.getSenha()));
         garcom.setRestaurante(restaurante);
         garcom.setAtivo(true);
 
         return garcomRepository.save(garcom);
+    }
+    
+    private String gerarCodigoUnico(UUID restauranteId) {
+        String codigo;
+        do {
+            int numero = 10000000 + new java.util.Random().nextInt(90000000); // Gera um número de 8 dígitos
+            String numeroStr = String.valueOf(numero);
+            codigo = numeroStr.substring(0, 4) + "-" + numeroStr.substring(4);
+        } while (garcomRepository.findByRestauranteIdAndCodigoIdentidade(restauranteId, codigo).isPresent());
+        return codigo;
     }
 
     @Transactional(readOnly = true)
@@ -52,5 +59,36 @@ public class GarcomService {
         return garcomRepository.findAllByRestauranteId(restauranteId);
     }
 
-    // Aqui iriam os métodos de update e delete, se necessários.
+    @Transactional
+    public Garcom updateGarcom(UUID garcomId, GarcomRequest request, UUID restauranteId) {
+        Garcom garcom = garcomRepository.findById(garcomId)
+                .orElseThrow(() -> new RuntimeException("Garçom não encontrado."));
+
+        // Validação de segurança: o garçom pertence ao restaurante que está fazendo a requisição?
+        if (!garcom.getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. O garçom não pertence a este restaurante.");
+        }
+
+        garcom.setNome(request.getNome());
+        // Permite a atualização opcional da senha
+        if (request.getSenha() != null && !request.getSenha().isEmpty()) {
+            garcom.setSenha(passwordEncoder.encode(request.getSenha()));
+        }
+
+        return garcomRepository.save(garcom);
+    }
+    
+    @Transactional
+    public void desativarGarcom(UUID garcomId, UUID restauranteId) {
+        Garcom garcom = garcomRepository.findById(garcomId)
+                .orElseThrow(() -> new RuntimeException("Garçom não encontrado."));
+
+        // Validação de segurança
+        if (!garcom.getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. O garçom não pertence a este restaurante.");
+        }
+
+        garcom.setAtivo(false);
+        garcomRepository.save(garcom);
+    }
 }
