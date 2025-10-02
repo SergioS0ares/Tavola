@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    server {
+        listen 8081; # O Nginx vai ouvir em uma porta diferente da sua API
+        server_name _;
+
+        location /upl {
+            # Mapeia a URL /upl para a pasta onde os arquivos estão salvos
+            alias /app/uploads; 
+        }
+    }

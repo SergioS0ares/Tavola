@@ -28,11 +28,13 @@ public class GarcomService {
 
     @Transactional
     public Garcom createGarcom(GarcomRequest request, UUID restauranteId) {
+    	System.out.println("[GarçomSERV] " + "Serviço Requisitado");
         Restaurante restaurante = restauranteRepository.findById(restauranteId)
                 .orElseThrow(() -> new RuntimeException("Restaurante não encontrado."));
 
         // O código agora é gerado pelo sistema
         String novoCodigo = gerarCodigoUnico(restauranteId);
+        System.out.println("[GarçomSERV] " + "código gerado como: " + novoCodigo);
 
         Garcom garcom = new Garcom();
         garcom.setNome(request.getNome());
@@ -40,6 +42,8 @@ public class GarcomService {
         garcom.setSenha(passwordEncoder.encode(request.getSenha()));
         garcom.setRestaurante(restaurante);
         garcom.setAtivo(true);
+        
+        System.out.println("[GarçomSERV] " + "objeto de garçom populado");
 
         return garcomRepository.save(garcom);
     }
@@ -69,26 +73,32 @@ public class GarcomService {
             throw new SecurityException("Acesso negado. O garçom não pertence a este restaurante.");
         }
 
-        garcom.setNome(request.getNome());
-        // Permite a atualização opcional da senha
+        // Lógica de atualização parcial
+        if (request.getNome() != null && !request.getNome().isEmpty()) {
+            garcom.setNome(request.getNome());
+        }
         if (request.getSenha() != null && !request.getSenha().isEmpty()) {
             garcom.setSenha(passwordEncoder.encode(request.getSenha()));
+        }
+        if (request.getFotoUrl() != null) {
+            // Permitimos string vazia para o caso de querer remover a foto
+            garcom.setFotoUrl(request.getFotoUrl());
         }
 
         return garcomRepository.save(garcom);
     }
     
     @Transactional
-    public void desativarGarcom(UUID garcomId, UUID restauranteId) {
+    public void deleteGarcom(UUID garcomId, UUID restauranteId) {
         Garcom garcom = garcomRepository.findById(garcomId)
                 .orElseThrow(() -> new RuntimeException("Garçom não encontrado."));
 
-        // Validação de segurança
+        // Validação de segurança (ainda crucial!)
         if (!garcom.getRestaurante().getId().equals(restauranteId)) {
             throw new SecurityException("Acesso negado. O garçom não pertence a este restaurante.");
         }
-
-        garcom.setAtivo(false);
-        garcomRepository.save(garcom);
+        
+        // Exclusão permanente
+        garcomRepository.delete(garcom);
     }
 }

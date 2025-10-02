@@ -1,4 +1,3 @@
-// Em controller/GarcomController.java
 package TavolaSoftware.TavolaApp.REST.controller;
 
 import TavolaSoftware.TavolaApp.REST.dto.requests.GarcomRequest;
@@ -19,7 +18,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/restaurantes/{idRestaurante}/garcons") // << Rota protegida e aninhada
+@RequestMapping("/auth/api/restaurantes/{idRestaurante}/garcons") // << Rota Padronizada
 public class GarcomController {
 
     @Autowired
@@ -43,6 +42,9 @@ public class GarcomController {
             }
 
             Garcom novoGarcom = garcomService.createGarcom(request, idRestaurante);
+            
+            System.out.println("[CREATE_ENTITY] " + "{\n" + novoGarcom.toString() + "\n}");
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(new GarcomResponse(novoGarcom));
 
         } catch (RuntimeException e) {
@@ -108,7 +110,7 @@ public class GarcomController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", "Você não tem permissão para gerenciar a equipe deste restaurante."));
             }
 
-            garcomService.desativarGarcom(idGarcom, idRestaurante);
+            garcomService.deleteGarcom(idGarcom, idRestaurante); // <<< CHAMADA ATUALIZADA
             return ResponseEntity.noContent().build(); // Retorna 204 No Content, indicando sucesso
 
         } catch (RuntimeException e) {

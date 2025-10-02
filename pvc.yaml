@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tavola-uploads-pvc  # Nome do nosso pedido de disco
+spec:
+  accessModes:
+    - ReadWriteMany        # <<< PONTO CRÍTICO: Modo de acesso para compartilhar entre vários Pods
+  resources:
+    requests:
+      storage: 10Gi        # Tamanho do disco que estamos pedindo (ex: 10 Gigabytes)

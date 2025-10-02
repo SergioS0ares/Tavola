@@ -19,7 +19,7 @@ public class Garcom {
     private String nome;
 
     @Column(name = "foto_url")
-    private String fotoUrl; // Para o futuro
+    private String imagem; // Para o futuro
 
     @Column(name = "codigo_identidade", nullable = false)
     private String codigoIdentidade;
@@ -47,7 +47,7 @@ public class Garcom {
 	}
 
     public String getFotoUrl() {
-    	return this.fotoUrl;
+    	return this.imagem;
     }
 
 	public void setNome(String nome2) {
@@ -76,5 +76,9 @@ public class Garcom {
 
 	public Restaurante getRestaurante() {
 		return this.restaurante;	
+	}
+
+	public void setFotoUrl(String fotoUrl2) {
+		this.imagem = fotoUrl2;
 	}
 }
