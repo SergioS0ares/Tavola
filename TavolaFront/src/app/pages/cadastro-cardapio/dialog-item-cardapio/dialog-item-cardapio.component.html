@@ -1,7 +1,18 @@
-<mat-dialog-content class="dialog-content">
-  <h2 mat-dialog-title>
-    {{ data.modo === 'criar' ? 'Adicionar Item' : 'Editar Item' }}
-  </h2>
+<div class="tavola-dialog">
+  <div class="dialog-container">
+    <div class="dialog-header">
+      <div class="header-icon">
+        <mat-icon>restaurant_menu</mat-icon>
+      </div>
+      <h1 mat-dialog-title>
+        {{ data.modo === 'criar' ? 'Adicionar Item' : 'Editar Item' }}
+      </h1>
+      <p class="subtitle">
+        {{ data.modo === 'criar' ? 'Adicione um novo item ao seu cardápio' : 'Edite as informações do item' }}
+      </p>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
 
   <form [formGroup]="form" class="dialog-form">
     <mat-form-field appearance="outline" class="full-width">
@@ -88,10 +99,18 @@
       </mat-chip-grid>
       <mat-hint>Pressione Enter ou vírgula para adicionar</mat-hint>
     </mat-form-field>
-  </form>
-</mat-dialog-content>
+    </form>
+    </mat-dialog-content>
 
-<mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-stroked-button color="warn" (click)="cancelar()">Cancelar</button>
-  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="salvar()">Salvar</button>
-</mat-dialog-actions>
+    <mat-dialog-actions class="dialog-actions">
+      <button mat-button (click)="cancelar()" class="action-btn cancel-btn">
+        <mat-icon>close</mat-icon>
+        Cancelar
+      </button>
+      <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="salvar()" class="action-btn primary-btn">
+        <mat-icon>save</mat-icon>
+        Salvar
+      </button>
+    </mat-dialog-actions>
+  </div>
+</div>

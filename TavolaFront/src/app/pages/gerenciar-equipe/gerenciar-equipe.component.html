@@ -22,19 +22,21 @@
 
   <!-- Campo de Busca -->
   <div *ngIf="!carregando && equipe.length > 0" class="search-section">
-    <mat-form-field appearance="outline" class="tavola-search-field">
-      <mat-label>Buscar membro da equipe</mat-label>
-      <input matInput 
-        [(ngModel)]="pesquisa" 
-        (input)="aplicarFiltros()"
-        placeholder="Digite o nome do funcionário">
-      <button mat-icon-button matSuffix *ngIf="pesquisa" (click)="limparPesquisa()" aria-label="Limpar pesquisa">
-        <mat-icon>close</mat-icon>
-      </button>
-      <button mat-icon-button matSuffix *ngIf="!pesquisa" aria-label="Buscar">
-        <mat-icon>search</mat-icon>
-      </button>
-    </mat-form-field>
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="tavola-search-field">
+        <mat-label>Buscar membro da equipe</mat-label>
+        <input matInput 
+          [(ngModel)]="pesquisa" 
+          (input)="aplicarFiltros()"
+          placeholder="Digite o nome do funcionário">
+        <button mat-icon-button matSuffix *ngIf="pesquisa" (click)="limparPesquisa()" aria-label="Limpar pesquisa">
+          <mat-icon>close</mat-icon>
+        </button>
+        <button mat-icon-button matSuffix *ngIf="!pesquisa" aria-label="Buscar">
+          <mat-icon>search</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
   </div>
 
   <!-- Lista de Membros -->
@@ -85,7 +87,7 @@
             aria-label="Ações do membro">
             <mat-icon>more_vert</mat-icon>
           </button>
-          <mat-menu #menu="matMenu" class="actions-menu">
+          <mat-menu #menu="matMenu" class="tavola-menu-bar">
             <button mat-menu-item (click)="abrirDialogEdicao(membro)">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>

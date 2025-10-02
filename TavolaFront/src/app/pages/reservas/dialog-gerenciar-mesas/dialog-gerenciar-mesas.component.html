@@ -1,0 +1,28 @@
+<div class="tavola-dialog">
+  <div class="dialog-container">
+    <div class="dialog-header">
+      <div class="header-icon">
+        <mat-icon>table_restaurant</mat-icon>
+      </div>
+      <h1 mat-dialog-title>Gerenciar Mesas</h1>
+      <p class="subtitle">Configure as mesas do seu restaurante</p>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
+      <div class="mesas-container">
+        <p>Funcionalidade de gerenciamento de mesas em desenvolvimento...</p>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="dialog-actions">
+      <button mat-button (click)="fechar()" class="action-btn cancel-btn">
+        <mat-icon>close</mat-icon>
+        Fechar
+      </button>
+      <button mat-raised-button color="primary" (click)="salvar()" class="action-btn primary-btn">
+        <mat-icon>save</mat-icon>
+        Salvar
+      </button>
+    </mat-dialog-actions>
+  </div>
+</div>

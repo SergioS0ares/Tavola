@@ -1,22 +1,16 @@
-<div class="dialog-equipe">
-  <!-- Estágio 1: Formulário de Cadastro/Edição -->
-  <ng-container *ngIf="!dadosGerados">
-    <div class="dialog-header">
-      <div class="header-content">
+<div class="tavola-dialog">
+  <div class="dialog-container">
+    <!-- Estágio 1: Formulário de Cadastro/Edição -->
+    <ng-container *ngIf="!dadosGerados">
+      <div class="dialog-header">
         <div class="header-icon">
           <mat-icon>{{ data.editMode ? 'edit' : 'person_add' }}</mat-icon>
         </div>
-        <div class="header-text">
-          <h2 mat-dialog-title>{{ data.editMode ? 'Editar Membro' : 'Adicionar Novo Membro' }}</h2>
-          <p class="header-subtitle">
-            {{ data.editMode ? 'Atualize as informações do membro' : 'Preencha os dados para gerar o código de acesso' }}
-          </p>
-        </div>
+        <h1 mat-dialog-title>{{ data.editMode ? 'Editar Membro' : 'Adicionar Novo Membro' }}</h1>
+        <p class="subtitle">
+          {{ data.editMode ? 'Atualize as informações do membro' : 'Preencha os dados para gerar o código de acesso' }}
+        </p>
       </div>
-      <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Fechar diálogo">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
 
     <div mat-dialog-content class="dialog-content">
       <form [formGroup]="form" class="form-container">
@@ -83,19 +77,15 @@
     </div>
   </ng-container>
 
-  <!-- Estágio 2: Confirmação e Exibição do Código -->
-  <ng-container *ngIf="dadosGerados">
-    <div class="dialog-header success">
-      <div class="header-content">
-        <div class="header-icon success">
+    <!-- Estágio 2: Confirmação e Exibição do Código -->
+    <ng-container *ngIf="dadosGerados">
+      <div class="dialog-header">
+        <div class="header-icon success-icon">
           <mat-icon>check_circle</mat-icon>
         </div>
-        <div class="header-text">
-          <h2 mat-dialog-title>Membro Adicionado!</h2>
-          <p class="header-subtitle">Guarde os dados de acesso para compartilhar</p>
-        </div>
+        <h1 mat-dialog-title>Membro Adicionado!</h1>
+        <p class="subtitle">Guarde os dados de acesso para compartilhar</p>
       </div>
-    </div>
 
     <div mat-dialog-content class="dialog-content success">
       <div class="resultado-container">
@@ -152,15 +142,16 @@
       </div>
     </div>
 
-    <div mat-dialog-actions class="dialog-actions">
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="fechar()"
-        class="close-btn">
-        <mat-icon>check</mat-icon>
-        Fechar
-      </button>
-    </div>
-  </ng-container>
+      <div mat-dialog-actions class="dialog-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="fechar()"
+          class="action-btn primary-btn">
+          <mat-icon>check</mat-icon>
+          Fechar
+        </button>
+      </div>
+    </ng-container>
+  </div>
 </div>

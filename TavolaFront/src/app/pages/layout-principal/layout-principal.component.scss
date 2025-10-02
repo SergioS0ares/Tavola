@@ -23,33 +23,39 @@
   box-shadow: 0 8px 32px rgba(194, 37, 35, 0.25);
 
   .menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    cursor: pointer;
-    border-radius: 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 52px !important;
+    height: 52px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    cursor: pointer !important;
+    border-radius: 16px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
     
     mat-icon {
-      font-size: 26px;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 26px !important;
+      width: 26px !important;
+      height: 26px !important;
+      line-height: 26px !important;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      color: white !important;
     }
     
     &:hover {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
-      transform: scale(1.05);
-      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.25) !important;
+      border-color: rgba(255, 255, 255, 0.5) !important;
+      transform: scale(1.05) !important;
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3) !important;
       
       mat-icon {
-        color: white;
-        transform: rotate(90deg);
+        color: white !important;
+        transform: rotate(90deg) !important;
       }
     }
   }
