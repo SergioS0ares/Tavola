@@ -7,11 +7,6 @@ export interface IReservaHistorico {
     data: string;
     horario: string;
     quantidadePessoas: number;
-    status: 'PENDENTE' | 'CONFIRMADA' | 'ATIVA' | 'LISTA_ESPERA' | 'CANCELADA_CLIENTE' | 'CANCELADA_RESTAURANTE' | 'CONCLUIDA' | 'NAO_COMPARECEU';
+    status: 'CONFIRMADA' | 'CONCLUÍDA' | 'CANCELADA';
     comentariosPreferenciaReserva?: string;
-    horariosFuncionamento?: {
-      diaSemana: string;
-      abertura: string;
-      fechamento: string;
-    }[];
   }

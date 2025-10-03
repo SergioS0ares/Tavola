@@ -47,17 +47,11 @@ public class CardapioService {
         return repo.findByRestauranteId(restauranteId);
     }
 
-    /**
-     * MÉTODO 'SAVE' ADEQUADO
-     * Agora, este método é responsável por toda a operação de criação do item de cardápio.
-     * Ele é o ponto de entrada transacional.
-     */
     @Transactional
     public Cardapio save(Cardapio cardapio, Restaurante restaurante) {
-        // 1. Associa o restaurante ao item de cardápio
+        // ... (lógica de categoria e tags permanece a mesma) ...
         cardapio.setRestaurante(restaurante);
 
-        // 2. Garante que a Categoria existe e a associa
         if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
             Categoria categoriaGerenciada = categoriaService.saveIfNotExists(cardapio.getCategoria().getNome(), restaurante);
             cardapio.setCategoria(categoriaGerenciada);
@@ -65,25 +59,23 @@ public class CardapioService {
             throw new IllegalArgumentException("A categoria é obrigatória para criar um item no cardápio.");
         }
 
-        // 3. Garante que as Tags existem e as associa
         if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
             Set<String> nomesTags = cardapio.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
             Set<Tags> tagsGerenciadas = tagsService.saveAll(nomesTags);
             cardapio.setTags(tagsGerenciadas);
         }
 
-        // 4. Processa a imagem, se houver
+        // 4. Processa a imagem, se houver (LÓGICA CORRIGIDA)
         if (cardapio.getImagem() != null && uplUtil.isBase64Image(cardapio.getImagem())) {
             try {
-                String pasta = "upl/cardapios/" + restaurante.getId();
-                String nomeArquivo = uplUtil.processBase64(cardapio.getImagem(), pasta, "jpg", "image");
-                cardapio.setImagem("/upl/cardapios/" + restaurante.getId() + "/" + nomeArquivo);
+                // <<< MUDANÇA AQUI: Chamando o método correto e mais simples do UploadUtils
+                String caminhoDaImagem = uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), cardapio.getId());
+                cardapio.setImagem(caminhoDaImagem);
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao salvar imagem de cardápio", e);
             }
         }
         
-        // 5. Salva o objeto Cardapio final, uma única vez.
         return repo.save(cardapio);
     }
     
@@ -115,56 +107,48 @@ public class CardapioService {
 
     @Transactional
     public Cardapio update(UUID cardapioId, Cardapio dadosParaAtualizar, Restaurante restauranteDono) {
-    	String x = "" + dadosParaAtualizar.getPreco();
-        // 1. Busca o item de cardápio existente no banco de dados.
         Cardapio cardapioExistente = repo.findById(cardapioId)
             .orElseThrow(() -> new RuntimeException("Item de cardápio não encontrado com o ID: " + cardapioId));
 
-        // 2. VERIFICAÇÃO DE SEGURANÇA: Garante que o item pertence ao restaurante que está a fazer a requisição.
         if (!cardapioExistente.getRestaurante().getId().equals(restauranteDono.getId())) {
             throw new SecurityException("Acesso negado. Você não tem permissão para alterar este item do cardápio.");
         }
 
-        // 3. ATUALIZA OS CAMPOS: Atualiza apenas os campos que foram fornecidos no request.
-        // Como estamos dentro de um método @Transactional, o Hibernate detecta as alterações
-        // e as salva no banco de dados quando a transação termina.
-        
+        // ... (lógica de atualização de nome, preço, etc. permanece a mesma) ...
         if (dadosParaAtualizar.getNome() != null && !dadosParaAtualizar.getNome().isBlank()) {
             cardapioExistente.setNome(dadosParaAtualizar.getNome());
         }
         if (dadosParaAtualizar.getDescricao() != null) {
             cardapioExistente.setDescricao(dadosParaAtualizar.getDescricao());
         }
-        if (x != null && x != "" && !x.isEmpty() && !x.isBlank()) { // Checa por nulidade em vez de 0.0
+        if (dadosParaAtualizar.getPreco() > 0) { 
             cardapioExistente.setPreco(dadosParaAtualizar.getPreco());
         }
-        // Para um booleano, geralmente sempre o atualizamos se vier no payload.
         cardapioExistente.setDisponivel(dadosParaAtualizar.getDisponivel());
-
-        // 4. ATUALIZA AS RELAÇÕES (Categoria e Tags)
         if (dadosParaAtualizar.getCategoria() != null && dadosParaAtualizar.getCategoria().getNome() != null) {
             Categoria novaCategoria = categoriaService.saveIfNotExists(dadosParaAtualizar.getCategoria().getNome(), restauranteDono);
             cardapioExistente.setCategoria(novaCategoria);
         }
-        if (dadosParaAtualizar.getTags() != null) { // Permite limpar as tags se vier uma lista vazia
+        if (dadosParaAtualizar.getTags() != null) {
             Set<String> nomesTags = dadosParaAtualizar.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
             Set<Tags> novasTags = tagsService.saveAll(nomesTags);
             cardapioExistente.setTags(novasTags);
         }
 
-        // 5. ATUALIZA A IMAGEM (se uma nova for enviada)
+        // 5. ATUALIZA A IMAGEM (LÓGICA CORRIGIDA)
         if (dadosParaAtualizar.getImagem() != null && uplUtil.isBase64Image(dadosParaAtualizar.getImagem())) {
             try {
-                String pasta = "upl/cardapios/" + restauranteDono.getId();
-                String nomeArquivo = uplUtil.processBase64(dadosParaAtualizar.getImagem(), pasta, "jpg", "image");
-                cardapioExistente.setImagem("/upl/cardapios/" + restauranteDono.getId() + "/" + nomeArquivo);
+                // <<< MUDANÇA AQUI: Chamando o método correto e mais simples do UploadUtils
+                // Primeiro deletamos a imagem antiga para não deixar lixo no disco
+                uplUtil.deletarArquivoPeloCaminho(cardapioExistente.getImagem());
+                
+                String novoCaminho = uplUtil.processCardapioImagem(dadosParaAtualizar.getImagem(), restauranteDono.getId(), cardapioId);
+                cardapioExistente.setImagem(novoCaminho);
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao processar a nova imagem do cardápio: " + e.getMessage(), e);
             }
         }
 
-        // Não é estritamente necessário chamar repo.save() aqui, pois o Hibernate já está a
-        // "observar" o objeto 'cardapioExistente', mas é uma boa prática para deixar a intenção clara.
         return repo.save(cardapioExistente);
     }
 

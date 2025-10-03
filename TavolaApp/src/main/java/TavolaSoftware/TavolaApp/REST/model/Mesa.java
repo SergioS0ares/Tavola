@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import TavolaSoftware.TavolaApp.tools.MesaStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,6 +44,10 @@ public class Mesa {
 
     @ManyToMany(mappedBy = "mesas") // "mappedBy" diz ao Hibernate que a tabela de ligação já foi definida em Reserva.java
     private List<Reserva> reservas = new ArrayList<>();
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_mesa", nullable = false)
+    private MesaStatus status = MesaStatus.LIVRE;
 
     // Getters e Setters
     public UUID getId() { return id; }
@@ -57,4 +64,6 @@ public class Mesa {
     public void setAmbiente(Ambiente ambiente) { this.ambiente = ambiente; }
     public List<Reserva> getReservas() { return reservas; }
     public void setReservas(List<Reserva> reservas) { this.reservas = reservas; }
+    public MesaStatus getStatus() { return status; }
+    public void setStatus(MesaStatus status) { this.status = status;}
 }

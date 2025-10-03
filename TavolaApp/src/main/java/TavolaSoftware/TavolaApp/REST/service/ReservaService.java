@@ -152,7 +152,9 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva));
 
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                .orElseThrow(() -> new SecurityException("Usuário não autenticado."));
+;
         if (usuarioLogado == null) {
             throw new SecurityException("Usuário não autenticado.");
         }
@@ -193,7 +195,9 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva));
 
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                .orElseThrow(() -> new SecurityException("Usuário não autenticado."));
+usuarioRepository.findByEmail(emailUsuarioLogado);
         if (usuarioLogado == null) {
             throw new RuntimeException("Usuário não autenticado.");
         }
@@ -227,7 +231,9 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva));
 
-        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado);
+        Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
+                .orElseThrow(() -> new SecurityException("Usuário não autenticado."));
+usuarioRepository.findByEmail(emailUsuarioLogado);
         if (usuarioLogado == null) {
             throw new RuntimeException("Usuário não autenticado.");
         }

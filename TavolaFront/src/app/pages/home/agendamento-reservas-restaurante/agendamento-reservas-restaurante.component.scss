@@ -376,7 +376,18 @@ $tavola-cinza: #F8F9FA;
               margin: 0;
             }
             
-            // Estilos removidos - agora usando classes globais do styles.scss
+            .copy-button {
+              padding: 0;
+              height: auto;
+              color: $text-color;
+              border: none;
+              background: transparent;
+              
+              &:hover {
+                color: $primary-color;
+                background: transparent;
+              }
+            }
           }
           
           .como-chegar-btn {

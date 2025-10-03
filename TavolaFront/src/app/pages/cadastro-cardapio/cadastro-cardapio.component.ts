@@ -59,20 +59,6 @@ export class CadastroCardapioComponent implements OnInit {
     this.carregarItens();
   }
 
-  // ... dentro da classe CadastroCardapioComponent
-
-  // Propriedade para verificar se todas as categorias estão vazias
-  public get todasCategoriasVazias(): boolean {
-    // Se o array principal não existir ou estiver vazio, consideramos que está "vazio".
-    if (!this.categoriasComItens || this.categoriasComItens.length === 0) {
-      return true;
-    }
-    
-    // A mesma lógica que você tinha, agora dentro do componente.
-    return this.categoriasComItens.every(cat => cat.itens.length === 0);
-  }
-
-
   private carregarItens() {
     this.service.listarItens().subscribe({
       next: (itens) => {

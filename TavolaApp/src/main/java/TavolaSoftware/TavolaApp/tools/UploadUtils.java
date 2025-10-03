@@ -17,6 +17,9 @@ import java.util.UUID;
 
 @Component
 public class UploadUtils {
+	
+    private static final String UPLOAD_DIR = "/app/uploads";
+
 
     public boolean isPrincipalBase64Image(String input) {
         if (input == null || input.trim().isEmpty()) {
@@ -32,15 +35,10 @@ public class UploadUtils {
         return input.startsWith("data:image/") && input.contains(";base64,");
     }
 
-    public String processBase64(String base64StringComCabecalho, String pasta, String extensao, String tipoDeDadoPrefixo) throws IOException {
-        if (tipoDeDadoPrefixo == null || tipoDeDadoPrefixo.trim().isEmpty() || !tipoDeDadoPrefixo.matches("^[a-zA-Z0-9]+$")) {
-            throw new IllegalArgumentException("Prefixo do tipo de dado inválido: " + tipoDeDadoPrefixo);
-        }
-
+    private String processBase64(String base64StringComCabecalho, Path pastaPath, String extensao, String tipoDeDadoPrefixo) throws IOException {
         String base64Data = base64StringComCabecalho.replaceFirst("^data:" + tipoDeDadoPrefixo + "/[^;]+;base64,", "");
         byte[] decodedBytes = Base64.getDecoder().decode(base64Data);
 
-        Path pastaPath = Paths.get(pasta);
         if (!Files.exists(pastaPath)) {
             Files.createDirectories(pastaPath);
         }
@@ -59,11 +57,13 @@ public class UploadUtils {
         String caminhoPrincipal = null;
         List<String> caminhosOutras = new ArrayList<>();
         
-        String pasta = "upl/restaurantes/" + restauranteId.toString();
+        // <<< MUDANÇA 2: Usamos o UPLOAD_DIR para montar o caminho de salvamento.
+        Path pasta = Path.of(UPLOAD_DIR, "restaurantes", restauranteId.toString());
         
         for (String imagem : imagensInput) {
             if (isPrincipalBase64Image(imagem)) {
                 String nomeArquivo = processBase64(imagem, pasta, "jpg", "principal");
+                // A URL retornada para o frontend continua a mesma! O frontend não precisa saber onde salvamos.
                 caminhoPrincipal = "/upl/restaurantes/" + restauranteId + "/" + nomeArquivo;
             } else if (isBase64Image(imagem)) {
                 String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
@@ -81,17 +81,15 @@ public class UploadUtils {
         return caminhosProcessados;
     }
 
-    // <<< MÉTODO ATUALIZADO >>>
-    // A assinatura foi simplificada para não precisar mais do parâmetro "tipo".
     public String processUsuarioImagem(String imagem, UUID usuarioId) throws IOException {
         if (!isBase64Image(imagem)) { 
             throw new IOException("A string fornecida não é uma imagem Base64 válida (deve começar com data:image/)");
         }
 
-        String pasta = "upl/usuarios/" + usuarioId.toString();
-        // O "tipo" da imagem é sempre "image" para o prefixo do Base64
+        // <<< MUDANÇA 3: Usamos o UPLOAD_DIR para montar o caminho de salvamento.
+        Path pasta = Path.of(UPLOAD_DIR, "usuarios", usuarioId.toString());
         String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-        // Retorna o caminho completo para ser salvo no banco de dados
+        // A URL retornada para o frontend continua a mesma!
         return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo;
     }
 
@@ -99,14 +97,15 @@ public class UploadUtils {
         if (!isBase64Image(imagem)) {
             throw new IOException("A string fornecida não é uma imagem Base64 válida");
         }
-
-        String pasta = "upl/cardapios/" + restauranteId.toString();
+        // <<< MUDANÇA 4: Usamos o UPLOAD_DIR para montar o caminho de salvamento.
+        Path pasta = Path.of(UPLOAD_DIR, "cardapios", restauranteId.toString());
         String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
+        // A URL retornada para o frontend continua a mesma!
         return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo;
     }
 
     public void deletarPasta(String caminhoPasta) {
-        Path diretorio = Paths.get(caminhoPasta);
+        Path diretorio = Path.of(UPLOAD_DIR, caminhoPasta);
         if (Files.exists(diretorio)) {
             try {
                 Files.walk(diretorio)
@@ -119,19 +118,13 @@ public class UploadUtils {
         }
     }
     
-    // <<< NOVO MÉTODO >>>
-    /**
-     * Deleta um arquivo específico pelo seu caminho relativo (URL).
-     * @param caminhoRelativo O caminho do arquivo como salvo no banco (ex: /upl/usuarios/...).
-     */
     public void deletarArquivoPeloCaminho(String caminhoRelativo) {
         if (caminhoRelativo == null || caminhoRelativo.isBlank()) {
             return;
         }
         try {
-            // Remove a barra inicial, se houver, para criar um caminho relativo ao projeto
-            String caminhoNoSistema = caminhoRelativo.startsWith("/") ? caminhoRelativo.substring(1) : caminhoRelativo;
-            Path pathArquivo = Paths.get(caminhoNoSistema);
+            String caminhoNoDisco = caminhoRelativo.replaceFirst("/upl", UPLOAD_DIR);
+            Path pathArquivo = Paths.get(caminhoNoDisco);
             
             Files.deleteIfExists(pathArquivo);
             

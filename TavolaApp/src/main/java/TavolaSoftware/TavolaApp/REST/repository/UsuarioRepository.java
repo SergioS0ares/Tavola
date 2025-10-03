@@ -10,7 +10,7 @@ import TavolaSoftware.TavolaApp.REST.model.Usuario;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
-    Usuario findByEmail(String email);
-    
+	Optional<Usuario> findByEmail(String email); // <<< Altere o tipo de retorno aqui    
     Optional<Usuario> findByEmailAndEmailVerificado(String email, boolean verificado);
+    
 }

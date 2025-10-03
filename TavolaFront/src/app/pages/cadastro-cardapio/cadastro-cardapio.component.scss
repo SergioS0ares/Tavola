@@ -1,395 +1,221 @@
-@import '../../../styles/variables.scss';
-
-.cardapio-container {
-  padding: 24px;
-  max-width: 1400px;
-  margin: auto;
-  font-family: 'Poppins', sans-serif;
+:host {
+  display: block;
+  background: #ebe8e2;
   min-height: 100vh;
-  background: #eae7e1;
 }
 
-.page-header {
-  margin-bottom: 40px;
-  
-  .header-content {
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+
+  .title-section {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 24px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    border: 1px solid rgba(194, 37, 35, 0.1);
-    position: relative;
-  }
-  
-  .header-icon {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #c22523, #ff4d4f);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    
-    mat-icon {
+    gap: 12px;
+
+    .menu-icon {
+      color: #DA4A24;
       font-size: 28px;
       width: 28px;
       height: 28px;
-      color: white;
     }
-  }
-  
-  .header-text {
-    flex: 1;
-    
-    h1 {
-      color: $texto-principal-sobre-claro;
-      font-weight: 700;
-      font-size: 28px;
-      margin: 0 0 8px 0;
-    }
-    
-    p {
-      color: $texto-secundario-sobre-claro;
-      font-size: 16px;
+
+    h2 {
+      color: #3B221B;
+      font-size: 24px;
       margin: 0;
-      line-height: 1.5;
     }
   }
 }
 
-.categoria-section {
-  margin-bottom: 48px;
+.fab-add {
+  background-color: #F6BD38 !important;
+  color: #3B221B !important;
+  border-radius: 8px !important;
+  width: 48px !important;
+  height: 48px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 
-  .categoria-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    padding: 0 8px;
-  }
-
-  .categoria-titulo {
-    color: $texto-principal-sobre-claro;
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-    padding-left: 16px;
-    border-left: 4px solid $tavola-amarelo-primario;
-    display: flex;
-    align-items: center;
-  }
-
-  .categoria-count {
-    background: linear-gradient(135deg, $tavola-amarelo-primario, #f4a261);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
+  &:hover {
+    background-color: darken(#F6BD38, 5%) !important;
   }
 }
 
-.cardapio-grid {
+.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
+  padding: 0 24px 24px;
 }
 
-.cardapio-card {
-  background: white;
+.card-item {
+  background: #FFF;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  border: 1px solid rgba(194, 37, 35, 0.1);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid rgba(59, 34, 27, 0.1);
   position: relative;
-  
+
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
   }
-  
+
   &.indisponivel {
-    opacity: 0.7;
-    
-    .card-image-container img {
-      filter: grayscale(50%);
-    }
+    opacity: 0.8;
+    border: 1px solid rgba(218, 74, 36, 0.3);
   }
-  
-  .card-image-container {
+
+  .card-image {
     position: relative;
-    height: 200px;
-    overflow: hidden;
     
-    img {
+    img[mat-card-image] {
       width: 100%;
-      height: 100%;
+      height: 180px;
       object-fit: cover;
-      transition: transform 0.3s ease;
-    }
-    
-    &:hover img {
-      transform: scale(1.05);
+      background-color: #5C7028;
     }
 
     .status-badges {
       position: absolute;
-      top: 12px;
-      left: 12px;
+      top: 8px;
+      left: 8px;
       display: flex;
       gap: 8px;
-      z-index: 2;
 
       .badge {
-        padding: 6px 12px;
-        border-radius: 8px;
+        padding: 4px 8px;
+        border-radius: 4px;
         font-size: 12px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        backdrop-filter: blur(10px);
+        font-weight: 500;
 
         &.indisponivel {
-          background: rgba(194, 37, 35, 0.9);
-          color: white;
-          
-          mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
-          }
+          background: rgba(218, 74, 36, 0.9);
+          color: #FFF;
+        }
+
+        &.novo {
+          background: rgba(92, 112, 40, 0.9);
+          color: #FFF;
         }
       }
     }
 
     .card-tags {
       position: absolute;
-      bottom: 12px;
-      left: 12px;
+      bottom: 8px;
+      left: 8px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      z-index: 2;
 
       .tag {
-        background: rgba(246, 189, 56, 0.95);
-        color: $tavola-marrom-escuro;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        backdrop-filter: blur(10px);
-      }
-    }
-
-    .more-button {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(255, 255, 255, 0.95);
-      color: $texto-principal-sobre-claro;
-      backdrop-filter: blur(10px);
-      transition: all 0.2s ease;
-      z-index: 2;
-      
-      &:hover {
-        background: white;
-        transform: scale(1.1);
+        background: rgba(246, 189, 56, 0.9);
+        color: #3B221B;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
       }
     }
   }
-  
-  .card-content {
-    padding: 20px;
-    
+
+  .more-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #3B221B;
+  }
+
+  mat-card-content {
+    padding: 16px;
+
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
+      align-items: center;
       margin-bottom: 12px;
 
-      .card-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: $texto-principal-sobre-claro;
+      h3 {
         margin: 0;
-        line-height: 1.3;
-        flex: 1;
+        font-size: 18px;
+        color: #3B221B;
+        font-weight: 600;
       }
 
       mat-slide-toggle {
-        flex-shrink: 0;
-        
         ::ng-deep {
           .mdc-switch {
-            --mdc-switch-selected-track-color: #{$tavola-amarelo-primario};
-            --mdc-switch-selected-handle-color: #c22523;
+            --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
+            --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
+            --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
+            --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
+            --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
+            --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
+            --mdc-switch-selected-track-color: #F6BD38;
+            --mdc-switch-selected-handle-color: #DA4A24;
             --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
             --mdc-switch-unselected-handle-color: #3B221B;
+            --mdc-switch-selected-focus-track-color: #F6BD38;
+            --mdc-switch-selected-hover-track-color: #F6BD38;
+            --mdc-switch-selected-pressed-track-color: #F6BD38;
           }
         }
       }
     }
-    
-    .card-description {
-      color: $texto-secundario-sobre-claro;
+
+    .descricao {
+      color: rgba(59, 34, 27, 0.7);
       font-size: 14px;
       margin: 0 0 16px;
-      line-height: 1.5;
+      line-height: 1.4;
       display: -webkit-box;
       -webkit-line-clamp: 2;
-      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    
+
     .card-footer {
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      padding-top: 12px;
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
 
-      .preco-section {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        
-        mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-          color: $tavola-amarelo-primario;
-        }
-        
-        .preco {
-          font-size: 22px;
-          font-weight: 700;
-          color: #c22523;
-        }
+      .preco {
+        margin: 0;
+        font-size: 20px;
+        font-weight: bold;
+        color: #DA4A24;
       }
     }
   }
 }
 
-// Estado vazio agora usa a classe global .tavola-empty-search
+.categoria-section {
+  margin: 2rem 0;
+
+  .categoria-titulo {
+    color: #3B221B;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    border-left: 4px solid #F6BD38;
+  }
+}
+
+.container-rounded {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
 .mensagem-sucesso {
-  display: block;
   color: #388e3c;
   font-weight: 600;
-  margin: 0 0 24px 0;
-  padding: 12px 20px;
-  background: rgba(56, 142, 60, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #388e3c;
-}
-
-@media (max-width: 768px) {
-  .cardapio-container {
-    padding: 16px;
-  }
-  
-  .page-header {
-    margin-bottom: 24px;
-    
-    .header-content {
-      flex-direction: column;
-      text-align: center;
-      gap: 16px;
-      padding: 20px;
-    }
-    
-    .header-text {
-      h1 {
-        font-size: 24px;
-      }
-      
-      p {
-        font-size: 14px;
-      }
-    }
-
-    .add-button {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 100;
-    }
-  }
-  
-  .categoria-section {
-    margin-bottom: 32px;
-    
-    .categoria-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    
-    .categoria-titulo {
-      font-size: 20px;
-    }
-  }
-  
-  .cardapio-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .cardapio-card {
-    .card-image-container {
-      height: 180px;
-    }
-    
-    .card-content {
-      padding: 16px;
-      
-      .card-header {
-        .card-title {
-          font-size: 16px;
-        }
-      }
-      
-      .card-footer {
-        .preco-section {
-          .preco {
-            font-size: 20px;
-          }
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .sem-itens {
-    padding: 40px 20px;
-    
-    .empty-state-icon {
-      width: 80px;
-      height: 80px;
-      
-      mat-icon {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
-      }
-    }
-    
-    h3 {
-      font-size: 20px;
-    }
-    
-    p {
-      font-size: 14px;
-    }
-  }
+  margin-left: 24px;
+  font-size: 1.1rem;
 }

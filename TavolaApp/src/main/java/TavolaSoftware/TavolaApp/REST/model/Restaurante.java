@@ -92,8 +92,8 @@ public class Restaurante {
         this.ambientes.add(ambiente);
         ambiente.setRestaurante(this);
     }
-    
-    // ... O restante dos getters e setters permanece igual ...
+
+
     public List<HorarioFuncionamento> getHorariosFuncionamento() { return horariosFuncionamento; }
     public void setHorariosFuncionamento(List<HorarioFuncionamento> horariosFuncionamento) { this.horariosFuncionamento = horariosFuncionamento; }
     public String getTipoCozinha() { return tipoCozinha; }
@@ -120,4 +120,6 @@ public class Restaurante {
     public Endereco getEndereco() { return usuario != null ? usuario.getEndereco() : null; }
     public void setEndereco(Endereco endereco) { if (usuario != null) { usuario.setEndereco(endereco); } }
     public void setNome(String nome) { if (usuario != null) { usuario.setNome(nome); } }
+    public String getEnderecoResumido() { if (this.usuario == null) { return "Endereço não informado";} return this.usuario.getEnderecoResumido();}
+    
 }

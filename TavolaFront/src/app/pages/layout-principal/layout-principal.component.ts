@@ -394,6 +394,9 @@ export class LayoutPrincipalComponent implements OnInit {
     this.isDrawerVisible = true
   }
 
+  /**
+   * Fecha o drawer mobile
+   */
   closeDrawer(): void {
     this.isDrawerVisible = false
   }

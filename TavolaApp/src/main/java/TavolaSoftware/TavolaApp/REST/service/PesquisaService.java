@@ -5,13 +5,26 @@ import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.specification.*;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.tools.Endereco;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.util.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,62 +37,74 @@ public class PesquisaService {
     private UsuarioRepository usuarioRepository;
 
     public List<ClienteHomeResponse> pesquisar(PesquisaRequest request) {
-        // 1. Prepara o termo de busca para o formato FTS do PostgreSQL
-        String termoFts = Arrays.stream(request.getTermo().split(" "))
-                                .filter(s -> !s.trim().isEmpty())
-                                .collect(Collectors.joining(" & "));
 
-        // 2. Lógica para o filtro de cidadeLocal
+        // --- 1. PREPARAÇÃO DOS FILTROS ---
         String cidadeFiltro = null;
         if (request.isCidadeLocal()) {
-            // Pega o email do usuário logado no contexto de segurança do Spring
-            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-            Usuario usuario = usuarioRepository.findByEmail(userEmail);
-            if (usuario != null && usuario.getEndereco() != null) {
-                cidadeFiltro = usuario.getEndereco().getCidade();
+            try {
+                String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+                cidadeFiltro = usuarioRepository.findByEmail(userEmail)
+                    .map(Usuario::getEndereco)
+                    .map(Endereco::getCidade)
+                    .orElse(null);
+            } catch (Exception e) {
+                cidadeFiltro = null;
             }
         }
 
-        // 3. Lógica para o filtro de horário (simplificada)
-        String diaDaSemana = null, horaInicio = null, horaFim = null;
-        if (request.getHorarioAberto() != null && !request.getHorarioAberto().isEmpty()) {
-            // Lógica para extrair dia e horas - aqui precisaria de um parser mais robusto
-            // Por enquanto, vamos manter simples e passar null
+        String diaDaSemana = null;
+        LocalTime horaInicio = null;
+        if (request.getHorarioAberto() != null && !request.getHorarioAberto().trim().isEmpty()) {
+            try {
+                String[] partes = request.getHorarioAberto().split("-");
+                horaInicio = LocalTime.parse(partes[0], DateTimeFormatter.ofPattern("HH:mm"));
+                DayOfWeek day = LocalDate.now().getDayOfWeek();
+                diaDaSemana = day.getDisplayName(TextStyle.SHORT, new Locale("pt", "BR")).toUpperCase();
+            } catch (Exception e) {
+                diaDaSemana = null;
+                horaInicio = null;
+            }
         }
-        
-        // 4. Parâmetros para o filtro de serviços
-        List<String> servicos = request.getServicos();
-        long servicosCount = (servicos != null) ? servicos.size() : 0;
 
-        // 5. Chama a query poderosa no repositório
-        List<Object[]> resultadosRaw = restauranteRepository.searchAvancado(
-            termoFts,
-            cidadeFiltro,
-            request.getNotaMinima(),
-            servicos,
-            servicosCount,
-            diaDaSemana,
-            horaInicio,
-            horaFim
-        );
+        // --- 2. BUSCA INICIAL PELOS FILTROS (SPECIFICATIONS) ---
+        Specification<Restaurante> spec = Specification
+            .where(RestauranteSpecification.comCidade(cidadeFiltro))
+            .and(RestauranteSpecification.comNotaMinima(request.getNotaMinima()))
+            .and(RestauranteSpecification.comServicos(request.getServicos()))
+            .and(RestauranteSpecification.abertoAgora(diaDaSemana, horaInicio));
 
-        // 6. Mapeia os IDs retornados para uma lista
-        if (resultadosRaw.isEmpty()) {
+        List<Restaurante> restaurantesFiltrados = restauranteRepository.findAll(spec);
+
+        if (restaurantesFiltrados.isEmpty()) {
             return Collections.emptyList();
         }
-        
-        List<UUID> idsOrdenados = resultadosRaw.stream()
-            .map(row -> UUID.fromString((String) row[0].toString()))
-            .collect(Collectors.toList());
 
-        // 7. Busca as entidades completas dos restaurantes
-        Map<UUID, Restaurante> restaurantesMap = restauranteRepository.findAllById(idsOrdenados)
-            .stream()
-            .collect(Collectors.toMap(Restaurante::getId, r -> r));
+        // --- 3. SE HOUVER TERMO, APLICA O FILTRO DE TEXTO E REORDENA ---
+        String termoBusca = (request.getTermo() == null) ? "" : request.getTermo().trim();
+        List<Restaurante> resultadoFinal;
 
-        // 8. Monta a resposta final na ordem correta, convertendo para ClienteHomeResponse
-        return idsOrdenados.stream()
-            .map(id -> new ClienteHomeResponse(restaurantesMap.get(id)))
+        if (!termoBusca.isEmpty()) {
+            // Pega os IDs dos restaurantes que já passaram pelos filtros
+            List<UUID> idsParaFiltrar = restaurantesFiltrados.stream().map(Restaurante::getId).collect(Collectors.toList());
+
+            // Roda a query nativa de FTS apenas nesses IDs
+            List<UUID> idsOrdenadosPorFts = restauranteRepository.filterAndSortByFts(idsParaFiltrar, termoBusca);
+            
+            // Reordena a lista original com base no resultado da busca por texto
+            Map<UUID, Restaurante> mapaDeRestaurantes = restaurantesFiltrados.stream()
+                .collect(Collectors.toMap(Restaurante::getId, r -> r));
+
+            resultadoFinal = idsOrdenadosPorFts.stream()
+                .map(mapaDeRestaurantes::get)
+                .collect(Collectors.toList());
+        } else {
+            // Se não houver termo, o resultado é simplesmente a lista já filtrada
+            resultadoFinal = restaurantesFiltrados;
+        }
+
+        // --- 4. MAPEIA PARA A RESPOSTA FINAL ---
+        return resultadoFinal.stream()
+            .map(ClienteHomeResponse::new)
             .collect(Collectors.toList());
     }
 }

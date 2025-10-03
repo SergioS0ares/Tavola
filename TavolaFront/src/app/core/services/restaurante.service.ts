@@ -86,6 +86,11 @@ export class RestauranteService {
     return of(['assets/jpg/restauranteModelo.jpg', 'assets/jpg/restauranteModelo.jpg', 'assets/jpg/restauranteModelo.jpg']);
   }
 
+  criarReserva(reservaData: any): Observable<any> {
+    console.log('Mock: Criando reserva com dados:', reservaData);
+    return of({ success: true, message: 'Reserva mock criada com sucesso!' });
+  }
+
   favoritarRestaurante(id: string) {
     return this.http.post(`${this.apiUrl.replace('/auth/restaurantes','/auth/clientes/favoritar')}/${id}`, {});
   }
