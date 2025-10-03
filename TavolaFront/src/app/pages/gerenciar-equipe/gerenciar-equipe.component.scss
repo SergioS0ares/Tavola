@@ -345,7 +345,7 @@
     text-align: center;
     background: white;
     border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(116, 93, 93, 0.08);
     border: 2px dashed rgba(194, 37, 35, 0.2);
     animation: fadeInUp 0.6s ease-out;
 
@@ -422,8 +422,7 @@
   }
 
   // Botão Flutuante
-  .add-fab {
-    @extend .tavola-fab !optional;
+  .tavola-fab {
     position: fixed !important;
     bottom: 40px !important;
     right: 40px !important;
@@ -611,7 +610,7 @@
       }
     }
 
-    .add-fab {
+    .tavola-fab {
       bottom: 24px !important;
       right: 24px !important;
       width: 56px !important;

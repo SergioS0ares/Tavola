@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { EquipeService, DadosMembro } from '../../../core/services/equipe.service';
 
@@ -43,7 +43,7 @@ export class DialogEquipeComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: DialogEquipeData,
     private fb: FormBuilder,
     private equipeService: EquipeService,
-    private snackBar: MatSnackBar
+    private toastr: ToastrService
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
@@ -79,7 +79,7 @@ export class DialogEquipeComponent implements OnInit {
           },
           error: (error) => {
             console.error('Erro ao atualizar membro:', error);
-            this.snackBar.open('Erro ao atualizar membro', 'Fechar', { duration: 3000 });
+            this.toastr.error('Erro ao atualizar membro', 'Erro');
             this.carregando = false;
           }
         });
@@ -96,7 +96,7 @@ export class DialogEquipeComponent implements OnInit {
           },
           error: (error) => {
             console.error('Erro ao adicionar membro:', error);
-            this.snackBar.open('Erro ao adicionar membro', 'Fechar', { duration: 3000 });
+            this.toastr.error('Erro ao adicionar membro', 'Erro');
             this.carregando = false;
           }
         });
@@ -109,9 +109,9 @@ export class DialogEquipeComponent implements OnInit {
    */
   copiar(texto: string): void {
     navigator.clipboard.writeText(texto).then(() => {
-      this.snackBar.open('Copiado!', 'Fechar', { duration: 2000 });
+      this.toastr.success('Copiado!', 'Sucesso');
     }).catch(() => {
-      this.snackBar.open('Erro ao copiar', 'Fechar', { duration: 2000 });
+      this.toastr.error('Erro ao copiar', 'Erro');
     });
   }
 

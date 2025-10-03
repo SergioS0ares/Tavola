@@ -87,8 +87,7 @@
         <p class="subtitle">Guarde os dados de acesso para compartilhar</p>
       </div>
 
-    <div mat-dialog-content class="dialog-content success">
-      <div class="resultado-container">
+      <div mat-dialog-content class="dialog-content">
         <div class="membro-info">
           <div class="membro-avatar">
             <img [src]="getImagemUrl(null)" alt="Avatar Padrão">
@@ -97,55 +96,61 @@
         </div>
 
         <div class="dados-acesso">
-          <div class="dado-item">
-            <div class="dado-header">
+          <div class="detalhe-card">
+            <div class="card-icon">
               <mat-icon>vpn_key</mat-icon>
-              <span>Código de Acesso</span>
             </div>
-            <div class="dado-content">
-              <span class="codigo-value">{{ formatarCodigo(dadosGerados.codigo) }}</span>
-              <button 
-                mat-icon-button 
-                (click)="copiar(dadosGerados.codigo)"
-                class="copy-btn"
-                matTooltip="Copiar código">
-                <mat-icon>content_copy</mat-icon>
-              </button>
+            <div class="card-content">
+              <span class="card-label">Código de Acesso</span>
+              <div class="card-value-container">
+                <span class="card-value">{{ formatarCodigo(dadosGerados.codigo) }}</span>
+                <button 
+                  mat-icon-button 
+                  (click)="copiar(dadosGerados.codigo)"
+                  class="tavola-copy-btn"
+                  matTooltip="Copiar código">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="dado-item">
-            <div class="dado-header">
+          <div class="detalhe-card">
+            <div class="card-icon">
               <mat-icon>lock</mat-icon>
-              <span>Senha Provisória</span>
             </div>
-            <div class="dado-content">
-              <span class="senha-value">{{ dadosGerados.senha }}</span>
-              <button 
-                mat-icon-button 
-                (click)="copiar(dadosGerados.senha)"
-                class="copy-btn"
-                matTooltip="Copiar senha">
-                <mat-icon>content_copy</mat-icon>
-              </button>
+            <div class="card-content">
+              <span class="card-label">Senha Provisória</span>
+              <div class="card-value-container">
+                <span class="card-value">{{ dadosGerados.senha }}</span>
+                <button 
+                  mat-icon-button 
+                  (click)="copiar(dadosGerados.senha)"
+                  class="tavola-copy-btn"
+                  matTooltip="Copiar senha">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="aviso-seguranca">
-          <mat-icon class="warning-icon">warning</mat-icon>
-          <div class="aviso-text">
-            <strong>Atenção:</strong> A senha não será mostrada novamente. 
-            Compartilhe os dados de forma segura com o funcionário.
+          <div class="detalhe-card">
+            <div class="card-icon warning-icon">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Atenção</span>
+              <span class="card-value">A senha não será mostrada novamente. Compartilhe os dados de forma segura com o funcionário.</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
       <div mat-dialog-actions class="dialog-actions">
         <button 
           mat-raised-button 
-          color="primary" 
           (click)="fechar()"
           class="action-btn primary-btn">
           <mat-icon>check</mat-icon>
