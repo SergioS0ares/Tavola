@@ -1,44 +1,67 @@
-<!-- topo -->
-<div class="container-rounded">
-  <div class="top-bar">
-    <div class="title-section">
-      <mat-icon class="menu-icon">restaurant_menu</mat-icon>
-      <h2>Cadastro de Cardápio</h2>
+<div class="cardapio-container">
+  <!-- Added elegant header similar to favoritos component -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>restaurant_menu</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Cadastro de Cardápio</h1>
+        <p>Gerencie os itens do seu cardápio de forma simples e eficiente.</p>
+      </div>
+      <button
+        mat-fab
+        color="primary"
+        class="tavola-fab"
+        aria-label="Adicionar item"
+        matTooltip="Adicionar novo item ao cardápio"
+        matTooltipClass="tavola-tooltip"
+        (click)="adicionar()">
+        <mat-icon>add</mat-icon>
+      </button>
     </div>
-    <button
-      mat-fab
-      color="primary"
-      class="fab-add"
-      aria-label="Adicionar item"
-      matTooltip="Adicionar novo item ao cardápio"
-      matTooltipClass="tavola-tooltip"
-      (click)="adicionar()">
-      <mat-icon>add</mat-icon>
-    </button>
   </div>
 
   <span *ngIf="mensagemSucesso" class="mensagem-sucesso">{{ mensagemSucesso }}</span>
 
-  <!-- grid de cards agrupados por categoria -->
+  <!-- Improved category sections with modern styling -->
   <ng-container *ngFor="let categoria of categoriasComItens">
     <div class="categoria-section" *ngIf="categoria.itens.length > 0">
-      <h3 class="categoria-titulo">{{ categoria.nome }}</h3>
-      <div class="grid">
-        <mat-card *ngFor="let item of categoria.itens" class="card-item" [class.indisponivel]="!item.disponivel">
-          <div class="card-image">
+      <div class="categoria-header">
+        <h3 class="categoria-titulo">{{ categoria.nome }}</h3>
+        <span class="categoria-count">{{ categoria.itens.length }} {{ categoria.itens.length === 1 ? 'item' : 'itens' }}</span>
+      </div>
+      
+      <div class="cardapio-grid">
+        <mat-card *ngFor="let item of categoria.itens" class="cardapio-card" [class.indisponivel]="!item.disponivel">
+          
+          <!-- Improved card image container with better badge positioning -->
+          <div class="card-image-container">
             <img mat-card-image [src]="item.imagem || defaultImg" alt="{{ item.nome }}" />
-            <div class="card-tags">
+            
+            <div class="status-badges">
+              <span class="badge indisponivel" *ngIf="!item.disponivel">
+                <mat-icon>block</mat-icon>
+                Indisponível
+              </span>
+            </div>
+            
+            <div class="card-tags" *ngIf="item.tags && item.tags.length > 0">
               <span *ngFor="let tag of item.tags" class="tag">
                 {{ tag.tag || tag }}
               </span>
             </div>
-            <div class="status-badges">
-              <span class="badge indisponivel" *ngIf="!item.disponivel">Indisponível</span>
-            </div>
+
+            <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" 
+                    matTooltip="Mais opções" matTooltipClass="tavola-tooltip">
+              <mat-icon>more_vert</mat-icon>
+            </button>
           </div>
-          <mat-card-content>
+          
+          <!-- Improved card content layout -->
+          <mat-card-content class="card-content">
             <div class="card-header">
-              <h3>{{ item.nome }}</h3>
+              <h3 class="card-title">{{ item.nome }}</h3>
               <mat-slide-toggle
                 [checked]="item.disponivel"
                 (change)="toggleDisponibilidade(item)"
@@ -47,25 +70,42 @@
                 matTooltipClass="tavola-tooltip">
               </mat-slide-toggle>
             </div>
-            <p class="descricao" *ngIf="item.descricao">{{ item.descricao }}</p>
+            
+            <p class="card-description" *ngIf="item.descricao">{{ item.descricao }}</p>
+            
             <div class="card-footer">
-              <p class="preco">R$ {{ item.preco | number:'1.2-2' }}</p>
+              <div class="preco-section">
+                <mat-icon>attach_money</mat-icon>
+                <span class="preco">R$ {{ item.preco | number:'1.2-2' }}</span>
+              </div>
             </div>
           </mat-card-content>
-          <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" matTooltip="Mais opções"
-          matTooltipClass="tavola-tooltip">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #menu="matMenu">
+
+          <mat-menu #menu="matMenu" class="tavola-menu-bar">
             <button mat-menu-item (click)="editar(item)">
-              <mat-icon>edit</mat-icon><span>Editar</span>
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
             </button>
             <button mat-menu-item (click)="confirmarRemocao(item)">
-              <mat-icon>delete</mat-icon><span>Remover</span>
+              <mat-icon>delete</mat-icon>
+              <span>Remover</span>
             </button>
           </mat-menu>
         </mat-card>
       </div>
     </div>
   </ng-container>
+
+  <!-- Added empty state when no items exist -->
+  <div *ngIf="todasCategoriasVazias" class="tavola-empty-search">
+    <div class="empty-icon">
+      <mat-icon>restaurant_menu</mat-icon>
+    </div>
+    <h3>Nenhum item cadastrado</h3>
+    <p>Comece adicionando itens ao seu cardápio para que seus clientes possam visualizá-los.</p>
+    <button mat-raised-button color="primary" (click)="adicionar()">
+      <mat-icon>add</mat-icon>
+      Adicionar Primeiro Item
+    </button>
+  </div>
 </div>

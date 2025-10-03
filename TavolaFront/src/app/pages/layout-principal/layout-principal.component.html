@@ -24,6 +24,15 @@
         <mat-icon aria-hidden="true">history</mat-icon>
         <span>Histórico</span>
       </button>
+      <button 
+        routerLink="/favoritos" 
+        routerLinkActive="active" 
+        (click)="closeDrawer()"
+        type="button"
+        aria-label="Ver restaurantes favoritos">
+        <mat-icon aria-hidden="true">favorite</mat-icon>
+        <span>Favoritos</span>
+      </button>
     </ng-container>
 
     <ng-container *ngIf="isRestaurante">
@@ -53,6 +62,15 @@
         aria-label="Gerenciar cardápio">
         <mat-icon aria-hidden="true">menu_book</mat-icon>
         <span>Cardápio</span>
+      </button>
+      <button 
+        routerLink="/gerenciar-equipe" 
+        routerLinkActive="active" 
+        (click)="closeDrawer()"
+        type="button"
+        aria-label="Gerenciar equipa">
+        <mat-icon aria-hidden="true">groups</mat-icon>
+        <span>Minha Equipe</span>
       </button>
     </ng-container>
 
@@ -136,35 +154,63 @@
       
         <mat-menu #menuNotificacoes="matMenu" class="notification-dropdown">
           <div class="dropdown-header" (click)="$event.stopPropagation();">
-            <h4>Avaliações Pendentes</h4>
+            <div class="header-content">
+              <div class="header-icon">
+                <mat-icon>star</mat-icon>
+              </div>
+              <div class="header-text">
+                <h4>Avaliações Pendentes</h4>
+                <p *ngIf="temAvaliacoesPendentes">{{ avaliacoesPendentes.length }} avaliação(ões) aguardando</p>
+              </div>
+            </div>
           </div>
       
           <div class="dropdown-content" role="list">
             <div *ngIf="carregandoAvaliacoes" class="loading-state" role="status" aria-live="polite">
-              <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
-              <span>Carregando...</span>
+              <div class="loading-spinner">
+                <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
+              </div>
+              <span>Carregando avaliações...</span>
             </div>
             
             <div *ngIf="!carregandoAvaliacoes && !temAvaliacoesPendentes" class="empty-state">
-              <mat-icon aria-hidden="true">check_circle</mat-icon>
-              <span>Nenhuma avaliação pendente</span>
+              <div class="empty-icon">
+                <mat-icon aria-hidden="true">check_circle</mat-icon>
+              </div>
+              <h5>Tudo em dia!</h5>
+              <p>Nenhuma avaliação pendente no momento.</p>
             </div>
       
             <ng-container *ngIf="!carregandoAvaliacoes && temAvaliacoesPendentes">
-              <button 
-                *ngFor="let avaliacao of avaliacoesPendentes; trackBy: trackByAvaliacaoId" 
-                mat-menu-item
-                class="avaliacao-item"
-                (click)="abrirDialogoAvaliacao(avaliacao)"
-                type="button"
-                role="menuitem"
-                [attr.aria-label]="'Avaliar ' + avaliacao.nomeRestaurante + ' da visita em ' + formatarDataReserva(avaliacao.dataReserva)">
-                <div class="avaliacao-content">
-                  <h5>{{ avaliacao.nomeRestaurante }}</h5>
-                  <p>Avalie sua visita em {{ formatarDataReserva(avaliacao.dataReserva) }}</p>
-                </div>
-                <mat-icon aria-hidden="true">star_border</mat-icon>
-              </button>
+              <div class="avaliacoes-list">
+                <button 
+                  *ngFor="let avaliacao of avaliacoesPendentes; trackBy: trackByAvaliacaoId" 
+                  mat-menu-item
+                  class="avaliacao-item"
+                  (click)="abrirDialogoAvaliacao(avaliacao)"
+                  type="button"
+                  role="menuitem"
+                  [attr.aria-label]="'Avaliar ' + avaliacao.nomeRestaurante + ' da visita em ' + formatarDataReserva(avaliacao.dataReserva)">
+                  <div class="avaliacao-content">
+                    <div class="restaurante-info">
+                      <div class="restaurante-icon">
+                        <mat-icon>restaurant</mat-icon>
+                      </div>
+                      <div class="restaurante-details">
+                        <h5>{{ avaliacao.nomeRestaurante }}</h5>
+                        <p class="data-visita">
+                          <mat-icon>schedule</mat-icon>
+                          Visita em {{ formatarDataReserva(avaliacao.dataReserva) }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="avaliacao-action">
+                      <mat-icon>star_border</mat-icon>
+                      <span>Avaliar</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
             </ng-container>
           </div>
         </mat-menu>

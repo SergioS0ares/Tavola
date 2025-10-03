@@ -376,18 +376,7 @@ $tavola-cinza: #F8F9FA;
               margin: 0;
             }
             
-            .copy-button {
-              padding: 0;
-              height: auto;
-              color: $text-color;
-              border: none;
-              background: transparent;
-              
-              &:hover {
-                color: $primary-color;
-                background: transparent;
-              }
-            }
+            // Estilos removidos - agora usando classes globais do styles.scss
           }
           
           .como-chegar-btn {

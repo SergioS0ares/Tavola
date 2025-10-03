@@ -217,7 +217,7 @@
             <button
               mat-fab
               color="primary"
-              class="fab-add-reservas"
+              class="tavola-fab"
               aria-label="Gerenciar Mesas"
               matTooltip="Adicionar, Editar ou Remover Mesas"
               matTooltipClass="tavola-tooltip"
@@ -390,7 +390,7 @@
                       <mat-icon>more_vert</mat-icon>
                     </button>
                   </div>
-                  <mat-menu #areaMenu="matMenu">
+                  <mat-menu #areaMenu="matMenu" class="tavola-menu-bar">
                     <button mat-menu-item (click)="iniciarEdicao($event, i)">
                       <mat-icon>edit</mat-icon>
                       <span>Editar Nome</span>
@@ -439,7 +439,7 @@
                 <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
                   <mat-icon>more_vert</mat-icon>
                 </button>
-                <mat-menu #mesaMenu="matMenu">
+                <mat-menu #mesaMenu="matMenu" class="tavola-menu-bar">
                   <button mat-menu-item (click)="abrirModalGerenciarMesas('editar', mesa)">
                     <mat-icon>edit</mat-icon>
                     <span>Editar</span>

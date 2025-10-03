@@ -15,6 +15,7 @@ import { IPesquisaRestauranteResponse } from '../../Interfaces/IPesquisaRestaura
 import { MapsService } from '../../core/services/maps.service';
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
 import { GlobalSpinnerService } from '../../core/services/global-spinner.service';
+import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -371,7 +372,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getImagemRestaurante(r: IRestaurante): string {
     if (r.imagens && r.imagens.length > 0 && r.imagens[0]) {
-      return r.imagens[0].startsWith('/') ? 'http://64.181.187.11:8080' + r.imagens[0] : r.imagens[0];
+      return r.imagens[0].startsWith('/') ? `${environment.apiUrl}` + r.imagens[0] : r.imagens[0];
     }
     return 'assets/jpg/restauranteOsso.jpg';
   }
