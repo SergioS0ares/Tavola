@@ -118,26 +118,51 @@ public class AccessService {
     
     @Transactional
     public void executarResetDeSenha(String token, String novaSenha) {
-        // É preciso iterar pois não podemos buscar pelo token puro
         for (PasswordResetToken pToken : passwordResetTokenRepository.findAll()) {
             if (new BCryptPasswordEncoder().matches(token, pToken.getTokenHash())) {
                 
                 if (pToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                    passwordResetTokenRepository.delete(pToken); // Limpa o token expirado
+                    passwordResetTokenRepository.delete(pToken);
                     throw new RuntimeException("Token de redefinição de senha expirado.");
                 }
 
                 Usuario usuario = pToken.getUsuario();
-                usuario.setSenha(passwordEncoder.encode(novaSenha)); // Usa o passwordEncoder da classe
+                usuario.setSenha(passwordEncoder.encode(novaSenha));
                 usuarioRepository.save(usuario);
 
-                // PONTO CRÍTICO: Deleta o token após o uso para que ele seja de uso único
+                // Após a senha ser alterada com sucesso, enviamos o e-mail de alerta.
+                enviarEmailAlertaAlteracaoSenha(usuario);
+
                 passwordResetTokenRepository.delete(pToken);
-                return; // Sucesso
+                return; 
             }
         }
         
         throw new RuntimeException("Token de redefinição de senha inválido.");
+    }
+    
+    public void enviarEmailAlertaAlteracaoSenha(Usuario usuario) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(emailRemetente, "Equipe Tavola (Segurança)");
+            helper.setTo(usuario.getEmail());
+            helper.setSubject("⚠️ Alerta de Segurança: Sua senha foi alterada");
+
+            // O link de "Não fui eu" levará o usuário para a página inicial de "esqueci minha senha"
+            String urlParaResetarNovamente = "http://localhost:4200/esqueci-senha";
+            String corpoEmail = criarCorpoEmailAlertaSenha(usuario.getNome(), urlParaResetarNovamente);
+            
+            helper.setText(corpoEmail, true);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            // É importante não quebrar a aplicação principal se o e-mail falhar.
+            // Apenas logamos o erro.
+            System.err.println("CRÍTICO: Falha ao enviar e-mail de ALERTA de alteração de senha para " + usuario.getEmail() + ": " + e.getMessage());
+        }
     }
 
     // <<< TEMPLATE HTML UNIFICADO E CORRIGIDO >>>
@@ -272,6 +297,57 @@ public class AccessService {
                 <div class="footer">
                   <p class="footer-text">Dúvidas? Entre em contato conosco.</p>
                   <div class="brand-signature">Com carinho,<br/><strong>Equipe Tavola</strong> 🍽️</div>
+                </div>
+              </div>
+            </body>
+            </html>""";
+        return htmlTemplate
+                .replace("[NOME_USUARIO]", nomeUsuario)
+                .replace("[URL_REDEFINICAO]", urlRedefinicao);
+    }
+    
+ // <<<<<<< NOVO MÉTODO 2: O template HTML para o e-mail de ALERTA >>>>>>>>>
+    private String criarCorpoEmailAlertaSenha(String nomeUsuario, String urlRedefinicao) {
+        String htmlTemplate = """
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+              <meta charset="UTF-8"/>
+              <title>Alerta de Segurança - Tavola</title>
+              <style>
+                /* Estilos consistentes com seus outros e-mails */
+                *{margin:0;padding:0;box-sizing:border-box}
+                body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#ebe8e2;margin:0;padding:20px;min-height:100vh}
+                .email-container{max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.15)}
+                .header{background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);padding:40px 30px;text-align:center;position:relative}
+                .header h1{color:#fff;font-size:32px;font-weight:700;margin-bottom:10px;text-shadow:0 2px 4px rgba(0,0,0,.2);position:relative;z-index:1}
+                .content{padding:50px 40px;text-align:center}
+                .greeting{font-size:24px;color:#333;margin-bottom:20px;font-weight:600}
+                .message{font-size:16px;color:#666;line-height:1.6;margin-bottom:40px}
+                .cta-section{margin:40px 0}
+                .cta-button{display:inline-block;background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);color:#ffffff !important;text-decoration:none;padding:18px 40px;border-radius:50px;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;box-shadow:0 8px 25px rgba(192,57,43,.4);transition:all .3s ease;}
+                .cta-button:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(192,57,43,.5)}
+                .footer{background:#f8f9fa;padding:30px;text-align:center;border-top:1px solid #eee}
+                .footer-text{font-size:14px;color:#666;margin-bottom:15px}
+                .brand-signature{font-size:16px;font-weight:600;color:#DA4A24}
+              </style>
+            </head>
+            <body>
+              <div class="email-container">
+                <div class="header"><h1>TAVOLA</h1></div>
+                <div class="content">
+                  <h2 class="greeting">Olá, [NOME_USUARIO]!</h2>
+                  <p class="message">
+                    Este é um aviso de segurança para informar que a senha da sua conta Tavola foi alterada com sucesso.<br/><br/>
+                    Se foi você quem fez esta alteração, nenhuma ação é necessária.<br/><br/>
+                    <strong>Se você NÃO reconhece esta atividade, por favor, clique no botão abaixo imediatamente para proteger sua conta.</strong>
+                  </p>
+                  <div class="cta-section"> <a href="[URL_REDEFINICAO]" class="cta-button">Não fui eu! Proteger minha conta.</a>
+                  </div>
+                </div>
+                <div class="footer">
+                  <p class="footer-text">Este é um e-mail automático de segurança.</p>
+                  <div class="brand-signature">Atenciosamente,<br/><strong>Equipe de Segurança Tavola</strong> 🛡️</div>
                 </div>
               </div>
             </body>
