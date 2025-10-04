@@ -37,6 +37,7 @@ export class DialogEquipeComponent implements OnInit {
   hidePassword = true;
   dadosGerados: any = null;
   carregando = false;
+  copiadoItens: { [key: string]: boolean } = {};
 
   constructor(
     public dialogRef: MatDialogRef<DialogEquipeComponent>,
@@ -107,11 +108,16 @@ export class DialogEquipeComponent implements OnInit {
   /**
    * Copia texto para a área de transferência
    */
-  copiar(texto: string): void {
+  copiar(texto: string, tipo: string): void {
+    this.copiadoItens[tipo] = true;
     navigator.clipboard.writeText(texto).then(() => {
       this.toastr.success('Copiado!', 'Sucesso');
+      setTimeout(() => {
+        this.copiadoItens[tipo] = false;
+      }, 2000);
     }).catch(() => {
       this.toastr.error('Erro ao copiar', 'Erro');
+      this.copiadoItens[tipo] = false;
     });
   }
 

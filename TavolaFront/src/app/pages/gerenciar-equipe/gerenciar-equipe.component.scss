@@ -117,6 +117,32 @@
       animation: fadeInUp 0.6s ease-out;
       animation-fill-mode: both;
 
+      // Botão de ações no canto superior direito (mobile)
+      .actions-btn-mobile {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10;
+        display: none;
+        color: #666;
+        transition: all 0.3s ease;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+
+        &:hover {
+          color: #c22523;
+          background: rgba(194, 37, 35, 0.1);
+          transform: rotate(90deg);
+        }
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
       &::before {
         content: '';
         position: absolute;
@@ -185,15 +211,15 @@
 
             .change-avatar-btn {
               position: absolute;
-              bottom: -8px;
-              right: -8px;
-              width: 50px;
-              height: 50px;
-              background: linear-gradient(135deg, #ffd700, #ffed4e);
-              color: #333;
+              bottom: -12px;
+              right: -12px;
+              width: 32px;
+              height: 32px;
+              background: #F6BD38;
+              color: white;
               border-radius: 50%;
-              border: 3px solid white;
-              box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+              border: 2px solid white;
+              box-shadow: 0 2px 8px rgba(246, 189, 56, 0.3);
               transition: all 0.3s ease;
               opacity: 1;
               transform: scale(1);
@@ -203,15 +229,15 @@
               z-index: 2;
 
               &:hover {
-                background: linear-gradient(135deg, #ffed4e, #ffd700);
+                background: #c22523;
                 transform: scale(1.1);
-                box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
+                box-shadow: 0 4px 12px rgba(194, 37, 35, 0.4);
               }
 
               mat-icon {
-                font-size: 24px;
-                width: 24px;
-                height: 24px;
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
               }
             }
           }
@@ -311,7 +337,7 @@
         }
 
         .membro-actions {
-          .actions-btn {
+          .actions-btn-desktop {
             color: #666;
             transition: all 0.3s ease;
             width: 44px;
@@ -572,6 +598,16 @@
             width: 100%;
             display: flex;
             justify-content: center;
+
+            // Esconder botão desktop no mobile
+            .actions-btn-desktop {
+              display: none;
+            }
+          }
+
+          // Mostrar botão mobile no canto
+          .actions-btn-mobile {
+            display: flex !important;
           }
         }
       }

@@ -42,6 +42,17 @@
   <!-- Lista de Membros -->
   <div *ngIf="!carregando && equipeFiltrada.length > 0" class="equipe-list">
     <mat-card *ngFor="let membro of equipeFiltrada; trackBy: trackByMembroId" class="membro-card">
+      <!-- Botão de ações no canto superior direito (mobile) -->
+      <button 
+        mat-icon-button 
+        [matMenuTriggerFor]="menu"
+        class="actions-btn actions-btn-mobile"
+        matTooltip="Ações"
+        matTooltipClass="tavola-tooltip"
+        aria-label="Ações do membro">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      
       <div class="membro-content">
         <div class="membro-info">
           <div class="membro-avatar">
@@ -64,24 +75,25 @@
                 <span class="codigo-value">{{ formatarCodigo(membro.codigo) }}</span>
                 <button 
                   mat-icon-button 
-                  class="copy-btn" 
-                  [class.copied]="copiado"
-                  (click)="copiarCodigo(membro.codigo)"
-                  [matTooltip]="copiado ? 'Código copiado!' : 'Copiar código'"
+                  class="copy-btn tavola-copy-btn" 
+                  [class.copied]="copiadoMembros[membro.id]"
+                  (click)="copiarCodigo(membro.codigo, membro.id)"
+                  [matTooltip]="copiadoMembros[membro.id] ? 'Código copiado!' : 'Copiar código'"
                   matTooltipClass="tavola-tooltip"
                   aria-label="Copiar código de acesso">
-                  <mat-icon>{{ copiado ? 'check' : 'content_copy' }}</mat-icon>
+                  <mat-icon>{{ copiadoMembros[membro.id] ? 'check' : 'content_copy' }}</mat-icon>
                 </button>
               </div>
             </div>
           </div>
         </div>
         
+        <!-- Botão de ações no desktop -->
         <div class="membro-actions">
           <button 
             mat-icon-button 
             [matMenuTriggerFor]="menu"
-            class="actions-btn"
+            class="actions-btn actions-btn-desktop"
             matTooltip="Ações"
             matTooltipClass="tavola-tooltip"
             aria-label="Ações do membro">

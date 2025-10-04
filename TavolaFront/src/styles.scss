@@ -138,15 +138,6 @@ $dark-theme: mat.m2-define-dark-theme((
                 0 9px 28px 8px rgba(0, 0, 0, 0.05); // Sombra padrão do NG-Zorro
     // Para garantir que sobrescreva, pode ser necessário !important, mas evite se possível.
   }
-
-  // Se estiver usando uma versão mais antiga do Material, o seletor pode ser apenas:
-  // &.mat-tooltip {
-  //   background-color: #3B221B;
-  //   color: #FFFFFF;
-  //   border-radius: 4px;
-  //   font-size: 12px;
-  //   padding: 6px 8px;
-  // }
 }
 
 // Estilo customizado para os Tooltips do NG-Zorro (para garantir consistência se necessário)
@@ -216,140 +207,6 @@ $dark-theme: mat.m2-define-dark-theme((
   &:hover {
     opacity: 0.9;
     background-color: rgba(246, 189, 56, 0.1) !important;
-  }
-}
-
-// Estilos globais para o diálogo do cardápio
-.dialog-cardapio {
-  .mdc-dialog__surface {
-    border-radius: 12px !important;
-    background-color: #FFF8EE !important;
-  }
-
-  .mdc-dialog__container {
-    backdrop-filter: blur(5px);
-  }
-
-  .mat-mdc-dialog-container {
-    --mdc-dialog-container-color: transparent;
-  }
-
-  // Estilo dos inputs outline
-  .mat-mdc-form-field-appearance-outline {
-    --mdc-outlined-text-field-outline-color: rgba(59, 34, 27, 0.2);
-    --mdc-outlined-text-field-focus-outline-color: #DA4A24;
-    --mdc-outlined-text-field-hover-outline-color: rgba(59, 34, 27, 0.4);
-    --mdc-outlined-text-field-label-text-color: rgba(59, 34, 27, 0.6);
-    --mdc-outlined-text-field-focus-label-text-color: #DA4A24;
-
-    .mat-mdc-form-field-flex {
-      background-color: transparent;
-    }
-
-    .mat-mdc-input-element,
-    .mat-mdc-select-value-text,
-    .mat-mdc-select-arrow,
-    .mdc-floating-label,
-    .mdc-floating-label--float-above {
-      color: #3B221B !important;
-    }
-
-    .mat-mdc-form-field-label {
-      color: rgba(59, 34, 27, 0.6) !important;
-
-      &.mdc-floating-label--float-above {
-        color: #3B221B !important;
-      }
-    }
-
-    &.mat-focused {
-      .mat-mdc-form-field-label {
-        color: #3B221B !important;
-      }
-
-      .mdc-text-field--focused {
-        .mdc-floating-label {
-          color: #3B221B !important;
-        }
-      }
-    }
-
-    // Corrige a cor do texto no hover e focus
-    .mat-mdc-text-field-wrapper:hover .mat-mdc-form-field-input-control,
-    .mat-mdc-text-field-wrapper:focus-within .mat-mdc-form-field-input-control {
-      color: #3B221B !important;
-    }
-
-    // Garante que o placeholder mantenha a cor
-    ::placeholder {
-      color: rgba(59, 34, 27, 0.6) !important;
-    }
-
-    textarea.mat-mdc-input-element {
-      color: #3B221B !important;
-    }
-
-    &:hover {
-      .mdc-floating-label,
-      .mdc-floating-label--float-above,
-      .mat-mdc-form-field-label {
-        color: #3B221B !important;
-      }
-    }
-  }
-
-  // Estilo do toggle
-  .mat-mdc-slide-toggle {
-    --mdc-switch-selected-focus-state-layer-color: rgba(246, 189, 56, 0.2);
-    --mdc-switch-selected-pressed-state-layer-color: rgba(246, 189, 56, 0.2);
-    --mdc-switch-selected-hover-state-layer-color: rgba(246, 189, 56, 0.2);
-    --mdc-switch-unselected-focus-state-layer-color: rgba(59, 34, 27, 0.2);
-    --mdc-switch-unselected-pressed-state-layer-color: rgba(59, 34, 27, 0.2);
-    --mdc-switch-unselected-hover-state-layer-color: rgba(59, 34, 27, 0.2);
-    --mdc-switch-selected-track-color: #F6BD38;
-    --mdc-switch-selected-handle-color: #DA4A24;
-    --mdc-switch-unselected-track-color: rgba(59, 34, 27, 0.2);
-    --mdc-switch-unselected-handle-color: #3B221B;
-    --mdc-switch-selected-focus-track-color: #F6BD38;
-    --mdc-switch-selected-hover-track-color: #F6BD38;
-    --mdc-switch-selected-pressed-track-color: #F6BD38;
-  }
-
-  .toggle-label {
-    color: #3B221B;
-  }
-
-  // Estilo dos chips
-  .mat-mdc-chip-option {
-    &.mdc-evolution-chip--selected,
-    &:hover {
-      background-color: #F6BD38 !important;
-      
-      .mdc-evolution-chip__text-label {
-        color: #3B221B !important;
-      }
-    }
-  }
-
-  .mat-mdc-chip-row {
-    background-color: #F6BD38 !important;
-    
-    .mdc-evolution-chip__text-label {
-      color: #3B221B !important;
-    }
-
-    .mat-mdc-chip-remove {
-      color: #3B221B;
-    }
-
-    &:hover {
-      background-color: darken(#F6BD38, 5%) !important;
-    }
-  }
-
-  // Estilo do input de chips
-  .mat-mdc-chip-input {
-    color: #3B221B !important;
   }
 }
 
@@ -479,21 +336,6 @@ $dark-theme: mat.m2-define-dark-theme((
   .mat-mdc-progress-spinner-circle {
     stroke: transparent !important; // Hide default spinner circle
   }
-}
-
-.pizza-spinner-image {
-  width: 80px; // Adjust size as needed
-  height: 80px;
-  background-image: url('assets/png/pizzaSpin.png'); // Replace with the path to your pizza image
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  animation: spin 1.5s linear infinite; // Add spin animation
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 // Checkbox Tavola amarelo global
@@ -870,309 +712,17 @@ $dark-theme: mat.m2-define-dark-theme((
 
 // Estilos Globais para Diálogos - Baseados no reserva-confirmada-dialog
 .tavola-dialog {
-  // Variáveis do tema
-  --cor-primaria: #F6BD38;
-  --cor-texto: #3B221B;
-  --cor-sucesso: #52c41a;
-  --cor-erro: #f44336;
-  --cor-aviso: #ff9800;
-  --fundo-card: #ffffff;
-  --fundo-claro: #fafafa;
-  --cor-borda: rgba(59, 34, 27, 0.1);
-  --raio-borda: 12px;
-  --padding-geral: 20px 24px;
-  --sombra-dialog: 0 8px 32px rgba(0, 0, 0, 0.15);
 
-  // Container base do diálogo
-  .dialog-container {
-    background: var(--fundo-card);
-    border-radius: var(--raio-borda);
-    overflow: hidden;
-    min-width: 400px;
-    max-width: 500px;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--sombra-dialog);
-    border: 1px solid var(--cor-borda);
-  }
-
-  // Cabeçalho do diálogo
-  .dialog-header {
-    background: linear-gradient(135deg, var(--fundo-claro) 0%, rgba(246, 189, 56, 0.05) 100%);
-    padding: var(--padding-geral);
-    text-align: center;
-    border-bottom: 1px solid var(--cor-borda);
-    flex-shrink: 0;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(246, 189, 56, 0.3), transparent);
-      border-radius: 1px;
-    }
-
-    .header-icon {
-      margin-bottom: 16px;
-      display: flex;
-      justify-content: center;
-
-      mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        color: var(--cor-primaria);
-        filter: drop-shadow(0 2px 4px rgba(246, 189, 56, 0.2));
-      }
-
-      &.success-icon mat-icon {
-        color: var(--cor-sucesso);
-      }
-
-      &.error-icon mat-icon {
-        color: var(--cor-erro);
-      }
-
-      &.warning-icon mat-icon {
-        color: var(--cor-aviso);
-      }
-    }
-
-    h1, h2 {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--cor-texto);
-      margin: 0 0 8px 0;
-      letter-spacing: -0.5px;
-    }
-
-    .subtitle {
-      font-size: 16px;
-      color: rgba(59, 34, 27, 0.7);
-      margin: 0;
-      line-height: 1.4;
-    }
-  }
-
-  // Conteúdo do diálogo
-  .dialog-content {
-    padding: var(--padding-geral);
-    background: var(--fundo-card);
-    flex: 1;
-    overflow-y: auto;
-    max-height: 60vh;
-
-    // Scrollbar customizada para mobile
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: var(--fundo-claro);
-      border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, var(--cor-primaria), #f4a261);
-      border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(180deg, #f4a261, var(--cor-primaria));
-    }
-  }
-
-  // Ações do diálogo
-  .dialog-actions {
-    background: var(--fundo-claro);
-    border-top: 1px solid var(--cor-borda);
-    padding: var(--padding-geral);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex-shrink: 0;
-
-    .secondary-actions-wrapper {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .action-btn {
-      height: 44px;
-      border-radius: var(--raio-borda);
-      font-weight: 600;
-      font-size: 14px;
-      text-transform: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        transition: left 0.5s ease;
-      }
-
-      &:hover::before {
-        left: 100%;
-      }
-
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
-
-      &.secondary-btn {
-        flex: 1;
-        background: var(--fundo-card);
-        color: var(--cor-texto);
-        border: 1px solid var(--cor-borda);
-
-        &:hover {
-          border-color: rgba(246, 189, 56, 0.4);
-          background: rgba(246, 189, 56, 0.05);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-      }
-
-      &.primary-btn {
-        width: 100%;
-        background: linear-gradient(135deg, var(--cor-primaria), #f4a261) !important;
-        color: var(--cor-texto) !important;
-        border: none;
-        box-shadow: 0 4px 16px rgba(246, 189, 56, 0.3);
-
-        &:hover {
-          background: linear-gradient(135deg, #f4a261, var(--cor-primaria)) !important;
-          transform: translateY(-3px);
-          box-shadow: 0 8px 24px rgba(246, 189, 56, 0.4);
-        }
-      }
-
-      &.cancel-btn {
-        background: var(--fundo-card);
-        color: #c22523;
-        border: 1px solid #c22523;
-        font-weight: 600;
-
-        &:hover {
-          background: rgba(194, 37, 35, 0.1);
-          border-color: #a01e1c;
-          transform: translateY(-1px);
-          color: #a01e1c;
-        }
-
-        mat-icon {
-          color: #c22523;
-        }
-      }
-    }
-  }
-
-  // Cards de detalhes
-  .detalhe-card {
-    background: var(--fundo-claro);
-    border: 1px solid var(--cor-borda);
-    border-radius: var(--raio-borda);
-    padding: 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    transition: all 0.3s ease;
-    margin-bottom: 12px;
-
-    &:hover {
-      border-color: rgba(246, 189, 56, 0.3);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .card-icon {
-      background: rgba(246, 189, 56, 0.1);
-      border-radius: 8px;
-      padding: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 36px;
-      height: 36px;
-
-      mat-icon {
-        color: var(--cor-primaria);
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
-    }
-
-    .card-content {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-
-      .card-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(59, 34, 27, 0.6);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .card-value {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--cor-texto);
-        line-height: 1.4;
-      }
-
-      .card-value-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 4px;
-
-        .card-value {
-          flex: 1;
-          font-family: 'Courier New', monospace;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--cor-texto);
-          background: rgba(246, 189, 56, 0.1);
-          padding: 6px 10px;
-          border-radius: 6px;
-          border: 1px solid rgba(246, 189, 56, 0.3);
-        }
-      }
-    }
-  }
-
-  // Responsividade
   @media (max-width: 768px) {
     .dialog-container {
-      min-width: 320px;
-      margin: 8px;
-      max-height: 95vh;
-      width: calc(100vw - 16px);
-      max-width: calc(100vw - 16px);
+      // Remove largura mínima e usa calc para ocupar quase toda a tela
+      width: calc(100vw - 24px) !important;
+      max-width: calc(100vw - 24px) !important;
+      min-width: unset !important;
+      margin: 12px !important;
+      max-height: calc(100vh - 24px) !important;
+      // Previne que o dialog seja arrastado
+      position: relative !important;
     }
 
     .dialog-header {
@@ -1189,7 +739,7 @@ $dark-theme: mat.m2-define-dark-theme((
 
     .dialog-content {
       padding: 16px 20px;
-      max-height: 70vh;
+      max-height: calc(100vh - 280px);
       overflow-y: auto;
     }
 
@@ -1216,10 +766,10 @@ $dark-theme: mat.m2-define-dark-theme((
 
   @media (max-width: 480px) {
     .dialog-container {
-      min-width: 280px;
-      margin: 8px;
-      width: calc(100vw - 16px);
-      max-width: calc(100vw - 16px);
+      width: calc(100vw - 16px) !important;
+      max-width: calc(100vw - 16px) !important;
+      margin: 8px !important;
+      max-height: calc(100vh - 16px) !important;
     }
 
     .dialog-header {
@@ -1238,6 +788,7 @@ $dark-theme: mat.m2-define-dark-theme((
 
     .dialog-content {
       padding: 14px 16px;
+      max-height: calc(100vh - 240px);
     }
 
     .dialog-actions {
@@ -1246,28 +797,76 @@ $dark-theme: mat.m2-define-dark-theme((
   }
 }
 
-// Aplicar estilos globais aos diálogos do Angular Material
-::ng-deep .mat-mdc-dialog-container {
-  background: transparent !important;
-  border: none !important;
+/* =============================================== */
+/* === ESTILOS GLOBAIS PARA DIÁLOGOS RESPONSIVOS === */
+/* =============================================== */
+
+// PASSO 1: Tornar a "casca" do dialog do Angular Material completamente invisível.
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+  background-color: transparent !important;
   box-shadow: none !important;
+  border: none !important;
+}
+
+// PASSO 2: Remover qualquer fundo do overlay
+::ng-deep .cdk-overlay-backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+// PASSO 3: Estilos para ecrãs pequenos (mobile).
+@media (max-width: 768px) {
   
-  .tavola-dialog {
-    .mat-mdc-dialog-content {
-      padding: 0 !important;
-      max-height: 60vh;
-    }
+  // Força o painel que envolve o dialog a ocupar a tela inteira,
+  // sem margens ou paddings que criam as bordas cinzas.
+  .cdk-global-overlay-wrapper,
+  .cdk-overlay-pane {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 100% !important;
+  }
+
+  // Garante que o container interno do Material também não tenha padding.
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  // Agora, estilizamos o NOSSO dialog (.dialog-container) para ter
+  // o tamanho e as margens corretas dentro do painel de tela cheia.
+  .tavola-dialog .dialog-container {
+    // Ocupa a largura da tela menos 32px (16px de margem de cada lado).
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+    min-width: unset; // Remove qualquer largura mínima.
+
+    // Garante que a altura não ultrapasse a tela do dispositivo.
+    height: auto;
+    max-height: calc(100vh - 32px);
+    
+    // As margens criam o espaçamento entre o nosso dialog e as bordas da tela.
+    margin: 16px;
   }
 }
 
-// Remover bordas pretas dos diálogos
-::ng-deep .cdk-overlay-container .cdk-overlay-backdrop {
-  background: rgba(0, 0, 0, 0.5) !important;
-}
+// PASSO 4: Estilos para desktop - garantir que não apareça fundo cinza
+@media (min-width: 769px) {
+  .cdk-global-overlay-wrapper,
+  .cdk-overlay-pane {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
 
-::ng-deep .mat-mdc-dialog-container {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
+  .mat-mdc-dialog-container {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
 }
-
