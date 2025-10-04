@@ -51,8 +51,9 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
     idVerificacao,
     codigo,
     mantenhaMeConectado
-  }, { withCredentials: true }).pipe( 
-        tap((value: any) => { 
+  }, { withCredentials: true }).pipe( // <<< CORREÇÃO APLICADA AQUI
+    tap((value: any) => { 
+      // Esta parte do seu código já está correta
       if (value.token && !value.erro) { 
         this.auth.setToken(value.token);
         this.auth.setPerfil({ 
