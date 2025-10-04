@@ -20,6 +20,7 @@ public class RestauranteRequest {
     private List<String> imagens;
     private List<HorarioFuncionamento> horariosFuncionamento;
     private Set<String> nomesServicos;
+    private Integer limiteReservasDiarias;
 
     // Getters e Setters para TODOS os campos...
     public String getNomeUsuario() { return nomeUsuario; }
@@ -51,4 +52,7 @@ public class RestauranteRequest {
 
     public Set<String> getNomesServicos() { return nomesServicos; }
     public void setNomesServicos(Set<String> nomesServicos) { this.nomesServicos = nomesServicos; }
+    
+    public Integer getLimiteReservasDiarias() {return limiteReservasDiarias;}
+    public void setLimiteReservasDiarias(Integer limiteReservasDiarias) {this.limiteReservasDiarias = limiteReservasDiarias;}
 }

@@ -1,7 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
 import jakarta.mail.internet.MimeMessage;
-import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,11 +8,20 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import TavolaSoftware.TavolaApp.REST.dto.requests.GarcomLoginRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.LoginResponse;
+import TavolaSoftware.TavolaApp.REST.model.Garcom;
 import TavolaSoftware.TavolaApp.REST.model.PasswordResetToken;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
+import TavolaSoftware.TavolaApp.REST.repository.GarcomRepository;
 import TavolaSoftware.TavolaApp.REST.repository.PasswordResetTokenRepository;
+import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
+import TavolaSoftware.TavolaApp.tools.TipoUsuario;
 
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
@@ -36,8 +44,65 @@ public class AccessService {
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
     
+    @Autowired
+    private RestauranteRepository repoRestaurante;
+    
+    @Autowired
+    private GarcomRepository repoGarcom;
+    
+    @Autowired
+    private JwtUtil jwt;
+    
     @Value("${spring.mail.username}")
     private String emailRemetente;
+    
+    /**
+     * Realiza o login de um funcionário (Garçom) com base no e-mail do restaurante.
+     * @param request DTO contendo e-mail do restaurante, código e senha.
+     * @return um LoginResponse com o token JWT.
+     */
+    @Transactional(readOnly = true)
+    public LoginResponse loginGarcom(GarcomLoginRequest request) {
+        // 1. Encontra o restaurante pelo e-mail
+        Restaurante restaurante = repoRestaurante.findByUsuarioEmail(request.getEmailRestaurante());
+        if (restaurante == null) {
+            throw new RuntimeException("Credenciais inválidas."); // Mensagem genérica por segurança
+        }
+
+        // 2. Busca o garçom pelo código DENTRO do restaurante encontrado
+        Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade())
+                .orElseThrow(() -> new RuntimeException("Credenciais inválidas."));
+
+        // 3. Verifica se o garçom está ativo
+        if (!garcom.isAtivo()) {
+            throw new RuntimeException("Este usuário de funcionário está inativo.");
+        }
+
+        // 4. Valida a senha do garçom
+        if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) {
+            throw new RuntimeException("Credenciais inválidas.");
+        }
+
+        // 5. Gera o token JWT
+        // A lógica de geração do token deve ser adaptada para incluir as informações do funcionário.
+        // O "subject" do token será o e-mail do restaurante, como você sugeriu.
+        String accessToken = jwt.generateFuncionarioToken(
+                restaurante.getEmail(), // Subject
+                garcom.getId(),
+                restaurante.getId()
+        );
+
+        // Retorna o token, nome do garçom e tipo FUNCIONARIO
+        return new LoginResponse(
+            accessToken,
+            garcom.getNome(),
+            TipoUsuario.FUNCIONARIO.toString(),
+            garcom.getId(),
+            restaurante.getEmail(), // E-mail de referência é o do restaurante
+            garcom.getFotoUrl(),
+            null // Background
+        );
+    }
 
     @Transactional
     public void solicitarResetDeSenha(String email) {

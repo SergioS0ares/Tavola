@@ -1,38 +1,10 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
-import TavolaSoftware.TavolaApp.REST.dto.requests.RestauranteRequest;
-import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
-import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
-import TavolaSoftware.TavolaApp.REST.model.Cardapio;
-import TavolaSoftware.TavolaApp.REST.model.Cliente;
-import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.model.Servico;
-import TavolaSoftware.TavolaApp.REST.model.Tags;
-import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
-import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
-import TavolaSoftware.TavolaApp.tools.RestauranteComScore;
-import TavolaSoftware.TavolaApp.tools.TipoUsuario;
-import TavolaSoftware.TavolaApp.tools.UploadUtils;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +12,27 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import TavolaSoftware.TavolaApp.REST.dto.requests.RestauranteRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
+import TavolaSoftware.TavolaApp.REST.model.Cardapio;
+import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.model.Servico;
+import TavolaSoftware.TavolaApp.REST.model.Usuario;
+import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
+import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
+import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 @Service
 public class RestauranteService {
@@ -64,6 +57,9 @@ public class RestauranteService {
     
     @Autowired
     private ClienteRepository clienteRepository;
+    
+    @Autowired
+    private ReservaService reservaService;
     
     /**
      * Busca restaurantes filtrando pela cidade.
@@ -146,6 +142,7 @@ public class RestauranteService {
 
             responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
             responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
+            responseDto.setDatasLotadas(reservaService.getDatasLotadas(restaurante.getId()));
 
             List<String> principalImageOnly = new ArrayList<>();
             List<String> imagensDoRestaurante = restaurante.getImagens();
@@ -171,6 +168,7 @@ public class RestauranteService {
         RestauranteResponse responseDto = new RestauranteResponse(restaurante);
         responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
         responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
+        responseDto.setDatasLotadas(reservaService.getDatasLotadas(restaurante.getId()));
 
         return Optional.of(responseDto);
     }
@@ -238,29 +236,16 @@ public class RestauranteService {
 
         Usuario usuarioAssociado = restauranteExistente.getUsuario(); 
 
-        if (request.getNomeUsuario() != null && !request.getNomeUsuario().isBlank()) { 
-            usuarioAssociado.setNome(request.getNomeUsuario()); 
-        }
-        if (request.getSenhaUsuario() != null && !request.getSenhaUsuario().isBlank()) { 
-            usuarioAssociado.setSenha(encoder.encode(request.getSenhaUsuario())); 
-        }
-        if (request.getEnderecoUsuario() != null) { 
-            usuarioAssociado.setEndereco(request.getEnderecoUsuario()); 
-        }
-        if (request.getTelefoneUsuario() != null && !request.getTelefoneUsuario().isBlank()) {
-            usuarioAssociado.setTelefone(request.getTelefoneUsuario());
-        }
+        if (request.getNomeUsuario() != null && !request.getNomeUsuario().isBlank()) { usuarioAssociado.setNome(request.getNomeUsuario()); }
+        if (request.getSenhaUsuario() != null && !request.getSenhaUsuario().isBlank()) { usuarioAssociado.setSenha(encoder.encode(request.getSenhaUsuario())); }
+        if (request.getEnderecoUsuario() != null) { usuarioAssociado.setEndereco(request.getEnderecoUsuario()); }
+        if (request.getTelefoneUsuario() != null && !request.getTelefoneUsuario().isBlank()) { usuarioAssociado.setTelefone(request.getTelefoneUsuario()); }
+        
         repoUsuario.save(usuarioAssociado);
 
-        if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) { 
-            restauranteExistente.setTipoCozinha(request.getTipoCozinha()); 
-        }
-        if (request.getDescricao() != null && !request.getDescricao().isBlank()) {
-            restauranteExistente.setDescricao(request.getDescricao());
-        }
-        if (request.getHorariosFuncionamento() != null) { 
-            restauranteExistente.setHorariosFuncionamento(request.getHorariosFuncionamento()); 
-        }
+        if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) { restauranteExistente.setTipoCozinha(request.getTipoCozinha()); }
+        if (request.getDescricao() != null && !request.getDescricao().isBlank()) { restauranteExistente.setDescricao(request.getDescricao()); }
+        if (request.getHorariosFuncionamento() != null) { restauranteExistente.setHorariosFuncionamento(request.getHorariosFuncionamento()); }
         if (request.getNomesServicos() != null) { 
             Set<Servico> servicosAtualizados = new HashSet<>();
             if (!request.getNomesServicos().isEmpty()) { 
@@ -272,13 +257,17 @@ public class RestauranteService {
             }
             restauranteExistente.setServicos(servicosAtualizados); 
         }
-
         if (request.getImagens() != null && !request.getImagens().isEmpty()) { 
             try {
                 List<String> caminhosImagens = uplUtil.processRestauranteImagens(request.getImagens(), restauranteExistente.getId());
                 restauranteExistente.setImagens(caminhosImagens);
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao processar imagens do restaurante durante atualização: " + e.getMessage(), e);
+            }
+        }
+        if (request.getLimiteReservasDiarias() != null) {
+            if (request.getLimiteReservasDiarias() >= 0) {
+                restauranteExistente.setLimiteReservasDiarias(request.getLimiteReservasDiarias());
             }
         }
         
