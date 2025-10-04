@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.LocalDate; // <<< ADICIONE ESTA IMPORTAÇÃO
+
 
 public class RestauranteResponse {
 
@@ -27,6 +29,8 @@ public class RestauranteResponse {
     private List<SimpleAvaliacaoResponse> avaliacoes;
     private List<HorarioFuncionamentoDTO> horariosFuncionamento;
     private Set<String> servicos;
+    private Integer limiteReservasDiarias;
+    private List<LocalDate> datasLotadas;
 
     // >>> NOVOS CAMPOS ADICIONADOS <<<
     private boolean favorito;
@@ -42,14 +46,18 @@ public class RestauranteResponse {
             this.nome = usuario.getNome();
             this.email = usuario.getEmail();
             this.endereco = usuario.getEndereco();
-            this.telefone = usuario.getTelefone(); // <<< ADICIONADO AQUI
+            this.telefone = usuario.getTelefone();
         }
         this.tipoCozinha = restaurante.getTipoCozinha();
         this.descricao = restaurante.getDescricao(); // <<< ADICIONADO AQUI
         this.imagens = restaurante.getImagens() != null ? new ArrayList<>(restaurante.getImagens()) : new ArrayList<>();
         this.mediaAvaliacao = restaurante.getMediaAvaliacao();
         this.totalDeAvaliacoes = restaurante.getTotalDeAvaliacoes();
+        this.limiteReservasDiarias = restaurante.getLimiteReservasDiarias();
 
+        if (limiteReservasDiarias == null) {
+        	limiteReservasDiarias = 0;
+        }
         if (restaurante.getAvaliacoes() != null) {
             this.avaliacoes = restaurante.getAvaliacoes().stream()
                                   .map(SimpleAvaliacaoResponse::new)
@@ -122,7 +130,12 @@ public class RestauranteResponse {
     public Set<String> getServicos() { return servicos; }
     public void setServicos(Set<String> servicos) { this.servicos = servicos; }
 
-    // ... (as classes internas SimpleAvaliacaoResponse e HorarioFuncionamentoDTO permanecem iguais) ...
+    public Integer getLimiteReservasDiarias() {return limiteReservasDiarias;}
+    public void setLimiteReservasDiarias(Integer limiteReservasDiarias) {this.limiteReservasDiarias = limiteReservasDiarias;}
+
+    public List<LocalDate> getDatasLotadas() {return datasLotadas;}
+    public void setDatasLotadas(List<LocalDate> datasLotadas) {this.datasLotadas = datasLotadas;}
+    
     public static class SimpleAvaliacaoResponse {
         private int score;
         private String comentario;

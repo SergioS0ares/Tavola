@@ -1,10 +1,15 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashSet; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import TavolaSoftware.TavolaApp.REST.dto.requests.GarcomLoginRequest;
@@ -33,13 +37,11 @@ import TavolaSoftware.TavolaApp.REST.dto.requests.VerificacaoRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.LoginResponse;
 import TavolaSoftware.TavolaApp.REST.model.AccessModel;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
-import TavolaSoftware.TavolaApp.REST.model.Garcom;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Servico;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.REST.repository.AccessRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ClienteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.GarcomRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ServicoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
@@ -51,7 +53,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
 @RestController
 @RequestMapping("/auth")
 public class AccessController {
@@ -59,13 +60,15 @@ public class AccessController {
     @Autowired private AccessRepository accessRepository;
     @Autowired private UsuarioRepository repo;
     @Autowired private ClienteRepository repoClient;
-    @Autowired private RestauranteRepository repoRestaurante; 
+    @Autowired private RestauranteRepository repoRestaurante;
     @Autowired private JwtUtil jwt;
     @Autowired private AccessService accessService;
-    @Autowired private ServicoRepository repoServico; 
+    @Autowired private ServicoRepository repoServico;
     @Autowired private TrustTokenService rememberMeService;
-    @Autowired private GarcomRepository repoGarcom;
-    @Autowired private BCryptPasswordEncoder passwordEncoder;
+
+    // Constantes e ferramentas para o gerenciamento do cookie de confiança
+    private static final String TRUST_COOKIE_NAME = "tavolaTrusts";
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @PostMapping("/register")
@@ -83,8 +86,7 @@ public class AccessController {
         pending.setUsuarioId(null);
 
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            pending.setPayload(mapper.writeValueAsString(request));
+            pending.setPayload(objectMapper.writeValueAsString(request));
         } catch (JsonProcessingException e) {
             return ResponseEntity.internalServerError().body(Map.of("erro", "Falha ao processar dados de registro."));
         }
@@ -98,11 +100,24 @@ public class AccessController {
             "idVerificacao", pending.getId()
         ));
     }
+    
+    @PostMapping("/login/garcom")
+    public ResponseEntity<?> loginGarcom(@RequestBody GarcomLoginRequest request) {
+        try {
+            // Apenas chama o serviço, que agora contém toda a lógica
+            LoginResponse response = accessService.loginGarcom(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            // Captura os erros (ex: "Credenciais inválidas") do serviço
+            // e retorna uma resposta de "Não Autorizado" (401)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", e.getMessage()));
+        }
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         
-    	Optional<Usuario> usuarioOpt = repo.findByEmail(loginRequest.getEmail());
+        Optional<Usuario> usuarioOpt = repo.findByEmail(loginRequest.getEmail());
 
         if (usuarioOpt.isEmpty() || !BCrypt.checkpw(loginRequest.getSenha(), usuarioOpt.get().getSenha())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
@@ -110,31 +125,19 @@ public class AccessController {
 
         Usuario usuario = usuarioOpt.get();
 
-        // --- FIM DO TRECHO MODIFICADO ---
+        // Verificação de Confiança com o cookie composto
+        String userSpecificToken = getTokenFromTrustCookie(request, usuario.getId());
 
-
-        // ETAPA 2: Verificação de Confiança (Uso do "TrustToken")
-        // O restante do seu código continua funcionando perfeitamente, pois ele já usa a variável 'usuario'.
-        String trustTokenValue = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("trustToken".equals(cookie.getName())) {
-                    trustTokenValue = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (trustTokenValue != null) {
-            Optional<Usuario> usuarioDoTokenOpt = rememberMeService.validateTokenAndGetUser(trustTokenValue);
+        if (userSpecificToken != null) {
+            Optional<Usuario> usuarioDoTokenOpt = rememberMeService.validateTokenAndGetUser(userSpecificToken);
 
             if (usuarioDoTokenOpt.isPresent() && usuarioDoTokenOpt.get().getId().equals(usuario.getId())) {
                 System.out.println("[Login] Dispositivo confiável para " + usuario.getEmail() + ". Pulando 2FA.");
-                return gerarRespostaComTokens(usuario, null);
+                return gerarRespostaComTokens(usuario, null, request, null);
             }
         }
 
-        // ETAPA 3: Fluxo de Verificação por E-mail (Dispositivo não confiável)
+        // Fluxo de Verificação por E-mail (Dispositivo não confiável)
         System.out.println("[Login] Dispositivo não confiável para " + usuario.getEmail() + ". Iniciando verificação por e-mail.");
         AccessModel pendingLogin = accessRepository.findByEmail(usuario.getEmail()).orElse(new AccessModel());
         
@@ -150,63 +153,15 @@ public class AccessController {
         
         String urlDeVerificacao = "http://localhost:4200/confirmar-codigo/" + pendingLogin.getId();
         accessService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), pendingLogin.getCodigoVerificacao(), urlDeVerificacao);
-        System.out.println("[Login] " + "email enviado para " + usuario.getEmail());
+        
         return ResponseEntity.ok(Map.of(
             "mensagem", "Código de verificação enviado para o seu e-mail.",
             "idVerificacao", pendingLogin.getId()
         ));
     }
     
-    /**
-     * Realiza o login de um funcionário (Garçom) com base no e-mail do restaurante.
-     * @param request DTO contendo e-mail do restaurante, código e senha.
-     * @return um LoginResponse com o token JWT.
-     */
-    @Transactional(readOnly = true)
-    public LoginResponse loginGarcom(GarcomLoginRequest request) {
-        // 1. Encontra o restaurante pelo e-mail
-        Restaurante restaurante = repoRestaurante.findByUsuarioEmail(request.getEmailRestaurante());
-        if (restaurante == null) {
-            throw new RuntimeException("Credenciais inválidas."); // Mensagem genérica por segurança
-        }
-
-        // 2. Busca o garçom pelo código DENTRO do restaurante encontrado
-        Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade())
-                .orElseThrow(() -> new RuntimeException("Credenciais inválidas."));
-
-        // 3. Verifica se o garçom está ativo
-        if (!garcom.isAtivo()) {
-            throw new RuntimeException("Este usuário de funcionário está inativo.");
-        }
-
-        // 4. Valida a senha do garçom
-        if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) {
-            throw new RuntimeException("Credenciais inválidas.");
-        }
-
-        // 5. Gera o token JWT
-        // A lógica de geração do token deve ser adaptada para incluir as informações do funcionário.
-        // O "subject" do token será o e-mail do restaurante, como você sugeriu.
-        String accessToken = jwt.generateFuncionarioToken(
-                restaurante.getEmail(), // Subject
-                garcom.getId(),
-                restaurante.getId()
-        );
-
-        // Retorna o token, nome do garçom e tipo FUNCIONARIO
-        return new LoginResponse(
-            accessToken,
-            garcom.getNome(),
-            TipoUsuario.FUNCIONARIO.toString(),
-            garcom.getId(),
-            restaurante.getEmail(), // E-mail de referência é o do restaurante
-            garcom.getFotoUrl(),
-            null // Background
-        );
-    }
-
     @PostMapping("/verificar")
-    public ResponseEntity<?> verificarCodigo(@RequestBody VerificacaoRequest request) { // Removi HttpServletResponse, pois não é mais necessário
+    public ResponseEntity<?> verificarCodigo(@RequestBody VerificacaoRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         AccessModel pending = accessRepository.findById(request.getIdVerificacao()).orElse(null);
         if (pending == null || !pending.getCodigoVerificacao().equals(request.getCodigo()) || pending.getExpiracaoCodigo().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Código de verificação inválido ou expirado."));
@@ -228,9 +183,7 @@ public class AccessController {
             usuario.setEmailVerificado(true);
             
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                // Assumindo que seu RegistroRequest tem todos os campos do payload
-                RegistroRequest originalRequest = mapper.readValue(pending.getPayload(), RegistroRequest.class);
+                RegistroRequest originalRequest = objectMapper.readValue(pending.getPayload(), RegistroRequest.class);
                 usuario.setEndereco(originalRequest.getEndereco());
                 usuario.setTelefone(originalRequest.getTelefone());
                 
@@ -256,13 +209,13 @@ public class AccessController {
                         Set<Servico> servicosParaAssociar = new HashSet<>();
                         for (String nomeServico : originalRequest.getNomesServicos()) {
                             Servico serv = repoServico.findByNome(nomeServico)
-                                            .orElseGet(() -> repoServico.save(new Servico(nomeServico, ""))); // Usa o repoServico injetado
+                                            .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
                             servicosParaAssociar.add(serv);
                         }
                         restaurante.setServicos(servicosParaAssociar);
                     }
                     
-                    repoRestaurante.save(restaurante); // Salva a nova entidade Restaurante
+                    repoRestaurante.save(restaurante);
                 }
 
             } catch (JsonProcessingException e) {
@@ -272,17 +225,38 @@ public class AccessController {
         
         String novoTrustToken = null;
         if (request.isMantenhaMeConectado()) {
-            System.out.println("[Verificar] Usuário " + usuario.getEmail() + " marcou 'Mantenha-me conectado'. Gerando novo TrustToken.");
+            System.out.println("[Verificar] Usuário " + usuario.getEmail() + " marcou 'Mantenha-me conectado'.");
             novoTrustToken = rememberMeService.generateNewToken();
             rememberMeService.storeToken(novoTrustToken, usuario);
         }
         
         accessRepository.delete(pending);
         
-        return gerarRespostaComTokens(usuario, novoTrustToken);
-
+        return gerarRespostaComTokens(usuario, novoTrustToken, httpRequest, httpResponse);
     }
-    
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        System.out.println("[Logout] Método de logout chamado. Encerrando a sessão atual.");
+
+        // Invalida o refreshToken para encerrar a sessão.
+        // O trustToken NÃO é afetado.
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
+            .httpOnly(true)
+            .secure(false) // Mudar para true em produção
+            .path("/")
+            .maxAge(0) // Expira o cookie imediatamente
+            .sameSite("Lax")
+            .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        System.out.println("[Logout] Sessão encerrada. O dispositivo continua sendo confiável.");
+        return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso."));
+    }
+
+    // --- Outros endpoints (refresh, esqueci-senha, etc.) permanecem iguais ---
+
     @PostMapping("/reenviar-codigo")
     public ResponseEntity<?> reenviarCodigo(@RequestBody ReenvioRequest request) {
         Optional<AccessModel> pendingOpt = accessRepository.findByEmail(request.getEmail());
@@ -309,7 +283,6 @@ public class AccessController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) { 
         try {
-        	System.out.println("[RefreshToken] " + "Método de refresh foi chamado, iniciando refresh do token de acesso");
             String refreshToken = null;
             if (request.getCookies() != null) {
                 for (Cookie cookie : request.getCookies()) {
@@ -320,11 +293,9 @@ public class AccessController {
                 }
             }
             if (refreshToken == null) {
-            	System.out.println("[RefreshToken] " + "Token não encontrado ou cookie inexistente");
             	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token não encontrado no cookie.");
             }
             if (!jwt.isTokenValid(refreshToken)) { 
-            	System.out.println("[RefreshToken] " + "Token invalido");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido ou expirado.");
             }
             Usuario usuario = repo.findById(jwt.parseToken(refreshToken).get("id", UUID.class))
@@ -344,25 +315,10 @@ public class AccessController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erro ao processar refresh token: " + e.getMessage());
         }
     }
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-    	System.out.println("[Logout] " + "Método de logout chamado, iniciando remoção dos tokens");
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/auth/refresh");
-        refreshTokenCookie.setMaxAge(0); 
-        response.addCookie(refreshTokenCookie);
-
-        System.out.println("[Logout] " + "Logout concluido, tokens desabilitados");
-        return ResponseEntity.ok(Map.of("mensagem", "Sessão encerrada com sucesso."));
-    }
     
     @PostMapping("/esqueci-senha")
     public ResponseEntity<?> solicitarResetSenha(@RequestBody SenhaResetRequest request) {
         accessService.solicitarResetDeSenha(request.getEmail());
-        // Resposta genérica para não revelar se o e-mail existe ou não
         return ResponseEntity.ok(Map.of("mensagem", "Se um usuário com este e-mail existir em nosso sistema, um link de redefinição será enviado."));
     }
     
@@ -376,25 +332,20 @@ public class AccessController {
         }
     }
 
-//====================================================================================================================================================================================
-    
- // Em AccessController.java
+    // --- MÉTODOS AUXILIARES PARA GERENCIAMENTO DE TOKENS E COOKIES ---
 
-    private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, String novoTrustToken) {
-        // 1. Gera o Access Token (para o corpo da resposta) e o Refresh Token (para o cookie)
+    private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, String novoTrustToken, HttpServletRequest request, HttpServletResponse response) {
         String accessToken = jwt.generateAccessToken(usuario.getEmail());
         String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
 
-        // 2. Constrói o cookie do Refresh Token (duração curta/média)
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshTokenString)
             .httpOnly(true)
-            .secure(false) // Mudar para 'true' em produção (HTTPS)
+            .secure(false)
             .path("/")
-            .maxAge(30 * 24 * 60 * 60) // 30 dias de validade
+            .maxAge(30 * 24 * 60 * 60)
             .sameSite("Lax")
             .build();
 
-        // 3. Prepara a resposta e adiciona o primeiro cookie
         LoginResponse loginResponse = new LoginResponse(
             accessToken,
             usuario.getNome(),
@@ -408,20 +359,56 @@ public class AccessController {
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-        // 4. Se um novo TrustToken foi gerado, constrói e adiciona o segundo cookie
-        if (novoTrustToken != null && !novoTrustToken.isEmpty()) {
-            ResponseCookie trustTokenCookie = ResponseCookie.from("trustToken", novoTrustToken) // << Novo nome do cookie
-                .httpOnly(true)
-                .secure(false) // Mudar para 'true' em produção (HTTPS)
-                .path("/")
-                .maxAge(60 * 24 * 60 * 60) // << Duração bem longa, 60 dias
-                .sameSite("Lax")
-                .build();
-            
-            responseBuilder.header(HttpHeaders.SET_COOKIE, trustTokenCookie.toString());
+        if (novoTrustToken != null && response != null) {
+            addTokenToTrustCookie(request, response, usuario.getId(), novoTrustToken);
         }
 
-        // 5. Retorna a resposta com os cookies nos cabeçalhos e o JSON no corpo
         return responseBuilder.body(loginResponse);
+    }
+    
+    private Map<String, String> getTrustsMapFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return new HashMap<>();
+
+        for (Cookie cookie : request.getCookies()) {
+            if (TRUST_COOKIE_NAME.equals(cookie.getName())) {
+                try {
+                    String decodedValue = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+                    return objectMapper.readValue(decodedValue, new TypeReference<HashMap<String, String>>() {});
+                } catch (IOException e) {
+                    System.err.println("Erro ao parsear cookie de confiança: " + e.getMessage());
+                    return new HashMap<>();
+                }
+            }
+        }
+        return new HashMap<>();
+    }
+
+    private String getTokenFromTrustCookie(HttpServletRequest request, UUID userId) {
+        Map<String, String> trustsMap = getTrustsMapFromCookie(request);
+        return trustsMap.get(userId.toString());
+    }
+
+    private void addTokenToTrustCookie(HttpServletRequest request, HttpServletResponse response, UUID userId, String token) {
+        Map<String, String> trustsMap = getTrustsMapFromCookie(request);
+        if(token != null) {
+             trustsMap.put(userId.toString(), token);
+        }
+       
+        try {
+            String jsonValue = objectMapper.writeValueAsString(trustsMap);
+            String encodedValue = URLEncoder.encode(jsonValue, StandardCharsets.UTF_8);
+            
+            ResponseCookie trustCookie = ResponseCookie.from(TRUST_COOKIE_NAME, encodedValue)
+                .httpOnly(true)
+                .secure(false) // Mudar para true em produção
+                .path("/")
+                .maxAge(60 * 24 * 60 * 60) // 60 dias
+                .sameSite("Lax")
+                .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, trustCookie.toString());
+        } catch (IOException e) {
+            System.err.println("Erro ao criar cookie de confiança: " + e.getMessage());
+        }
     }
 }

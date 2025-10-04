@@ -56,6 +56,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
             @Param("clienteNome") String clienteNome,
             @Param("status") String status
     );
+    
+    @Query("SELECT COUNT(r) FROM Reserva r WHERE r.restaurante.id = :restauranteId AND r.dataReserva = :data")
+    long countByRestauranteIdAndData(@Param("restauranteId") UUID restauranteId, @Param("data") LocalDate data);
 
     // >>> NOVO MÉTODO PARA A LISTA DE ESPERA <<<
     /**
@@ -83,7 +86,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
 
     
     List<Reserva> findByRestauranteIdOrderByDataReservaDescHoraReservaDesc(UUID restauranteId);
-
+    
+    List<Reserva> findByRestauranteIdAndDataReservaAfter(UUID restauranteId, LocalDate data);
 
     void deleteAllByClienteId(UUID clienteId);
 }

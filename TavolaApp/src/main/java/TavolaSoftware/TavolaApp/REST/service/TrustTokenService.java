@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -45,24 +46,30 @@ public class TrustTokenService {
         tokenRepository.save(newToken);
     }
 
-    // Valida um token recebido e retorna o usuário se for válido
     @Transactional(readOnly = true)
     public Optional<Usuario> validateTokenAndGetUser(String token) {
-        for (TrustToken storedToken : tokenRepository.findAll()) {
+        if (token == null || token.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<TrustToken> allTokens = tokenRepository.findAll(); //findAll() é necessário por causa do BCrypt
+        System.out.println("[TrustTokenService] Validando token contra " + allTokens.size() + " tokens no banco.");
+
+        for (TrustToken storedToken : allTokens) {
             if (BCrypt.checkpw(token, storedToken.getTokenHash())) {
-            	System.out.println("[RememberMeToken] " + "token encontrado, validando token...");
+                System.out.println("[TrustTokenService] Token correspondente encontrado para o usuário: " + storedToken.getUsuario().getId());
                 if (storedToken.getExpiryDate().isAfter(LocalDateTime.now())) {
-                	System.out.println("[RememberMeToken] " + "token validado");
+                    System.out.println("[TrustTokenService] Token é válido e não expirou.");
                     return Optional.of(storedToken.getUsuario());
                 } else {
-                    // Token expirado, remove do banco
+                    // Token expirado, remove do banco para limpeza
+                    System.out.println("[TrustTokenService] Token encontrado, mas está expirado. Deletando.");
                     tokenRepository.delete(storedToken);
-                    System.out.println("[RememberMeToken] " + "token invalido, deletando token do banco");
                     return Optional.empty();
                 }
             }
         }
-        System.out.println("[RememberMeToken] " + "token não encontrado!");
+        System.out.println("[TrustTokenService] Nenhum token correspondente encontrado no banco.");
         return Optional.empty();
     }
     

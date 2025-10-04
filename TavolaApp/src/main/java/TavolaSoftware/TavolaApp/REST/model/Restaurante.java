@@ -65,6 +65,9 @@ public class Restaurante {
         inverseJoinColumns = @JoinColumn(name = "servico_id")
     )
     private Set<Servico> servicos = new HashSet<>();
+    
+    @Column(name = "limite_reservas_diarias")
+    private Integer limiteReservasDiarias; // Usamos Integer para que possa ser nulo (sem limite)
 
     // Getters e Setters
     
@@ -121,5 +124,7 @@ public class Restaurante {
     public void setEndereco(Endereco endereco) { if (usuario != null) { usuario.setEndereco(endereco); } }
     public void setNome(String nome) { if (usuario != null) { usuario.setNome(nome); } }
     public String getEnderecoResumido() { if (this.usuario == null) { return "Endereço não informado";} return this.usuario.getEnderecoResumido();}
+    public Integer getLimiteReservasDiarias() {return limiteReservasDiarias;}
+    public void setLimiteReservasDiarias(Integer limiteReservasDiarias) {this.limiteReservasDiarias = limiteReservasDiarias;}
     
 }

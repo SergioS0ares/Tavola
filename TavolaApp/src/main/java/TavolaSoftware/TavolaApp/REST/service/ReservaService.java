@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class ReservaService {
@@ -60,6 +61,15 @@ public class ReservaService {
         LocalDate dataReserva = parseData(requestDto.getDataReserva());
         LocalTime horaReserva = parseHora(requestDto.getHorarioReserva());
         
+        Integer limite = restaurante.getLimiteReservasDiarias();
+        if (limite != null && limite > 0) {
+            long reservasNoDia = reservaRepository.countByRestauranteIdAndData(restaurante.getId(), dataReserva);
+            if (reservasNoDia >= limite) {
+                // Lança uma exceção específica que o Controller pode capturar com status 409 CONFLICT
+                throw new IllegalStateException("O limite de reservas para este dia foi atingido.");
+            }
+        }
+        
         validarDataHoraReserva(dataReserva, horaReserva);
         validarQuantidadePessoas(requestDto.getQuantidadePessoasReserva());
         
@@ -82,6 +92,29 @@ public class ReservaService {
 
         Reserva reservaSalva = reservaRepository.save(novaReserva);
         return new ReservaResponse(reservaSalva);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<LocalDate> getDatasLotadas(UUID restauranteId) {
+        Restaurante restaurante = restauranteRepository.findById(restauranteId)
+            .orElseThrow(() -> new RuntimeException("Restaurante não encontrado."));
+            
+        Integer limite = restaurante.getLimiteReservasDiarias();
+        // Se não há limite configurado, não há datas lotadas.
+        if (limite == null || limite <= 0) {
+            return Collections.emptyList();
+        }
+
+        // Busca todas as reservas a partir de hoje
+        List<Reserva> reservasFuturas = reservaRepository.findByRestauranteIdAndDataReservaAfter(restauranteId, LocalDate.now().minusDays(1));
+
+        // Usa a API de Streams do Java para:
+        return reservasFuturas.stream()
+            .collect(Collectors.groupingBy(Reserva::getDataReserva, Collectors.counting()))
+            .entrySet().stream()
+            .filter(entry -> entry.getValue() >= limite)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
