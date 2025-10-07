@@ -1,7 +1,4 @@
 import {
-  moveUpMotion
-} from "./chunk-HM4LU7TA.js";
-import {
   NzSingletonService
 } from "./chunk-OGNW62LB.js";
 import {
@@ -10,6 +7,9 @@ import {
 } from "./chunk-CDFMBNVJ.js";
 import "./chunk-MY36S5J2.js";
 import "./chunk-G5UF4WML.js";
+import {
+  moveUpMotion
+} from "./chunk-HM4LU7TA.js";
 import {
   NzOutletModule,
   NzStringTemplateOutletDirective
@@ -37,7 +37,6 @@ import "./chunk-PHPGYSAY.js";
 import "./chunk-NDI52S4L.js";
 import "./chunk-W2GQISKQ.js";
 import "./chunk-WYZFTSM6.js";
-import "./chunk-HIO2PO4F.js";
 import "./chunk-MA3APMDY.js";
 import "./chunk-DWMJC7KA.js";
 import "./chunk-RNK63XMY.js";
@@ -45,6 +44,7 @@ import "./chunk-MQBJRVH4.js";
 import "./chunk-NLUVMHY4.js";
 import "./chunk-KBAG5CUS.js";
 import "./chunk-4FGVBOGF.js";
+import "./chunk-HIO2PO4F.js";
 import "./chunk-V4T5P4N2.js";
 import "./chunk-UIWWEBEI.js";
 import "./chunk-EKNQFBGZ.js";

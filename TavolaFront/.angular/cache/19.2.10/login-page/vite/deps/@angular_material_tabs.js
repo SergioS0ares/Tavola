@@ -1,6 +1,3 @@
-import {
-  SharedResizeObserver
-} from "./chunk-TAUTP7EK.js";
 import "./chunk-XUL36GCJ.js";
 import {
   CdkPortal,
@@ -12,6 +9,9 @@ import {
   MatRipple,
   _StructuralStylesLoader
 } from "./chunk-5TTEG7AN.js";
+import {
+  SharedResizeObserver
+} from "./chunk-TAUTP7EK.js";
 import "./chunk-ZTZAGHWD.js";
 import "./chunk-AQ46JP2X.js";
 import "./chunk-7T77PNLY.js";

@@ -1,11 +1,11 @@
 import {
+  _MatInternalFormField
+} from "./chunk-BBKSPJB7.js";
+import {
   CheckboxRequiredValidator,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR
 } from "./chunk-2AGHCT3D.js";
-import {
-  _MatInternalFormField
-} from "./chunk-BBKSPJB7.js";
 import {
   MatRipple,
   _StructuralStylesLoader

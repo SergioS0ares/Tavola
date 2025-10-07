@@ -1,8 +1,9 @@
 @use '@angular/material' as mat;
+@use 'sass:color';
 @include mat.elevation-classes();
 @include mat.app-background();
-@import 'ngx-toastr/toastr';
-@import 'styles/variables';
+@use 'ngx-toastr/toastr';
+@use 'styles/variables' as *;
 @import 'ng-zorro-antd/ng-zorro-antd.min.css'; // Certifique-se que está importado
 
 :root {
@@ -187,10 +188,10 @@ $dark-theme: mat.m2-define-dark-theme((
   .mdc-switch {
     &:hover {
       .mdc-switch__track {
-        background-color: lighten(#F6BD38, 10%) !important;
+        background-color: color.adjust(#F6BD38, $lightness: 10%) !important;
       }
       .mdc-switch__handle {
-        background-color: lighten(#DA4A24, 10%) !important;
+        background-color: color.adjust(#DA4A24, $lightness: 10%) !important;
       }
     }
   }
@@ -415,7 +416,7 @@ $dark-theme: mat.m2-define-dark-theme((
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: darken(#F6BD38, 5%) !important;
+    background-color: color.adjust(#F6BD38, $lightness: -5%) !important;
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
     transform: scale(1.15) rotate(90deg);
@@ -481,7 +482,7 @@ $dark-theme: mat.m2-define-dark-theme((
   font-weight: 600 !important;
   
   &:hover {
-    background-color: darken(#c22523, 5%) !important;
+    background-color: color.adjust(#c22523, $lightness: -5%) !important;
   }
 }
 
@@ -491,7 +492,7 @@ $dark-theme: mat.m2-define-dark-theme((
   font-weight: 600 !important;
   
   &:hover {
-    background-color: darken(#6c757d, 5%) !important;
+    background-color: color.adjust(#6c757d, $lightness: -5%) !important;
   }
 }
 
