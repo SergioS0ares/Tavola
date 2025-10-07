@@ -61,6 +61,35 @@
   }
 }
 
+// Campo de Busca e Filtros
+.search-section {
+  margin-bottom: 32px;
+
+  .search-container {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(194, 37, 35, 0.1);
+
+    .search-row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+
+      .tavola-search-field {
+        flex: 2;
+        width: 100%;
+      }
+
+      .tavola-filter-field {
+        flex: 1;
+        min-width: 200px;
+      }
+    }
+  }
+}
+
 .categoria-section {
   margin-bottom: 48px;
 
@@ -322,6 +351,23 @@
       bottom: 24px;
       right: 24px;
       z-index: 100;
+    }
+  }
+
+  .search-section {
+    .search-container {
+      padding: 20px;
+
+      .search-row {
+        flex-direction: column;
+        gap: 16px;
+
+        .tavola-search-field,
+        .tavola-filter-field {
+          flex: 1;
+          min-width: unset;
+        }
+      }
     }
   }
   

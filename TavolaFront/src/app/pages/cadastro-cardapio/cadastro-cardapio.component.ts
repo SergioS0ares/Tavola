@@ -7,6 +7,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
 import { CardapioService } from '../../core/services/cardapio.service';
 import { IItemCardapio } from '../../Interfaces/IItem-cardapio';
 import { ICategoriaComItens } from '../../Interfaces/ICategoriaComItens.interface';
@@ -28,6 +32,10 @@ import { GlobalSpinnerComponent } from '../../spin/global-spinner/global-spinner
     MatDialogModule,
     MatSlideToggleModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    FormsModule,
     DialogItemCardapioComponent,
     GlobalSpinnerComponent
   ],
@@ -52,8 +60,11 @@ export class CadastroCardapioComponent implements OnInit {
   ];
 
   categoriasComItens: ICategoriaComItens[] = [];
+  categoriasComItensFiltradas: ICategoriaComItens[] = [];
 
   mensagemSucesso = '';
+  pesquisa = '';
+  categoriaFiltro = '';
 
   ngOnInit() {
     this.carregarItens();
@@ -70,6 +81,53 @@ export class CadastroCardapioComponent implements OnInit {
     
     // A mesma lógica que você tinha, agora dentro do componente.
     return this.categoriasComItens.every(cat => cat.itens.length === 0);
+  }
+
+  // Propriedade para verificar se todas as categorias filtradas estão vazias
+  public get todasCategoriasFiltradasVazias(): boolean {
+    if (!this.categoriasComItensFiltradas || this.categoriasComItensFiltradas.length === 0) {
+      return true;
+    }
+    
+    return this.categoriasComItensFiltradas.every(cat => cat.itens.length === 0);
+  }
+
+  // Método para aplicar filtros
+  aplicarFiltros(): void {
+    let itensFiltrados = [...this.itens];
+
+    // Filtrar por texto de pesquisa
+    if (this.pesquisa.trim() !== '') {
+      const termoPesquisa = this.pesquisa.toLowerCase().trim();
+      itensFiltrados = itensFiltrados.filter(item => 
+        item.nome.toLowerCase().includes(termoPesquisa) ||
+        item.descricao?.toLowerCase().includes(termoPesquisa) ||
+        (item.categoria && item.categoria.nome?.toLowerCase().includes(termoPesquisa)) ||
+        (item.tags && item.tags.some(tag => 
+          (typeof tag === 'string' ? tag : tag.tag)?.toLowerCase().includes(termoPesquisa)
+        ))
+      );
+    }
+
+    // Filtrar por categoria
+    if (this.categoriaFiltro !== '') {
+      itensFiltrados = itensFiltrados.filter(item => 
+        item.categoria && item.categoria.nome === this.categoriaFiltro
+      );
+    }
+
+    // Atualizar categorias com itens filtrados
+    this.categoriasComItensFiltradas = this.categorias.map(cat => ({
+      ...cat,
+      itens: itensFiltrados.filter(item => item.categoria && item.categoria.nome === cat.nome)
+    }));
+  }
+
+  // Método para limpar pesquisa
+  limparPesquisa(): void {
+    this.pesquisa = '';
+    this.categoriaFiltro = '';
+    this.aplicarFiltros();
   }
 
 
@@ -89,11 +147,13 @@ export class CadastroCardapioComponent implements OnInit {
             : item.imagem
         }));
         this.atualizarCategoriasComItens();
+        this.aplicarFiltros(); // Inicializar filtros
       },
       error: (erro) => {
         console.warn('Nenhum item carregado ou erro no backend:', erro);
         this.itens = [];
         this.atualizarCategoriasComItens();
+        this.aplicarFiltros(); // Inicializar filtros
       }
     });
   }
@@ -108,6 +168,7 @@ export class CadastroCardapioComponent implements OnInit {
   atualizarItens(novoItens: IItemCardapio[]) {
     this.itens = novoItens;
     this.atualizarCategoriasComItens();
+    this.aplicarFiltros();
   }
 
   adicionar() {

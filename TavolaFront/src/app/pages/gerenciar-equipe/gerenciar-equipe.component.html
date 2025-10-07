@@ -42,29 +42,30 @@
   <!-- Lista de Membros -->
   <div *ngIf="!carregando && equipeFiltrada.length > 0" class="equipe-list">
     <mat-card *ngFor="let membro of equipeFiltrada; trackBy: trackByMembroId" class="membro-card">
-      <!-- Botão de ações no canto superior direito (mobile) -->
-      <button 
-        mat-icon-button 
-        [matMenuTriggerFor]="menu"
-        class="actions-btn actions-btn-mobile"
-        matTooltip="Ações"
-        matTooltipClass="tavola-tooltip"
-        aria-label="Ações do membro">
-        <mat-icon>more_vert</mat-icon>
-      </button>
       
       <div class="membro-content">
+        <!-- Botão de ações mobile no canto superior direito -->
+        <button 
+          mat-icon-button 
+          [matMenuTriggerFor]="menu"
+          class="actions-btn-mobile"
+          matTooltip="Ações"
+          matTooltipClass="tavola-tooltip"
+          aria-label="Ações do membro">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        
         <div class="membro-info">
-          <div class="membro-avatar">
-            <img [src]="getImagemUrl(membro.imagem ?? null)" [alt]="'Avatar de ' + membro.nome">
+          <div class="avatar-container">
+            <img [src]="getImagemUrl(membro.imagem ?? null)" [alt]="'Avatar de ' + membro.nome" class="profile-avatar">
             <button 
-              mat-icon-button 
-              class="change-avatar-btn"
+              mat-mini-fab 
+              class="change-photo-btn"
               (click)="trocarImagem(membro)"
               matTooltip="Alterar foto do membro"
               matTooltipClass="tavola-tooltip"
               aria-label="Alterar foto">
-              <mat-icon>camera_alt</mat-icon>
+              <mat-icon>photo_camera</mat-icon>
             </button>
           </div>
           <div class="membro-details">

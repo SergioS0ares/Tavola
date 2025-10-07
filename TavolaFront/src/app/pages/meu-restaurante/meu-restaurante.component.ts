@@ -191,10 +191,11 @@ export class MeuRestauranteComponent implements OnInit {
 
   // Método para remover imagem principal
   removerImagemPrincipal(): void {
-    const principalIndex = this.previews.findIndex((p) => p.tipo === "principal")
-    if (principalIndex !== -1) {
-      this.imagensBase64.splice(principalIndex, 1)
+    // A imagem principal é sempre a primeira no array
+    if (this.imagensBase64.length > 0) {
+      this.imagensBase64.splice(0, 1)
       this.atualizarPreviews()
+      this.toastr.success('Imagem principal removida com sucesso!')
     }
   }
 

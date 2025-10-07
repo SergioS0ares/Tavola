@@ -24,8 +24,39 @@
 
   <span *ngIf="mensagemSucesso" class="mensagem-sucesso">{{ mensagemSucesso }}</span>
 
+  <!-- Campo de Busca e Filtros -->
+  <div *ngIf="!isLoading && itens.length > 0" class="search-section">
+    <div class="search-container">
+      <div class="search-row">
+        <mat-form-field appearance="outline" class="tavola-search-field">
+          <mat-label>Buscar item do cardápio</mat-label>
+          <input matInput 
+            [(ngModel)]="pesquisa" 
+            (input)="aplicarFiltros()"
+            placeholder="Digite o nome, categoria ou tag do item">
+          <button mat-icon-button matSuffix *ngIf="pesquisa" (click)="limparPesquisa()" aria-label="Limpar pesquisa">
+            <mat-icon>close</mat-icon>
+          </button>
+          <button mat-icon-button matSuffix *ngIf="!pesquisa" aria-label="Buscar">
+            <mat-icon>search</mat-icon>
+          </button>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="tavola-filter-field">
+          <mat-label>Filtrar por categoria</mat-label>
+          <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltros()">
+            <mat-option value="">Todas as categorias</mat-option>
+            <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome">
+              {{ categoria.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
   <!-- Improved category sections with modern styling -->
-  <ng-container *ngFor="let categoria of categoriasComItens">
+  <ng-container *ngFor="let categoria of categoriasComItensFiltradas">
     <div class="categoria-section" *ngIf="categoria.itens.length > 0">
       <div class="categoria-header">
         <h3 class="categoria-titulo">{{ categoria.nome }}</h3>
@@ -96,8 +127,22 @@
     </div>
   </ng-container>
 
+  <!-- Estado de busca sem resultados -->
+  <div *ngIf="!isLoading && itens.length > 0 && todasCategoriasFiltradasVazias && (pesquisa.trim() !== '' || categoriaFiltro !== '')" class="tavola-empty-search">
+    <div class="empty-icon">
+      <mat-icon>search_off</mat-icon>
+    </div>
+    <h3>Nenhum item encontrado</h3>
+    <p *ngIf="pesquisa.trim() !== ''">Não encontramos nenhum item com "{{ pesquisa }}"</p>
+    <p *ngIf="categoriaFiltro !== ''">Nenhum item encontrado na categoria "{{ categoriaFiltro }}"</p>
+    <button mat-raised-button color="primary" (click)="limparPesquisa()">
+      <mat-icon>refresh</mat-icon>
+      Limpar filtros
+    </button>
+  </div>
+
   <!-- Added empty state when no items exist -->
-  <div *ngIf="todasCategoriasVazias" class="tavola-empty-search">
+  <div *ngIf="!isLoading && todasCategoriasVazias" class="tavola-empty-search">
     <div class="empty-icon">
       <mat-icon>restaurant_menu</mat-icon>
     </div>

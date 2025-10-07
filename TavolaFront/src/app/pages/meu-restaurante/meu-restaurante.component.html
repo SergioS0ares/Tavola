@@ -50,7 +50,7 @@
               <img nz-image [nzSrc]="imagemPrincipal.url" alt="Imagem principal do restaurante" class="restaurant-image">
               <div class="image-overlay">
                 <div class="photo-tag">Principal</div>
-                <button mat-icon-button class="remove-main-img-btn" (click)="removerImagemPrincipal(); $event.stopPropagation()">
+                <button mat-icon-button class="remove-img-btn" (click)="removerImagemPrincipal(); $event.stopPropagation()" type="button">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
@@ -183,7 +183,6 @@
 
     <!-- Ações Finais -->
     <div class="form-actions">
-      <button mat-stroked-button color="warn">Cancelar</button>
       <button mat-raised-button class="save-btn" (click)="salvarAlteracoes()">
         <mat-icon>save</mat-icon>
         Salvar Alterações
