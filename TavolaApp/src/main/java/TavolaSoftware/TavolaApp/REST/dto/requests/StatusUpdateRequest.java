@@ -1,23 +1,18 @@
 package TavolaSoftware.TavolaApp.REST.dto.requests;
 
-import TavolaSoftware.TavolaApp.tools.StatusReserva;
-
-/**
- * DTO (Data Transfer Object) para receber a requisição de mudança de status de uma reserva.
- */
 public class StatusUpdateRequest {
-    private StatusReserva status;
+    private String novoStatus;
 
-    // Construtores, Getters e Setters
+    // Construtor
+    public StatusUpdateRequest() {}
 
-    public StatusUpdateRequest() {
+    // Getter
+    public String getNovoStatus() {
+        return novoStatus;
     }
 
-    public StatusReserva getStatus() {
-        return status;
+    // Setter
+    public void setNovoStatus(String novoStatus) {
+        this.novoStatus = novoStatus;
     }
-
-    public void setStatus(StatusReserva status) {
-        this.status = status;
-    }
-}
+}	

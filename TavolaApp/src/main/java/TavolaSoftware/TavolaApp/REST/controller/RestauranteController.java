@@ -1,5 +1,22 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import TavolaSoftware.TavolaApp.REST.dto.requests.PesquisaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.RestauranteRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
@@ -7,17 +24,6 @@ import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.PesquisaService;
 import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
-import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth/restaurantes")
@@ -29,13 +35,20 @@ public class RestauranteController {
     @Autowired
     private PesquisaService servPesquisa;
     
+    /*
+     * Método de pesquisa do cliente pesquisar por novos restaurantes.
+     *  (pq está em restaurante? Simples! é porque ele retorna RESTAURANTES!)
+     * */
     @PostMapping("/pesquisar") // Mudado para POST para aceitar um corpo de requisição com os filtros
     public ResponseEntity<List<ClienteHomeResponse>> pesquisarRestaurantes(@RequestBody PesquisaRequest request) {
         List<ClienteHomeResponse> resultados = servPesquisa.pesquisar(request);
         return ResponseEntity.ok(resultados);
     }
 
-    // === SEUS MÉTODOS EXISTENTES (permanecem inalterados) ===
+    /*
+     * GET que retorna as informações do usuario logado, ele retorna as informações dele próprio
+     *     - não use com o token de um cliente (não seja um bobão!)
+     * */
     @GetMapping("/self")
     public ResponseEntity<RestauranteResponse> findSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -46,39 +59,30 @@ public class RestauranteController {
         return ResponseEntity.ok(new RestauranteResponse(restaurante));
     }
 
+    /*
+     * GET para buscar as informações de todos os restaurantes, ela é tratada para retornar apenas
+     *     as informações que são relevantes para o cliente, então não se assuste se vc não ver a cor
+     *     da calçinha deles no response.
+     * */
     @GetMapping
     public ResponseEntity<List<RestauranteResponse>> findAll() {
         List<RestauranteResponse> responses = servRestaurante.findAll();
         return ResponseEntity.ok(responses);
     }
 
+    /*
+     * GET esse aqui puxa todas as informações do restaurante!
+     * */
     @GetMapping("/{id}")
     public ResponseEntity<RestauranteResponse> findById(@PathVariable UUID id) {
         return servRestaurante.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
-    
-    @PostMapping("/save")
-    public ResponseEntity<?> save(@RequestBody RestauranteRequest request) {
-        ResponseExceptionHandler handler = new ResponseExceptionHandler();
-        handler.checkEmptyStrting("nome do usuário", request.getNomeUsuario());
-        handler.checkEmptyStrting("email do usuário", request.getEmailUsuario());
-        handler.checkEmptyStrting("senha do usuário", request.getSenhaUsuario());
-        handler.checkEmptyObject("endereço do usuário", request.getEnderecoUsuario());
 
-        if (handler.errors()) {
-            return handler.generateResponse(HttpStatus.BAD_REQUEST);
-        }
-        
-        try {
-            Restaurante restauranteSalvo = servRestaurante.saveFromRequest(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new RestauranteResponse(restauranteSalvo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
-        }
-    }
-
+    /*
+     * PUT de update, ele atualiza... e é isso!
+     * */
     @PutMapping("/update")
     public ResponseEntity<?> updateSelf(@RequestBody RestauranteRequest request) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -96,6 +100,9 @@ public class RestauranteController {
         }
     }
 
+    /*
+     * PUT pra atualizar um maluco que não seja você, NÃO FAÇA ISSO, POR FAVOR...
+     * */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateById(@PathVariable UUID id, @RequestBody RestauranteRequest request) {
         try {
@@ -109,6 +116,9 @@ public class RestauranteController {
         }
     }
 
+    /*
+     * DELETE, vc se mata, curto e grosso, vc se mata
+     * */
     @DeleteMapping
     public ResponseEntity<Void> deleteSelf() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -124,6 +134,9 @@ public class RestauranteController {
         }
     }
 
+    /*
+     * DELETE, vc mata alguém, menos aconselhável nesse contexto...
+     * */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
         try {

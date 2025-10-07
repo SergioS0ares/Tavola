@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 // Variáveis
 $primary-color: #F6BD38;
 $accent-color: #3B221B;
@@ -1405,8 +1407,8 @@ $tavola-cinza: #F8F9FA;
       margin-bottom: 0;
       
       &:hover {
-        background-color: darken($tavola-amarelo, 10%);
-        border-color: darken($tavola-amarelo, 10%);
+        background-color: color.adjust($tavola-amarelo, $lightness: -10%);
+        border-color: color.adjust($tavola-amarelo, $lightness: -10%);
       }
       
       i {
@@ -1441,7 +1443,7 @@ $tavola-cinza: #F8F9FA;
   color: $text-color !important;
   
   &:hover {
-    background-color: darken($tavola-amarelo, 10%) !important;
+    background-color: color.adjust($tavola-amarelo, $lightness: -10%) !important;
   }
   
   mat-icon {

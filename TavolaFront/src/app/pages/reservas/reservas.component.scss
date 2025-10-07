@@ -1,4 +1,5 @@
-@import '../../../styles/variables.scss';
+@use 'sass:color';
+@use '../../../styles/variables.scss' as *;
 
 // Container principal
 .reservas-container {
@@ -258,7 +259,7 @@
       
       &.selected {
         border-color: $primary-color;
-        background-color: lighten($primary-color, 40%);
+        background-color: color.adjust($primary-color, $lightness: 40%);
       }
       
       .reserva-info {
@@ -575,7 +576,7 @@
                 }
                 
                 &:hover {
-                  background-color: darken($primary-color, 5%);
+                  background-color: color.adjust($primary-color, $lightness: -5%);
                 }
               }
             }
@@ -787,7 +788,7 @@
         
         &.mesa-atribuida-reserva-atual {
           .mesa-visual {
-            background-color: lighten($primary-color, 30%);
+            background-color: color.adjust($primary-color, $lightness: 30%);
             border: 3px solid $primary-color;
             box-shadow: 0 0 12px rgba($primary-color, 0.5);
             
@@ -806,7 +807,7 @@
         
         &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
           .mesa-visual {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
             border-color: $primary-color;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -1058,7 +1059,7 @@
   .mesa-chip {
     display: inline-flex;
     align-items: center;
-    background-color: lighten($primary-color, 45%);
+    background-color: color.adjust($primary-color, $lightness: 45%);
     border: 1px solid $primary-color;
     border-radius: 20px;
     padding: 4px 8px 4px 12px;

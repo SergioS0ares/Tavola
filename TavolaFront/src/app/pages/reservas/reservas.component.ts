@@ -1,9 +1,8 @@
 import { Component, type OnInit, ViewChild, type TemplateRef, ChangeDetectorRef, LOCALE_ID, inject } from "@angular/core"
-import { CommonModule, registerLocaleData, TitleCasePipe } from "@angular/common"
+import { CommonModule, registerLocaleData } from "@angular/common"
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import localePt from "@angular/common/locales/pt"
 import { MatDialog } from "@angular/material/dialog"
-import { DialogGerenciarMesasComponent } from "./dialog-gerenciar-mesas/dialog-gerenciar-mesas.component"
 import { v4 as uuidv4 } from "uuid"
 import { CalendarioReservasComponent } from "./calendario-reservas/calendario-reservas.component"
 import { finalize } from 'rxjs'
@@ -126,12 +125,10 @@ const antIcons: IconDefinition[] = [
     NzButtonModule,
     NzEmptyModule,
     NzModalModule,
-    TitleCasePipe,
     NzDatePickerModule,
     MatMenuModule,
     MatAutocompleteModule,
     MatProgressSpinnerModule,
-    DialogGerenciarMesasComponent,
     CalendarioReservasComponent,
   ],
   templateUrl: "./reservas.component.html",

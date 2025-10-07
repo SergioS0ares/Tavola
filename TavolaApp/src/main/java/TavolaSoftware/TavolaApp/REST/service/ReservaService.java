@@ -181,7 +181,15 @@ public class ReservaService {
     }
     
     @Transactional
-    public ReservaResponse atualizarStatusReserva(UUID idReserva, StatusReserva novoStatus, String emailUsuarioLogado) {
+    public ReservaResponse atualizarStatusReserva(UUID idReserva, String novoStatusStr, String emailUsuarioLogado) {
+        // 1. Conversão e Validação do Status
+        StatusReserva novoStatus;
+        try {
+            novoStatus = StatusReserva.valueOf(novoStatusStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status de reserva inválido: " + novoStatusStr);
+        }
+
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada com ID: " + idReserva));
 
