@@ -211,7 +211,7 @@ $dark-theme: mat.m2-define-dark-theme((
 }
 
 // Customização global dos componentes Material
-.mat-mdc-menu-panel {
+.mat-mdc-menu-panel:not(.notification-dropdown) {
   background-color: #FFF8EE !important;
 
   .mat-mdc-menu-item {
@@ -401,6 +401,25 @@ $dark-theme: mat.m2-define-dark-theme((
       width: 40px !important;
       height: 40px !important;
     }
+  }
+}
+
+// Correção para posicionamento de menus mobile
+@media (max-width: 768px) {
+  ::ng-deep .mat-mdc-menu-panel {
+    position: fixed !important;
+    transform: none !important;
+    top: 80px !important; // Posiciona abaixo da toolbar
+    left: 20px !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  // Prevenir fechamento automático ao clicar fora
+  ::ng-deep .cdk-overlay-backdrop {
+    pointer-events: none !important;
   }
 }
 
@@ -806,6 +825,17 @@ $dark-theme: mat.m2-define-dark-theme((
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
+}
+
+// Remover bordas cinzas de todos os dialogs Angular Material
+::ng-deep .mat-mdc-dialog-container {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+::ng-deep .cdk-overlay-pane {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 // PASSO 2: Remover qualquer fundo do overlay

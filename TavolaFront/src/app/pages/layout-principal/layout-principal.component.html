@@ -132,9 +132,8 @@
       aria-label="Buscar restaurantes">
     </app-search-bar>
 
-    <!-- Agrupando notificações e menu do usuário em header-actions -->
-    <div class="header-actions" style="display: flex; align-items: center; gap: 20px;">
-      <!-- Enhanced Notifications for clients with restaurant bell icon -->
+    
+    <div class="header-actions" style="display: flex; align-items: center; gap: 20px;"> 
       <div class="notifications" *ngIf="isCliente">
         <button 
           mat-icon-button 
@@ -156,62 +155,95 @@
           <div class="dropdown-header" (click)="$event.stopPropagation();">
             <div class="header-content">
               <div class="header-icon">
-                <mat-icon>star</mat-icon>
+                <mat-icon>notifications</mat-icon>
               </div>
               <div class="header-text">
-                <h4>Avaliações Pendentes</h4>
-                <p *ngIf="temAvaliacoesPendentes">{{ avaliacoesPendentes.length }} avaliação(ões) aguardando</p>
+                <h4>Notificações</h4>
+                <p>{{ avaliacoesPendentes.length }} avaliação(ões) aguardando</p>
               </div>
             </div>
           </div>
+
+          <!-- Tabs de navegação -->
+          <div>
+            <button 
+              class="tab-button" 
+              [class.active]="activeTab === 'pendentes'"
+              (click)="setActiveTab('pendentes')">
+              <mat-icon>schedule</mat-icon>
+              <span>Pendentes</span>
+              <span class="badge" *ngIf="avaliacoesPendentes.length > 0">{{ avaliacoesPendentes.length }}</span>
+            </button>
+            <button 
+              class="tab-button" 
+              [class.active]="activeTab === 'lidas'"
+              (click)="setActiveTab('lidas')">
+              <mat-icon>check_circle</mat-icon>
+              <span>Lidas</span>
+            </button>
+          </div>
       
           <div class="dropdown-content" role="list">
-            <div *ngIf="carregandoAvaliacoes" class="loading-state" role="status" aria-live="polite">
-              <div class="loading-spinner">
-                <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
+            <!-- Tab Pendentes -->
+            <div *ngIf="activeTab === 'pendentes'" class="tab-content">
+              <div *ngIf="carregandoAvaliacoes" class="loading-state" role="status" aria-live="polite">
+                <div class="loading-spinner">
+                  <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
+                </div>
+                <span>Carregando avaliações...</span>
               </div>
-              <span>Carregando avaliações...</span>
-            </div>
-            
-            <div *ngIf="!carregandoAvaliacoes && !temAvaliacoesPendentes" class="empty-state">
-              <div class="empty-icon">
-                <mat-icon aria-hidden="true">check_circle</mat-icon>
+              
+              <div *ngIf="!carregandoAvaliacoes && !temAvaliacoesPendentes" class="empty-state">
+                <div class="empty-icon">
+                  <mat-icon aria-hidden="true">check_circle</mat-icon>
+                </div>
+                <h5>Tudo em dia!</h5>
+                <p>Nenhuma avaliação pendente no momento.</p>
               </div>
-              <h5>Tudo em dia!</h5>
-              <p>Nenhuma avaliação pendente no momento.</p>
-            </div>
-      
-            <ng-container *ngIf="!carregandoAvaliacoes && temAvaliacoesPendentes">
-              <div class="avaliacoes-list">
-                <button 
-                  *ngFor="let avaliacao of avaliacoesPendentes; trackBy: trackByAvaliacaoId" 
-                  mat-menu-item
-                  class="avaliacao-item"
-                  (click)="abrirDialogoAvaliacao(avaliacao)"
-                  type="button"
-                  role="menuitem"
-                  [attr.aria-label]="'Avaliar ' + avaliacao.nomeRestaurante + ' da visita em ' + formatarDataReserva(avaliacao.dataReserva)">
-                  <div class="avaliacao-content">
-                    <div class="restaurante-info">
-                      <div class="restaurante-icon">
-                        <mat-icon>restaurant</mat-icon>
+        
+              <ng-container *ngIf="!carregandoAvaliacoes && temAvaliacoesPendentes">
+                <div class="avaliacoes-list">
+                  <button 
+                    *ngFor="let avaliacao of avaliacoesPendentes; trackBy: trackByAvaliacaoId" 
+                    mat-menu-item
+                    class="avaliacao-item"
+                    (click)="abrirDialogoAvaliacao(avaliacao)"
+                    type="button"
+                    role="menuitem"
+                    [attr.aria-label]="'Avaliar ' + avaliacao.nomeRestaurante + ' da visita em ' + formatarDataReserva(avaliacao.dataReserva)">
+                    <div class="avaliacao-content">
+                      <div class="restaurante-info">
+                        <div class="restaurante-icon">
+                          <mat-icon>restaurant</mat-icon>
+                        </div>
+                        <div class="restaurante-details">
+                          <h5>{{ avaliacao.nomeRestaurante }}</h5>
+                          <p class="data-visita">
+                            <mat-icon>schedule</mat-icon>
+                            Visita em {{ formatarDataReserva(avaliacao.dataReserva) }}
+                          </p>
+                        </div>
                       </div>
-                      <div class="restaurante-details">
-                        <h5>{{ avaliacao.nomeRestaurante }}</h5>
-                        <p class="data-visita">
-                          <mat-icon>schedule</mat-icon>
-                          Visita em {{ formatarDataReserva(avaliacao.dataReserva) }}
-                        </p>
+                      <div class="avaliacao-action">
+                        <mat-icon>star_border</mat-icon>
+                        <span>Avaliar</span>
                       </div>
                     </div>
-                    <div class="avaliacao-action">
-                      <mat-icon>star_border</mat-icon>
-                      <span>Avaliar</span>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                </div>
+              </ng-container>
+            </div>
+
+            <!-- Tab Lidas -->
+            <div *ngIf="activeTab === 'lidas'" class="tab-content">
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <mat-icon aria-hidden="true">inbox</mat-icon>
+                </div>
+                <h5>Nenhuma notificação lida</h5>
+                <p>As avaliações que você responder aparecerão aqui.</p>
               </div>
-            </ng-container>
+            </div>
           </div>
         </mat-menu>
       </div>

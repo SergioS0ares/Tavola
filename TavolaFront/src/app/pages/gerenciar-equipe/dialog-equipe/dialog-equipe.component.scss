@@ -12,7 +12,7 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border: none;
+    border: 2px solid var(--tavola-amarelo);
   }
 
   .dialog-header {
@@ -64,6 +64,46 @@
     padding: 24px;
     flex: 1;
     overflow-y: auto;
+    
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      
+      .form-field {
+        .full-width {
+          ::ng-deep {
+            .mat-mdc-form-field-flex {
+              background: var(--fundo-claro);
+              border-radius: 8px;
+            }
+            
+            .mat-mdc-input-element {
+              color: var(--cor-texto);
+              font-size: 14px;
+            }
+            
+            .mat-mdc-form-field-label {
+              color: rgba(59, 34, 27, 0.7);
+            }
+            
+            .mdc-notched-outline__leading,
+            .mdc-notched-outline__notch,
+            .mdc-notched-outline__trailing {
+              border-color: var(--tavola-amarelo);
+            }
+            
+            &.mat-focused {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: var(--tavola-amarelo);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   .dialog-actions {
@@ -310,6 +350,7 @@
       max-width: 90vw;
       margin: 20px;
       max-height: 90vh;
+      border: none; // Remove borda cinza no mobile
     }
 
     .dialog-header {
@@ -326,6 +367,60 @@
 
     .dialog-content {
       padding: 20px;
+      
+      .form-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        
+        .form-field {
+          width: 100%;
+          max-width: 400px;
+          
+          .full-width {
+            width: 100%;
+            
+            ::ng-deep {
+              .mat-mdc-form-field-flex {
+                background: var(--fundo-claro);
+                border-radius: 12px;
+                min-height: 60px;
+              }
+              
+              .mat-mdc-input-element {
+                color: var(--cor-texto);
+                font-size: 16px;
+                font-weight: 500;
+                padding: 16px 20px;
+                text-align: center;
+              }
+              
+              .mat-mdc-form-field-label {
+                color: rgba(59, 34, 27, 0.7);
+                font-weight: 600;
+                font-size: 15px;
+              }
+              
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: var(--tavola-amarelo);
+                border-width: 2px;
+              }
+              
+              &.mat-focused {
+                .mdc-notched-outline__leading,
+                .mdc-notched-outline__notch,
+                .mdc-notched-outline__trailing {
+                  border-color: var(--tavola-amarelo);
+                  border-width: 2px;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     .dialog-actions {

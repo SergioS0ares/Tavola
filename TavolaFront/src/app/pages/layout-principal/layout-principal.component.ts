@@ -79,6 +79,7 @@ export class LayoutPrincipalComponent implements OnInit {
   // Propriedades para avaliações pendentes
   avaliacoesPendentes: AvaliacaoPendente[] = []
   carregandoAvaliacoes = false
+  activeTab: 'pendentes' | 'lidas' = 'pendentes'
 
   private router = inject(Router)
   private auth = inject(AuthService)
@@ -400,5 +401,12 @@ export class LayoutPrincipalComponent implements OnInit {
 
   trackByAvaliacaoId(index: number, avaliacao: AvaliacaoPendente): string {
     return avaliacao.idReserva
+  }
+
+  /**
+   * Define a aba ativa no menu de notificações
+   */
+  setActiveTab(tab: 'pendentes' | 'lidas'): void {
+    this.activeTab = tab
   }
 }
