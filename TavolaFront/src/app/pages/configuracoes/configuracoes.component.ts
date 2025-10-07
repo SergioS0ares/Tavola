@@ -308,14 +308,7 @@ export class ConfiguracoesComponent implements OnInit {
       const reader = new FileReader()
       reader.onload = () => {
         this.previewImage = reader.result as string
-        console.log(
-          "[onFileSelected] reader.result (base64):",
-          reader.result ? (reader.result as string).substring(0, 100) + "..." : "null",
-        )
-        console.log(
-          "[onFileSelected] previewImage after onload:",
-          this.previewImage ? this.previewImage.substring(0, 100) + "..." : "null",
-        )
+      
         if (this.isRestaurante) {
           if (this.userData.imagens) {
             this.userData.imagens[0] = this.previewImage

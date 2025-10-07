@@ -37,7 +37,7 @@ export class GerenciarEquipeComponent implements OnInit {
   equipeFiltrada: MembroEquipe[] = [];
   carregando = false;
   pesquisa = '';
-  copiado = false;
+  copiadoMembros: { [key: string]: boolean } = {};
 
   constructor(
     private equipeService: EquipeService,
@@ -159,16 +159,16 @@ export class GerenciarEquipeComponent implements OnInit {
   /**
    * Copia o código de acesso para a área de transferência
    */
-  copiarCodigo(codigo: string): void {
-    this.copiado = true;
+  copiarCodigo(codigo: string, membroId: string): void {
+    this.copiadoMembros[membroId] = true;
     navigator.clipboard.writeText(codigo).then(() => {
       this.toastr.success('Código copiado!', 'Sucesso');
       setTimeout(() => {
-        this.copiado = false;
+        this.copiadoMembros[membroId] = false;
       }, 2000);
     }).catch(() => {
       this.toastr.error('Erro ao copiar código', 'Erro');
-      this.copiado = false;
+      this.copiadoMembros[membroId] = false;
     });
   }
 
