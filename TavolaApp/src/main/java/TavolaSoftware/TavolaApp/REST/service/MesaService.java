@@ -5,8 +5,14 @@ import TavolaSoftware.TavolaApp.REST.model.Ambiente;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.repository.AmbienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.MesaRepository;
+import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
+import TavolaSoftware.TavolaApp.tools.MesaStatus;
+import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +26,9 @@ public class MesaService {
 
     @Autowired
     private AmbienteRepository ambienteRepository;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * Cria uma nova mesa e a associa a um ambiente.
@@ -42,6 +51,35 @@ public class MesaService {
 
         // 4. Salva a mesa no banco de dados.
         return mesaRepository.save(novaMesa);
+    }
+    
+    /*
+     * Atualiza o status da mesa, olha a enum de status de mesa pra ver os valores, 
+     * tô com preguiça de escrever tudo isso aqui.
+     * */
+    @Transactional
+    public Mesa updateStatus(UUID idMesa, String novoStatusStr) {
+        MesaStatus novoStatus;
+        try {
+            novoStatus = MesaStatus.valueOf(novoStatusStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status de mesa inválido: " + novoStatusStr);
+        }
+
+        // Para pegar o token do garçom, precisamos extrair do contexto de segurança
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        Claims claims = jwtUtil.parseToken(token);
+        UUID restauranteIdDoGarcom = UUID.fromString(claims.get("restanteId", String.class));
+        
+        Mesa mesa = mesaRepository.findById(idMesa)
+                .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada com o id: " + idMesa));
+
+        if (!mesa.getAmbiente().getRestaurante().getId().equals(restauranteIdDoGarcom)) {
+            throw new SecurityException("Acesso negado. Você não tem permissão para gerenciar esta mesa.");
+        }
+
+        mesa.setStatus(novoStatus);
+        return mesaRepository.save(mesa);
     }
 
     /**
