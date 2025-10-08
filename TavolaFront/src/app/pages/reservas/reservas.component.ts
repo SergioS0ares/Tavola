@@ -64,6 +64,7 @@ import { IReserva } from '../../Interfaces/IReserva.interface';
 import { IMesa } from '../../Interfaces/IMesa.interface';
 import { ICliente } from '../../Interfaces/ICliente.interface';
 import { IAmbiente } from '../../Interfaces/IAmbiente.interface';
+import { DialogGerenciarMesasComponent } from './dialog-gerenciar-mesas/dialog-gerenciar-mesas.component';
 
 // Seus Serviços
 import { AmbienteService } from '../../core/services/ambiente.service';
