@@ -7,6 +7,9 @@ import TavolaSoftware.TavolaApp.REST.repository.AmbienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.MesaRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.MesaStatus;
+import TavolaSoftware.TavolaApp.REST.dto.responses.MesaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.WebSocketMessage;
+import TavolaSoftware.TavolaApp.tools.EventLabel;
 import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -14,6 +17,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +34,9 @@ public class MesaService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+    
     /**
      * Cria uma nova mesa e a associa a um ambiente.
      * @param request DTO com os dados da nova mesa.
@@ -79,6 +86,22 @@ public class MesaService {
         }
 
         mesa.setStatus(novoStatus);
+        
+     // 1. Define o "canal" (tópico) para o qual a mensagem será enviada.
+        //    Será um canal exclusivo para este restaurante.
+        String topic = "/topic/restaurante/" + restauranteIdDoGarcom + "/mesas";
+
+        // 2. Cria a mensagem no nosso formato padrão (o "envelope").
+        //    Usamos o "payload rico", enviando o objeto MesaResponse completo.
+        WebSocketMessage mensagem = new WebSocketMessage(
+            EventLabel.MESA_UPDATE_STATUS, 
+            MesaResponse.fromEntity(mesa)
+        );
+
+        // 3. Dispara a mensagem para todos os clientes inscritos no tópico.
+        System.out.println("Disparando mensagem para o tópico: " + topic);
+        messagingTemplate.convertAndSend(topic, mensagem);
+        
         return mesaRepository.save(mesa);
     }
 
