@@ -24,9 +24,19 @@
       </mat-autocomplete>
     </mat-form-field>
 
-    <!-- Botão de busca -->
-    <button class="search-btn" type="submit">
-      PROCURAR
-    </button>
+    <!-- Botões container para mobile -->
+    <div class="buttons-container">
+      <!-- Botão de filtros -->
+      <button type="button" class="filtros-btn" (click)="onFiltrosClick()" matTooltip="Filtros de busca">
+        <mat-icon>tune</mat-icon>
+        <span class="btn-text">Filtros</span>
+      </button>
+
+      <!-- Botão de busca -->
+      <button class="search-btn" type="submit">
+        <mat-icon>search</mat-icon>
+        <span class="btn-text">PROCURAR</span>
+      </button>
+    </div>
   </div>
 </form> 

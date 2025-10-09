@@ -1,0 +1,98 @@
+<div class="filtros-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>tune</mat-icon>
+      Filtros de Busca
+    </h2>
+    <button mat-icon-button (click)="cancelar()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="filtrosForm">
+      <!-- Dia da Semana -->
+      <mat-card class="filtro-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>calendar_today</mat-icon>
+            Dia da Semana
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Selecione o dia</mat-label>
+            <mat-select formControlName="diaSemana">
+              <mat-option *ngFor="let dia of diasSemana" [value]="dia.value">
+                {{ dia.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Nota Mínima -->
+      <mat-card class="filtro-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>star</mat-icon>
+            Nota Mínima
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="rating-container">
+            <nz-rate 
+              [ngModel]="notaMinima" 
+              (ngModelChange)="onRateChange($event)"
+              [nzAllowHalf]="false"
+              [nzCount]="5">
+            </nz-rate>
+            <span class="rating-text">
+              {{ notaMinima > 0 ? notaMinima + ' estrela' + (notaMinima > 1 ? 's' : '') : 'Qualquer nota' }}
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Serviços -->
+      <mat-card class="filtro-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>room_service</mat-icon>
+            Serviços
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="servicos-grid">
+            <div 
+              *ngFor="let servico of todosServicos" 
+              class="servico-item"
+              [class.selected]="isServicoSelecionado(servico.nome)">
+              <mat-checkbox 
+                [checked]="isServicoSelecionado(servico.nome)"
+                (change)="onServicoChange(servico.nome, $event.checked)"
+                class="servico-checkbox">
+              </mat-checkbox>
+              <mat-icon class="servico-icon">{{ servico.icone }}</mat-icon>
+              <span class="servico-nome">{{ servico.nome }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="limparFiltros()" class="limpar-btn">
+      <mat-icon>clear</mat-icon>
+      Limpar
+    </button>
+    <button mat-button (click)="cancelar()" class="cancelar-btn">
+      Cancelar
+    </button>
+    <button mat-raised-button (click)="aplicarFiltros()" class="aplicar-btn">
+      <mat-icon>check</mat-icon>
+      Aplicar Filtros
+    </button>
+  </mat-dialog-actions>
+</div>

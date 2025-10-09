@@ -3,30 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
+import { IUpdateRestaurantePayload } from '../../Interfaces/IUpdateRestaurantePayload.interface';
+import { IPesquisaRestaurantePayload } from '../../Interfaces/IPesquisaRestaurantePayload.interface';
 import { map, tap } from 'rxjs/operators';
-
-export interface IUpdateRestaurantePayload {
-  tipoCozinha?: string;
-  descricao?: string;
-  horariosFuncionamento?: { diaSemana: string; abertura: string; fechamento: string }[];
-  nomesServicos?: string[];
-  imagens?: string[];
-  
-  // Campos de usuário para atualização de restaurante
-  nomeUsuario?: string;
-  emailUsuario?: string;
-  senhaUsuario?: string;
-  telefoneUsuario?: string;
-  enderecoUsuario?: {
-    cep: string;
-    estado: string;
-    cidade: string;
-    bairro: string;
-    rua: string;
-    numero: string;
-    complemento?: string;
-  };
-}
 
 @Injectable({ providedIn: 'root' })
 export class RestauranteService {
@@ -98,11 +77,7 @@ export class RestauranteService {
     return this.http.delete(`${this.apiUrl}`);
   }
 
-  getRestaurantesPorCidade(cidade: string): Observable<IRestaurante[]> {
-    return this.http.get<IRestaurante[]>(`${this.apiUrl}/por-cidade?cidade=${cidade}`);
-  }
-
-  getPesquisarRestaurantes(termo: string, pagina: number = 0, tamanho: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/pesquisar?termo=${termo}&pagina=${pagina}&tamanho=${tamanho}`);
+  pesquisarRestaurantes(payload: IPesquisaRestaurantePayload): Observable<IRestaurante[]> {
+    return this.http.post<IRestaurante[]>(`${this.apiUrl}/pesquisar`, payload);
   }
 }

@@ -21,6 +21,7 @@
             (selectCity)="selectCity($event)"
             (selectQuery)="selectQuery($event)"
             (cityBlur)="onCityBlur($event)"
+            (filtrosClick)="abrirDialogFiltros()"
           ></app-search-bar>
         </div>
       </div>
@@ -44,34 +45,67 @@
 </div>
 
 <div class="restaurants-section" [class.sidebar-aberta]="isSidebarOpen">
-  <div *ngFor="let cuisine of getCuisineTypes()" class="cuisine-group">
-    <div class="cuisine-header">
-      <h2>{{ cuisine }}</h2>
-      <div class="navigation-arrows">
-        <button mat-icon-button (click)="scrollRestaurants(cuisine, 'left')" [disabled]="!canScrollLeft(cuisine)">
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-        <button mat-icon-button (click)="scrollRestaurants(cuisine, 'right')" [disabled]="!canScrollRight(cuisine)">
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
+  <!-- Estado de busca vazia -->
+  <div *ngIf="fezBusca && !buscando && restaurants.length === 0" class="tavola-empty-search">
+    <div class="empty-icon">
+      <mat-icon>search_off</mat-icon>
     </div>
+    <h3>Nenhum restaurante encontrado</h3>
+    <p>Não encontramos nenhum restaurante com os critérios selecionados.</p>
+    <button mat-raised-button color="primary" (click)="limparBusca()">
+      <mat-icon>refresh</mat-icon>
+      Limpar busca
+    </button>
+  </div>
 
-    <div class="scrollable-restaurants" #scrollContainer [attr.data-cuisine]="cuisine" (scroll)="onRestaurantScroll($event, cuisine)">
-      <div class="restaurants-grid">
-        <div class="restaurant-card" *ngFor="let r of groupedRestaurants[cuisine]" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
-          <img [src]="getImagemRestaurante(r)" [alt]="r.nome" class="restaurant-img" />
-          <div class="restaurant-info">
-            <div class="restaurant-address">{{ getEnderecoFormatado(r) }}</div>
-            <div class="restaurant-name">{{ r.nome }}</div>
-            <div class="restaurant-rating">
-              <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r)}">star</mat-icon>
-              <span class="rate-number">{{ r.mediaAvaliacao }}</span>
-              <span class="reviews-count" *ngIf="getTotalAvaliacoes(r) > 0">({{ getTotalAvaliacoes(r) }} avaliações)</span>
+  <!-- Estado de carregamento da busca -->
+  <div *ngIf="buscando" class="loading-state">
+    <div class="loading-spinner">
+      <mat-icon>hourglass_empty</mat-icon>
+    </div>
+    <p>Buscando restaurantes...</p>
+  </div>
+
+  <!-- Lista de restaurantes agrupados por cozinha -->
+  <div *ngIf="!buscando && restaurants.length > 0">
+    <div *ngFor="let cuisine of getCuisineTypes()" class="cuisine-group">
+      <div class="cuisine-header">
+        <h2>{{ cuisine }}</h2>
+        <div class="navigation-arrows">
+          <button mat-icon-button (click)="scrollRestaurants(cuisine, 'left')" [disabled]="!canScrollLeft(cuisine)">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <button mat-icon-button (click)="scrollRestaurants(cuisine, 'right')" [disabled]="!canScrollRight(cuisine)">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="scrollable-restaurants" #scrollContainer [attr.data-cuisine]="cuisine" (scroll)="onRestaurantScroll($event, cuisine)">
+        <div class="restaurants-grid">
+          <div class="restaurant-card" *ngFor="let r of groupedRestaurants[cuisine]" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
+            <img [src]="getImagemRestaurante(r)" [alt]="r.nome" class="restaurant-img" />
+            <div class="restaurant-info">
+              <div class="restaurant-address">{{ getEnderecoFormatado(r) }}</div>
+              <div class="restaurant-name">{{ r.nome }}</div>
+              <div class="restaurant-rating">
+                <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r)}">star</mat-icon>
+                <span class="rate-number">{{ r.mediaAvaliacao }}</span>
+                <span class="reviews-count" *ngIf="getTotalAvaliacoes(r) > 0">({{ getTotalAvaliacoes(r) }} avaliações)</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Estado inicial (sem busca) -->
+  <div *ngIf="!fezBusca && !buscando && restaurants.length === 0" class="initial-state">
+    <div class="initial-icon">
+      <mat-icon>restaurant</mat-icon>
+    </div>
+    <h3>Descubra os melhores restaurantes</h3>
+    <p>Use a barra de pesquisa acima para encontrar restaurantes por cidade, nome ou tipo de cozinha.</p>
   </div>
 </div>

@@ -705,6 +705,41 @@
   &.sidebar-fechada {
     margin-left: 20px;
   }
+
+  // Estilo mobile para a search bar sticky
+  @media (max-width: 768px) {
+    max-width: none;
+    margin: 0 16px;
+    
+    .input-group {
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    .custom-field {
+      min-width: 100%;
+      max-width: 100%;
+      margin-right: 0;
+    }
+
+    .buttons-container {
+      flex-direction: row;
+      gap: 8px;
+    }
+
+    .filtros-btn, .search-btn {
+      height: 40px;
+      flex: 1;
+      min-width: auto;
+      font-size: 12px;
+      
+      .btn-text {
+        font-size: 11px;
+      }
+    }
+  }
 }
 
 ::ng-deep {

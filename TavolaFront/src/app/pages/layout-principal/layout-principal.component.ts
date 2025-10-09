@@ -5,7 +5,6 @@ import { RouterOutlet } from "@angular/router"
 import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
 import { MatMenuModule } from "@angular/material/menu"
-import { MatDialog } from "@angular/material/dialog"
 import { AuthService } from "../../core/services/auth.service"
 import { AcessService } from "../../core/services/access.service"
 import { CommonModule } from "@angular/common"
@@ -15,10 +14,13 @@ import { FormControl } from "@angular/forms"
 import { type Observable, of, startWith, map, shareReplay } from "rxjs"
 import { trigger, transition, style, animate } from "@angular/animations"
 import { HomeComponent } from "../home/home.component" // Importe HomeComponent para verificar a instância
-import { RestauranteService } from "../../core/services/restaurante.service" // NEW IMPORT
+import { RestauranteService } from "../../core/services/restaurante.service"
+import { IPesquisaRestaurantePayload } from "../../Interfaces/IPesquisaRestaurantePayload.interface"
 import { ToastrService } from "ngx-toastr"
 import { AvaliacaoService, type AvaliacaoPendente } from "../../core/services/avaliacao.service"
 import { AvaliacaoDialogComponent, type AvaliacaoDialogData } from "../avaliacao-dialog/avaliacao-dialog.component"
+import { MatDialog } from "@angular/material/dialog"
+import { FiltrosDialogComponent, type FiltrosDialogData, type FiltrosDialogResult } from "../home/filtros-dialog/filtros-dialog.component"
 import { NzBadgeModule } from "ng-zorro-antd/badge"
 import { NzDropDownModule } from "ng-zorro-antd/dropdown"
 import { NzLayoutModule } from "ng-zorro-antd/layout"
@@ -80,6 +82,13 @@ export class LayoutPrincipalComponent implements OnInit {
   avaliacoesPendentes: AvaliacaoPendente[] = []
   carregandoAvaliacoes = false
   activeTab: 'pendentes' | 'lidas' = 'pendentes'
+
+  // Filtros de busca para a search bar sticky
+  filtrosAtuais: FiltrosDialogResult = {
+    diaSemana: '',
+    notaMinima: 0,
+    servicos: []
+  }
 
   private router = inject(Router)
   private auth = inject(AuthService)
@@ -228,6 +237,8 @@ export class LayoutPrincipalComponent implements OnInit {
             console.log("Sticky Search - HomeComponent ativo após navegação. Sincronizando e buscando...")
             this.currentHomeComponent.cityCtrl.setValue(this.cityCtrl.value, { emitEvent: false })
             this.currentHomeComponent.queryCtrl.setValue(this.queryCtrl.value, { emitEvent: false })
+            // Sincroniza os filtros também
+            this.currentHomeComponent.filtrosAtuais = this.filtrosAtuais
             this.currentHomeComponent.onSearch()
             console.log("Sticky Search - onSearch do HomeComponent acionado.")
           } else {
@@ -243,6 +254,8 @@ export class LayoutPrincipalComponent implements OnInit {
       console.log("Sticky Search - Já na rota /home e componente ativo. Sincronizando e buscando diretamente.")
       this.currentHomeComponent!.cityCtrl.setValue(this.cityCtrl.value, { emitEvent: false }) // Use ! para garantir que não é null
       this.currentHomeComponent!.queryCtrl.setValue(this.queryCtrl.value, { emitEvent: false })
+      // Sincroniza os filtros também
+      this.currentHomeComponent!.filtrosAtuais = this.filtrosAtuais
       this.currentHomeComponent!.onSearch()
       console.log("Sticky Search - onSearch do HomeComponent acionado diretamente.")
     }
@@ -408,5 +421,28 @@ export class LayoutPrincipalComponent implements OnInit {
    */
   setActiveTab(tab: 'pendentes' | 'lidas'): void {
     this.activeTab = tab
+  }
+
+  abrirDialogFiltros(): void {
+    const dialogData: FiltrosDialogData = {
+      diaSemana: this.filtrosAtuais.diaSemana,
+      notaMinima: this.filtrosAtuais.notaMinima,
+      servicos: this.filtrosAtuais.servicos
+    };
+
+    const dialogRef = this.dialog.open(FiltrosDialogComponent, {
+      data: dialogData,
+      width: '600px',
+      maxWidth: '90vw',
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result: FiltrosDialogResult | null) => {
+      if (result) {
+        this.filtrosAtuais = result;
+        console.log('Filtros aplicados na toolbar:', this.filtrosAtuais);
+        this.toastService.success('Filtros aplicados com sucesso!');
+      }
+    });
   }
 }

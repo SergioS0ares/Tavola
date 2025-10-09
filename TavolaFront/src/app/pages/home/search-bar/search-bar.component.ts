@@ -5,13 +5,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable, of } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, FormsModule, ReactiveFormsModule, MatAutocompleteModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, FormsModule, ReactiveFormsModule, MatAutocompleteModule, MatTooltipModule],
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.scss'],
   animations: [
@@ -42,6 +43,7 @@ export class SearchBarComponent {
   @Output() selectCity = new EventEmitter<string>();
   @Output() selectQuery = new EventEmitter<string>();
   @Output() cityBlur = new EventEmitter<FocusEvent>();
+  @Output() filtrosClick = new EventEmitter<void>();
 
   onCidadeInput(event: any) { this.cityInput.emit(event); }
   onQueryInput(event: any) { this.queryInput.emit(event); }
@@ -49,6 +51,7 @@ export class SearchBarComponent {
   onSelectQuery(query: string) { this.selectQuery.emit(query); }
   onSearch() { this.search.emit(); }
   onCityBlur(event: FocusEvent) { this.cityBlur.emit(event); }
+  onFiltrosClick() { this.filtrosClick.emit(); }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {

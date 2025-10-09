@@ -11,12 +11,14 @@ import { SearchBarComponent } from './search-bar/search-bar.component';
 import { StickySearchService } from '../../core/services/sticky-search.service';
 import { RouterModule, Router } from '@angular/router';
 import { RestauranteService } from '../../core/services/restaurante.service';
-import { IPesquisaRestauranteResponse } from '../../Interfaces/IPesquisaRestaurante.interface';
+import { IPesquisaRestaurantePayload } from '../../Interfaces/IPesquisaRestaurantePayload.interface';
 import { MapsService } from '../../core/services/maps.service';
 import { IRestaurante } from '../../Interfaces/IRestaurante.interface';
 import { GlobalSpinnerService } from '../../core/services/global-spinner.service';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
+import { FiltrosDialogComponent, FiltrosDialogData, FiltrosDialogResult } from './filtros-dialog/filtros-dialog.component';
 
 @Component({
   selector: 'app-home',
@@ -65,6 +67,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   scrollStates: { [cuisine: string]: { canScrollLeft: boolean; canScrollRight: boolean; } } = {};
   @ViewChildren('scrollContainer') scrollContainers!: QueryList<ElementRef>;
 
+  // Filtros de busca
+  filtrosAtuais: FiltrosDialogResult = {
+    diaSemana: '',
+    notaMinima: 0,
+    servicos: []
+  };
+
+  // Estados de busca
+  fezBusca = false;
+  buscando = false;
+
 
   constructor(
     private stickyService: StickySearchService,
@@ -73,7 +86,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private mapsService: MapsService,
     private router: Router,
     private spinnerService: GlobalSpinnerService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -209,67 +223,40 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSearch() {
     this.spinnerService.mostrar();
+    this.buscando = true;
+    this.fezBusca = true;
     this.restaurants = [];
     this.groupedRestaurants = {};
 
     const cidadeBusca = this.cityCtrl.value?.trim();
     const termoBusca = this.queryCtrl.value?.trim();
 
-    if (cidadeBusca && termoBusca) {
-      this.restauranteService.getRestaurantesPorCidade(cidadeBusca).subscribe({
-        next: (restaurantsPorCidade) => {
-          const filteredByTerm = restaurantsPorCidade.filter(r => 
-            r.nome.toLowerCase().includes(termoBusca.toLowerCase()) || 
-            (r.tipoCozinha && r.tipoCozinha.toLowerCase().includes(termoBusca.toLowerCase()))
-          );
-          this.setRestaurants(filteredByTerm);
-          this.spinnerService.ocultar();
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao buscar restaurantes por cidade.');
-          console.error(err);
-          this.spinnerService.ocultar();
+    // Monta o payload com os filtros
+    const payload: IPesquisaRestaurantePayload = {
+      termo: termoBusca || '',
+      cidadeLocal: cidadeBusca || '',
+      diaSemana: this.filtrosAtuais.diaSemana,
+      notaMinima: this.filtrosAtuais.notaMinima.toString(),
+      servicos: this.filtrosAtuais.servicos
+    };
+
+    this.restauranteService.pesquisarRestaurantes(payload).subscribe({
+      next: (restaurantes: IRestaurante[]) => {
+        this.setRestaurants(restaurantes);
+        this.spinnerService.ocultar();
+        this.buscando = false;
+        
+        if (restaurantes.length === 0) {
+          this.toastr.info('Nenhum restaurante encontrado com os critérios selecionados.');
         }
-      });
-    } else if (cidadeBusca) {
-      this.restauranteService.getRestaurantesPorCidade(cidadeBusca).subscribe({
-        next: (restaurantsPorCidade) => {
-          this.setRestaurants(restaurantsPorCidade);
-          this.spinnerService.ocultar();
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao buscar restaurantes por cidade.');
-          console.error(err);
-          this.spinnerService.ocultar();
-        }
-      });
-    } else if (termoBusca) {
-      this.restauranteService.getPesquisarRestaurantes(termoBusca, 0, 10).subscribe({
-        next: (response: IPesquisaRestauranteResponse) => {
-          this.setRestaurants(response.content || []);
-          this.spinnerService.ocultar();
-        },
-        error: (err: any) => {
-          this.toastr.error('Erro ao pesquisar restaurantes.');
-          console.error(err);
-          this.spinnerService.ocultar();
-        }
-      });
-    } else {
-      this.restauranteService.getRestaurantes().subscribe({
-        next: (allRestaurants) => {
-          this.setRestaurants(allRestaurants);
-          this.spinnerService.ocultar();
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao carregar todos os restaurantes.');
-          console.error(err);
-          this.spinnerService.ocultar();
-        }
-      });
-      this.toastr.info('Por favor, digite um termo ou selecione uma cidade para buscar.');
-      this.spinnerService.ocultar();
-    }
+      },
+      error: (err: any) => {
+        this.toastr.error('Erro ao pesquisar restaurantes.');
+        console.error(err);
+        this.spinnerService.ocultar();
+        this.buscando = false;
+      }
+    });
   }
 
   onCityInput(event: any) {
@@ -385,5 +372,42 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getTotalAvaliacoes(r: IRestaurante): number {
     return r.totalDeAvaliacoes || 0;
+  }
+
+  abrirDialogFiltros(): void {
+    const dialogData: FiltrosDialogData = {
+      diaSemana: this.filtrosAtuais.diaSemana,
+      notaMinima: this.filtrosAtuais.notaMinima,
+      servicos: this.filtrosAtuais.servicos
+    };
+
+    const dialogRef = this.dialog.open(FiltrosDialogComponent, {
+      data: dialogData,
+      width: '600px',
+      maxWidth: '90vw',
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result: FiltrosDialogResult | null) => {
+      if (result) {
+        this.filtrosAtuais = result;
+        console.log('Filtros aplicados:', this.filtrosAtuais);
+        this.toastr.success('Filtros aplicados com sucesso!');
+      }
+    });
+  }
+
+  limparBusca() {
+    this.fezBusca = false;
+    this.buscando = false;
+    this.restaurants = [];
+    this.groupedRestaurants = {};
+    this.cityCtrl.setValue('');
+    this.queryCtrl.setValue('');
+    this.filtrosAtuais = {
+      diaSemana: '',
+      notaMinima: 0,
+      servicos: []
+    };
   }
 }

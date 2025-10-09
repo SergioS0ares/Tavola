@@ -124,8 +124,7 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
   border-radius: 15px;
   padding: 0 22px;
   height: 44px;
-  margin-left: 12px;
-  margin-right: 4px;
+  margin: 0;
   font-size: 1.05rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   transition: background 0.2s, color 0.2s;
@@ -135,11 +134,66 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
+  gap: 6px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-text {
+    font-size: 12px;
+    font-weight: 700;
+  }
 }
 .search-btn:hover, .search-btn:focus {
   background: #ffe08a;
   color: #222;
+}
+
+.buttons-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.filtros-btn {
+  background: #c22523;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 0 16px;
+  height: 44px;
+  margin: 0;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  outline: none;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:hover, &:focus {
+    background: #a01e1c;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(194, 37, 35, 0.3);
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-text {
+    font-size: 12px;
+    font-weight: 600;
+  }
 }
 
 .city-dropdown-absolute {
@@ -254,20 +308,81 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
   .banner-content { max-width: 98vw; }
   .banner-row { flex-direction: column; align-items: center; }
   .banner-left { align-items: center; margin-left: 0; margin-right: 0; max-width: 100%; }
+  
+  // Layout mobile estilo TheFork
   .input-group {
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     width: 98vw;
     max-width: 98vw;
+    padding: 16px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
   }
+  
   .custom-field {
     min-width: 100%;
     max-width: 100%;
     margin-right: 0;
+    
+    // Input fields com estilo TheFork
+    .mat-form-field {
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+      
+      &:focus-within {
+        border-color: #F6BD38;
+        box-shadow: 0 0 0 3px rgba(246, 189, 56, 0.1);
+      }
+    }
   }
-  .search-btn { margin-top: 8px; height: 48px; }
+  
+  // Botões em linha horizontal no mobile
+  .buttons-container {
+    flex-direction: row;
+    width: 100%;
+    gap: 12px;
+  }
+  
+  .filtros-btn, .search-btn {
+    margin: 0;
+    height: 48px;
+    flex: 1;
+    min-width: auto;
+    border-radius: 12px;
+  }
+  
+  .filtros-btn {
+    background: #6c757d;
+    color: white;
+    
+    &:hover {
+      background: #5a6268;
+    }
+  }
+  
+  .search-btn {
+    background: #F6BD38;
+    color: #3B221B;
+    font-weight: 700;
+    
+    &:hover {
+      background: #f4a261;
+    }
+  }
+  
   .pizza-img { max-width: 180px; }
-  .banner h1 { font-size: 1.5rem; text-align: center; margin-right: 0; }
+  .banner h1 { 
+    font-size: 1.5rem; 
+    text-align: center; 
+    margin-right: 0; 
+    margin-bottom: 20px;
+    color: white;
+  }
 }
 
 .results-grid {
