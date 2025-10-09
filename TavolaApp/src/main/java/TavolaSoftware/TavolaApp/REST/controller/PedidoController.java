@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
+import TavolaSoftware.TavolaApp.REST.dto.requests.PedidoRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.StatusUpdateRequest;
 import TavolaSoftware.TavolaApp.REST.service.PedidoService;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,6 +17,21 @@ public class PedidoController {
 
     @Autowired
     private PedidoService pedidoService;
+    
+    @PostMapping
+    public ResponseEntity<?> criarPedido(@PathVariable UUID mesaId, @RequestBody PedidoRequest request) {
+        try {
+            // A lógica de extrair o garçom do token será feita no service
+            var pedidoCriado = pedidoService.criarPedido(mesaId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCriado); // Retorna o PedidoResponse
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
 
     @PutMapping("/{idPedido}/status")
     public ResponseEntity<?> updatePedidoStatus(@PathVariable UUID idPedido, @RequestBody StatusUpdateRequest request) {

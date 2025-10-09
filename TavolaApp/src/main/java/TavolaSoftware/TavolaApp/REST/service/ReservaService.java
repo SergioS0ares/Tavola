@@ -16,7 +16,10 @@ import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.tools.StatusReserva;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import TavolaSoftware.TavolaApp.REST.dto.responses.WebSocketMessage;
+import TavolaSoftware.TavolaApp.tools.EventLabel;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +38,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Map;
 
+
 @Service
 public class ReservaService {
 
@@ -44,6 +48,8 @@ public class ReservaService {
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private MesaRepository mesaRepository;
     @Autowired private AvaliacaoService avaliacaoService;
+    @Autowired private SimpMessagingTemplate messagingTemplate;
+    
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -89,8 +95,13 @@ public class ReservaService {
             }
             novaReserva.setMesas(mesasEncontradas);
         }
-
+        
         Reserva reservaSalva = reservaRepository.save(novaReserva);
+        ReservaResponse response = new ReservaResponse(reservaSalva);
+        
+        String topic = "/topic/restaurante/" + reservaSalva.getRestaurante().getId() + "/reservas";
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.RESERVA_UPDATE_NEW, response));
+        
         return new ReservaResponse(reservaSalva);
     }
     
@@ -213,6 +224,10 @@ public class ReservaService {
 
         reserva.setStatus(novoStatus);
         Reserva reservaAtualizada = reservaRepository.save(reserva);
+        ReservaResponse response = new ReservaResponse(reservaAtualizada);
+        
+        String topic = "/topic/restaurante/" + reservaAtualizada.getRestaurante().getId() + "/reservas";
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.RESERVA_UPDATE_STATUS, response));
         
         if (novoStatus == StatusReserva.CONCLUIDA) {
             avaliacaoService.enviarEmailLembreteAvaliacao(reservaAtualizada);
@@ -264,6 +279,11 @@ usuarioRepository.findByEmail(emailUsuarioLogado);
         
         reserva.setStatus(novoStatus);
         Reserva reservaSalva = reservaRepository.save(reserva);
+        ReservaResponse response = new ReservaResponse(reservaSalva);
+        
+        String topic = "/topic/restaurante/" + reservaSalva.getRestaurante().getId() + "/reservas";
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.RESERVA_UPDATE_STATUS, response));
+        
         return new ReservaResponse(reservaSalva);
     }
 
@@ -337,6 +357,11 @@ usuarioRepository.findByEmail(emailUsuarioLogado);
         validarQuantidadePessoas(reserva.getQuantidadePessoas());
 
         Reserva reservaAtualizada = reservaRepository.save(reserva);
+        ReservaResponse response = new ReservaResponse(reservaAtualizada);
+        
+        String topic = "/topic/restaurante/" + reservaAtualizada.getRestaurante().getId() + "/reservas";
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.RESERVA_UPDATE_MESA, response)); // Ou RESERVA_UPDATE_STATUS, dependendo do que mudou
+
         return new ReservaResponse(reservaAtualizada);
     }
 
