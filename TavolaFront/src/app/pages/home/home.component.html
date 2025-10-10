@@ -1,6 +1,11 @@
 <div class="banner" #banner>
   <div class="banner-content">
     <div class="banner-row">
+      <!-- Reordered for mobile: pizza first, then text, then search -->
+      <div class="banner-right">
+        <img src="assets/png/Pizza.png" alt="Pizza" class="pizza-img" />
+      </div>
+      
       <div class="banner-left">
         <h1>Descubra e reserve o melhor restaurante</h1>
         <div #searchSentinel></div>
@@ -24,9 +29,6 @@
             (filtrosClick)="abrirDialogFiltros()"
           ></app-search-bar>
         </div>
-      </div>
-      <div class="banner-right">
-        <img src="assets/png/Pizza.png" alt="Pizza" class="pizza-img" />
       </div>
     </div>
     <div class="city-dropdown-absolute" *ngIf="showCityDropdown">

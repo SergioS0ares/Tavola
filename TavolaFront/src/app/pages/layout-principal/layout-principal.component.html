@@ -88,53 +88,100 @@
 
 <div class="layout-container">
   <!-- Enhanced Toolbar/Header -->
-  <header class="toolbar" role="banner">
+  <header class="toolbar" [class.home-page]="router.url.startsWith('/home')" role="banner">
     <!-- Menu toggle buttons -->
     <button 
       class="menu-toggle mobile-menu-toggle" 
       (click)="openDrawer()" 
-      *ngIf="(isMobile$ | async)"
+      *ngIf="(isMobile$ | async) && !searchExpanded"
       type="button"
       aria-label="Abrir menu de navegação"
       [attr.aria-expanded]="isDrawerVisible">
-      <!-- Melhorado ícone hamburguer com animação mais suave -->
       <mat-icon [class.rotated]="isDrawerVisible" aria-hidden="true">menu</mat-icon>
     </button>
     
     <button 
       class="menu-toggle" 
       (click)="toggleSidebar()" 
-      *ngIf="!(isMobile$ | async)"
+      *ngIf="!(isMobile$ | async) && !searchExpanded"
       type="button"
       aria-label="Alternar sidebar"
       [attr.aria-expanded]="sidebarAberta">
       <mat-icon aria-hidden="true">menu</mat-icon>
     </button>
     
-    <!-- Enhanced Search bar -->
-    <app-search-bar
-      *ngIf="showStickySearchBar"
-      [@searchBarAnim]
-      [citySuggestions]="citySuggestions"
-      [querySuggestions]="querySuggestions"
-      [showCityDropdown]="showCityDropdown"
-      [showQueryDropdown]="showQueryDropdown"
-      [cityCtrl]="cityCtrl"
-      [queryCtrl]="queryCtrl"
-      (search)="onSearchSticky()"
-      (cityInput)="onCityInputSticky($event)"
-      (selectCity)="selectCitySticky($event)"
-      (selectQuery)="selectQuerySticky($event)"
-      (cityBlur)="onCityBlurSticky($event)"
-      (filtrosClick)="abrirDialogFiltros()"
-      class="toolbar-search-bar"
-      [class.sidebar-fechada]="!sidebarAberta"
-      role="search"
-      aria-label="Buscar restaurantes">
-    </app-search-bar>
+    <!-- Search icon button when sticky and not expanded -->
+    <button 
+      class="search-icon-btn" 
+      *ngIf="showStickySearchBar && !searchExpanded"
+      (click)="expandSearch()"
+      type="button"
+      aria-label="Expandir busca">
+      <mat-icon>search</mat-icon>
+    </button>
 
+    <!-- Expanded search container (GitHub/99 Food style) -->
+    <div class="expanded-search-container" *ngIf="showStickySearchBar && searchExpanded">
+      <!-- City chip -->
+      <button class="city-chip" (click)="openCitySelector()" type="button">
+        <mat-icon>location_on</mat-icon>
+        <span>{{ cidadeSelecionada }}</span>
+        <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+      </button>
+
+      <!-- Divider -->
+      <div class="search-divider"></div>
+
+      <!-- Main search input -->
+      <input 
+        class="search-input" 
+        placeholder="Busque por prato ou restaurante..." 
+        [formControl]="queryCtrl" 
+        (keyup.enter)="onSearchSticky()"
+        type="text">
+
+      <!-- Filter button -->
+      <button 
+        class="filter-button" 
+        (click)="abrirDialogFiltros()"
+        type="button"
+        aria-label="Abrir filtros">
+        <mat-icon>tune</mat-icon>
+      </button>
+
+      <!-- Close button -->
+      <button 
+        class="close-search-button" 
+        (click)="collapseSearch()"
+        type="button"
+        aria-label="Fechar busca">
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <!-- City dropdown for city selection -->
+      <div class="city-dropdown-expanded" *ngIf="showCityDropdown" (click)="$event.stopPropagation()">
+        <div class="dropdown-header">
+          <mat-icon>location_on</mat-icon>
+          <span>Selecione a cidade</span>
+        </div>
+        <div class="dropdown-item" (click)="selectCitySticky('Perto de mim'); showCityDropdown = false">
+          <mat-icon>my_location</mat-icon>
+          <span>Perto de mim</span>
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-title">Sugestões</div>
+        <div 
+          class="dropdown-item" 
+          *ngFor="let city of citySuggestions.slice(0, 5)" 
+          (click)="selectCitySticky(city); showCityDropdown = false">
+          <mat-icon>location_on</mat-icon>
+          <span>{{ city }}</span>
+        </div>
+      </div>
+    </div>
     
-    <div class="header-actions" style="display: flex; align-items: center; gap: 20px;"> 
+    <!-- Hide header actions when search is expanded on mobile -->
+    <div class="header-actions" *ngIf="!searchExpanded" style="display: flex; align-items: center; gap: 20px;"> 
       <div class="notifications" *ngIf="isCliente">
         <button 
           mat-icon-button 
@@ -277,7 +324,7 @@
   </header>
 
   <!-- Main content wrapper -->
-  <div class="main-wrapper">
+  <div class="main-wrapper" [class.home-page]="router.url.startsWith('/home')">
     <!-- Enhanced Desktop Sidebar -->
     <aside 
       class="desktop-sidebar" 

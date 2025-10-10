@@ -206,12 +206,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   initStickyObserver(elementToObserve: HTMLElement) {
     const observer = new IntersectionObserver(entries => {
-     
-      this.stickySearch = !entries[0].isIntersecting;
-      this.stickyService.setSticky(this.stickySearch);
-      this.cdr.detectChanges();
+      const isIntersecting = entries[0].isIntersecting;
+      
+      // Evita flickering: só muda o estado se realmente mudou
+      if (this.stickySearch === isIntersecting) {
+        this.stickySearch = !isIntersecting;
+        this.stickyService.setSticky(this.stickySearch);
+        this.cdr.detectChanges();
+      }
     }, {
-      threshold: [0, 1]
+      threshold: [0, 1],
+      rootMargin: '-10px 0px 0px 0px' // Adiciona margem para evitar flickering
     });
     observer.observe(elementToObserve);
   }

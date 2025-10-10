@@ -9,18 +9,20 @@ import { AuthService } from "../../core/services/auth.service"
 import { AcessService } from "../../core/services/access.service"
 import { CommonModule } from "@angular/common"
 import { StickySearchService } from "../../core/services/sticky-search.service"
-import { SearchBarComponent } from "../home/search-bar/search-bar.component"
-import { FormControl } from "@angular/forms"
+import { FormControl, ReactiveFormsModule } from "@angular/forms"
 import { type Observable, of, startWith, map, shareReplay } from "rxjs"
 import { trigger, transition, style, animate } from "@angular/animations"
 import { HomeComponent } from "../home/home.component" // Importe HomeComponent para verificar a instância
 import { RestauranteService } from "../../core/services/restaurante.service"
-import { IPesquisaRestaurantePayload } from "../../Interfaces/IPesquisaRestaurantePayload.interface"
 import { ToastrService } from "ngx-toastr"
 import { AvaliacaoService, type AvaliacaoPendente } from "../../core/services/avaliacao.service"
 import { AvaliacaoDialogComponent, type AvaliacaoDialogData } from "../avaliacao-dialog/avaliacao-dialog.component"
 import { MatDialog } from "@angular/material/dialog"
-import { FiltrosDialogComponent, type FiltrosDialogData, type FiltrosDialogResult } from "../home/filtros-dialog/filtros-dialog.component"
+import {
+  FiltrosDialogComponent,
+  type FiltrosDialogData,
+  type FiltrosDialogResult,
+} from "../home/filtros-dialog/filtros-dialog.component"
 import { NzBadgeModule } from "ng-zorro-antd/badge"
 import { NzDropDownModule } from "ng-zorro-antd/dropdown"
 import { NzLayoutModule } from "ng-zorro-antd/layout"
@@ -39,7 +41,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout"
     MatButtonModule,
     MatMenuModule,
     CommonModule,
-    SearchBarComponent,
+    ReactiveFormsModule,
     NzBadgeModule,
     NzDropDownModule,
     NzLayoutModule,
@@ -62,6 +64,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout"
 export class LayoutPrincipalComponent implements OnInit {
   sidebarAberta = true // Estado inicial da sidebar
   showStickySearchBar = false // Controla a visibilidade da search bar no cabeçalho
+  searchExpanded = false // Added searchExpanded state for dynamic search behavior
   cidade = "" // Usado para a search bar principal (HomeComponent)
   query = "" // Usado para a search bar principal (HomeComponent)
   citySuggestions: string[] = []
@@ -81,16 +84,18 @@ export class LayoutPrincipalComponent implements OnInit {
   // Propriedades para avaliações pendentes
   avaliacoesPendentes: AvaliacaoPendente[] = []
   carregandoAvaliacoes = false
-  activeTab: 'pendentes' | 'lidas' = 'pendentes'
+  activeTab: "pendentes" | "lidas" = "pendentes"
 
   // Filtros de busca para a search bar sticky
   filtrosAtuais: FiltrosDialogResult = {
-    diaSemana: '',
+    diaSemana: "",
     notaMinima: 0,
-    servicos: []
+    servicos: [],
   }
 
-  private router = inject(Router)
+  cidadeSelecionada = "Goiânia"
+
+  router = inject(Router)
   private auth = inject(AuthService)
   private accessService = inject(AcessService)
   private stickyService = inject(StickySearchService)
@@ -111,12 +116,16 @@ export class LayoutPrincipalComponent implements OnInit {
     // Assina o estado da search bar sticky do StickySearchService
     this.stickyService.sticky$.subscribe((val) => {
       const isHome = this.router.url.startsWith("/home")
-      this.showStickySearchBar = val && isHome
-      // Se a sticky search bar aparecer, e tivermos um HomeComponent ativo,
-      // sincroniza os FormControls da sticky search bar com os do HomeComponent.
-      if (this.showStickySearchBar && this.currentHomeComponent) {
-        this.cityCtrl.setValue(this.currentHomeComponent.cityCtrl.value, { emitEvent: false })
-        this.queryCtrl.setValue(this.currentHomeComponent.queryCtrl.value, { emitEvent: false })
+      // Evita flickering: só atualiza se realmente mudou
+      const newShowSticky = val && isHome
+      if (this.showStickySearchBar !== newShowSticky) {
+        this.showStickySearchBar = newShowSticky
+        // Se a sticky search bar aparecer, e tivermos um HomeComponent ativo,
+        // sincroniza os FormControls da sticky search bar com os do HomeComponent.
+        if (this.showStickySearchBar && this.currentHomeComponent) {
+          this.cityCtrl.setValue(this.currentHomeComponent.cityCtrl.value, { emitEvent: false })
+          this.queryCtrl.setValue(this.currentHomeComponent.queryCtrl.value, { emitEvent: false })
+        }
       }
     })
 
@@ -158,6 +167,12 @@ export class LayoutPrincipalComponent implements OnInit {
     if (this.isCliente) {
       this.carregarAvaliacoesPendentes()
     }
+
+    this.cityCtrl.valueChanges.subscribe((value) => {
+      if (value) {
+        this.cidadeSelecionada = value
+      }
+    })
   }
 
   get userName(): string {
@@ -226,12 +241,11 @@ export class LayoutPrincipalComponent implements OnInit {
     console.log("Sticky Search - Rota atual:", currentUrl, "Está na Home (componente ativo):", isCurrentlyOnHomePage)
     console.log("Sticky Search - currentHomeComponent (antes da busca):", this.currentHomeComponent)
 
-    // Se não estamos na Home ou currentHomeComponent não está ativo, navega para Home primeiro
+    this.collapseSearch()
+
     if (!isCurrentlyOnHomePage) {
       console.log("Sticky Search - Não está na Home (componente ativo). Navegando para /home...")
       this.router.navigate(["/home"]).then(() => {
-        // Adiciona um pequeno delay para garantir que o HomeComponent seja ativado
-        // e o currentHomeComponent seja populado via onOutletActivate.
         setTimeout(() => {
           if (this.currentHomeComponent) {
             console.log("Sticky Search - HomeComponent ativo após navegação. Sincronizando e buscando...")
@@ -419,7 +433,7 @@ export class LayoutPrincipalComponent implements OnInit {
   /**
    * Define a aba ativa no menu de notificações
    */
-  setActiveTab(tab: 'pendentes' | 'lidas'): void {
+  setActiveTab(tab: "pendentes" | "lidas"): void {
     this.activeTab = tab
   }
 
@@ -427,22 +441,34 @@ export class LayoutPrincipalComponent implements OnInit {
     const dialogData: FiltrosDialogData = {
       diaSemana: this.filtrosAtuais.diaSemana,
       notaMinima: this.filtrosAtuais.notaMinima,
-      servicos: this.filtrosAtuais.servicos
-    };
+      servicos: this.filtrosAtuais.servicos,
+    }
 
     const dialogRef = this.dialog.open(FiltrosDialogComponent, {
       data: dialogData,
-      width: '600px',
-      maxWidth: '90vw',
+      width: "600px",
+      maxWidth: "90vw",
       disableClose: false,
-    });
+    })
 
     dialogRef.afterClosed().subscribe((result: FiltrosDialogResult | null) => {
       if (result) {
-        this.filtrosAtuais = result;
-        console.log('Filtros aplicados na toolbar:', this.filtrosAtuais);
-        this.toastService.success('Filtros aplicados com sucesso!');
+        this.filtrosAtuais = result
+        console.log("Filtros aplicados na toolbar:", this.filtrosAtuais)
+        this.toastService.success("Filtros aplicados com sucesso!")
       }
-    });
+    })
+  }
+
+  expandSearch(): void {
+    this.searchExpanded = true
+  }
+
+  collapseSearch(): void {
+    this.searchExpanded = false
+  }
+
+  openCitySelector(): void {
+    this.showCityDropdown = !this.showCityDropdown
   }
 }
