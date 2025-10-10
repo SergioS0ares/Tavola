@@ -39,7 +39,6 @@
             <!-- Link Esqueci Minha Senha -->
             <div class="forgot-password">
                 <a href="#" (click)="forgotPassword(); $event.preventDefault();">Esqueci minha senha</a>
-                <span *ngIf="showForgotInfo" class="not-ready">Funcionalidade ainda não implementada.</span>
             </div>
             <div *ngIf="showLoginError" class="login-error-card">
                 <mat-icon>error</mat-icon>

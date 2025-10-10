@@ -8,7 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { EquipeService, DadosMembro } from '../../../core/services/equipe.service';
+import { EquipeService } from '../../../core/services/equipe.service';
+import { IDadosMembro } from '../../../Interfaces/IDadosMembro.interface';
 
 export interface DialogEquipeData {
   editMode: boolean;
@@ -67,9 +68,10 @@ export class DialogEquipeComponent implements OnInit {
   salvar(): void {
     if (this.form.valid) {
       this.carregando = true;
-      const dados: DadosMembro = {
+      const dados: IDadosMembro = {
         nome: this.form.value.nome,
-        senha: this.form.value.senha
+        senha: this.form.value.senha,
+        fotoUrl: '' // Foto será enviada vazia inicialmente
       };
 
       if (this.data.editMode) {
@@ -89,9 +91,9 @@ export class DialogEquipeComponent implements OnInit {
         this.equipeService.addMembro(dados).subscribe({
           next: (resultado) => {
             this.dadosGerados = {
-              nome: dados.nome,
-              codigo: resultado.codigo,
-              senha: resultado.senha
+              nome: resultado.nome,
+              codigo: resultado.codigoIdentidade,
+              senha: dados.senha // Manter a senha que o usuário digitou
             };
             this.carregando = false;
           },

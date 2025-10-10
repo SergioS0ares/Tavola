@@ -45,6 +45,10 @@ export class AcessService {
     return this.httpClient.post(`${this.apiUrl}/reenviar-codigo`, { email });
   }
 
+  esqueciMinhaSenha(email: string): Observable<any> {
+    return this.httpClient.post(`${this.apiUrl}/esqueci-senha`, { email });
+  }
+
 // access.service.ts
 verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: boolean): Observable<LoginResponse> {
   return this.httpClient.post<LoginResponse>(`${this.apiUrl}/verificar`, {

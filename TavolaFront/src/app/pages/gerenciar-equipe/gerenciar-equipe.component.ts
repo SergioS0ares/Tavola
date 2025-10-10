@@ -11,7 +11,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToastrService } from 'ngx-toastr';
 import Swal from 'sweetalert2';
-import { EquipeService, MembroEquipe } from '../../core/services/equipe.service';
+import { EquipeService } from '../../core/services/equipe.service';
+import { IMembroEquipe } from '../../Interfaces/IMembroEquipe.interface';
 import { DialogEquipeComponent, DialogEquipeData } from './dialog-equipe/dialog-equipe.component';
 // import { GlobalSpinnerService } from '../../spin/global-spinner/global-spinner.service';
 
@@ -33,8 +34,8 @@ import { DialogEquipeComponent, DialogEquipeData } from './dialog-equipe/dialog-
   styleUrls: ['./gerenciar-equipe.component.scss']
 })
 export class GerenciarEquipeComponent implements OnInit {
-  equipe: MembroEquipe[] = [];
-  equipeFiltrada: MembroEquipe[] = [];
+  equipe: IMembroEquipe[] = [];
+  equipeFiltrada: IMembroEquipe[] = [];
   carregando = false;
   pesquisa = '';
   copiadoMembros: { [key: string]: boolean } = {};
@@ -99,7 +100,7 @@ export class GerenciarEquipeComponent implements OnInit {
   /**
    * Abre o diálogo para editar membro
    */
-  abrirDialogEdicao(membro: MembroEquipe): void {
+  abrirDialogEdicao(membro: IMembroEquipe): void {
     const dialogData: DialogEquipeData = {
       editMode: true,
       membro: membro
@@ -123,7 +124,7 @@ export class GerenciarEquipeComponent implements OnInit {
   /**
    * Remove um membro da equipa
    */
-  removerMembro(membro: MembroEquipe): void {
+  removerMembro(membro: IMembroEquipe): void {
     Swal.fire({
       title: 'Tem certeza?',
       text: `Deseja remover ${membro.nome} da equipe?`,
@@ -186,8 +187,8 @@ export class GerenciarEquipeComponent implements OnInit {
    * Retorna a URL da imagem do membro
    */
   getImagemUrl(imagem: string | null): string {
-    if (imagem) {
-      return imagem; // Aqui você pode implementar a lógica para URLs absolutas
+    if (imagem && imagem.trim() !== '') {
+      return imagem; // Retorna a URL da imagem (pode ser base64 ou URL)
     }
     return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
   }
@@ -195,7 +196,7 @@ export class GerenciarEquipeComponent implements OnInit {
   /**
    * TrackBy function para otimizar a renderização da lista
    */
-  trackByMembroId(index: number, membro: MembroEquipe): string {
+  trackByMembroId(index: number, membro: IMembroEquipe): string {
     return membro.id;
   }
 
@@ -223,7 +224,7 @@ export class GerenciarEquipeComponent implements OnInit {
   /**
    * Troca a imagem do membro
    */
-  trocarImagem(membro: MembroEquipe): void {
+  trocarImagem(membro: IMembroEquipe): void {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -232,13 +233,33 @@ export class GerenciarEquipeComponent implements OnInit {
     input.onchange = (event: any) => {
       const file = event.target.files[0];
       if (file) {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+          this.toastr.error('Arquivo muito grande. Selecione uma imagem menor que 5MB.', 'Erro');
+          return;
+        }
+
         const reader = new FileReader();
         reader.onload = (e: any) => {
           const novaImagem = e.target.result;
-          // Aqui você pode implementar a lógica para salvar a nova imagem
-          // Por enquanto, vamos apenas atualizar localmente
-          membro.imagem = novaImagem;
-          this.toastr.success('Foto atualizada com sucesso!', 'Sucesso');
+          
+          // Usar o método PUT para atualizar a foto
+          this.equipeService.updateMembroFoto(
+            membro.id, 
+            novaImagem, 
+            membro.nome, 
+            'senha_temp' // Senha temporária, pois não temos a senha real
+          ).subscribe({
+            next: () => {
+              // Atualizar localmente
+              membro.imagem = novaImagem;
+              membro.fotoUrl = novaImagem;
+              this.toastr.success('Foto atualizada com sucesso!', 'Sucesso');
+            },
+            error: (error) => {
+              console.error('Erro ao atualizar foto:', error);
+              this.toastr.error('Erro ao atualizar foto', 'Erro');
+            }
+          });
         };
         reader.readAsDataURL(file);
       }

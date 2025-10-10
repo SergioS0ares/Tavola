@@ -1,152 +1,95 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
-
-export interface MembroEquipe {
-  id: string;
-  nome: string;
-  codigo: string;
-  senha: string;
-  imagem?: string | null;
-  dataCriacao: string;
-  ativo: boolean;
-}
-
-export interface DadosMembro {
-  nome: string;
-  senha: string;
-}
-
-export interface ResultadoAdicao {
-  codigo: string;
-  senha: string;
-}
+import { Injectable, inject } from '@angular/core';
+import { Observable, of, delay, map } from 'rxjs';
+import { RestauranteService } from './restaurante.service';
+import { AuthService } from './auth.service';
+import { IMembroEquipe } from '../../Interfaces/IMembroEquipe.interface';
+import { IDadosMembro } from '../../Interfaces/IDadosMembro.interface';
+import { IResultadoAdicao } from '../../Interfaces/IResultadoAdicao.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EquipeService {
-  // Mock data para demonstração
-  private membrosMock: MembroEquipe[] = [
-    {
-      id: '1',
-      nome: 'Sérgio Soares da Silva Júnior',
-      codigo: '12345678',
-      senha: 'senha123',
-      imagem: null,
-      dataCriacao: '2024-01-15T10:30:00Z',
-      ativo: true
-    },
-    {
-      id: '2',
-      nome: 'Julio Yushi',
-      codigo: '87654321',
-      senha: 'senha456',
-      imagem: null,
-      dataCriacao: '2024-01-20T14:15:00Z',
-      ativo: true
-    },
-    {
-      id: '3',
-      nome: 'Maria Santos',
-      codigo: '11223344',
-      senha: 'senha789',
-      imagem: null,
-      dataCriacao: '2024-01-25T09:45:00Z',
-      ativo: true
-    }
-  ];
+  private restauranteService = inject(RestauranteService);
+  private authService = inject(AuthService);
 
   constructor() { }
 
   /**
+   * Obtém o ID do restaurante do usuário logado
+   */
+  private getIdRestaurante(): string {
+    const perfil = this.authService.perfil;
+    return perfil?.id || '';
+  }
+
+  /**
    * Busca todos os membros da equipa
    */
-  getEquipe(): Observable<MembroEquipe[]> {
-    // Simula delay de rede
-    return of([...this.membrosMock]).pipe(delay(800));
+  getEquipe(): Observable<IMembroEquipe[]> {
+    const idRestaurante = this.getIdRestaurante();
+    return this.restauranteService.getGarcons(idRestaurante).pipe(
+      map(garcons => garcons.map(garcom => ({
+        id: garcom.id,
+        nome: garcom.nome,
+        codigo: garcom.codigoIdentidade,
+        codigoIdentidade: garcom.codigoIdentidade,
+        senha: '', // Senha não é retornada pelo GET
+        imagem: garcom.fotoUrl,
+        fotoUrl: garcom.fotoUrl,
+        dataCriacao: new Date().toISOString(), // Campo não retornado pela API
+        ativo: garcom.ativo
+      })))
+    );
   }
 
   /**
    * Adiciona um novo membro à equipa
    */
-  addMembro(dados: DadosMembro): Observable<ResultadoAdicao> {
-    const novoId = (this.membrosMock.length + 1).toString();
-    const codigo = this.gerarCodigo();
-    const senha = dados.senha;
-
-    const novoMembro: MembroEquipe = {
-      id: novoId,
+  addMembro(dados: IDadosMembro): Observable<IResultadoAdicao> {
+    const idRestaurante = this.getIdRestaurante();
+    const payload = {
       nome: dados.nome,
-      codigo: codigo,
-      senha: senha,
-      imagem: null,
-      dataCriacao: new Date().toISOString(),
-      ativo: true
+      senha: dados.senha,
+      fotoUrl: dados.fotoUrl || ''
     };
 
-    this.membrosMock.push(novoMembro);
-
-    // Simula delay de rede
-    return of({
-      codigo: codigo,
-      senha: senha
-    }).pipe(delay(1000));
+    return this.restauranteService.postGarcom(idRestaurante, payload);
   }
 
   /**
    * Atualiza um membro existente
    */
-  updateMembro(id: string, dados: DadosMembro): Observable<void> {
-    const index = this.membrosMock.findIndex(m => m.id === id);
-    if (index !== -1) {
-      this.membrosMock[index] = {
-        ...this.membrosMock[index],
-        nome: dados.nome,
-        senha: dados.senha
-      };
-    }
+  updateMembro(id: string, dados: IDadosMembro): Observable<any> {
+    const idRestaurante = this.getIdRestaurante();
+    const payload = {
+      nome: dados.nome,
+      senha: dados.senha,
+      fotoUrl: dados.fotoUrl || ''
+    };
 
-    // Simula delay de rede
-    return of(undefined).pipe(delay(800));
+    return this.restauranteService.putGarcom(idRestaurante, id, payload);
   }
 
   /**
    * Remove um membro da equipa
    */
-  deleteMembro(id: string): Observable<void> {
-    const index = this.membrosMock.findIndex(m => m.id === id);
-    if (index !== -1) {
-      this.membrosMock.splice(index, 1);
-    }
-
-    // Simula delay de rede
-    return of(undefined).pipe(delay(500));
+  deleteMembro(id: string): Observable<any> {
+    const idRestaurante = this.getIdRestaurante();
+    return this.restauranteService.deleteGarcom(idRestaurante, id);
   }
 
   /**
-   * Gera um código de 8 dígitos único
+   * Atualiza a foto de um membro
    */
-  private gerarCodigo(): string {
-    let codigo: string;
-    do {
-      codigo = Math.floor(10000000 + Math.random() * 90000000).toString();
-    } while (this.membrosMock.some(m => m.codigo === codigo));
-    
-    return codigo;
-  }
+  updateMembroFoto(id: string, fotoBase64: string, nome: string, senha: string): Observable<any> {
+    const idRestaurante = this.getIdRestaurante();
+    const payload = {
+      nome: nome,
+      senha: senha,
+      fotoUrl: fotoBase64
+    };
 
-  /**
-   * Gera um novo código para um membro existente
-   */
-  regenerarCodigo(id: string): Observable<{ codigo: string }> {
-    const index = this.membrosMock.findIndex(m => m.id === id);
-    if (index !== -1) {
-      const novoCodigo = this.gerarCodigo();
-      this.membrosMock[index].codigo = novoCodigo;
-      
-      return of({ codigo: novoCodigo }).pipe(delay(500));
-    }
-    
-    throw new Error('Membro não encontrado');
+    return this.restauranteService.putGarcom(idRestaurante, id, payload);
   }
 }

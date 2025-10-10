@@ -57,7 +57,7 @@
         
         <div class="membro-info">
           <div class="avatar-container">
-            <img [src]="getImagemUrl(membro.imagem ?? null)" [alt]="'Avatar de ' + membro.nome" class="profile-avatar">
+            <img [src]="getImagemUrl(membro.fotoUrl ?? membro.imagem ?? null)" [alt]="'Avatar de ' + membro.nome" class="profile-avatar">
             <button 
               mat-mini-fab 
               class="change-photo-btn"

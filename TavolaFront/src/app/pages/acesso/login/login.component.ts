@@ -32,7 +32,6 @@ import { LoginOutline, UserAddOutline } from '@ant-design/icons-angular/icons';
 })
 export class LoginComponent {
   loginForm: FormGroup<ILoginForm>;
-  showForgotInfo = false;
   showLoginError = false;
   hidePassword = true;
 
@@ -113,7 +112,27 @@ export class LoginComponent {
   }
 
   forgotPassword(){
-    this.showForgotInfo = true;
-    this.toastService.info("Funcionalidade de recuperação de senha ainda não implementada.");
+    const email = this.loginForm.get('email')?.value;
+    
+    if (!email) {
+      this.toastService.warning("Por favor, digite seu e-mail antes de solicitar a redefinição de senha.");
+      return;
+    }
+
+    // Valida se o email está válido
+    if (this.loginForm.get('email')?.invalid) {
+      this.toastService.warning("Por favor, digite um e-mail válido.");
+      return;
+    }
+
+    this.loginService.esqueciMinhaSenha(email).subscribe({
+      next: (res) => {
+        this.toastService.success("Instruções para redefinição de senha foram enviadas para seu e-mail!");
+      },
+      error: (err) => {
+        const errorMessage = err.error?.erro || err.error?.message || "Erro ao enviar e-mail de redefinição. Tente novamente.";
+        this.toastService.error(errorMessage);
+      }
+    });
   }
 }
