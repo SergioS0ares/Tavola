@@ -47,6 +47,7 @@ public class ReservaService {
     @Autowired private RestauranteRepository restauranteRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private MesaRepository mesaRepository;
+    @Autowired private NotificacaoService notificacaoService;
     @Autowired private AvaliacaoService avaliacaoService;
     @Autowired private SimpMessagingTemplate messagingTemplate;
     
@@ -231,6 +232,7 @@ public class ReservaService {
         
         if (novoStatus == StatusReserva.CONCLUIDA) {
             avaliacaoService.enviarEmailLembreteAvaliacao(reservaAtualizada);
+            notificacaoService.criarNotificacaoDeReservaConcluida(reservaAtualizada);
         }
         
         return new ReservaResponse(reservaAtualizada);
