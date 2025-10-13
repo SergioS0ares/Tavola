@@ -9,3 +9,4 @@ export interface IMembroEquipe {
   dataCriacao: string;
   ativo: boolean;
 }
+

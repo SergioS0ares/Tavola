@@ -3,3 +3,4 @@ export interface IDadosMembro {
   senha: string;
   fotoUrl?: string;
 }
+
