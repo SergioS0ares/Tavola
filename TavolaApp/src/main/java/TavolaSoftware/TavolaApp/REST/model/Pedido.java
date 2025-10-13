@@ -16,18 +16,22 @@ public class Pedido {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurante_id", nullable = false)
-    private Restaurante restaurante;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mesa_id", nullable = false)
     private Mesa mesa;
 
-    // Alterado para ser opcional, pois um pedido pode ser criado pelo cliente antes de um garçom ser associado
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "garcom_id", nullable = true)
-    private Garcom garcom;
-    
+    @JoinColumn(name = "garcom_id", nullable = false)
+    private Garcom garcom; // O garçom que registrou o pedido
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurante_id", nullable = false)
+    private Restaurante restaurante;
+
+    // O cliente é opcional. Útil para vincular a uma reserva, mas não obrigatório para um walk-in.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id", nullable = true)
+    private Cliente cliente;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itens = new ArrayList<>();
 
@@ -39,60 +43,20 @@ public class Pedido {
     private PedidoStatus status;
 
     // Getters e Setters
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public Restaurante getRestaurante() {
-        return restaurante;
-    }
-
-    public void setRestaurante(Restaurante restaurante) {
-        this.restaurante = restaurante;
-    }
-
-    public Mesa getMesa() {
-        return mesa;
-    }
-
-    public void setMesa(Mesa mesa) {
-        this.mesa = mesa;
-    }
-
-    public Garcom getGarcom() {
-        return garcom;
-    }
-
-    public void setGarcom(Garcom garcom) {
-        this.garcom = garcom;
-    }
-
-    public List<ItemPedido> getItens() {
-        return itens;
-    }
-
-    public void setItens(List<ItemPedido> itens) {
-        this.itens = itens;
-    }
-
-    public LocalDateTime getDataHora() {
-        return dataHora;
-    }
-
-    public void setDataHora(LocalDateTime dataHora) {
-        this.dataHora = dataHora;
-    }
-
-    public PedidoStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PedidoStatus status) {
-        this.status = status;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public Mesa getMesa() { return mesa; }
+    public void setMesa(Mesa mesa) { this.mesa = mesa; }
+    public Garcom getGarcom() { return garcom; }
+    public void setGarcom(Garcom garcom) { this.garcom = garcom; }
+    public Restaurante getRestaurante() { return restaurante; }
+    public void setRestaurante(Restaurante restaurante) { this.restaurante = restaurante; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
+    public List<ItemPedido> getItens() { return itens; }
+    public void setItens(List<ItemPedido> itens) { this.itens = itens; }
+    public LocalDateTime getDataHora() { return dataHora; }
+    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+    public PedidoStatus getStatus() { return status; }
+    public void setStatus(PedidoStatus status) { this.status = status; }
 }
