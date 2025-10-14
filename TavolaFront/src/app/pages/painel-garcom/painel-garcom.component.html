@@ -1,0 +1,142 @@
+<div class="painel-garcom-container">
+  <!-- Header do Painel -->
+  <div class="painel-header">
+    <div class="header-content">
+      <div class="user-info">
+        <mat-icon class="user-icon">person</mat-icon>
+        <div class="user-details">
+          <h2>Bem-vindo, {{ userInfo?.nome || 'Garçom' }}!</h2>
+          <p>Painel de Controle - Funcionário</p>
+        </div>
+      </div>
+      <button mat-raised-button color="warn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Sair
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs de Navegação -->
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="painel-tabs">
+    <!-- Tab de Mesas -->
+    <mat-tab label="Mesas">
+      <div class="tab-content">
+        <div class="mesas-grid">
+          <mat-card *ngFor="let mesa of mesasAtivas" class="mesa-card" [class.ocupada]="mesa.status === 'Ocupada'">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon [color]="getStatusColor(mesa.status)">{{ getStatusIcon(mesa.status) }}</mat-icon>
+                Mesa {{ mesa.numero }}
+              </mat-card-title>
+              <mat-card-subtitle>
+                <mat-chip [color]="getStatusColor(mesa.status)" selected>
+                  {{ mesa.status }}
+                </mat-chip>
+                <span *ngIf="mesa.tempo" class="tempo">{{ mesa.tempo }}</span>
+              </mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="mesa-info">
+                <div class="info-item">
+                  <mat-icon>receipt</mat-icon>
+                  <span>{{ mesa.pedidos }} pedidos</span>
+                </div>
+                <div class="info-item" *ngIf="mesa.status === 'Ocupada'">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ mesa.tempo }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+            
+            <mat-card-actions>
+              <button mat-button color="primary" (click)="atenderMesa(mesa)" 
+                      [disabled]="mesa.status === 'Livre'">
+                <mat-icon>restaurant_menu</mat-icon>
+                Atender
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab de Pedidos -->
+    <mat-tab label="Pedidos">
+      <div class="tab-content">
+        <div class="pedidos-section">
+          <h3>Pedidos Pendentes</h3>
+          <mat-list class="pedidos-list">
+            <mat-list-item *ngFor="let pedido of pedidosPendentes" class="pedido-item">
+              <mat-icon matListItemIcon [color]="getPedidoStatusColor(pedido.status)">
+                {{ pedido.status === 'Pronto' ? 'check_circle' : 'schedule' }}
+              </mat-icon>
+              
+              <div matListItemTitle>{{ pedido.item }}</div>
+              <div matListItemLine>
+                <span class="mesa-info">Mesa {{ pedido.mesa }}</span>
+                <span class="tempo-info">{{ pedido.tempo }}</span>
+              </div>
+              
+              <div class="pedido-actions">
+                <mat-chip [color]="getPedidoStatusColor(pedido.status)" selected>
+                  {{ pedido.status }}
+                </mat-chip>
+                <button mat-icon-button (click)="finalizarPedido(pedido)" 
+                        [disabled]="pedido.status !== 'Pronto'">
+                  <mat-icon>done</mat-icon>
+                </button>
+              </div>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab de Estatísticas -->
+    <mat-tab label="Estatísticas">
+      <div class="tab-content">
+        <div class="stats-grid">
+          <mat-card class="stat-card">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon color="primary">restaurant</mat-icon>
+                Mesas Ocupadas
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="stat-number">{{ mesasOcupadas }}</div>
+              <div class="stat-label">de {{ mesasAtivas.length }} mesas</div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon color="warn">receipt</mat-icon>
+                Pedidos Ativos
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="stat-number">{{ pedidosPendentes.length }}</div>
+              <div class="stat-label">pedidos em andamento</div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon color="accent">schedule</mat-icon>
+                Tempo Médio
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="stat-number">25min</div>
+              <div class="stat-label">tempo médio de atendimento</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

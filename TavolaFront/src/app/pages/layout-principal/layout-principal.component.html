@@ -74,12 +74,25 @@
       </button>
     </ng-container>
 
+    <ng-container *ngIf="isFuncionario">
+      <button 
+        routerLink="/painel-garcom" 
+        routerLinkActive="active" 
+        (click)="closeDrawer()"
+        type="button"
+        aria-label="Painel do garçom">
+        <mat-icon aria-hidden="true">restaurant_menu</mat-icon>
+        <span>Painel Garçom</span>
+      </button>
+    </ng-container>
+
     <button 
       routerLink="/configuracoes" 
       routerLinkActive="active" 
       (click)="closeDrawer()"
       type="button"
-      aria-label="Acessar configurações">
+      aria-label="Acessar configurações"
+      *ngIf="!isFuncionario">
       <mat-icon aria-hidden="true">settings</mat-icon>
       <span>Configurações</span>
     </button>
@@ -304,14 +317,14 @@
           </div>
           <div class="user-details" *ngIf="!(isMobile$ | async)">
             <span class="user-name">{{ userName }}</span>
-            <span class="user-type">{{ userType }}</span>
+            <span class="user-type">{{ userType === 'FUNCIONARIO' ? 'Funcionário' : userType }}</span>
           </div>
         </div>
         <mat-icon *ngIf="!(isMobile$ | async)" aria-hidden="true">keyboard_arrow_down</mat-icon>
       </div>
 
       <mat-menu #menu="matMenu" class="user-dropdown">
-        <button mat-menu-item routerLink="/configuracoes" type="button">
+        <button mat-menu-item routerLink="/configuracoes" type="button" *ngIf="!isFuncionario">
           <mat-icon aria-hidden="true">settings</mat-icon>
           <span>Configurações</span>
         </button>

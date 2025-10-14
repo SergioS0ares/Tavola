@@ -1,0 +1,287 @@
+@import '../../../styles/variables.scss';
+
+.painel-garcom-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 0;
+}
+
+.painel-header {
+  background: linear-gradient(135deg, #c22523, #ff4d4f);
+  color: white;
+  padding: 20px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .user-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        padding: 8px;
+      }
+
+      .user-details {
+        h2 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 600;
+        }
+
+        p {
+          margin: 4px 0 0 0;
+          opacity: 0.9;
+          font-size: 14px;
+        }
+      }
+    }
+
+    button {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+}
+
+.painel-tabs {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+
+  ::ng-deep {
+    .mat-mdc-tab-group {
+      .mat-mdc-tab-header {
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 24px;
+      }
+
+      .mat-mdc-tab {
+        color: #666;
+        font-weight: 500;
+        min-width: 120px;
+        
+        &.mdc-tab--active {
+          color: #c22523;
+        }
+
+        .mdc-tab-indicator__content--underline {
+          border-color: #c22523;
+          border-width: 3px;
+        }
+      }
+    }
+  }
+}
+
+.tab-content {
+  padding: 0;
+}
+
+// Estilos para Mesas
+.mesas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.mesa-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  &.ocupada {
+    border-left: 4px solid #f44336;
+  }
+
+  .mesa-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      font-size: 14px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .tempo {
+    background: #ff9800;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+// Estilos para Pedidos
+.pedidos-section {
+  h3 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+  }
+}
+
+.pedidos-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  .pedido-item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 16px 20px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .mesa-info {
+      color: #c22523;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+
+    .tempo-info {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .pedido-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+  }
+}
+
+// Estilos para Estatísticas
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 24px;
+
+  .stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #c22523;
+    margin: 12px 0 8px 0;
+  }
+
+  .stat-label {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .painel-header {
+    padding: 16px;
+
+    .header-content {
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+
+      .user-info {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  }
+
+  .painel-tabs {
+    padding: 16px;
+  }
+
+  .mesas-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pedidos-list {
+    .pedido-item {
+      padding: 12px 16px;
+
+      .pedido-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .painel-header {
+    .header-content {
+      .user-details h2 {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .mesa-card {
+    .mesa-info {
+      .info-item {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .stat-card {
+    padding: 16px;
+
+    .stat-number {
+      font-size: 28px;
+    }
+  }
+}

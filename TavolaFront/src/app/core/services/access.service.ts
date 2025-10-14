@@ -95,4 +95,25 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
   redefinirSenha(token: string, novaSenha: string): Observable<any> {
     return this.httpClient.post(`${this.apiUrl}/redefinir-senha`, { token, novaSenha }, { withCredentials: true });
   }
+
+  /**
+   * Login específico para garçons/funcionários
+   */
+  loginGarcom(emailRestaurante: string, codigoIdentidade: string, senha: string): Observable<LoginResponse> {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login/garcom`, {
+      emailRestaurante,
+      codigoIdentidade,
+      senha
+    }, { withCredentials: true }).pipe(
+      tap((value) => {
+        this.auth.setToken(value.token);
+        this.auth.setPerfil({ 
+          tipo: value.tipoUsuario, 
+          nome: value.nome, 
+          id: value.id,
+          imagem: value.imagem 
+        });
+      })
+    );
+  }
 }

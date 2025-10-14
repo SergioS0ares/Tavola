@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
 export interface Perfil {
-  tipo: 'CLIENTE' | 'RESTAURANTE';
+  tipo: 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO';
   nome: string;
   id?: string;
   imagem?: string | null;
@@ -24,7 +24,7 @@ export class AuthService {
   constructor() {
     this._token = localStorage.getItem(this.TOKEN_KEY);
     const nome = localStorage.getItem(this.USER_NAME_KEY);
-    const tipo = localStorage.getItem(this.USER_TYPE_KEY) as 'CLIENTE' | 'RESTAURANTE' | null;
+    const tipo = localStorage.getItem(this.USER_TYPE_KEY) as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO' | null;
     const id = localStorage.getItem(this.RESTAURANTE_ID_KEY) || undefined;
     const imagem = localStorage.getItem(this.USER_IMAGE_KEY) || undefined;
   
@@ -34,7 +34,7 @@ export class AuthService {
     console.log('[AuthService] Constructor - perfil inicial:', this._perfil);
   }
 
-  setAuthData(token: string, nome: string, tipoUsuario: 'CLIENTE' | 'RESTAURANTE', id?: string, imagem?: string | null) {
+  setAuthData(token: string, nome: string, tipoUsuario: 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO', id?: string, imagem?: string | null) {
     this.setToken(token);
     this.setPerfil({ nome, tipo: tipoUsuario, id, imagem });
     localStorage.setItem(this.TOKEN_KEY, token);
@@ -79,7 +79,7 @@ export class AuthService {
     }
     
     const nome = localStorage.getItem(this.USER_NAME_KEY);
-    const tipo = localStorage.getItem(this.USER_TYPE_KEY) as 'CLIENTE' | 'RESTAURANTE' | null;
+    const tipo = localStorage.getItem(this.USER_TYPE_KEY) as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO' | null;
     const id = localStorage.getItem(this.RESTAURANTE_ID_KEY) || undefined;
     const imagem = localStorage.getItem(this.USER_IMAGE_KEY) || undefined;
     
@@ -102,7 +102,7 @@ export class AuthService {
     localStorage.removeItem(this.USER_IMAGE_KEY);
   }
 
-  hasRole(role: 'CLIENTE' | 'RESTAURANTE'): boolean {
+  hasRole(role: 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO'): boolean {
     return this.perfil?.tipo === role;
   }
 

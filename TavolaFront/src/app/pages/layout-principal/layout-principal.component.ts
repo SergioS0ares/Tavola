@@ -180,7 +180,12 @@ export class LayoutPrincipalComponent implements OnInit {
   }
 
   get userType(): string {
-    return this.auth.perfil?.tipo === "RESTAURANTE" ? "Restaurante" : "Cliente"
+    const tipo = this.auth.perfil?.tipo;
+    switch (tipo) {
+      case "RESTAURANTE": return "Restaurante";
+      case "FUNCIONARIO": return "FUNCIONARIO"; // Será convertido no template
+      default: return "Cliente";
+    }
   }
 
   get userAvatar(): string {
@@ -200,6 +205,10 @@ export class LayoutPrincipalComponent implements OnInit {
 
   get isRestaurante(): boolean {
     return this.auth.hasRole("RESTAURANTE")
+  }
+
+  get isFuncionario(): boolean {
+    return this.auth.hasRole("FUNCIONARIO")
   }
 
   handleSidebarClick(event: MouseEvent) {

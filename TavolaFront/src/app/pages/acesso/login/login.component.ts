@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTabsModule } from '@angular/material/tabs';
 import { CommonModule } from '@angular/common';
 import { ILoginForm } from '../../../Interfaces/ILoginForm.interface';
 import { AuthService } from '../../../core/services/auth.service';
@@ -25,6 +26,7 @@ import { LoginOutline, UserAddOutline } from '@ant-design/icons-angular/icons';
     MatInputModule,
     MatIconModule,
     MatButtonModule,
+    MatTabsModule,
     NzIconModule
   ],
   templateUrl: './login.component.html',
@@ -32,8 +34,11 @@ import { LoginOutline, UserAddOutline } from '@ant-design/icons-angular/icons';
 })
 export class LoginComponent {
   loginForm: FormGroup<ILoginForm>;
+  garcomForm: FormGroup;
   showLoginError = false;
   hidePassword = true;
+  hideGarcomPassword = true;
+  selectedTabIndex = 0;
 
   // Nova forma de injeção no Angular 19
   private router = inject(Router);
@@ -46,6 +51,22 @@ export class LoginComponent {
       email: new FormControl<string>('', {
         nonNullable: true,
         validators: [Validators.required, Validators.email]
+      }),
+      senha: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
+      })
+    });
+
+    // Formulário para login do garçom
+    this.garcomForm = new FormGroup({
+      emailRestaurante: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.email]
+      }),
+      codigoIdentidade: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required]
       }),
       senha: new FormControl<string>('', {
         nonNullable: true,
@@ -134,5 +155,40 @@ export class LoginComponent {
         this.toastService.error(errorMessage);
       }
     });
+  }
+
+  /**
+   * Realiza login do garçom
+   */
+  realizarLoginGarcom() {
+    if (this.garcomForm.invalid) {
+      this.garcomForm.markAllAsTouched();
+      return;
+    }
+
+    const emailRestaurante = this.garcomForm.get('emailRestaurante')?.value;
+    const codigoIdentidade = this.garcomForm.get('codigoIdentidade')?.value;
+    const senha = this.garcomForm.get('senha')?.value;
+
+    if (emailRestaurante && codigoIdentidade && senha) {
+      this.loginService.loginGarcom(emailRestaurante, codigoIdentidade, senha).subscribe({
+        next: (res) => {
+          this.showLoginError = false;
+          this.toastService.success("Login realizado com sucesso!");
+          this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'FUNCIONARIO', res.id, res.imagem);
+          
+          // Redireciona para o painel do garçom
+          this.router.navigate(['painel-garcom']);
+        },
+        error: (err) => {
+          this.showLoginError = true;
+          const errorMessage = err.error?.erro || err.error?.message || "Não foi possível acessar. Verifique os dados e tente novamente.";
+          this.toastService.error(errorMessage);
+        }
+      });
+    } else {
+      this.showLoginError = true;
+      this.toastService.error("Preencha todos os campos.");
+    }
   }
 }
