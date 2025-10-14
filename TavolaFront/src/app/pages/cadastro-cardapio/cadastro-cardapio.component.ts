@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { CardapioService } from '../../core/services/cardapio.service';
 import { IItemCardapio } from '../../Interfaces/IItem-cardapio';
@@ -35,6 +36,7 @@ import { GlobalSpinnerComponent } from '../../spin/global-spinner/global-spinner
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatCheckboxModule,
     FormsModule,
     DialogItemCardapioComponent,
     GlobalSpinnerComponent
@@ -65,6 +67,9 @@ export class CadastroCardapioComponent implements OnInit {
   mensagemSucesso = '';
   pesquisa = '';
   categoriaFiltro = '';
+  tagFiltro: string[] = [];
+  apenasDisponiveis = false;
+  tagsDisponiveis: string[] = [];
 
   ngOnInit() {
     this.carregarItens();
@@ -116,6 +121,20 @@ export class CadastroCardapioComponent implements OnInit {
       );
     }
 
+    // Filtrar por tags
+    if (this.tagFiltro.length > 0) {
+      itensFiltrados = itensFiltrados.filter(item => 
+        item.tags && item.tags.some(tag => 
+          this.tagFiltro.includes(typeof tag === 'string' ? tag : tag.tag)
+        )
+      );
+    }
+
+    // Filtrar apenas disponíveis
+    if (this.apenasDisponiveis) {
+      itensFiltrados = itensFiltrados.filter(item => item.disponivel);
+    }
+
     // Atualizar categorias com itens filtrados
     this.categoriasComItensFiltradas = this.categorias.map(cat => ({
       ...cat,
@@ -126,7 +145,15 @@ export class CadastroCardapioComponent implements OnInit {
   // Método para limpar pesquisa
   limparPesquisa(): void {
     this.pesquisa = '';
+    this.aplicarFiltros();
+  }
+
+  // Método para limpar todos os filtros
+  limparFiltros(): void {
+    this.pesquisa = '';
     this.categoriaFiltro = '';
+    this.tagFiltro = [];
+    this.apenasDisponiveis = false;
     this.aplicarFiltros();
   }
 
@@ -142,20 +169,39 @@ export class CadastroCardapioComponent implements OnInit {
           tags: (item.tags || []).map((t: any) =>
             typeof t === 'string' ? { tag: t } : t
           ),
-          imagem: item.imagem && !item.imagem.startsWith('http')
+          imagem: item.imagem && !item.imagem.startsWith('http') && !item.imagem.startsWith('data:')
             ? `${environment.apiUrl}${item.imagem}`
             : item.imagem
         }));
+        
+        // Extrair tags únicas para filtros
+        this.extrairTagsDisponiveis();
         this.atualizarCategoriasComItens();
         this.aplicarFiltros(); // Inicializar filtros
       },
       error: (erro) => {
         console.warn('Nenhum item carregado ou erro no backend:', erro);
         this.itens = [];
+        this.tagsDisponiveis = [];
         this.atualizarCategoriasComItens();
         this.aplicarFiltros(); // Inicializar filtros
       }
     });
+  }
+
+  private extrairTagsDisponiveis() {
+    const tagsSet = new Set<string>();
+    this.itens.forEach(item => {
+      if (item.tags) {
+        item.tags.forEach(tag => {
+          const tagName = typeof tag === 'string' ? tag : tag.tag;
+          if (tagName) {
+            tagsSet.add(tagName);
+          }
+        });
+      }
+    });
+    this.tagsDisponiveis = Array.from(tagsSet).sort();
   }
 
   private atualizarCategoriasComItens() {
@@ -178,18 +224,9 @@ export class CadastroCardapioComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        const novoItem = {
-          ...result,
-          categoria: typeof result.categoria === 'string'
-            ? { nome: result.categoria }
-            : result.categoria,
-          tags: (result.tags || []).map((t: any) =>
-            typeof t === 'string' ? { tag: t } : t
-          )
-        };
-        this.itens.push(novoItem);
-        this.atualizarCategoriasComItens();
+      if (result && result !== false) {
+        // Recarregar todos os itens para garantir consistência
+        this.carregarItens();
         this.toastr.success('Item adicionado com sucesso!');
       }
     });

@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 import { EquipeService } from '../../core/services/equipe.service';
 import { IMembroEquipe } from '../../Interfaces/IMembroEquipe.interface';
 import { DialogEquipeComponent, DialogEquipeData } from './dialog-equipe/dialog-equipe.component';
+import { environment } from '../../../environments/environment';
 // import { GlobalSpinnerService } from '../../spin/global-spinner/global-spinner.service';
 
 @Component({
@@ -188,7 +189,16 @@ export class GerenciarEquipeComponent implements OnInit {
    */
   getImagemUrl(imagem: string | null): string {
     if (imagem && imagem.trim() !== '') {
-      return imagem; // Retorna a URL da imagem (pode ser base64 ou URL)
+      // Se é base64, retorna diretamente
+      if (imagem.startsWith('data:')) {
+        return imagem;
+      }
+      // Se é uma URL relativa, adiciona o base URL
+      if (!imagem.startsWith('http')) {
+        return `${environment.apiUrl}${imagem}`;
+      }
+      // Se já é uma URL completa, retorna diretamente
+      return imagem;
     }
     return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
   }
@@ -250,9 +260,8 @@ export class GerenciarEquipeComponent implements OnInit {
             'senha_temp' // Senha temporária, pois não temos a senha real
           ).subscribe({
             next: () => {
-              // Atualizar localmente
-              membro.imagem = novaImagem;
-              membro.fotoUrl = novaImagem;
+              // Recarregar a equipe para garantir consistência com o backend
+              this.carregarEquipe();
               this.toastr.success('Foto atualizada com sucesso!', 'Sucesso');
             },
             error: (error) => {

@@ -124,15 +124,12 @@ $dark-theme: mat.m2-define-dark-theme((
 
 // Estilo customizado para os Tooltips do Angular Material
 .tavola-tooltip {
-  // Para versões mais recentes do Material (MDC)
-  // Inspecione o elemento no navegador para confirmar as classes exatas.
-  // A classe .mdc-tooltip__surface é geralmente o alvo principal.
   &.mdc-tooltip .mdc-tooltip__surface,
   &.mdc-tooltip--rich .mdc-tooltip__surface {
-    background-color: #3B221B;     // $tavola-marrom-escuro ou sua variável SASS
-    color: #FFFFFF;                // $texto-principal-sobre-escuro ou sua variável SASS
-    border-radius: 4px;            // Mais quadrado, similar ao NG-Zorro (ajuste de 6px para 4px se preferir)
-    font-size: 12px;               // Tamanho de fonte similar ao NG-Zorro (padrão do Zorro é 12px)
+    background-color: #3B221B;     
+    color: #FFFFFF;               
+    border-radius: 4px;          
+    font-size: 12px;            
     padding: 6px 8px;              // Padding similar ao NG-Zorro (padrão é 6px 8px)
     box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 
                 0 6px 16px 0 rgba(0, 0, 0, 0.08), 

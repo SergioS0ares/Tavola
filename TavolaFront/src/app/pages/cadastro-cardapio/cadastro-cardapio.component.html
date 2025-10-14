@@ -42,15 +42,51 @@
           </button>
         </mat-form-field>
         
-        <mat-form-field appearance="outline" class="tavola-filter-field">
-          <mat-label>Filtrar por categoria</mat-label>
-          <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltros()">
-            <mat-option value="">Todas as categorias</mat-option>
-            <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome">
-              {{ categoria.nome }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <!-- Botão de filtros avançados -->
+        <button mat-icon-button 
+                class="filter-button" 
+                [matMenuTriggerFor]="filterMenu"
+                matTooltip="Filtros avançados"
+                matTooltipClass="tavola-tooltip">
+          <mat-icon>tune</mat-icon>
+        </button>
+        
+        <!-- Menu de filtros -->
+        <mat-menu #filterMenu="matMenu" class="tavola-menu-bar">
+          <div class="filter-menu-content">
+            <div class="filter-header">
+              <h4>Filtros</h4>
+              <button mat-icon-button (click)="limparFiltros()" matTooltip="Limpar filtros">
+                <mat-icon>clear</mat-icon>
+              </button>
+            </div>
+            
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Categoria</mat-label>
+              <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltros()">
+                <mat-option value="">Todas as categorias</mat-option>
+                <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome">
+                  {{ categoria.nome }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Tags</mat-label>
+              <mat-select [(ngModel)]="tagFiltro" (selectionChange)="aplicarFiltros()" multiple>
+                <mat-option *ngFor="let tag of tagsDisponiveis" [value]="tag">
+                  {{ tag }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <div class="filter-options">
+              <mat-checkbox [(ngModel)]="apenasDisponiveis" (change)="aplicarFiltros()">
+                Apenas disponíveis
+              </mat-checkbox>
+            </div>
+          </div>
+        </mat-menu>
       </div>
     </div>
   </div>
