@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -209,7 +210,7 @@ public class AccessController {
                         Set<Servico> servicosParaAssociar = new HashSet<>();
                         for (String nomeServico : originalRequest.getNomesServicos()) {
                             Servico serv = repoServico.findByNome(nomeServico)
-                                            .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
+                                            .orElseGet(() -> repoServico.save(new Servico(nomeServico)));
                             servicosParaAssociar.add(serv);
                         }
                         restaurante.setServicos(servicosParaAssociar);
@@ -322,10 +323,13 @@ public class AccessController {
         return ResponseEntity.ok(Map.of("mensagem", "Se um usuário com este e-mail existir em nosso sistema, um link de redefinição será enviado."));
     }
     
-    @PostMapping("/redefinir-senha")
-    public ResponseEntity<?> redefinirSenha(@RequestBody SenhaResetConfirmRequest request) {
+    @PostMapping("/mudar-senha/{token}")
+    public ResponseEntity<?> redefinirSenha(
+            @PathVariable String token,
+            @RequestBody SenhaResetConfirmRequest request) { // O DTO agora só precisa da nova senha
         try {
-            accessService.executarResetDeSenha(request.getToken(), request.getNovaSenha());
+            // Passamos o token da URL e a nova senha do corpo para o service
+            accessService.executarResetDeSenha(token, request.getNovaSenha());
             return ResponseEntity.ok(Map.of("mensagem", "Sua senha foi redefinida com sucesso."));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));

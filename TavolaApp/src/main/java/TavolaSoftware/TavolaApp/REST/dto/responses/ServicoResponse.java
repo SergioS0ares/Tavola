@@ -12,7 +12,6 @@ public class ServicoResponse {
     public ServicoResponse(Servico servico) {
         this.id = servico.getId();
         this.nome = servico.getNome();
-        this.descricao = servico.getDescricao();
     }
 
     // Getters e Setters

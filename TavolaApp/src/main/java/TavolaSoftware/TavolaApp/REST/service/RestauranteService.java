@@ -211,7 +211,7 @@ public class RestauranteService {
             Set<Servico> servicosParaAssociar = new HashSet<>();
             for (String nomeServico : request.getNomesServicos()) { 
                 Servico serv = repoServico.findByNome(nomeServico)
-                                .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
+                                .orElseGet(() -> repoServico.save(new Servico(nomeServico)));
                 servicosParaAssociar.add(serv);
             }
             restaurante.setServicos(servicosParaAssociar); 
@@ -251,7 +251,7 @@ public class RestauranteService {
             if (!request.getNomesServicos().isEmpty()) { 
                 for (String nomeServico : request.getNomesServicos()) { 
                     Servico serv = repoServico.findByNome(nomeServico)
-                                    .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
+                                    .orElseGet(() -> repoServico.save(new Servico(nomeServico)));
                     servicosAtualizados.add(serv);
                 }
             }

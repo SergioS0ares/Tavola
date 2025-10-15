@@ -109,20 +109,14 @@ public class AccessService {
         // --- CORREÇÃO AQUI ---
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
-        // Se o Optional estiver vazio (usuário não encontrado), simplesmente paramos a execução.
-        // Isso evita que um atacante descubra quais e-mails estão cadastrados no sistema.
         if (usuarioOpt.isEmpty()) {
             System.out.println("Solicitação de reset para e-mail não cadastrado: " + email);
             return;
         }
-
-        // Se chegamos aqui, o usuário existe. Podemos extraí-lo com segurança.
         Usuario usuario = usuarioOpt.get();
-        
-        // O restante do método continua exatamente igual
         passwordResetTokenRepository.deleteByUsuarioId(usuario.getId());
 
-        String token = UUID.randomUUID().toString();
+        String token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setUsuario(usuario);
@@ -131,7 +125,7 @@ public class AccessService {
 
         passwordResetTokenRepository.save(resetToken);
 
-        String urlDeRedefinicao = "http://localhost:4200/redefinir-senha?token=" + token;
+        String urlDeRedefinicao = "http://localhost:4200/redefinir-senha/" + token;
 
         enviarEmailResetSenha(usuario.getEmail(), usuario.getNome(), urlDeRedefinicao);
     }
