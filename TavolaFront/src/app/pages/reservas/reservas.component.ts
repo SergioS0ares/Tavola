@@ -12,6 +12,7 @@ import { MatTabsModule, MatTabChangeEvent } from "@angular/material/tabs"
 // Angular Material (imports existentes)
 import { MatCardModule } from "@angular/material/card"
 import { MatButtonModule } from "@angular/material/button"
+import { MatButtonToggleModule } from "@angular/material/button-toggle"
 import { MatIconModule } from "@angular/material/icon"
 import { MatInputModule } from "@angular/material/input"
 import { MatFormFieldModule } from "@angular/material/form-field"
@@ -120,6 +121,7 @@ const antIcons: IconDefinition[] = [
     MatChipsModule,
     MatSelectModule,
     MatCheckboxModule,
+    MatButtonToggleModule,
     NzAvatarModule,
     NzTagModule,
     NzIconModule,
@@ -185,6 +187,10 @@ export class ReservasComponent implements OnInit {
   mostrarCalendario = false;
   selectedTabIndex: number = 0;
   selectedEnvironmentTabIndex: number = 0;
+  
+  // Responsividade
+  visualizacaoAtiva: 'lista' | 'mapa' = 'lista';
+  isMobileView = false;
 
   // Mock data (como no seu código)
   clientes: ICliente[] = []; // This will no longer be used as client data is in IReserva
@@ -310,6 +316,29 @@ export class ReservasComponent implements OnInit {
     this.carregarReservasListaEspera();
     this.aplicarFiltros();
     this.aplicarFiltrosEspera();
+    this.checkMobileView();
+    
+    // Listener para mudanças de tamanho da tela
+    window.addEventListener('resize', () => {
+      this.checkMobileView();
+    });
+  }
+  
+  checkMobileView(): void {
+    this.isMobileView = window.innerWidth <= 768;
+  }
+  
+  isMobile(): boolean {
+    return this.isMobileView;
+  }
+  
+  abrirBottomSheetReserva(reserva: IReserva): void {
+    // Por enquanto, vamos implementar um comportamento simples
+    // Futuramente você pode criar um componente específico para o bottom sheet
+    this.reservaSelecionada = reserva;
+    
+    // Mostra uma mensagem ou implementa o bottom sheet
+    this.toastr.info('Detalhes da reserva abertos no mobile');
   }
 
   criarMesaPadrao(): IMesa {
@@ -597,31 +626,37 @@ export class ReservasComponent implements OnInit {
   }
 
   selecionarReserva(reserva: IReserva): void {
-    this.reservaSelecionada = this.reservaSelecionada?.id === reserva.id ? null : reserva
-    if (this.reservaSelecionada) {
-        // Apenas muda para a aba de Reservas (índice 0) se a reserva selecionada NÃO for da Lista de Espera
-        if (this.reservaSelecionada.status !== 'LISTA_ESPERA' && this.selectedTabIndex !== 0) {
-            this.selectedTabIndex = 0; 
-        } else if (this.reservaSelecionada.status === 'LISTA_ESPERA' && this.selectedTabIndex !== 1) { // If it is a waiting list reservation, switch to waiting list tab
-            this.selectedTabIndex = 1;
-        }
+    if (this.isMobile()) {
+      // No mobile, abre bottom sheet
+      this.abrirBottomSheetReserva(reserva);
+    } else {
+      // No desktop, comportamento normal
+      this.reservaSelecionada = this.reservaSelecionada?.id === reserva.id ? null : reserva;
+      if (this.reservaSelecionada) {
+          // Apenas muda para a aba de Reservas (índice 0) se a reserva selecionada NÃO for da Lista de Espera
+          if (this.reservaSelecionada.status !== 'LISTA_ESPERA' && this.selectedTabIndex !== 0) {
+              this.selectedTabIndex = 0; 
+          } else if (this.reservaSelecionada.status === 'LISTA_ESPERA' && this.selectedTabIndex !== 1) { // If it is a waiting list reservation, switch to waiting list tab
+              this.selectedTabIndex = 1;
+          }
 
         if (this.reservaSelecionada.mesaIds.length > 0) {
-      const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0])
-      if (primeiraMesa) {
-        const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
-        if (ambiente) {
-          this.ambienteAtivo = ambiente;
-                    this.selectedEnvironmentTabIndex = this.ambientes.indexOf(ambiente);
-                    this.cdr.detectChanges();
-                }
+          const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0]);
+          if (primeiraMesa) {
+            const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
+            if (ambiente) {
+              this.ambienteAtivo = ambiente;
+              this.selectedEnvironmentTabIndex = this.ambientes.indexOf(ambiente);
+              this.cdr.detectChanges();
+            }
+          }
         }
       }
     }
   }
 
   fecharDetalhes(): void {
-    this.reservaSelecionada = null
+    this.reservaSelecionada = null;
   }
 
   mudarArea(event: any): void {

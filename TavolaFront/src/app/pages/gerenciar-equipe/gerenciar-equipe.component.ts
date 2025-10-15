@@ -200,7 +200,7 @@ export class GerenciarEquipeComponent implements OnInit {
       // Se já é uma URL completa, retorna diretamente
       return imagem;
     }
-    return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+    return 'assets/png/avatar-padrao-garcom-tavola.png';
   }
 
   /**

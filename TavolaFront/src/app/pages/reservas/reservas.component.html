@@ -1,6 +1,16 @@
 <div class="reservas-container">
+  <!-- Seletor de visualização para mobile -->
+  <mat-button-toggle-group [(ngModel)]="visualizacaoAtiva" class="view-switcher" *ngIf="isMobile()">
+    <mat-button-toggle value="lista">
+      <mat-icon>list_alt</mat-icon> Lista
+    </mat-button-toggle>
+    <mat-button-toggle value="mapa">
+      <mat-icon>table_chart</mat-icon> Mapa
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+
   <div class="reservas-content-columns">
-    <div class="reservas-list-column">
+    <div class="reservas-list-column" *ngIf="visualizacaoAtiva === 'lista' || !isMobile()">
       <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" (selectedTabChange)="mudarAba($event)" [selectedIndex]="selectedTabIndex">
         <mat-tab>
           <ng-template mat-tab-label>
@@ -193,7 +203,7 @@
       </mat-tab-group>
     </div>
 
-    <div class="reserva-details-tables-column">
+    <div class="reserva-details-tables-column" *ngIf="visualizacaoAtiva === 'mapa' || !isMobile()">
       <div class="right-column-header">
         <div class="date-navigator-area">
           <div class="date-navigator">

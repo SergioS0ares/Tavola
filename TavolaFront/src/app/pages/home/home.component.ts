@@ -239,7 +239,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     // Monta o payload com os filtros
     const payload: IPesquisaRestaurantePayload = {
       termo: termoBusca || '',
-      cidadeLocal: cidadeBusca || '',
+      cidade: cidadeBusca || '',
       diaSemana: this.filtrosAtuais.diaSemana,
       notaMinima: this.filtrosAtuais.notaMinima.toString(),
       servicos: this.filtrosAtuais.servicos

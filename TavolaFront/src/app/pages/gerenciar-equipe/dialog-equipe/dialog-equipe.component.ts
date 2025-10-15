@@ -137,7 +137,7 @@ export class DialogEquipeComponent implements OnInit {
    * Retorna a URL da imagem padrão
    */
   getImagemUrl(imagem: string | null): string {
-    return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+    return 'assets/png/avatar-padrao-garcom-tavola.png';
   }
 
   /**

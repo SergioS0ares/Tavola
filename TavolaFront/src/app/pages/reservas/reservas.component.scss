@@ -869,6 +869,54 @@
   width: 100%;
 }
 
+// Seletor de visualização para mobile
+.view-switcher {
+  display: none;
+  width: 100%;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  justify-content: center;
+  
+  ::ng-deep {
+    .mat-button-toggle-group {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      
+      .mat-button-toggle {
+        border: none;
+        background-color: white;
+        color: var(--tavola-marrom-escuro);
+        font-weight: 500;
+        min-width: 120px;
+        
+        &:hover {
+          background-color: rgba(246, 189, 56, 0.1);
+        }
+        
+        &.mat-button-toggle-checked {
+          background-color: var(--tavola-amarelo);
+          color: var(--tavola-marrom-escuro);
+          font-weight: 600;
+        }
+        
+        .mat-button-toggle-label-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+        }
+      }
+    }
+  }
+}
+
 // Responsividade
 @media (max-width: 1200px) {
   .reservas-list-column {
@@ -890,6 +938,10 @@
 }
 
 @media (max-width: 768px) {
+  .view-switcher {
+    display: flex !important;
+  }
+  
   .reservas-content-columns {
     flex-direction: column;
     overflow-y: auto;

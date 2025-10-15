@@ -898,3 +898,226 @@ $dark-theme: mat.m2-define-dark-theme((
     padding: 0 !important;
   }
 }
+
+// ===== ESTILOS GLOBAIS PARA CARDS TAVOLA =====
+
+// Card base para todas as páginas
+.tavola-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  border: 1px solid rgba(59, 34, 27, 0.08);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Estrutura do card
+.tavola-card-content {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  gap: 20px;
+  height: 100%;
+  
+  .tavola-card-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
+  }
+  
+  .tavola-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    
+    h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--tavola-marrom-escuro);
+      line-height: 1.2;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: rgba(59, 34, 27, 0.7);
+      line-height: 1.4;
+    }
+  }
+  
+  .tavola-card-action {
+    flex-shrink: 0;
+    
+    button {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+      
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
+
+// Variações de cores para diferentes tipos de card
+
+// Card do Cardápio
+.tavola-card.cardapio {
+  .tavola-card-icon {
+    background: linear-gradient(135deg, #DA4A24, #ff6b47);
+  }
+  
+  .tavola-card-action button {
+    background: linear-gradient(135deg, #DA4A24, #ff6b47);
+    color: white;
+  }
+}
+
+// Card da Equipe
+.tavola-card.equipe {
+  .tavola-card-icon {
+    background: linear-gradient(135deg, #F6BD38, #ffd54f);
+  }
+  
+  .tavola-card-action button {
+    background: linear-gradient(135deg, #F6BD38, #ffd54f);
+    color: var(--tavola-marrom-escuro);
+  }
+}
+
+// Card das Reservas
+.tavola-card.reservas {
+  .tavola-card-icon {
+    background: linear-gradient(135deg, #4CAF50, #66bb6a);
+  }
+  
+  .tavola-card-action button {
+    background: linear-gradient(135deg, #4CAF50, #66bb6a);
+    color: white;
+  }
+}
+
+// Card das Configurações
+.tavola-card.configuracoes {
+  .tavola-card-icon {
+    background: linear-gradient(135deg, #9C27B0, #ba68c8);
+  }
+  
+  .tavola-card-action button {
+    background: linear-gradient(135deg, #9C27B0, #ba68c8);
+    color: white;
+  }
+}
+
+// Responsividade para mobile
+@media (max-width: 768px) {
+  .tavola-card-content {
+    padding: 20px;
+    gap: 16px;
+    
+    .tavola-card-icon {
+      width: 64px;
+      height: 64px;
+      
+      mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+    
+    .tavola-card-info {
+      h3 {
+        font-size: 18px;
+      }
+      
+      p {
+        font-size: 13px;
+      }
+    }
+    
+    .tavola-card-action button {
+      width: 48px;
+      height: 48px;
+      
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tavola-card-content {
+    padding: 16px;
+    gap: 12px;
+    
+    .tavola-card-icon {
+      width: 56px;
+      height: 56px;
+      
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+    
+    .tavola-card-info {
+      h3 {
+        font-size: 16px;
+      }
+      
+      p {
+        font-size: 12px;
+      }
+    }
+    
+    .tavola-card-action button {
+      width: 44px;
+      height: 44px;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}

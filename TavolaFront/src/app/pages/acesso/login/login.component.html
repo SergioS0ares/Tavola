@@ -1,10 +1,9 @@
 <app-default-login-layout>
-
-    <div class="form-section">
-        <!-- Tabs para alternar entre login normal e garçom -->
-        <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="login-tabs">
-            <!-- Tab de Login Normal -->
-            <mat-tab label="Cliente/Restaurante">
+    <!-- Tabs para alternar entre login normal e garçom -->
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="login-tabs">
+        <!-- Tab de Login Normal -->
+        <mat-tab label="Cliente/Restaurante">
+            <div class="form-section">
                 <form [formGroup]="loginForm" class="login-form" (ngSubmit)="realizarLogin()">
                     <!-- Campo E-mail -->
                     <mat-form-field class="largura-total" appearance="outline" >
@@ -69,10 +68,12 @@
                         </button>
                     </div>
                 </form>
-            </mat-tab>
+            </div>
+        </mat-tab>
 
-            <!-- Tab de Login do Garçom -->
-            <mat-tab label="Garçom">
+        <!-- Tab de Login do Garçom -->
+        <mat-tab label="Garçom">
+            <div class="form-section">
                 <form [formGroup]="garcomForm" class="login-form" (ngSubmit)="realizarLoginGarcom()">
                     <!-- Campo E-mail do Restaurante -->
                     <mat-form-field class="largura-total" appearance="outline">
@@ -131,7 +132,7 @@
                         </button>
                     </div>
                 </form>
-            </mat-tab>
-        </mat-tab-group>
-    </div>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
 </app-default-login-layout>
