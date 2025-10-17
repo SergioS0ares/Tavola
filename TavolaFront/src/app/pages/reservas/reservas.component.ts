@@ -357,6 +357,10 @@ export class ReservasComponent implements OnInit, AfterViewInit {
     return this.isMobileView;
   }
 
+  onViewChange(event: any): void {
+    this.visualizacaoAtiva = event.value;
+  }
+
   // Métodos de controle de scroll dos ambientes
   scrollAmbientes(direcao: 'left' | 'right'): void {
     const container = this.ambientesScrollContainer.nativeElement;

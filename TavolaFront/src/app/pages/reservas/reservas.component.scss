@@ -1,6 +1,12 @@
 @use 'sass:color';
 @use '../../../styles/variables.scss' as *;
 
+:root {
+  --reservas-spacing: 16px;
+  --reservas-border-radius: 12px;
+  --reservas-transition: all 0.3s ease;
+}
+
 // Container principal
 .reservas-container {
   display: flex;
@@ -670,6 +676,8 @@
       scroll-behavior: smooth;
       // Esconde a barra de rolagem
       scrollbar-width: none; // Firefox
+      -webkit-overflow-scrolling: touch; // Scroll suave no iOS
+      
       &::-webkit-scrollbar {
         display: none; // Chrome, Safari, and Opera
       }
@@ -921,6 +929,70 @@
   width: 100%;
 }
 
+// Estilos para o Seletor de Visualização Mobile
+.view-switcher {
+  display: none; // Escondido por padrão no desktop
+  width: calc(100% - 32px); // Para alinhar com o padding de 16px
+  margin: 0 auto 16px auto;
+  
+  ::ng-deep {
+    .mat-button-toggle-group {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(59, 34, 27, 0.1);
+    }
+    
+    .mat-button-toggle {
+      flex: 1;
+      height: 48px;
+      border: none;
+      background-color: white;
+      color: rgba(59, 34, 27, 0.7);
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      .mat-button-toggle-label-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 16px;
+        
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          line-height: 20px;
+        }
+        
+        span {
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+      
+      &:hover {
+        background-color: rgba(246, 189, 56, 0.1);
+        color: rgba(59, 34, 27, 0.9);
+      }
+    }
+    
+    .mat-button-toggle-checked {
+      background-color: #F6BD38 !important;
+      color: #3B221B !important;
+      font-weight: 600;
+      
+      .mat-button-toggle-label-content {
+        mat-icon, span {
+          color: #3B221B !important;
+        }
+      }
+    }
+  }
+}
+
 // Responsividade
 @media (max-width: 1200px) {
   .reservas-list-column {
@@ -941,127 +1013,165 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 700px) {
   .view-switcher {
     display: flex !important;
-    padding: 0 20px;
-    margin-bottom: 20px;
   }
   
   .reservas-content-columns {
     flex-direction: column;
     overflow-y: auto;
     height: auto;
-    min-height: calc(100vh - 200px);
+    min-height: auto;
   }
   
   .reservas-list-column {
     width: 100%;
+    margin: 0 0 16px 0;
+    padding: 0;
     border-right: none;
     border-bottom: 1px solid #e8e8e8;
-    border-radius: 16px; // Bordas arredondadas como no desktop
-    max-height: 50vh;
-    overflow-y: auto;
+    border-radius: 16px;
+    max-height: none;
+    overflow-y: visible;
     height: auto;
-    flex-shrink: 1;
-    margin: 16px; // Adiciona margem para destacar as bordas arredondadas
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); // Sombra sutil para destacar
+    flex-shrink: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
   
   .reserva-details-tables-column {
     flex: none;
+    width: 100%;
+    padding: 0 16px 16px 16px;
     height: auto;
     overflow-y: visible;
   }
   
-  .reserva-detalhes-container, .mesas-container {
-    margin-bottom: 16px;
-  }
-  
-  .comentarios-notas {
-    grid-template-columns: 1fr !important;
-  }
-  
-  // Melhorias específicas para ambientes no mobile
-  .mesas-container {
-    .ambientes-nav-wrapper {
-      .ambientes-scroll-container {
-        width: 320px; // Largura reduzida para mobile (3 ambientes + pedaço)
-      }
+  .reserva-detalhes-container.mobile-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    margin: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    animation: slideInUp 0.3s ease-out;
+    
+    .detalhes-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 10;
+      padding: 16px;
+      border-bottom: 1px solid #e8e8e8;
       
-      .ambiente-btn {
-        padding: 6px 12px;
-        font-size: 13px;
+      .back-button-details {
+        width: 40px;
+        height: 40px;
+        background-color: rgba(246, 189, 56, 0.1);
+        
+        mat-icon {
+          color: $primary-color;
+        }
+      }
+    }
+  }
+  
+  .mesas-container {
+    .areas-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+
+    .ambientes-nav-wrapper {
+      width: 100%;
+      
+      .ambientes-scroll-container {
+        width: 100% !important;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        
+        .ambientes-list {
+          display: flex;
+          gap: 8px;
+          padding: 0 8px;
+          
+          .ambiente-btn-wrapper {
+            scroll-snap-align: start;
+            flex-shrink: 0;
+          }
+        }
       }
       
       .nav-arrow {
-        width: 32px;
-        height: 32px;
-        
-        mat-icon {
-          font-size: 18px;
-        }
+        display: none;
+      }
+    }
+
+    .add-area-container {
+      width: 100%;
+      padding: 0 8px;
+      box-sizing: border-box;
+    }
+  }
+  
+  .mesas-grid.mobile-scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: visible;
+    gap: 16px;
+    padding: 16px 8px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 40px;
+      background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+      pointer-events: none;
+    }
+    
+    .mesa {
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      
+      .mesa-visual {
+        width: 80px;
+        height: 80px;
       }
     }
   }
   
   .mesas-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 12px;
-    padding: 8px;
-    
-    .mesa {
-      .mesa-visual {
-        width: 60px;
-        height: 60px;
-        
-        .mesa-capacidade {
-          font-size: 12px;
-        }
-      }
-      
-      .mesa-etiqueta {
-        font-size: 11px;
-      }
-    }
-  }
-  
-  // Melhorias para a lista de reservas no mobile
-  .reservas-list {
     .reserva-cards {
       .reserva-card {
         margin-bottom: 12px;
-        
         .reserva-info {
           padding: 16px;
-          
           .cliente-info {
-            h4 {
-              font-size: 16px;
-            }
-            
+            h4 { font-size: 16px; }
             .reserva-detalhes {
               flex-direction: column;
               gap: 8px;
-              
               .pessoas-info,
               .mesa-info {
                 font-size: 13px;
-                
-                mat-icon {
-                  font-size: 16px;
-                  width: 16px;
-                  height: 16px;
-                }
+                mat-icon { font-size: 16px; width: 16px; height: 16px; }
               }
             }
           }
-          
           .reserva-acoes {
-            .horario {
-              font-size: 14px;
-              font-weight: 600;
-            }
+            .horario { font-size: 14px; font-weight: 600; }
           }
         }
       }
@@ -1113,6 +1223,27 @@
     grid-template-columns: 1fr !important;
   }
   
+  .mesas-grid.mobile-scroll {
+    gap: 12px;
+    padding: 12px 8px;
+    
+    .mesa {
+      .mesa-visual {
+        width: 70px;
+        height: 70px;
+        
+        .mesa-capacidade {
+          font-size: 12px;
+        }
+      }
+      
+      .mesa-etiqueta {
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+    }
+  }
+
   // Limite ainda mais restritivo para smartphones pequenos
   .mesas-container {
     .ambientes-nav-wrapper {
@@ -1798,5 +1929,42 @@
   100% {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+// Botão Flutuante (Estilo Equipe)
+.tavola-fab {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 100 !important;
+  background-color: var(--tavola-amarelo, #F6BD38) !important;
+  color: var(--tavola-marrom-escuro, #3B221B) !important;
+  border-radius: 8px !important; // Raio do seu tema global
+  width: 56px !important;
+  height: 56px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.15) rotate(90deg);
+    box-shadow: 0 8px 24px rgba(246, 189, 56, 0.4);
+  }
+
+  mat-icon {
+    font-size: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

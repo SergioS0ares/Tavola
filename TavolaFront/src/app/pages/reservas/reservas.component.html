@@ -12,7 +12,43 @@
     </div>
   </div>
 
+  <!-- Seletor de Visualização Mobile -->
+  <div class="view-switcher" *ngIf="isMobile()">
+    <mat-button-toggle-group [(value)]="visualizacaoAtiva" (change)="onViewChange($event)">
+      <mat-button-toggle value="lista">
+        <mat-icon>list</mat-icon>
+        <span>Lista</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="mapa">
+        <mat-icon>map</mat-icon>
+        <span>Mapa</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <!-- Navegador de Data Mobile -->
+  <div class="date-navigator-area" *ngIf="isMobile()">
+    <div class="date-navigator">
+      <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <nz-date-picker
+        nzFormat="dd/MM/yyyy"
+        [(ngModel)]="dataAtual"
+        (ngModelChange)="nzDatePickerChange($event)"
+        nzAllowClear="false"
+      ></nz-date-picker>
+      <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+        <mat-icon>calendar_month</mat-icon>
+      </button>
+    </div>
+  </div>
+
   <div class="reservas-content-columns">
+    <!-- Lista agora centralizada no mobile -->
     <div class="reservas-list-column" *ngIf="visualizacaoAtiva === 'lista' || !isMobile()">
       <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" (selectedTabChange)="mudarAba($event)" [selectedIndex]="selectedTabIndex">
         <mat-tab>
@@ -200,9 +236,10 @@
       </mat-tab-group>
     </div>
 
+    <!-- Mapa agora com scroll horizontal no mobile e detalhes em fullscreen -->
     <div class="reserva-details-tables-column" *ngIf="visualizacaoAtiva === 'mapa' || !isMobile()">
       <div class="right-column-header">
-        <div class="date-navigator-area">
+        <div class="date-navigator-area" *ngIf="!isMobile()">
           <div class="date-navigator">
             <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
               <mat-icon>chevron_left</mat-icon>
@@ -236,7 +273,8 @@
       </div>
 
       <ng-container *ngIf="reservaSelecionada; else mapaDeMesas">
-        <div class="reserva-detalhes-container">
+        <!-- Detalhes agora em fullscreen no mobile -->
+        <div class="reserva-detalhes-container" [class.mobile-fullscreen]="isMobile()">
           <div class="detalhes-header">
             <button mat-icon-button (click)="fecharDetalhes()" class="back-button-details" matTooltip="Voltar para o mapa de mesas" matTooltipClass="tavola-tooltip" aria-label="Voltar para mapa de mesas">
                 <mat-icon>arrow_back</mat-icon>
@@ -384,7 +422,8 @@
           <div class="areas-header">
             
             <div class="ambientes-nav-wrapper">
-              <button mat-icon-button class="nav-arrow left-arrow" *ngIf="mostrarSetaEsquerda" (click)="scrollAmbientes('left')">
+              <!-- Setas escondidas no mobile -->
+              <button mat-icon-button class="nav-arrow left-arrow" *ngIf="mostrarSetaEsquerda && !isMobile()" (click)="scrollAmbientes('left')">
                 <mat-icon>chevron_left</mat-icon>
               </button>
               
@@ -422,7 +461,7 @@
                 </div>
               </div>
               
-              <button mat-icon-button class="nav-arrow right-arrow" *ngIf="mostrarSetaDireita" (click)="scrollAmbientes('right')">
+              <button mat-icon-button class="nav-arrow right-arrow" *ngIf="mostrarSetaDireita && !isMobile()" (click)="scrollAmbientes('right')">
                 <mat-icon>chevron_right</mat-icon>
               </button>
             </div>
@@ -442,9 +481,8 @@
             </div>
           </div>
 
-          <!-- GRID DE MESAS DO AMBIENTE ATIVO -->
-          <div *ngIf="ambienteAtivo" class="mesas-grid">
-            <!-- A iteração agora é sobre 'ambienteAtivo.mesas' -->
+          <!-- Grid de mesas agora com scroll horizontal no mobile -->
+          <div *ngIf="ambienteAtivo" class="mesas-grid" [class.mobile-scroll]="isMobile()">
             <div *ngFor="let mesa of ambienteAtivo.mesas" 
               class="mesa" 
               [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': isMesaAtribuidaAReservaAtual(mesa.id) }" 
@@ -494,4 +532,17 @@
       (fechar)="mostrarCalendario = false">
     </app-calendario-reservas>
   </div>
+
+  <!-- Botão FAB Mobile -->
+  <button 
+    *ngIf="isMobile() && visualizacaoAtiva === 'mapa'"
+    mat-fab 
+    color="primary" 
+    class="tavola-fab" 
+    (click)="abrirModalGerenciarMesas('criar')"
+    matTooltip="Adicionar nova mesa"
+    matTooltipClass="tavola-tooltip"
+    aria-label="Adicionar nova mesa">
+    <mat-icon>add</mat-icon>
+  </button>
 </div>
