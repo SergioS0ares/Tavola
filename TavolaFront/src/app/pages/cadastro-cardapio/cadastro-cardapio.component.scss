@@ -9,57 +9,7 @@
   background: #eae7e1;
 }
 
-.page-header {
-  margin-bottom: 40px;
-  
-  .header-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 24px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    border: 1px solid rgba(194, 37, 35, 0.1);
-    position: relative;
-  }
-  
-  .header-icon {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #c22523, #ff4d4f);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    
-    mat-icon {
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
-      color: white;
-    }
-  }
-  
-  .header-text {
-    flex: 1;
-    
-    h1 {
-      color: $texto-principal-sobre-claro;
-      font-weight: 700;
-      font-size: 28px;
-      margin: 0 0 8px 0;
-    }
-    
-    p {
-      color: $texto-secundario-sobre-claro;
-      font-size: 16px;
-      margin: 0;
-      line-height: 1.5;
-    }
-  }
-}
+// Page header agora usa estilos globais (.tavola-page-header)
 
 // Campo de Busca e Filtros
 .search-section {
@@ -394,33 +344,7 @@
     padding: 16px;
   }
   
-  .page-header {
-    margin-bottom: 24px;
-    
-    .header-content {
-      flex-direction: column;
-      text-align: center;
-      gap: 16px;
-      padding: 20px;
-    }
-    
-    .header-text {
-      h1 {
-        font-size: 24px;
-      }
-      
-      p {
-        font-size: 14px;
-      }
-    }
-
-    .add-button {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 100;
-    }
-  }
+  // Responsividade do page-header agora é global
 
   .search-section {
     .search-container {

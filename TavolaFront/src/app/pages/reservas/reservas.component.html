@@ -1,13 +1,16 @@
 <div class="reservas-container">
-  <!-- Seletor de visualização para mobile -->
-  <mat-button-toggle-group [(ngModel)]="visualizacaoAtiva" class="view-switcher" *ngIf="isMobile()">
-    <mat-button-toggle value="lista">
-      <mat-icon>list_alt</mat-icon> Lista
-    </mat-button-toggle>
-    <mat-button-toggle value="mapa">
-      <mat-icon>table_chart</mat-icon> Mapa
-    </mat-button-toggle>
-  </mat-button-toggle-group>
+  <!-- Page Header -->
+  <div class="tavola-page-header reservas">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>event_seat</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Gerenciar Reservas</h1>
+        <p>Visualize e gerencie todas as reservas do seu restaurante de forma organizada e eficiente.</p>
+      </div>
+    </div>
+  </div>
 
   <div class="reservas-content-columns">
     <div class="reservas-list-column" *ngIf="visualizacaoAtiva === 'lista' || !isMobile()">
@@ -192,12 +195,6 @@
                 </div>
               </mat-card>
             </div>
-          </div>
-        </mat-tab>
-        <mat-tab label="Garçons">
-          <div class="tab-content-placeholder"> <nz-empty nzDescription="Nenhum garçom disponível"
-            matTooltip="Nenhum garçom disponível"
-            matTooltipClass="tavola-tooltip"></nz-empty>
           </div>
         </mat-tab>
       </mat-tab-group>
@@ -385,55 +382,64 @@
         <div class="mesas-container">
           <!-- HEADER COM AS ABAS DE AMBIENTE -->
           <div class="areas-header">
-            <mat-tab-group (selectedTabChange)="mudarAmbienteTab($event)" [selectedIndex]="selectedEnvironmentTabIndex">
-              <!-- Itera sobre a lista de ambientes carregada da API -->
-              <mat-tab *ngFor="let ambiente of ambientes; let i = index">
-                <ng-template mat-tab-label>
-                  <div class="custom-tab-label" [class.editing-mode]="editandoIndex === i">
-                    <!-- Modo de visualização -->
-                    <span *ngIf="editandoIndex !== i">{{ ambiente.nome }}</span>
-                    <!-- Modo de edição -->
+            
+            <div class="ambientes-nav-wrapper">
+              <button mat-icon-button class="nav-arrow left-arrow" *ngIf="mostrarSetaEsquerda" (click)="scrollAmbientes('left')">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              
+              <div class="ambientes-scroll-container" #ambientesScroll (scroll)="verificarVisibilidadeSetas()">
+                <div class="ambientes-list">
+                  <div 
+                    *ngFor="let ambiente of ambientes; let i = index" 
+                    class="ambiente-btn-wrapper custom-tab-label" 
+                    [class.active]="ambiente.id === ambienteAtivo?.id"
+                    [class.editing-mode]="editandoIndex === i">
+                    
+                    <button class="ambiente-btn" *ngIf="editandoIndex !== i" (click)="selecionarAmbiente(ambiente)">
+                      <span>{{ ambiente.nome }}</span>
+                    </button>
+
                     <mat-form-field *ngIf="editandoIndex === i" (click)="$event.stopPropagation()" class="edit-area-input">
                       <input matInput [(ngModel)]="valorEditado" (keydown.enter)="salvarEdicao(i)" (keydown.escape)="cancelarEdicao()" (blur)="salvarEdicao(i)" cdkFocusInitial>
                     </mat-form-field>
+                    
                     <button mat-icon-button class="more-options-btn" [matMenuTriggerFor]="areaMenu" (click)="$event.stopPropagation()">
                       <mat-icon>more_vert</mat-icon>
                     </button>
-                  </div>
-                  <mat-menu #areaMenu="matMenu" class="tavola-menu-bar">
-                    <button mat-menu-item (click)="iniciarEdicao($event, i)">
-                      <mat-icon>edit</mat-icon>
-                      <span>Editar Nome</span>
-                    </button>
-                    <button mat-menu-item (click)="confirmarRemocaoArea($event, ambiente)">
-                      <mat-icon>delete</mat-icon>
-                      <span>Remover Área</span>
-                    </button>
-                  </mat-menu>
-                </ng-template>
-                <div></div> <!-- Conteúdo vazio da aba -->
-              </mat-tab>
 
-              <!-- Aba para adicionar nova área/ambiente -->
-              <mat-tab>
-                <ng-template mat-tab-label>
-                  <div class="add-area-tab-label">
-                    <button *ngIf="!adicionandoArea" mat-stroked-button class="add-area-btn" (click)="ativarModoAdicionar()">
-                      <mat-icon>add</mat-icon> Nova Área
-                    </button>
-                    <mat-form-field *ngIf="adicionandoArea" class="add-area-input">
-                      <input matInput 
-                        placeholder="Nome da Área" 
-                        [(ngModel)]="nomeNovaArea" 
-                        (keydown.enter)="salvarNovaArea()" 
-                        (keydown.escape)="cancelarAdicionar()" 
-                        (blur)="salvarNovaArea()" 
-                        cdkFocusInitial>
-                    </mat-form-field>
+                    <mat-menu #areaMenu="matMenu" class="tavola-menu-bar">
+                      <button mat-menu-item (click)="iniciarEdicao($event, i)">
+                        <mat-icon>edit</mat-icon>
+                        <span>Editar Nome</span>
+                      </button>
+                      <button mat-menu-item (click)="confirmarRemocaoArea($event, ambiente)">
+                        <mat-icon>delete</mat-icon>
+                        <span>Remover Área</span>
+                      </button>
+                    </mat-menu>
                   </div>
-                </ng-template>
-              </mat-tab>
-            </mat-tab-group>
+                </div>
+              </div>
+              
+              <button mat-icon-button class="nav-arrow right-arrow" *ngIf="mostrarSetaDireita" (click)="scrollAmbientes('right')">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+            <div class="add-area-container">
+              <button *ngIf="!adicionandoArea" mat-stroked-button class="add-area-btn" (click)="ativarModoAdicionar()">
+                <mat-icon>add</mat-icon> Nova Área
+              </button>
+              <mat-form-field *ngIf="adicionandoArea" class="add-area-input">
+                <input matInput 
+                  placeholder="Nome da Área" 
+                  [(ngModel)]="nomeNovaArea" 
+                  (keydown.enter)="salvarNovaArea()" 
+                  (keydown.escape)="cancelarAdicionar()" 
+                  (blur)="salvarNovaArea()" 
+                  cdkFocusInitial>
+              </mat-form-field>
+            </div>
           </div>
 
           <!-- GRID DE MESAS DO AMBIENTE ATIVO -->

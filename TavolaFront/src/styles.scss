@@ -899,6 +899,160 @@ $dark-theme: mat.m2-define-dark-theme((
   }
 }
 
+// ===== ESTILOS GLOBAIS PARA PAGE-HEADER TAVOLA =====
+
+// Page Header Global - Padrão para todas as páginas
+.tavola-page-header {
+  margin-bottom: 40px;
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid rgba(194, 37, 35, 0.1);
+    position: relative;
+  }
+  
+  .header-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #F6BD38, #ffd54f);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: white;
+    }
+  }
+  
+  .header-text {
+    flex: 1;
+    
+    h1 {
+      color: #3B221B;
+      font-weight: 700;
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.025em;
+    }
+    
+    p {
+      color: rgba(59, 34, 27, 0.7);
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+  }
+}
+
+// Variações de cores para diferentes tipos de page-header
+
+// Page Header para Cardápio
+.tavola-page-header.cardapio {
+  .header-icon {
+    background: linear-gradient(135deg, #DA4A24, #ff6b47);
+  }
+}
+
+// Page Header para Equipe
+.tavola-page-header.equipe {
+  .header-icon {
+    background: linear-gradient(135deg, #9C27B0, #ba68c8);
+  }
+}
+
+// Page Header para Reservas
+.tavola-page-header.reservas {
+  .header-icon {
+    background: linear-gradient(135deg, #4CAF50, #66bb6a);
+  }
+}
+
+// Page Header para Configurações
+.tavola-page-header.configuracoes {
+  .header-icon {
+    background: linear-gradient(135deg, #F6BD38, #ffd54f);
+  }
+}
+
+// Page Header para Favoritos
+.tavola-page-header.favoritos {
+  .header-icon {
+    background: linear-gradient(135deg, #FF5722, #ff7043);
+  }
+}
+
+// Page Header para Histórico
+.tavola-page-header.historico {
+  .header-icon {
+    background: linear-gradient(135deg, #607D8B, #78909c);
+  }
+}
+// Responsividade para page-header
+@media (max-width: 768px) {
+  .tavola-page-header {
+    margin-bottom: 24px;
+    
+    .header-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 16px;
+      padding: 20px;
+    }
+    
+    .header-text {
+      h1 {
+        font-size: 24px;
+      }
+      
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tavola-page-header {
+    .header-content {
+      padding: 16px;
+      gap: 12px;
+    }
+    
+    .header-icon {
+      width: 56px;
+      height: 56px;
+      
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+    
+    .header-text {
+      h1 {
+        font-size: 20px;
+      }
+      
+      p {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
 // ===== ESTILOS GLOBAIS PARA CARDS TAVOLA =====
 
 // Card base para todas as páginas

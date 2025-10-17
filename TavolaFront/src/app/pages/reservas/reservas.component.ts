@@ -1,4 +1,4 @@
-import { Component, type OnInit, ViewChild, type TemplateRef, ChangeDetectorRef, LOCALE_ID, inject } from "@angular/core"
+import { Component, type OnInit, ViewChild, type TemplateRef, ChangeDetectorRef, LOCALE_ID, inject, ElementRef, AfterViewInit, HostListener } from "@angular/core"
 import { CommonModule, registerLocaleData } from "@angular/common"
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import localePt from "@angular/common/locales/pt"
@@ -144,8 +144,9 @@ const antIcons: IconDefinition[] = [
   ],
   animations: [],
 })
-export class ReservasComponent implements OnInit {
+export class ReservasComponent implements OnInit, AfterViewInit {
   @ViewChild("modalMesa") modalMesaTemplate!: TemplateRef<any>
+  @ViewChild("ambientesScroll") ambientesScrollContainer!: ElementRef;
 
   // Injeção de dependências
   private ambienteService = inject(AmbienteService);
@@ -192,6 +193,10 @@ export class ReservasComponent implements OnInit {
   visualizacaoAtiva: 'lista' | 'mapa' = 'lista';
   isMobileView = false;
 
+  // Controle de scroll dos ambientes
+  mostrarSetaEsquerda = false;
+  mostrarSetaDireita = false;
+
   // Mock data (como no seu código)
   clientes: ICliente[] = []; // This will no longer be used as client data is in IReserva
 
@@ -214,6 +219,14 @@ export class ReservasComponent implements OnInit {
     this.selectedEnvironmentTabIndex = index;
     if (this.editandoIndex === null && index < this.ambientes.length) {
       this.ambienteAtivo = this.ambientes[index];
+      this.cdr.detectChanges();
+    }
+  }
+
+  // Novo método para seleção direta de ambiente
+  selecionarAmbiente(ambiente: IAmbiente): void {
+    if (this.editandoIndex === null) {
+      this.ambienteAtivo = ambiente;
       this.cdr.detectChanges();
     }
   }
@@ -323,6 +336,18 @@ export class ReservasComponent implements OnInit {
       this.checkMobileView();
     });
   }
+
+  ngAfterViewInit(): void {
+    // Usamos um setTimeout para garantir que o ngFor tenha renderizado os ambientes
+    setTimeout(() => {
+      this.verificarVisibilidadeSetas();
+    }, 100);
+  }
+  
+  @HostListener('window:resize')
+  onResize() {
+    this.verificarVisibilidadeSetas();
+  }
   
   checkMobileView(): void {
     this.isMobileView = window.innerWidth <= 768;
@@ -330,6 +355,40 @@ export class ReservasComponent implements OnInit {
   
   isMobile(): boolean {
     return this.isMobileView;
+  }
+
+  // Métodos de controle de scroll dos ambientes
+  scrollAmbientes(direcao: 'left' | 'right'): void {
+    const container = this.ambientesScrollContainer.nativeElement;
+    const scrollAmount = 250; // Quantidade de pixels para rolar
+
+    if (direcao === 'left') {
+      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else {
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  }
+  
+  verificarVisibilidadeSetas(): void {
+    // Adiciona um debounce para evitar chamadas excessivas durante o scroll
+    setTimeout(() => {
+        if (!this.ambientesScrollContainer) return;
+        const container = this.ambientesScrollContainer.nativeElement;
+        
+        // Verifica se o conteúdo é maior que o container
+        const hasOverflow = container.scrollWidth > container.clientWidth;
+
+        if (!hasOverflow) {
+            this.mostrarSetaEsquerda = false;
+            this.mostrarSetaDireita = false;
+            return;
+        }
+
+        // Tolerância de 1px para evitar problemas de arredondamento
+        this.mostrarSetaEsquerda = container.scrollLeft > 1;
+        this.mostrarSetaDireita = container.scrollWidth - container.clientWidth - container.scrollLeft > 1;
+        this.cdr.detectChanges(); // Força a detecção de mudanças
+    }, 50);
   }
   
   abrirBottomSheetReserva(reserva: IReserva): void {
@@ -627,8 +686,28 @@ export class ReservasComponent implements OnInit {
 
   selecionarReserva(reserva: IReserva): void {
     if (this.isMobile()) {
-      // No mobile, abre bottom sheet
-      this.abrirBottomSheetReserva(reserva);
+      // No mobile, muda para visualização de mapa e seleciona a reserva
+      this.visualizacaoAtiva = 'mapa';
+      this.reservaSelecionada = reserva;
+      
+      // Apenas muda para a aba de Reservas (índice 0) se a reserva selecionada NÃO for da Lista de Espera
+      if (this.reservaSelecionada.status !== 'LISTA_ESPERA' && this.selectedTabIndex !== 0) {
+          this.selectedTabIndex = 0; 
+      } else if (this.reservaSelecionada.status === 'LISTA_ESPERA' && this.selectedTabIndex !== 1) {
+          this.selectedTabIndex = 1;
+      }
+
+      if (this.reservaSelecionada.mesaIds.length > 0) {
+          const primeiraMesa = this.getMesaPorId(this.reservaSelecionada.mesaIds[0]);
+          if (primeiraMesa) {
+            const ambiente = this.ambientes.find(a => a.mesas.some(m => m.id === primeiraMesa.id));
+            if (ambiente) {
+              this.ambienteAtivo = ambiente;
+              this.selectedEnvironmentTabIndex = this.ambientes.indexOf(ambiente);
+              this.cdr.detectChanges();
+            }
+          }
+        }
     } else {
       // No desktop, comportamento normal
       this.reservaSelecionada = this.reservaSelecionada?.id === reserva.id ? null : reserva;
