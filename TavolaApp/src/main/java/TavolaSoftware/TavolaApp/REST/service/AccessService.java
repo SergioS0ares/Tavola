@@ -117,7 +117,6 @@ public class AccessService {
         passwordResetTokenRepository.deleteByUsuarioId(usuario.getId());
 
         String token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setUsuario(usuario);
         resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30));

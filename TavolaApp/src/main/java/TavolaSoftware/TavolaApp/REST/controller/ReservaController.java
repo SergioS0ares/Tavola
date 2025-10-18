@@ -169,34 +169,6 @@ public class ReservaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar dados do calendário: " + e.getMessage()));
         }
     }
-
-    @PutMapping("/{idReserva}/status")
-    public ResponseEntity<?> atualizarStatusReserva(@PathVariable UUID idReserva, @RequestBody StatusUpdateRequest statusRequest) {
-        try {
-            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            
-            if (statusRequest.getNovoStatus() == null || statusRequest.getNovoStatus().isBlank()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", "O campo 'novoStatus' é obrigatório."));
-            }
-
-            // O Service agora recebe a String do novo status
-            ReservaResponse reservaAtualizada = reservaService.atualizarStatusReserva(idReserva, statusRequest.getNovoStatus(), emailUsuarioLogado);
-            return ResponseEntity.ok(reservaAtualizada);
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage()));
-        } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) {
-                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-            }
-            // Captura o erro de status inválido do Service
-            if (e instanceof IllegalArgumentException) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao atualizar status: " + e.getMessage()));
-        }
-    }
     
     /**
      * NOVO ENDPOINT
@@ -236,6 +208,33 @@ public class ReservaController {
         return reservaResponseOpt 
                 .<ResponseEntity<?>>map(ResponseEntity::ok) 
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Reserva não encontrada com ID: " + idReserva))); 
+    }
+    
+    @PutMapping("/{idReserva}/status")
+    public ResponseEntity<?> atualizarStatusReserva(@PathVariable UUID idReserva, @RequestBody StatusUpdateRequest statusRequest) {
+        try {
+            String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            
+            if (statusRequest.getNovoStatus() == null || statusRequest.getNovoStatus().isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", "O campo 'novoStatus' é obrigatório."));
+            }
+
+            ReservaResponse reservaAtualizada = reservaService.atualizarStatusReserva(idReserva, statusRequest.getNovoStatus(), emailUsuarioLogado);
+            return ResponseEntity.ok(reservaAtualizada);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage()));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("não encontrado")) {
+                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
+            }
+
+            if (e instanceof IllegalArgumentException) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao atualizar status: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/{idReserva}/cancel")

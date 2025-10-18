@@ -294,4 +294,8 @@ public class RestauranteService {
             return repoRestaurante.findByUsuario(usuario)
                 .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
     }
+    
+    public Optional<Restaurante> findEntityById(UUID id) {
+        return repoRestaurante.findById(id);
+    }
 }
