@@ -669,9 +669,10 @@
       min-width: 0; // Permite que o container encolha
     }
 
-    // O container que realmente rola - DELIMITADO para 3.5 ambientes
+    // O container que realmente rola - responsivo
     .ambientes-scroll-container {
-      width: 420px; // Largura fixa para mostrar 3.5 botões (3 completos + pedaço do 4º)
+      flex: 1;      // <<< CORREÇÃO
+      min-width: 0;
       overflow-x: auto;
       scroll-behavior: smooth;
       // Esconde a barra de rolagem
@@ -778,142 +779,156 @@
 
   }
   
-  .mesas-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 20px;
-      padding: 0;
-      overflow-y: auto;
-      
-      .mesa {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        gap: 8px;
-        
-        .mesa-visual {
-          width: 80px;
-          height: 80px;
-          background-color: #f0f0f0;
-          border: 2px solid #d0d0d0;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          transition: all 0.2s ease;
-          
-          .mesa-capacidade {
-            font-size: 14px;
-            color: rgba(59, 34, 27, 0.8);
-            font-weight: 600;
-          }
-          
-          &.mesa-circular {
-            border-radius: 50% !important;
-          }
-        }
-        
-        .mesa-etiqueta {
-          padding: 4px 8px;
-          background-color: $text-color;
-          color: white;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 600;
-          text-align: center;
-          min-width: 60px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-          
-          &.mesa-vip {
-            background-color: $primary-color;
-            color: $text-color;
-          }
-        }
-        
-        &.mesa-ocupada {
-          .mesa-visual {
-            border: 2px solid #F44336 !important; /* Borda vermelha para mesa ocupada */
-            background-color: rgba(244, 67, 54, 0.1) !important; /* Fundo levemente avermelhado */
-          }
-          
-          .mesa-etiqueta {
-            color: #F44336 !important; /* Texto do nome da mesa em vermelho */
-            font-weight: bold;
-          }
-        }
-        
-        &.mesa-atribuida-reserva-atual {
-          .mesa-visual {
-            background-color: color.adjust($primary-color, $lightness: 30%);
-            border: 3px solid $primary-color;
-            box-shadow: 0 0 12px rgba($primary-color, 0.5);
-            
-            .mesa-capacidade {
-              color: $text-color;
-              font-weight: 700;
-            }
-          }
-          
-          .mesa-etiqueta {
-            background-color: $primary-color;
-            color: $text-color;
-            font-weight: 700;
-          }
-        }
-        
-        &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
-          .mesa-visual {
-            background-color: color.adjust($primary-color, $lightness: 40%);
-            border-color: $primary-color;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-          }
-          
-          .mesa-etiqueta {
-            background-color: $primary-color;
-            color: $text-color;
-          }
-        }
+  // Container para o grid NG-Zorro
+  .mesas-grid-container {
+    padding: 0;
+    overflow-y: auto;
+    flex: 1;
+    
+    // Otimizações específicas para mobile
+    ::ng-deep .ant-row {
+      margin-left: -4px !important;
+      margin-right: -4px !important;
+    }
+    
+    ::ng-deep .ant-col {
+      padding-left: 4px !important;
+      padding-right: 4px !important;
+    }
+  }
 
-        // Corrigir alinhamento dos 3 pontinhos
-        .mesa-menu {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 10;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 32px;
-          width: 32px;
-          background: none;
-          button {
-            width: 32px;
-            height: 32px;
-            min-height: 32px;
-            background: none;
-            color: $primary-color;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: none;
-            mat-icon {
-              font-size: 22px;
-              width: 22px;
-              height: 22px;
-              line-height: 22px;
-              color: $primary-color;
-            }
-          }
+  // Estilos da mesa dentro do grid NG-Zorro
+  .mesa {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    gap: 8px;
+    
+    .mesa-visual {
+      width: 100%;
+      max-width: 100px;
+      height: 80px;
+      background-color: #f0f0f0;
+      border: 2px solid #d0d0d0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+      
+      .mesa-capacidade {
+        font-size: 14px;
+        color: rgba(59, 34, 27, 0.8);
+        font-weight: 600;
+      }
+      
+      &.mesa-circular {
+        border-radius: 50% !important;
+      }
+    }
+    
+    .mesa-etiqueta {
+      padding: 4px 8px;
+      background-color: $text-color;
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 60px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      
+      &.mesa-vip {
+        background-color: $primary-color;
+        color: $text-color;
+      }
+    }
+    
+    &.mesa-ocupada {
+      .mesa-visual {
+        border: 2px solid #F44336 !important;
+        background-color: rgba(244, 67, 54, 0.1) !important;
+      }
+      
+      .mesa-etiqueta {
+        color: #F44336 !important;
+        font-weight: bold;
+      }
+    }
+    
+    &.mesa-atribuida-reserva-atual {
+      .mesa-visual {
+        background-color: color.adjust($primary-color, $lightness: 30%);
+        border: 3px solid $primary-color;
+        box-shadow: 0 0 12px rgba($primary-color, 0.5);
+        
+        .mesa-capacidade {
+          color: $text-color;
+          font-weight: 700;
+        }
+      }
+      
+      .mesa-etiqueta {
+        background-color: $primary-color;
+        color: $text-color;
+        font-weight: 700;
+      }
+    }
+    
+    &:not(.mesa-ocupada):not(.mesa-atribuida-reserva-atual):hover {
+      .mesa-visual {
+        background-color: color.adjust($primary-color, $lightness: 40%);
+        border-color: $primary-color;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .mesa-etiqueta {
+        background-color: $primary-color;
+        color: $text-color;
+      }
+    }
+
+    .mesa-menu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      width: 32px;
+      background: none;
+      
+      button {
+        width: 32px;
+        height: 32px;
+        min-height: 32px;
+        background: none;
+        color: $primary-color;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        
+        mat-icon {
+          font-size: 22px;
+          width: 22px;
+          height: 22px;
+          line-height: 22px;
+          color: $primary-color;
         }
       }
     }
+  }
   }
 
 
@@ -1083,101 +1098,105 @@
     .areas-header {
       flex-direction: column;
       align-items: stretch;
-      gap: 16px;
+      gap: 12px;
+      padding-bottom: 12px;
     }
 
     .ambientes-nav-wrapper {
       width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow: hidden;
       
       .ambientes-scroll-container {
-        width: 100% !important;
+        flex: 1;
+        min-width: 0;
         overflow-x: auto;
-        scroll-snap-type: x mandatory;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
+        
+        &::-webkit-scrollbar {
+          display: none;
+        }
         
         .ambientes-list {
           display: flex;
           gap: 8px;
-          padding: 0 8px;
+          padding: 8px 0;
+          min-width: min-content;
           
           .ambiente-btn-wrapper {
-            scroll-snap-align: start;
             flex-shrink: 0;
+            min-width: fit-content;
+            
+            .ambiente-btn {
+              white-space: nowrap;
+              padding: 10px 18px;
+              font-size: 14px;
+              font-weight: 500;
+              min-width: 80px;
+              text-align: center;
+            }
+            
+            .more-options-btn {
+              width: 32px;
+              height: 32px;
+              
+              mat-icon {
+                font-size: 20px;
+              }
+            }
           }
         }
       }
       
       .nav-arrow {
-        display: none;
+        display: flex !important;
+        flex-shrink: 0;
       }
     }
 
     .add-area-container {
       width: 100%;
-      padding: 0 8px;
+      padding: 0 12px;
       box-sizing: border-box;
-    }
-  }
-  
-  .mesas-grid.mobile-scroll {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: visible;
-    gap: 16px;
-    padding: 16px 8px;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 40px;
-      background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
-      pointer-events: none;
-    }
-    
-    .mesa {
-      flex-shrink: 0;
-      scroll-snap-align: start;
+      display: flex;
+      justify-content: center;
       
-      .mesa-visual {
-        width: 80px;
-        height: 80px;
+      .add-area-btn {
+        width: 100%;
+        max-width: 300px;
+        height: 44px;
+        font-size: 14px;
+      }
+      
+      .add-area-input {
+        width: 100%;
+        max-width: 300px;
       }
     }
   }
   
-  .mesas-grid {
-    .reserva-cards {
-      .reserva-card {
-        margin-bottom: 12px;
-        .reserva-info {
-          padding: 16px;
-          .cliente-info {
-            h4 { font-size: 16px; }
-            .reserva-detalhes {
-              flex-direction: column;
-              gap: 8px;
-              .pessoas-info,
-              .mesa-info {
-                font-size: 13px;
-                mat-icon { font-size: 16px; width: 16px; height: 16px; }
-              }
-            }
-          }
-          .reserva-acoes {
-            .horario { font-size: 14px; font-weight: 600; }
-          }
-        }
+  // Otimizações específicas para mobile - grid mais compacto
+  .mesas-grid-container {
+    ::ng-deep {
+      .ant-row {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+      }
+      
+      .ant-col {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
       }
     }
   }
 }
+
+// Media queries removidas - NG-Zorro grid cuida da responsividade
 
 @media (max-width: 576px) {
   .reservas-header {
@@ -1223,37 +1242,52 @@
     grid-template-columns: 1fr !important;
   }
   
-  .mesas-grid.mobile-scroll {
-    gap: 12px;
-    padding: 12px 8px;
-    
-    .mesa {
-      .mesa-visual {
-        width: 70px;
-        height: 70px;
-        
-        .mesa-capacidade {
-          font-size: 12px;
-        }
-      }
-      
-      .mesa-etiqueta {
-        font-size: 10px;
-        padding: 2px 6px;
-      }
-    }
-  }
-
-  // Limite ainda mais restritivo para smartphones pequenos
   .mesas-container {
     .ambientes-nav-wrapper {
       .ambientes-scroll-container {
-        width: 280px; // Largura ainda menor para smartphones pequenos
+        .ambientes-list {
+          padding: 6px 8px 10px 8px;
+          gap: 6px;
+          
+          .ambiente-btn-wrapper {
+            .ambiente-btn {
+              padding: 8px 14px;
+              font-size: 13px;
+              min-width: 70px;
+            }
+            
+            .more-options-btn {
+              width: 28px;
+              height: 28px;
+              
+              mat-icon {
+                font-size: 18px;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .add-area-container {
+      .add-area-btn {
+        height: 40px;
+        font-size: 13px;
+      }
+    }
+  }
+  
+  // Otimizações específicas para mobile - grid mais compacto
+  .mesas-grid-container {
+    ::ng-deep {
+      .ant-row {
+        margin-left: -2px !important;
+        margin-right: -2px !important;
       }
       
-      .ambiente-btn {
-        padding: 4px 8px;
-        font-size: 12px;
+      .ant-col {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
       }
     }
   }
@@ -1524,25 +1558,7 @@
   }
 }
 
-.custom-tab-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-
-  .area-name {
-    margin-right: 4px;
-  }
-
-  .area-menu-trigger {
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  &:hover .area-menu-trigger {
-    opacity: 0.7;
-  }
-}
+// Regra consolidada - ver definição completa abaixo
 
 #input-nova-area {
   border-color: rgba(59, 34, 27, 0.4);
@@ -1769,24 +1785,9 @@
   }
 }
 
-.custom-tab-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
+// Regra consolidada - ver definição completa acima
 
-  .more-options-btn {
-    opacity: 1;
-    transition: opacity 0.2s ease;
-  }
-}
-
-.mesa-menu {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 1;
-}
+// Regra removida - já definida dentro de .mesa
 
 ::ng-deep {
   .mat-menu-item {
@@ -1836,53 +1837,14 @@
   }
 }
 
-/* Cores para os botões de status da reserva */
-.status-confirmada {
-  color: #4CAF50; /* Verde */
-}
-
-.status-pendente {
-  color: #FFC107; /* Laranja */
-}
-
-.status-cancelada {
-  color: #F44336; /* Vermelho */
-}
-
-.status-concluida {
-  color: #2196F3; /* Azul */
-}
-
-.status-nao-compareceu {
-  color: #9E9E9E; /* Cinza */
-}
-
-.status-ativa {
-  color: #673AB7; /* Roxo (exemplo, você pode ajustar) */
-}
-
-.status-lista-espera {
-  color: #FF9800; /* Laranja mais escuro */
-}
-
-/* Cores para os seletores de status (dropdown) */
-.status-dropdown {
-  .mat-mdc-select-value {
-    .mat-mdc-select-value-text {
-      &.status-confirmada { color: #4CAF50; }
-      &.status-pendente { color: #FFC107; }
-      &.status-cancelada { color: #F44336; }
-      &.status-concluida { color: #2196F3; }
-      &.status-nao-compareceu { color: #9E9E9E; }
-      &.status-ativa { color: #673AB7; }
-      &.status-lista-espera { color: #FF9800; }
-    }
-  }
-
-  .mat-mdc-select-arrow {
-    color: #3B221B; /* Cor da seta do dropdown */
-  }
-}
+// Cores consolidadas para status de reservas
+.status-confirmada { color: #4CAF50; }
+.status-pendente { color: #FFC107; }
+.status-cancelada { color: #F44336; }
+.status-concluida { color: #2196F3; }
+.status-nao-compareceu { color: #9E9E9E; }
+.status-ativa { color: #673AB7; }
+.status-lista-espera { color: #FF9800; }
 
 /* Exemplo no reservas.component.scss */
 .status-dropdown .mat-mdc-select-trigger[aria-disabled="true"],
@@ -1898,38 +1860,15 @@
   }
 }
 
-// Animações para as setas de navegação
-@keyframes fadeInSlide {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+// Animações simplificadas para setas de navegação
 @keyframes slideInLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInRight {
-  0% {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  0% { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
 // Botão Flutuante (Estilo Equipe)

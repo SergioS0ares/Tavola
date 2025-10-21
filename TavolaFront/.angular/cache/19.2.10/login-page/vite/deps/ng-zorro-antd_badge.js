@@ -8,19 +8,19 @@ import {
   NzOutletModule,
   NzStringTemplateOutletDirective
 } from "./chunk-DKXAOBVB.js";
+import "./chunk-5ZV73UG7.js";
+import "./chunk-VIBAY5QN.js";
 import {
   NzConfigService,
   WithConfig
 } from "./chunk-OQEB3FQA.js";
 import "./chunk-4OXNTDIN.js";
-import "./chunk-5ZV73UG7.js";
-import "./chunk-VIBAY5QN.js";
 import "./chunk-NCBG67EV.js";
 import "./chunk-IZBEIZLW.js";
 import "./chunk-37JVYMH4.js";
-import "./chunk-UWI5G4WL.js";
 import "./chunk-UEERIBQV.js";
 import "./chunk-WY2VMIPC.js";
+import "./chunk-UWI5G4WL.js";
 import {
   Directionality
 } from "./chunk-SLO47O37.js";

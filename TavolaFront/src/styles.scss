@@ -414,11 +414,6 @@ $dark-theme: mat.m2-define-dark-theme((
     margin: 0 !important;
     max-width: calc(100vw - 40px) !important;
   }
-  
-  // Prevenir fechamento automático ao clicar fora
-  ::ng-deep .cdk-overlay-backdrop {
-    pointer-events: none !important;
-  }
 }
 
 // FAB Global (para todos os componentes)

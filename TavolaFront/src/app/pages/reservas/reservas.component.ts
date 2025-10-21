@@ -61,6 +61,7 @@ import {
   UserOutline,
 } from "@ant-design/icons-angular/icons"
 import { NzDatePickerModule } from "ng-zorro-antd/date-picker"
+import { NzGridModule } from "ng-zorro-antd/grid"
 import { IReserva } from '../../Interfaces/IReserva.interface';
 import { IMesa } from '../../Interfaces/IMesa.interface';
 import { ICliente } from '../../Interfaces/ICliente.interface';
@@ -129,6 +130,7 @@ const antIcons: IconDefinition[] = [
     NzEmptyModule,
     NzModalModule,
     NzDatePickerModule,
+    NzGridModule,
     MatMenuModule,
     MatAutocompleteModule,
     MatProgressSpinnerModule,
