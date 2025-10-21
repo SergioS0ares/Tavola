@@ -22,69 +22,54 @@ import java.util.stream.Collectors;
 @Service
 public class CardapioService {
 
-	// Precisamos injetar os outros serviços aqui para que o CardapioService possa "maestrar"
-    @Autowired
-    private CategoriaService categoriaService;
-    
-    @Autowired
-    private TagsService tagsService;
-	
-    @Autowired
-    private CardapioRepository repo;
+    @Autowired private CategoriaService categoriaService;
+    @Autowired private TagsService tagsService;
+    @Autowired private CardapioRepository repo;
+    @Autowired private UploadUtils uplUtil;
 
-    @Autowired
-    private UploadUtils uplUtil;
-
-    public List<Cardapio> findAll() {
-        return repo.findAll();
-    }
-
-    public Optional<Cardapio> findById(UUID id) {
-        return repo.findById(id);
-    }
-
-    public List<Cardapio> findByRestauranteId(UUID restauranteId) {
-        return repo.findByRestauranteId(restauranteId);
-    }
+    public List<Cardapio> findAll() { return repo.findAll(); }
+    public Optional<Cardapio> findById(UUID id) { return repo.findById(id); }
+    public List<Cardapio> findByRestauranteId(UUID restauranteId) { return repo.findByRestauranteId(restauranteId); }
 
     @Transactional
     public Cardapio save(Cardapio cardapio, Restaurante restaurante) {
-        // ... (lógica de categoria e tags permanece a mesma) ...
         cardapio.setRestaurante(restaurante);
 
+        // Lógica de Categoria e Tags (sem alterações)
         if (cardapio.getCategoria() != null && cardapio.getCategoria().getNome() != null) {
             Categoria categoriaGerenciada = categoriaService.saveIfNotExists(cardapio.getCategoria().getNome(), restaurante);
             cardapio.setCategoria(categoriaGerenciada);
         } else {
             throw new IllegalArgumentException("A categoria é obrigatória para criar um item no cardápio.");
         }
-
         if (cardapio.getTags() != null && !cardapio.getTags().isEmpty()) {
             Set<String> nomesTags = cardapio.getTags().stream().map(Tags::getTag).collect(Collectors.toSet());
             Set<Tags> tagsGerenciadas = tagsService.saveAll(nomesTags);
             cardapio.setTags(tagsGerenciadas);
         }
 
-        // 4. Processa a imagem, se houver (LÓGICA CORRIGIDA)
+        // Processa a imagem (Base64) e salva SÓ o filename
         if (cardapio.getImagem() != null && uplUtil.isBase64Image(cardapio.getImagem())) {
             try {
-                // <<< MUDANÇA AQUI: Chamando o método correto e mais simples do UploadUtils
-                String caminhoDaImagem = uplUtil.processCardapioImagem(cardapio.getImagem(), restaurante.getId(), cardapio.getId());
-                cardapio.setImagem(caminhoDaImagem);
+                // <<< CORREÇÃO AQUI >>>
+                String nomeArquivo = uplUtil.processCardapioImagem(cardapio.getImagem());
+                cardapio.setImagem(nomeArquivo); // Salva SÓ o nome do arquivo
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao salvar imagem de cardápio", e);
             }
+        } else {
+            // Se não for Base64, garante que salvamos null ou apenas o nome do arquivo, se já existir
+            cardapio.setImagem(uplUtil.findNameByURL(cardapio.getImagem()));
         }
-        
+
         return repo.save(cardapio);
     }
-    
-    @Transactional // Garante que a lista inteira seja salva numa única transação
+
+    @Transactional
     public List<Cardapio> saveMultiple(List<Cardapio> cardapios, Restaurante restaurante) {
+        // Lógica sem alterações, pois chama o 'save' individual
         List<Cardapio> salvos = new ArrayList<>();
         for (Cardapio cardapio : cardapios) {
-            // Agora chamamos o método save de um único item, que já tem a lógica completa.
-            // Como estamos dentro de um método @Transactional, tudo faz parte da mesma "unidade de trabalho".
             Cardapio salvo = this.save(cardapio, restaurante);
             salvos.add(salvo);
         }
@@ -95,14 +80,21 @@ public class CardapioService {
         return repo.findAllDisponiveisByRestaurante(restauranteId);
     }
 
+    @Transactional // Adicionado Transactional para garantir a deleção
     public void deleteById(UUID id) {
-        Optional<Cardapio> cardapio = repo.findById(id);
-        if (cardapio.isPresent()) {
-            String img = uplUtil.findNameByURL(cardapio.get().getImagem());
-            String pasta = "upl/cardapios/" + cardapio.get().getRestaurante().getId();
-            uplUtil.removeOrfans(pasta, Set.of()); // apaga tudo se a imagem for única
+        Optional<Cardapio> cardapioOpt = repo.findById(id);
+        if (cardapioOpt.isPresent()) {
+            Cardapio cardapio = cardapioOpt.get();
+            // Deleta o arquivo físico SE existir um nome de arquivo salvo
+            if (cardapio.getImagem() != null && !cardapio.getImagem().isBlank()) {
+                // <<< CORREÇÃO AQUI >>>
+                String urlCompleta = uplUtil.construirUrlRelativa("cardapios", cardapio.getImagem());
+                uplUtil.deletarArquivoPeloCaminho(urlCompleta);
+            }
+            // Remove a entidade do banco
+            repo.deleteById(id);
         }
-        repo.deleteById(id);
+        // Se não encontrou, não faz nada
     }
 
     @Transactional
@@ -114,16 +106,10 @@ public class CardapioService {
             throw new SecurityException("Acesso negado. Você não tem permissão para alterar este item do cardápio.");
         }
 
-        // ... (lógica de atualização de nome, preço, etc. permanece a mesma) ...
-        if (dadosParaAtualizar.getNome() != null && !dadosParaAtualizar.getNome().isBlank()) {
-            cardapioExistente.setNome(dadosParaAtualizar.getNome());
-        }
-        if (dadosParaAtualizar.getDescricao() != null) {
-            cardapioExistente.setDescricao(dadosParaAtualizar.getDescricao());
-        }
-        if (dadosParaAtualizar.getPreco() > 0) { 
-            cardapioExistente.setPreco(dadosParaAtualizar.getPreco());
-        }
+        // Lógica de atualização de dados (sem alterações)
+        if (dadosParaAtualizar.getNome() != null && !dadosParaAtualizar.getNome().isBlank()) cardapioExistente.setNome(dadosParaAtualizar.getNome());
+        if (dadosParaAtualizar.getDescricao() != null) cardapioExistente.setDescricao(dadosParaAtualizar.getDescricao());
+        if (dadosParaAtualizar.getPreco() != 0.0 && dadosParaAtualizar.getPreco() >= 0) cardapioExistente.setPreco(dadosParaAtualizar.getPreco()); // Permitir preço 0?
         cardapioExistente.setDisponivel(dadosParaAtualizar.getDisponivel());
         if (dadosParaAtualizar.getCategoria() != null && dadosParaAtualizar.getCategoria().getNome() != null) {
             Categoria novaCategoria = categoriaService.saveIfNotExists(dadosParaAtualizar.getCategoria().getNome(), restauranteDono);
@@ -135,24 +121,43 @@ public class CardapioService {
             cardapioExistente.setTags(novasTags);
         }
 
-        // 5. ATUALIZA A IMAGEM (LÓGICA CORRIGIDA)
+        // Atualiza a imagem (se enviada como Base64)
         if (dadosParaAtualizar.getImagem() != null && uplUtil.isBase64Image(dadosParaAtualizar.getImagem())) {
             try {
-                // <<< MUDANÇA AQUI: Chamando o método correto e mais simples do UploadUtils
-                // Primeiro deletamos a imagem antiga para não deixar lixo no disco
-                uplUtil.deletarArquivoPeloCaminho(cardapioExistente.getImagem());
-                
-                String novoCaminho = uplUtil.processCardapioImagem(dadosParaAtualizar.getImagem(), restauranteDono.getId(), cardapioId);
-                cardapioExistente.setImagem(novoCaminho);
+                // Deleta a imagem antiga (se existir) usando o nome do arquivo
+                if (cardapioExistente.getImagem() != null && !cardapioExistente.getImagem().isBlank()) {
+                    // <<< CORREÇÃO AQUI >>>
+                    String urlAntiga = uplUtil.construirUrlRelativa("cardapios", cardapioExistente.getImagem());
+                    uplUtil.deletarArquivoPeloCaminho(urlAntiga);
+                }
+
+                // Processa a nova imagem e salva SÓ o filename
+                // <<< CORREÇÃO AQUI >>>
+                String nomeNovoArquivo = uplUtil.processCardapioImagem(dadosParaAtualizar.getImagem());
+                cardapioExistente.setImagem(nomeNovoArquivo); // Salva só o nome
+
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao processar a nova imagem do cardápio: " + e.getMessage(), e);
             }
+        } else if (dadosParaAtualizar.getImagem() != null && dadosParaAtualizar.getImagem().isBlank()) {
+            // Se enviou string vazia, remove a imagem existente
+             if (cardapioExistente.getImagem() != null && !cardapioExistente.getImagem().isBlank()) {
+                String urlAntiga = uplUtil.construirUrlRelativa("cardapios", cardapioExistente.getImagem());
+                uplUtil.deletarArquivoPeloCaminho(urlAntiga);
+            }
+            cardapioExistente.setImagem(null);
         }
+        // Se a imagem no DTO for null ou uma URL/nome existente, não faz nada com o arquivo
 
         return repo.save(cardapioExistente);
     }
 
     public Optional<Cardapio> findByNomeAndRestauranteId(String nome, UUID restauranteId) {
         return repo.findByNomeAndRestauranteId(nome, restauranteId);
+    }
+
+    // <<< NOVO MÉTODO HELPER PARA RECONSTRUIR URL PARA DTOs >>>
+    public String getUrlImagemCardapio(Cardapio cardapio) {
+        return uplUtil.construirUrlRelativa("cardapios", cardapio.getImagem());
     }
 }

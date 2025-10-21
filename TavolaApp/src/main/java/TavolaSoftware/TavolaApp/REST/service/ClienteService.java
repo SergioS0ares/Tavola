@@ -27,24 +27,13 @@ import java.util.stream.Collectors;
 @Service
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository repo;
+    @Autowired private ClienteRepository repo;
+    @Autowired private RestauranteRepository repoRestaurante;
+    @Autowired private AvaliacaoRepository avaliacaoRepository;
+    @Autowired private ReservaRepository reservaRepository;
+    @Autowired private UsuarioRepository repoUsuario;
+    @Autowired private UploadUtils uplUtil;
 
-    @Autowired
-    private RestauranteRepository repoRestaurante;
-    
-    @Autowired
-    private AvaliacaoRepository avaliacaoRepository;
-
-    @Autowired
-    private ReservaRepository reservaRepository;
-    
-    @Autowired
-    private UsuarioRepository repoUsuario;
-
-    @Autowired
-    private UploadUtils uplUtil;
-    
     public Cliente save(Cliente client) { return repo.save(client); }
     public List<Cliente> findAll() { return repo.findAll(); }
     public Optional<Cliente> findById(UUID id) { return repo.findById(id); }
@@ -53,14 +42,11 @@ public class ClienteService {
 
     @Transactional
     public String toggleFavorito(String emailCliente, UUID restauranteId) {
+        // Lógica sem alterações...
         Cliente cliente = repo.findByUsuarioEmail(emailCliente);
-        if (cliente == null) {
-            throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
-        }
-        if (!repoRestaurante.existsById(restauranteId)) {
-        throw new RuntimeException("Restaurante com ID " + restauranteId + " não encontrado.");
-        }
-        List<UUID> favoritos = cliente.getFavoritos(); 
+        if (cliente == null) throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
+        if (!repoRestaurante.existsById(restauranteId)) throw new RuntimeException("Restaurante com ID " + restauranteId + " não encontrado.");
+        List<UUID> favoritos = cliente.getFavoritos();
         String mensagem;
         if (favoritos.contains(restauranteId)) {
             favoritos.remove(restauranteId);
@@ -69,15 +55,14 @@ public class ClienteService {
             favoritos.add(restauranteId);
             mensagem = "Restaurante adicionado aos favoritos.";
         }
-        repo.save(cliente); 
+        repo.save(cliente);
         return mensagem;
     }
 
     public List<UUID> getFavoritos(String emailCliente) {
+        // Lógica sem alterações...
         Cliente cliente = repo.findByUsuarioEmail(emailCliente);
-        if (cliente == null) {
-            throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
-        }
+        if (cliente == null) throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
         return new ArrayList<>(cliente.getFavoritos());
     }
 
@@ -85,98 +70,111 @@ public class ClienteService {
     public Cliente updateFromRequest(String email, ClienteUpdateRequest request) {
         Cliente clienteExistente = findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Cliente não encontrado para atualização com email: " + email));
-
         Usuario usuarioParaAtualizar = clienteExistente.getUsuario();
-        
-        // Atualiza os campos do usuário
-        if (request.getNome() != null && !request.getNome().isBlank()) {
-            usuarioParaAtualizar.setNome(request.getNome());
-        }
-        if (request.getEndereco() != null) {
-            usuarioParaAtualizar.setEndereco(request.getEndereco());
-        }
-        if (request.getTelefone() != null) {
-            usuarioParaAtualizar.setTelefone(request.getTelefone());
-        }
-        if (request.getSenha() != null && !request.getSenha().isBlank()) {
-             usuarioParaAtualizar.setSenha(BCrypt.hashpw(request.getSenha(), BCrypt.gensalt()));
-        }
-        
+
+        // Atualiza campos simples (sem alterações)
+        if (request.getNome() != null && !request.getNome().isBlank()) usuarioParaAtualizar.setNome(request.getNome());
+        if (request.getEndereco() != null) usuarioParaAtualizar.setEndereco(request.getEndereco());
+        if (request.getTelefone() != null) usuarioParaAtualizar.setTelefone(request.getTelefone());
+        if (request.getSenha() != null && !request.getSenha().isBlank()) usuarioParaAtualizar.setSenha(BCrypt.hashpw(request.getSenha(), BCrypt.gensalt()));
+
         try {
             // Atualiza Imagem de Perfil
             if (request.getImagemPerfilBase64() != null && uplUtil.isBase64Image(request.getImagemPerfilBase64())) {
-                // Deleta a imagem antiga antes de salvar a nova, se existir
                 if (usuarioParaAtualizar.getImagem() != null) {
-                    uplUtil.deletarArquivoPeloCaminho(usuarioParaAtualizar.getImagem());
+                    // <<< CORREÇÃO AQUI >>>
+                    String urlAntiga = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagem());
+                    uplUtil.deletarArquivoPeloCaminho(urlAntiga);
                 }
-                // <<< CORREÇÃO APLICADA AQUI >>>
-                String caminhoImagemPerfil = uplUtil.processUsuarioImagem(request.getImagemPerfilBase64(), usuarioParaAtualizar.getId());
-                usuarioParaAtualizar.setImagem(caminhoImagemPerfil);
+                // <<< CORREÇÃO AQUI >>>
+                String nomeArquivoPerfil = uplUtil.processUsuarioImagem(request.getImagemPerfilBase64());
+                usuarioParaAtualizar.setImagem(nomeArquivoPerfil); // Salva SÓ o nome
+            } else if (request.getImagemPerfilBase64() != null && request.getImagemPerfilBase64().isBlank()) {
+                // Remove imagem se string vazia for enviada
+                if (usuarioParaAtualizar.getImagem() != null) {
+                    String urlAntiga = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagem());
+                    uplUtil.deletarArquivoPeloCaminho(urlAntiga);
+                }
+                usuarioParaAtualizar.setImagem(null);
             }
+
             // Atualiza Imagem de Background
             if (request.getImagemBackgroundBase64() != null && uplUtil.isBase64Image(request.getImagemBackgroundBase64())) {
                 if (usuarioParaAtualizar.getImagemBackground() != null) {
-                    uplUtil.deletarArquivoPeloCaminho(usuarioParaAtualizar.getImagemBackground());
+                     // <<< CORREÇÃO AQUI >>>
+                    String urlAntigaBg = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagemBackground());
+                    uplUtil.deletarArquivoPeloCaminho(urlAntigaBg);
                 }
-                // <<< CORREÇÃO APLICADA AQUI >>>
-                String caminhoImagemBg = uplUtil.processUsuarioImagem(request.getImagemBackgroundBase64(), usuarioParaAtualizar.getId());
-                usuarioParaAtualizar.setImagemBackground(caminhoImagemBg);
+                // <<< CORREÇÃO AQUI >>>
+                String nomeArquivoBg = uplUtil.processUsuarioImagem(request.getImagemBackgroundBase64());
+                usuarioParaAtualizar.setImagemBackground(nomeArquivoBg); // Salva SÓ o nome
+            } else if (request.getImagemBackgroundBase64() != null && request.getImagemBackgroundBase64().isBlank()) {
+                // Remove imagem se string vazia for enviada
+                 if (usuarioParaAtualizar.getImagemBackground() != null) {
+                    String urlAntigaBg = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagemBackground());
+                    uplUtil.deletarArquivoPeloCaminho(urlAntigaBg);
+                }
+                usuarioParaAtualizar.setImagemBackground(null);
             }
         } catch (IOException e) {
             throw new RuntimeException("Erro ao processar imagem: " + e.getMessage(), e);
         }
-        
-        // Salva a entidade Cliente, que por cascata salvará as alterações no Usuario associado.
-        return repo.save(clienteExistente);
+
+        // Salva o Usuario (que cascateia para Cliente via @MapsId, geralmente)
+        // Se a cascata não estiver configurada ou for unidirecional, salvar o Cliente pode ser necessário.
+        // Vamos salvar o usuario diretamente para garantir.
+        repoUsuario.save(usuarioParaAtualizar);
+        return clienteExistente; // Retorna o cliente (com o usuário atualizado)
     }
-    
+
     @Transactional
     public void deleteByEmail(String email) {
-        // 1. Encontrar o cliente e o usuário associado
         Cliente cliente = findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Cliente não encontrado com o email: " + email));
-        
         UUID clienteId = cliente.getId();
         Usuario usuario = cliente.getUsuario();
 
-        // 2. Deletar as dependências primeiro
+        // Deleta dependências (sem alterações)
         avaliacaoRepository.deleteAllByClienteId(clienteId);
         reservaRepository.deleteAllByClienteId(clienteId);
 
-        // 3. Deletar o Cliente
+        // Deleta Cliente e Usuário (sem alterações)
         repo.delete(cliente);
-
-        // 4. Deletar o Usuário associado (se ele não estiver atrelado a mais nada)
         if (usuario != null) {
-            // 5. Deletar a pasta de imagens do usuário
-            String pastaUsuario = "upl/usuarios/" + usuario.getId().toString();
-            uplUtil.deletarPasta(pastaUsuario);
-            
-            // Finalmente, deleta o usuário
-            // A injeção do repoUsuario já está na sua classe
+
+            // Deleta arquivos individuais associados, se existirem
+            if (usuario.getImagem() != null) {
+                 String urlImagem = uplUtil.construirUrlRelativa("usuarios", usuario.getImagem());
+                 uplUtil.deletarArquivoPeloCaminho(urlImagem);
+            }
+             if (usuario.getImagemBackground() != null) {
+                 String urlBg = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemBackground());
+                 uplUtil.deletarArquivoPeloCaminho(urlBg);
+            }
+
             repoUsuario.delete(usuario);
         }
     }
-    
+
     @Transactional(readOnly = true)
     public List<ClienteHomeResponse> getFavoritosComDetalhes(String emailCliente) {
-        // 1. Busca o cliente para obter a lista de IDs de favoritos
+        // Lógica sem alterações...
         Cliente cliente = repo.findByUsuarioEmail(emailCliente);
-        if (cliente == null) {
-            throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
-        }
-
+        if (cliente == null) throw new RuntimeException("Cliente não encontrado para email: " + emailCliente);
         List<UUID> favoritosIds = cliente.getFavoritos();
-        if (favoritosIds == null || favoritosIds.isEmpty()) {
-            return new ArrayList<>(); // Retorna lista vazia se não houver favoritos
-        }
-
-        // 2. Busca todos os restaurantes da lista de IDs de uma só vez
+        if (favoritosIds == null || favoritosIds.isEmpty()) return new ArrayList<>();
         List<Restaurante> restaurantesFavoritos = repoRestaurante.findAllById(favoritosIds);
-
-        // 3. Converte a lista de entidades Restaurante para uma lista de DTOs
         return restaurantesFavoritos.stream()
-                .map(ClienteHomeResponse::new) // Reutiliza o construtor do ClienteHomeResponse
+                .map(ClienteHomeResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    // <<< NOVOS MÉTODOS HELPER PARA RECONSTRUIR URLs PARA DTOs >>>
+    public String getUrlImagemPerfil(Cliente cliente) {
+        return (cliente.getUsuario() != null) ? uplUtil.construirUrlRelativa("usuarios", cliente.getUsuario().getImagem()) : null;
+    }
+
+    public String getUrlImagemBackground(Cliente cliente) {
+         return (cliente.getUsuario() != null) ? uplUtil.construirUrlRelativa("usuarios", cliente.getUsuario().getImagemBackground()) : null;
     }
 }
