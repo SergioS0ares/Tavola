@@ -19,7 +19,6 @@ import { DialogItemCardapioComponent } from './dialog-item-cardapio/dialog-item-
 import Swal from 'sweetalert2';
 import { environment } from '../../../environments/environment';
 import { ToastrService } from 'ngx-toastr';
-import { GlobalSpinnerComponent } from '../../spin/global-spinner/global-spinner.component';
 
 @Component({
   selector: 'app-cadastro-cardapio',
@@ -37,9 +36,7 @@ import { GlobalSpinnerComponent } from '../../spin/global-spinner/global-spinner
     MatInputModule,
     MatSelectModule,
     MatCheckboxModule,
-    FormsModule,
-    DialogItemCardapioComponent,
-    GlobalSpinnerComponent
+    FormsModule
   ],
   templateUrl: './cadastro-cardapio.component.html',
   styleUrls: ['./cadastro-cardapio.component.scss']
@@ -140,6 +137,11 @@ export class CadastroCardapioComponent implements OnInit {
       ...cat,
       itens: itensFiltrados.filter(item => item.categoria && item.categoria.nome === cat.nome)
     }));
+  }
+
+  // Método para aplicar filtros sem fechar o menu
+  aplicarFiltrosSemFechar(): void {
+    this.aplicarFiltros();
   }
 
   // Método para limpar pesquisa

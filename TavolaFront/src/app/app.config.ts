@@ -34,7 +34,10 @@ import {
   LoadingOutline,
   CheckCircleOutline,
   CloseCircleOutline,
-  InfoCircleOutline
+  InfoCircleOutline,
+
+  // Ícone VIP para mesas
+  CrownOutline
 
 } from '@ant-design/icons-angular/icons';
 
@@ -60,7 +63,8 @@ export const ICONS: IconDefinition[] = [
   LoadingOutline,
   CheckCircleOutline,
   CloseCircleOutline,
-  InfoCircleOutline
+  InfoCircleOutline,
+  CrownOutline
 ];
 
 export const appConfig: ApplicationConfig = {

@@ -483,19 +483,18 @@
 
           <!-- Grid de mesas -->
           <div *ngIf="ambienteAtivo" class="mesas-grid-container">
-            <div nz-row [nzGutter]="isMobile() ? [8, 16] : [16, 24]">
-              <div nz-col *ngFor="let mesa of ambienteAtivo.mesas" 
-                   [nzXs]="12"  
-                   [nzSm]="8" 
-                   [nzMd]="6"
-                   [nzLg]="4"
-                   [nzXl]="4">
+            
+            <div class="mesas-grid-css">
+              
+              <div *ngFor="let mesa of ambienteAtivo.mesas" class="mesa-wrapper-css">
+                
                 <div 
                   class="mesa" 
                   [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': isMesaAtribuidaAReservaAtual(mesa.id) }" 
                   (click)="toggleMesaParaReserva(mesa)"
                   [matTooltip]="getTooltipMesa(mesa)" 
                   matTooltipClass="tavola-tooltip">
+                  
                   <div class="mesa-menu" (click) = "$event.stopPropagation()">
                     <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
                       <mat-icon>more_vert</mat-icon>
@@ -514,9 +513,14 @@
                   <div class="mesa-visual" [ngClass]="{'mesa-circular': mesa.tipo === 'circular'}">
                     <span class="mesa-capacidade">{{ mesa.capacidade }} P</span>
                   </div>
-                  <div class="mesa-etiqueta" [ngClass]="{'mesa-vip': mesa.vip}">{{ mesa.nome }}</div>
+                  <div class="mesa-etiqueta" [ngClass]="{'mesa-vip': mesa.vip}">
+                    <nz-icon *ngIf="mesa.vip" nzType="crown" nzTheme="outline" class="vip-icon"></nz-icon>
+                    <span>{{ mesa.nome }}</span>
+                  </div>
                 </div>
+                
               </div>
+              
             </div>
           </div>
           

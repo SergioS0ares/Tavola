@@ -63,7 +63,7 @@
             
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Categoria</mat-label>
-              <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltros()">
+              <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltrosSemFechar()">
                 <mat-option value="">Todas as categorias</mat-option>
                 <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome">
                   {{ categoria.nome }}
@@ -73,7 +73,7 @@
             
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Tags</mat-label>
-              <mat-select [(ngModel)]="tagFiltro" (selectionChange)="aplicarFiltros()" multiple>
+              <mat-select [(ngModel)]="tagFiltro" (selectionChange)="aplicarFiltrosSemFechar()" multiple>
                 <mat-option *ngFor="let tag of tagsDisponiveis" [value]="tag">
                   {{ tag }}
                 </mat-option>
@@ -81,7 +81,7 @@
             </mat-form-field>
             
             <div class="filter-options">
-              <mat-checkbox [(ngModel)]="apenasDisponiveis" (change)="aplicarFiltros()">
+              <mat-checkbox [(ngModel)]="apenasDisponiveis" (change)="aplicarFiltrosSemFechar()">
                 Apenas disponíveis
               </mat-checkbox>
             </div>

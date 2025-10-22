@@ -981,6 +981,13 @@ $dark-theme: mat.m2-define-dark-theme((
   }
 }
 
+// Page Header para Meu Restaurante
+.tavola-page-header.meu-restaurante {
+  .header-icon {
+    background: linear-gradient(135deg, #FF9800, #ffb74d);
+  }
+}
+
 // Page Header para Favoritos
 .tavola-page-header.favoritos {
   .header-icon {

@@ -84,6 +84,38 @@
   .filter-field {
     width: 100%;
     margin-bottom: 16px;
+    
+    ::ng-deep {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(59, 34, 27, 0.3) !important;
+        border-width: 1px !important;
+      }
+      
+      &:hover .mdc-notched-outline__leading,
+      &:hover .mdc-notched-outline__notch,
+      &:hover .mdc-notched-outline__trailing {
+        border-color: $tavola-amarelo-primario !important;
+      }
+      
+      &.mat-focused .mdc-notched-outline__leading,
+      &.mat-focused .mdc-notched-outline__notch,
+      &.mat-focused .mdc-notched-outline__trailing {
+        border-color: $tavola-amarelo-primario !important;
+        border-width: 2px !important;
+      }
+      
+      .mat-mdc-select-value,
+      .mat-mdc-select-arrow {
+        color: $texto-principal-sobre-claro !important;
+      }
+      
+      .mat-mdc-form-field-label,
+      .mdc-floating-label {
+        color: $texto-secundario-sobre-claro !important;
+      }
+    }
   }
   
   .filter-options {
@@ -99,10 +131,18 @@
         --mdc-checkbox-selected-pressed-icon-color: #{$tavola-amarelo-primario};
         --mdc-checkbox-unselected-focus-icon-color: #{$tavola-amarelo-primario};
         --mdc-checkbox-unselected-hover-icon-color: #{$tavola-amarelo-primario};
+        --mdc-checkbox-unselected-icon-color: rgba(59, 34, 27, 0.3);
+        --mdc-checkbox-unselected-pressed-icon-color: rgba(59, 34, 27, 0.5);
       }
       
       .mdc-form-field {
         color: $texto-principal-sobre-claro;
+        font-weight: 500;
+      }
+      
+      .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
+        border-color: rgba(59, 34, 27, 0.3) !important;
+        border-width: 1px !important;
       }
     }
   }

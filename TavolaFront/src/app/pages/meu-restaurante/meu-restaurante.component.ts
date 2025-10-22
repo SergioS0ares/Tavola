@@ -287,4 +287,8 @@ export class MeuRestauranteComponent implements OnInit {
   get galeriaPreviews(): { url: string; tipo: "principal" | "galeria" }[] {
     return this.previews.filter((p) => p.tipo === "galeria")
   }
+
+  isMobile(): boolean {
+    return window.innerWidth <= 768
+  }
 }

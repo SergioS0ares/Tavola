@@ -1,8 +1,15 @@
 <div class="configuracoes-container">
   <!-- Cabeçalho da Página -->
-  <div class="page-header">
-    <h1>Meu Restaurante</h1>
-    <p>Gerencie as informações públicas do seu restaurante que os clientes verão.</p>
+  <div class="tavola-page-header meu-restaurante">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>restaurant</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Meu Restaurante</h1>
+        <p>Gerencie as informações públicas do seu restaurante que os clientes verão.</p>
+      </div>
+    </div>
   </div>
 
   <form [formGroup]="restauranteForm" *ngIf="!isLoading">
@@ -79,7 +86,8 @@
         <!-- Galeria estilo home irregular -->
         <div class="photo-gallery" *ngIf="galeriaPreviews.length > 0">
           <nz-image-group>
-            <div class="gallery-grid-irregular">
+            <!-- Layout Desktop - Grid Irregular -->
+            <div class="gallery-grid-irregular desktop-gallery" *ngIf="!isMobile()">
               <!-- Foto Principal (Grande) -->
               <div class="main-photo" *ngIf="galeriaPreviews[0]">
                 <img nz-image [nzSrc]="galeriaPreviews[0].url" alt="Foto do restaurante" class="gallery-image">
@@ -115,6 +123,29 @@
                 </button>
               </div>
             </div>
+
+            <!-- Layout Mobile - Slider Dinâmico -->
+            <div class="gallery-grid-irregular mobile-gallery" *ngIf="isMobile()">
+              <div 
+                *ngFor="let preview of galeriaPreviews; let i = index" 
+                class="mobile-gallery-item">
+                <img nz-image [nzSrc]="preview.url" alt="Foto do restaurante" class="gallery-image">
+                
+                <button mat-icon-button class="remove-img-btn" (click)="removerImagem(previews.indexOf(preview)); $event.stopPropagation()">
+                  <mat-icon>close</mat-icon>
+                </button>
+                
+                <div class="more-overlay" *ngIf="i === 3 && galeriaPreviews.length > 4" (click)="openGallery(); $event.stopPropagation()">
+                  <span>Veja outras {{ galeriaPreviews.length - 4 }} fotos</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Indicador de scroll para mobile -->
+            <div class="scroll-indicator" *ngIf="isMobile() && galeriaPreviews.length > 1">
+              <span>Deslize para ver mais fotos</span>
+            </div>
+
           </nz-image-group>
         </div>
       </div>

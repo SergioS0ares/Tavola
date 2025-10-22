@@ -68,22 +68,7 @@ $border-radius: 16px; // Bordas mais arredondadas
   padding: 0 16px;
 }
 
-.page-header {
-  margin-bottom: 24px;
-  
-  h1 {
-    font-size: 28px;
-    font-weight: 500;
-    color: $text-color;
-    margin: 0;
-  }
-  
-  p {
-    font-size: 16px;
-    color: rgba(59, 34, 27, 0.7);
-    margin: 0;
-  }
-}
+// Page header removido - agora usando tavola-page-header global
 
 mat-card {
   border-radius: $border-radius;
@@ -328,7 +313,7 @@ mat-card {
 .photo-gallery {
   margin-top: 16px;
   
-  .gallery-grid-irregular {
+  .gallery-grid-irregular.desktop-gallery {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
     grid-template-rows: 1fr 1fr;
@@ -441,6 +426,11 @@ mat-card {
 
     }
   }
+
+  .gallery-grid-irregular.mobile-gallery {
+    // Layout mobile - será aplicado apenas no mobile via media query
+    display: none;
+  }
 }
 
 // Modal de galeria com 3 colunas
@@ -472,30 +462,103 @@ mat-card {
 
 // Responsividade para galeria irregular
 @media (max-width: 768px) {
+  // Layout de galeria estilo TheFork com scroll horizontal
   .photo-gallery {
-    .gallery-grid-irregular {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr 1fr;
-      height: 600px;
+
+    // 1. ESCONDE a grelha do desktop no telemóvel
+    .gallery-grid-irregular.desktop-gallery {
+      display: none;
+    }
+
+    // 2. MOSTRA e ESTILIZA o slider do telemóvel (estilo TheFork)
+    .gallery-grid-irregular.mobile-gallery {
+      display: flex; // <-- ALTERADO DE 'none' PARA 'flex'
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: auto;
+      gap: 12px;
+      padding: 0 16px; // Padding lateral para o "peek" (espreitar)
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory; // Efeito "TheFork"
       
-      .main-photo {
-        grid-column: 1 / span 2;
-        grid-row: 1;
+      // Esconder a barra de scroll (cross-browser)
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
       }
-      
-      .medium-photo {
-        grid-column: 1;
-        grid-row: 2;
+
+      // 3. ESTILIZA o item do slider (do seu HTML .mobile-gallery-item)
+      .mobile-gallery-item {
+        scroll-snap-align: start; // Onde o "snap" deve parar
+        flex-shrink: 0;
+        width: 85%; // <-- A CHAVE: Ocupa 85% para mostrar os 15% da próxima
+        height: auto;
+        aspect-ratio: 4 / 3; // Proporção consistente
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        
+        .gallery-image { // A imagem dentro do item
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        // Estilo para o botão "Ver mais"
+        .more-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 14px;
+          text-align: center;
+          z-index: 1;
+        }
+
+        // Botão de remover (usar a versão pequena)
+        .remove-img-btn {
+          width: 36px !important;
+          height: 36px !important;
+          min-width: 36px !important;
+          top: 8px !important;
+          right: 8px !important;
+        
+          mat-icon {
+            font-size: 18px !important;
+            width: 18px !important;
+            height: 18px !important;
+            line-height: 18px !important;
+          }
+        }
       }
+    }
+    
+    // 4. MOSTRA o indicador de scroll
+    .scroll-indicator {
+      display: block; // <-- ALTERADO DE 'none' PARA 'block'
+      text-align: center;
+      padding: 12px 0 8px 0;
+      color: rgba(59, 34, 27, 0.5);
+      font-size: 11px;
+      font-weight: 500;
       
-      .small-photo-top {
-        grid-column: 2;
-        grid-row: 2;
-      }
-      
-      .small-photo-bottom {
-        grid-column: 1 / span 2;
-        grid-row: 3;
+      // O texto "Deslize para ver mais fotos" já está no HTML
+      // Mas se quiser adicionar as setas (← →) via CSS:
+      &::before {
+        content: "← →";
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+        opacity: 0.7;
       }
     }
   }
@@ -508,9 +571,88 @@ mat-card {
 }
 
 @media (max-width: 480px) {
+  .configuracoes-container {
+    margin: 8px;
+    padding: 16px;
+  }
+  
   .full-gallery {
     .gallery-grid-modal {
       grid-template-columns: 1fr;
+    }
+  }
+  
+  // Galeria mobile já é responsiva com o slider horizontal
+  // Removido - o carrossel de 80% de largura funciona perfeitamente em ecrãs estreitos
+  
+  // Modal da galeria responsivo
+  .full-gallery {
+    .gallery-header {
+      padding: 12px 16px;
+      
+      h2 {
+        font-size: 18px;
+      }
+    }
+    
+    .gallery-content {
+      padding: 0 16px 16px;
+    }
+  }
+  
+  // Ajustes para telas muito pequenas
+  .info-card {
+    .card-content {
+      padding: 12px;
+    }
+    
+    .card-header {
+      padding: 8px 12px;
+      
+      h3 {
+        font-size: 14px;
+      }
+    }
+  }
+  
+  .form-actions {
+    .save-btn {
+      padding: 12px 20px !important;
+      font-size: 14px;
+    }
+  }
+  
+  // Serviços em telas pequenas
+  .servicos-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .servico-item {
+    padding: 8px 12px;
+    
+    .servico-label {
+      font-size: 13px;
+    }
+  }
+  
+  // Melhorias para o seletor de serviços
+  .servicos-section {
+    mat-form-field {
+      .mat-mdc-form-field-flex {
+        min-height: 48px;
+      }
+    }
+  }
+  
+  // Botões de ação responsivos
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+    
+    button {
+      width: 100%;
+      padding: 12px 16px;
     }
   }
 }
@@ -711,10 +853,11 @@ mat-card {
     margin: 12px;
     padding: 20px;
     border-radius: 16px;
+    max-width: 100%;
   }
   
   .gallery-section {
-  .gallery-grid {
+    .gallery-grid {
       grid-template-columns: 1fr; /* Coluna única em telas menores */
       height: auto;
     }
@@ -723,9 +866,81 @@ mat-card {
   .horario-item {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
     
     .horario-inputs {
       flex-direction: column;
+      gap: 12px;
     }
+  }
+  
+  // Melhorias para cards no mobile
+  .info-card {
+    .card-content {
+      padding: 16px;
+    }
+    
+    .card-header {
+      padding: 12px 16px;
+      
+      h3 {
+        font-size: 16px;
+      }
+    }
+  }
+  
+  // Upload section responsivo
+  .upload-section {
+    .upload-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+      padding: 16px;
+    }
+  }
+  
+  // Form actions responsivo
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+    
+    .save-btn {
+      width: 100%;
+      padding: 16px 24px !important;
+    }
+  }
+  
+  // Campos de formulário responsivos
+  .card-content {
+    mat-form-field {
+      margin-bottom: 12px;
+      
+      .mat-mdc-form-field-flex {
+        height: 48px;
+      }
+    }
+  }
+  
+  // Horários responsivos
+  .horarios-section {
+    .horario-item {
+      padding: 12px;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+      margin-bottom: 12px;
+    }
+  }
+}
+
+// Animação para o indicador de scroll
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
   }
 }

@@ -665,14 +665,14 @@
       display: flex;
       align-items: center;
       position: relative;
-      overflow: hidden; // Essencial para o efeito funcionar
-      min-width: 0; // Permite que o container encolha
+      overflow: hidden; 
+      min-width: 0;
+      // <<< ADICIONE ESTA LINHA (o seu "tipo uns 360px")
     }
 
     // O container que realmente rola - responsivo
     .ambientes-scroll-container {
-      flex: 1;      // <<< CORREÇÃO
-      min-width: 0;
+     max-width: 170px; 
       overflow-x: auto;
       scroll-behavior: smooth;
       // Esconde a barra de rolagem
@@ -779,22 +779,25 @@
 
   }
   
-  // Container para o grid NG-Zorro
+  // Container para o grid de mesas
   .mesas-grid-container {
     padding: 0;
     overflow-y: auto;
     flex: 1;
-    
-    // Otimizações específicas para mobile
-    ::ng-deep .ant-row {
-      margin-left: -4px !important;
-      margin-right: -4px !important;
-    }
-    
-    ::ng-deep .ant-col {
-      padding-left: 4px !important;
-      padding-right: 4px !important;
-    }
+  }
+
+  // 3. Estilos para o novo Grid de Mesas (substituindo nz-row/col)
+  .mesas-grid-css {
+    display: grid;
+    // Cria colunas responsivas. Mínimo de 110px, máximo de 1fr (distribui igual)
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 16px; // Espaçamento entre as mesas (desktop)
+  }
+
+  // O .mesa-wrapper-css é o novo item do grid (o antigo nz-col)
+  .mesa-wrapper-css {
+    display: flex;
+    width: 100%;
   }
 
   // Estilos da mesa dentro do grid NG-Zorro
@@ -1095,6 +1098,8 @@
   }
   
   .mesas-container {
+    padding: 0; // Remove padding duplo - o pai já tem padding de 16px
+    
     .areas-header {
       flex-direction: column;
       align-items: stretch;
@@ -1106,7 +1111,7 @@
       width: 100%;
       display: flex;
       align-items: center;
-      gap: 0;
+      gap: 8px; // Adicionado gap para espaçamento entre setas e scroll
       overflow: hidden;
       
       .ambientes-scroll-container {
@@ -1119,13 +1124,13 @@
         -webkit-overflow-scrolling: touch;
         
         &::-webkit-scrollbar {
-          display: none;
+          display: none; // Esconde scrollbar no Chrome/Safari
         }
         
         .ambientes-list {
           display: flex;
           gap: 8px;
-          padding: 8px 0;
+          padding: 8px 4px 12px 4px;
           min-width: min-content;
           
           .ambiente-btn-wrapper {
@@ -1156,6 +1161,34 @@
       .nav-arrow {
         display: flex !important;
         flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        background-color: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        z-index: 2;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border-radius: 50%;
+        
+        &:hover {
+          background-color: $primary-color;
+          color: white;
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(246, 189, 56, 0.4);
+          
+          mat-icon {
+            color: white;
+          }
+        }
+        
+        &:active {
+          transform: scale(0.95);
+        }
+        
+        mat-icon {
+          transition: all 0.3s ease;
+          color: $text-color;
+          font-size: 20px;
+        }
       }
     }
 
@@ -1180,18 +1213,26 @@
     }
   }
   
-  // Otimizações específicas para mobile - grid mais compacto
-  .mesas-grid-container {
-    ::ng-deep {
-      .ant-row {
-        margin-left: -4px !important;
-        margin-right: -4px !important;
-      }
+  .mesas-grid-css {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important; // Reduzido de 10px para 6px
+    padding: 6px !important; // Reduzido de 8px para 6px
+  }
+  
+  .mesa {
+    .mesa-visual {
+      max-width: 80px !important; // Reduzido de 85px
+      height: 60px !important; // Reduzido de 70px
       
-      .ant-col {
-        padding-left: 4px !important;
-        padding-right: 4px !important;
+      .mesa-capacidade {
+        font-size: 12px !important; // Reduzido de 13px
       }
+    }
+    
+    .mesa-etiqueta {
+      font-size: 10px !important; // Reduzido de 11px
+      padding: 2px 5px !important; // Reduzido de 3px 6px
+      min-width: 45px !important; // Reduzido de 50px
     }
   }
 }
@@ -1243,10 +1284,19 @@
   }
   
   .mesas-container {
+    .areas-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding-bottom: 12px;
+    }
+
     .ambientes-nav-wrapper {
+      gap: 6px; // Gap menor para telas pequenas
+      
       .ambientes-scroll-container {
         .ambientes-list {
-          padding: 6px 8px 10px 8px;
+          padding: 6px 4px 10px 4px;
           gap: 6px;
           
           .ambiente-btn-wrapper {
@@ -1267,6 +1317,15 @@
           }
         }
       }
+      
+      .nav-arrow {
+        width: 32px !important;
+        height: 32px !important;
+        
+        mat-icon {
+          font-size: 18px !important;
+        }
+      }
     }
     
     .add-area-container {
@@ -1277,18 +1336,30 @@
     }
   }
   
-  // Otimizações específicas para mobile - grid mais compacto
   .mesas-grid-container {
-    ::ng-deep {
-      .ant-row {
-        margin-left: -2px !important;
-        margin-right: -2px !important;
-      }
+    padding: 0 4px 4px 4px; // Padding para a grelha não colar nas bordas
+  }
+  
+  .mesas-grid-css {
+    grid-template-columns: repeat(3, 1fr) !important; // Alterado de 2 para 3 colunas
+    gap: 4px !important; // Reduzido de 8px para 4px
+    // padding removido - agora está no container pai
+  }
+  
+  .mesa {
+    .mesa-visual {
+      max-width: 70px !important; // Reduzido de 75px
+      height: 55px !important; // Reduzido de 65px
       
-      .ant-col {
-        padding-left: 2px !important;
-        padding-right: 2px !important;
+      .mesa-capacidade {
+        font-size: 11px !important; // Reduzido de 12px
       }
+    }
+    
+    .mesa-etiqueta {
+      font-size: 9px !important; // Reduzido de 10px
+      padding: 2px 4px !important; // Reduzido de 2px 5px
+      min-width: 40px !important; // Reduzido de 45px
     }
   }
 }
