@@ -13,6 +13,7 @@ public class RestauranteRequest {
     private String senhaUsuario;
     private Endereco enderecoUsuario;
     private String telefoneUsuario; // <<< NOVO CAMPO
+    
 
     // Campos específicos do Restaurante
     private String tipoCozinha;

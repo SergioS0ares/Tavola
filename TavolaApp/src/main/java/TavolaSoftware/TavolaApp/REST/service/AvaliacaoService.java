@@ -153,7 +153,7 @@ public class AvaliacaoService {
     private String criarCorpoEmailLembrete(String nomeCliente, String nomeRestaurante, UUID restauranteId) {
         // TODO: Substituir o link '#' pela URL real da tela do restaurante no frontend.
         // Ex: String linkParaAvaliar = "https://www.seusite.com/restaurantes/" + restauranteId;
-        String linkParaAvaliar = "http://localhost:4200/home/agendamento-reservas-restaurante/" + restauranteId; 
+        String linkParaAvaliar = "http://localhost:4200/home/agendamento-reservas-restaurante/" + restauranteId + "?verificarNotificacao=true";
 
         return """
             <!DOCTYPE html>
