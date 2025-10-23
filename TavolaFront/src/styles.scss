@@ -1001,6 +1001,13 @@ $dark-theme: mat.m2-define-dark-theme((
     background: linear-gradient(135deg, #607D8B, #78909c);
   }
 }
+
+// Page Header para Garçom
+.tavola-page-header.garcom {
+  .header-icon {
+    background: linear-gradient(135deg, #2196F3, #42a5f5);
+  }
+}
 // Responsividade para page-header
 @media (max-width: 768px) {
   .tavola-page-header {

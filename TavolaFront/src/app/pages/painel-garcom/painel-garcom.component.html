@@ -1,142 +1,331 @@
 <div class="painel-garcom-container">
-  <!-- Header do Painel -->
-  <div class="painel-header">
+  <!-- Page Header -->
+  <div class="tavola-page-header garcom">
     <div class="header-content">
-      <div class="user-info">
-        <mat-icon class="user-icon">person</mat-icon>
-        <div class="user-details">
-          <h2>Bem-vindo, {{ userInfo?.nome || 'Garçom' }}!</h2>
-          <p>Painel de Controle - Funcionário</p>
+      <div class="header-icon">
+        <mat-icon>restaurant_menu</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Painel do Garçom</h1>
+        <p>Gerencie o atendimento das mesas e acompanhe os pedidos em tempo real.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Informações do Garçom -->
+  <div class="garcom-info-card">
+    <div class="garcom-avatar">
+      <nz-avatar [nzSize]="64" [nzSrc]="garcomInfo.foto || 'assets/png/avatar-padrao-garcom-tavola.png'" nzIcon="person"></nz-avatar>
+    </div>
+    <div class="garcom-details">
+      <h3>{{ garcomInfo.nome || 'Garçom' }}</h3>
+      <p>{{ garcomInfo.turno || 'Turno Atual' }}</p>
+      <div class="garcom-stats">
+        <div class="stat-item">
+          <mat-icon>table_restaurant</mat-icon>
+          <span>{{ mesasAtendidas }} Mesa(s)</span>
+        </div>
+        <div class="stat-item">
+          <mat-icon>schedule</mat-icon>
+          <span>{{ tempoTrabalho }}</span>
         </div>
       </div>
-      <button mat-raised-button color="warn" (click)="logout()">
+    </div>
+    <div class="garcom-actions">
+      <button mat-stroked-button (click)="finalizarTurno()" [disabled]="mesasAtendidas > 0">
         <mat-icon>logout</mat-icon>
-        Sair
+        Finalizar Turno
       </button>
     </div>
   </div>
 
-  <!-- Tabs de Navegação -->
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="painel-tabs">
-    <!-- Tab de Mesas -->
-    <mat-tab label="Mesas">
-      <div class="tab-content">
-        <div class="mesas-grid">
-          <mat-card *ngFor="let mesa of mesasAtivas" class="mesa-card" [class.ocupada]="mesa.status === 'Ocupada'">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon [color]="getStatusColor(mesa.status)">{{ getStatusIcon(mesa.status) }}</mat-icon>
-                Mesa {{ mesa.numero }}
-              </mat-card-title>
-              <mat-card-subtitle>
-                <mat-chip [color]="getStatusColor(mesa.status)" selected>
-                  {{ mesa.status }}
-                </mat-chip>
-                <span *ngIf="mesa.tempo" class="tempo">{{ mesa.tempo }}</span>
-              </mat-card-subtitle>
-            </mat-card-header>
+  <!-- Seletor de Visualização Mobile -->
+  <div class="view-switcher" *ngIf="isMobile">
+    <mat-button-toggle-group [(value)]="visualizacaoAtiva" (change)="onViewChange($event)">
+      <mat-button-toggle value="mapa">
+        <mat-icon>map</mat-icon>
+        <span>Mapa</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="pedidos">
+        <mat-icon>receipt</mat-icon>
+        <span>Pedidos</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="painel-content-columns">
+    <!-- Mapa de Mesas -->
+    <div class="mapa-mesas-column" *ngIf="visualizacaoAtiva === 'mapa' || !isMobile">
+      <div class="mesas-container">
+        <!-- HEADER COM AS ABAS DE AMBIENTE -->
+        <div class="areas-header">
+          
+          <div class="ambientes-nav-wrapper">
+            <!-- Setas de navegação -->
+            <button mat-icon-button class="nav-arrow left-arrow" *ngIf="mostrarSetaEsquerda" (click)="scrollAmbientes('left')">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
             
-            <mat-card-content>
-              <div class="mesa-info">
-                <div class="info-item">
-                  <mat-icon>receipt</mat-icon>
-                  <span>{{ mesa.pedidos }} pedidos</span>
-                </div>
-                <div class="info-item" *ngIf="mesa.status === 'Ocupada'">
-                  <mat-icon>schedule</mat-icon>
-                  <span>{{ mesa.tempo }}</span>
+            <div class="ambientes-scroll-container" #ambientesScroll (scroll)="verificarVisibilidadeSetas()">
+              <div class="ambientes-list">
+                <div 
+                  *ngFor="let ambiente of ambientes; let i = index" 
+                  class="ambiente-btn-wrapper custom-tab-label" 
+                  [class.active]="ambiente.id === ambienteAtivo?.id">
+                  
+                  <button class="ambiente-btn" (click)="selecionarAmbiente(ambiente)">
+                    <span>{{ ambiente.nome }}</span>
+                  </button>
                 </div>
               </div>
-            </mat-card-content>
+            </div>
             
-            <mat-card-actions>
-              <button mat-button color="primary" (click)="atenderMesa(mesa)" 
-                      [disabled]="mesa.status === 'Livre'">
-                <mat-icon>restaurant_menu</mat-icon>
-                Atender
-              </button>
-            </mat-card-actions>
-          </mat-card>
+            <button mat-icon-button class="nav-arrow right-arrow" *ngIf="mostrarSetaDireita" (click)="scrollAmbientes('right')">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid de mesas -->
+        <div *ngIf="ambienteAtivo" class="mesas-grid-container">
+          
+          <div class="mesas-grid-css">
+            
+            <div *ngFor="let mesa of ambienteAtivo.mesas" class="mesa-wrapper-css">
+              
+              <div 
+                class="mesa" 
+                [ngClass]="{ 
+                  'mesa-ocupada': mesa.status === 'OCUPADA', 
+                  'mesa-reservada': mesa.status === 'RESERVADA',
+                  'mesa-em-atendimento': mesa.status === 'EM_ATENDIMENTO',
+                  'mesa-livre': mesa.status === 'LIVRE'
+                }" 
+                (click)="selecionarMesa(mesa)"
+                [matTooltip]="getTooltipMesa(mesa)" 
+                matTooltipClass="tavola-tooltip">
+                
+                <div class="mesa-menu" (click)="$event.stopPropagation()">
+                  <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #mesaMenu="matMenu" class="tavola-menu-bar">
+                    <button mat-menu-item (click)="iniciarAtendimento(mesa)" *ngIf="mesa.status === 'LIVRE' || mesa.status === 'RESERVADA'">
+                      <mat-icon>person_add</mat-icon>
+                      <span>Iniciar Atendimento</span>
+                    </button>
+                    <button mat-menu-item (click)="colaborarAtendimento(mesa)" *ngIf="mesa.status === 'EM_ATENDIMENTO'">
+                      <mat-icon>group_add</mat-icon>
+                      <span>Colaborar no Atendimento</span>
+                    </button>
+                    <button mat-menu-item (click)="verDetalhesMesa(mesa)">
+                      <mat-icon>info</mat-icon>
+                      <span>Ver Detalhes</span>
+                    </button>
+                    <button mat-menu-item (click)="liberarMesa(mesa)" *ngIf="mesa.status === 'EM_ATENDIMENTO' || mesa.status === 'OCUPADA'">
+                      <mat-icon>event_available</mat-icon>
+                      <span>Liberar Mesa</span>
+                    </button>
+                    <button mat-menu-item (click)="removerAtendimento(mesa)" *ngIf="isGarcomAtendendoMesa(mesa.id)">
+                      <mat-icon>person_remove</mat-icon>
+                      <span>Remover Atendimento</span>
+                    </button>
+                  </mat-menu>
+                </div>
+                
+                <div class="mesa-visual" [ngClass]="{'mesa-circular': mesa.tipo === 'circular'}">
+                  <span class="mesa-capacidade">{{ mesa.capacidade }} P</span>
+                  <!-- Indicador de garçom atendendo -->
+                  <div class="garcom-indicator" *ngIf="mesa.status === 'EM_ATENDIMENTO'">
+                    <nz-avatar [nzSize]="24" [nzSrc]="getGarcomAtendendo(mesa.id)?.foto" nzIcon="person"></nz-avatar>
+                  </div>
+                </div>
+                
+                <div class="mesa-etiqueta" [ngClass]="{'mesa-vip': mesa.vip}">
+                  <nz-icon *ngIf="mesa.vip" nzType="crown" nzTheme="outline" class="vip-icon"></nz-icon>
+                  <span>{{ mesa.nome }}</span>
+                </div>
+                
+                <!-- Status da mesa -->
+                <div class="mesa-status" [ngClass]="'status-' + mesa.status.toLowerCase()">
+                  <mat-icon>{{ getStatusIcon(mesa.status) }}</mat-icon>
+                  <span>{{ getStatusText(mesa.status) }}</span>
+                </div>
+                
+                <!-- Tempo de ocupação -->
+                <div class="tempo-ocupacao" *ngIf="mesa.tempoOcupacao">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ mesa.tempoOcupacao }}</span>
+                </div>
+              </div>
+              
+            </div>
+            
+          </div>
+        </div>
+        
+        <div *ngIf="!ambienteAtivo && !isLoading.ambientes" class="empty-state">
+          <nz-empty nzNotFoundContent="Nenhum ambiente encontrado."></nz-empty>
+        </div>
+
+        <div *ngIf="isLoading.ambientes" class="loading-state">
+          <mat-progress-spinner diameter="50"></mat-progress-spinner>
         </div>
       </div>
-    </mat-tab>
+    </div>
 
-    <!-- Tab de Pedidos -->
-    <mat-tab label="Pedidos">
-      <div class="tab-content">
-        <div class="pedidos-section">
-          <h3>Pedidos Pendentes</h3>
-          <mat-list class="pedidos-list">
-            <mat-list-item *ngFor="let pedido of pedidosPendentes" class="pedido-item">
-              <mat-icon matListItemIcon [color]="getPedidoStatusColor(pedido.status)">
-                {{ pedido.status === 'Pronto' ? 'check_circle' : 'schedule' }}
-              </mat-icon>
-              
-              <div matListItemTitle>{{ pedido.item }}</div>
-              <div matListItemLine>
-                <span class="mesa-info">Mesa {{ pedido.mesa }}</span>
-                <span class="tempo-info">{{ pedido.tempo }}</span>
+    <!-- Painel de Pedidos -->
+    <div class="pedidos-column" *ngIf="visualizacaoAtiva === 'pedidos' || !isMobile">
+      <div class="pedidos-header">
+        <h3>Pedidos Ativos</h3>
+        <button mat-stroked-button (click)="atualizarPedidos()">
+          <mat-icon>refresh</mat-icon>
+          Atualizar
+        </button>
+      </div>
+      
+      <div class="pedidos-list">
+        <div *ngFor="let pedido of pedidosAtivos" class="pedido-card">
+          <div class="pedido-header">
+            <div class="mesa-info">
+              <mat-icon>table_restaurant</mat-icon>
+              <span>Mesa {{ pedido.mesaNome }}</span>
+            </div>
+            <div class="pedido-status" [ngClass]="'status-' + pedido.status.toLowerCase()">
+              {{ pedido.status }}
+            </div>
+          </div>
+          
+          <div class="pedido-itens">
+            <div *ngFor="let item of pedido.itens" class="pedido-item">
+              <span class="item-quantidade">{{ item.quantidade }}x</span>
+              <span class="item-nome">{{ item.nome }}</span>
+              <span class="item-preco">{{ item.preco | currency:'BRL' }}</span>
+            </div>
               </div>
               
               <div class="pedido-actions">
-                <mat-chip [color]="getPedidoStatusColor(pedido.status)" selected>
-                  {{ pedido.status }}
-                </mat-chip>
-                <button mat-icon-button (click)="finalizarPedido(pedido)" 
-                        [disabled]="pedido.status !== 'Pronto'">
-                  <mat-icon>done</mat-icon>
+            <button mat-stroked-button (click)="adicionarItemPedido(pedido)">
+              <mat-icon>add</mat-icon>
+              Adicionar Item
+            </button>
+            <button mat-flat-button color="primary" (click)="verPedidoCompleto(pedido)">
+              <mat-icon>visibility</mat-icon>
+              Ver Completo
                 </button>
               </div>
-            </mat-list-item>
-          </mat-list>
+        </div>
+        
+        <div *ngIf="pedidosAtivos.length === 0" class="sem-pedidos">
+          <nz-empty nzDescription="Nenhum pedido ativo no momento"></nz-empty>
         </div>
       </div>
-    </mat-tab>
+    </div>
+  </div>
 
-    <!-- Tab de Estatísticas -->
-    <mat-tab label="Estatísticas">
-      <div class="tab-content">
-        <div class="stats-grid">
-          <mat-card class="stat-card">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon color="primary">restaurant</mat-icon>
-                Mesas Ocupadas
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-number">{{ mesasOcupadas }}</div>
-              <div class="stat-label">de {{ mesasAtivas.length }} mesas</div>
-            </mat-card-content>
-          </mat-card>
-
-          <mat-card class="stat-card">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon color="warn">receipt</mat-icon>
-                Pedidos Ativos
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-number">{{ pedidosPendentes.length }}</div>
-              <div class="stat-label">pedidos em andamento</div>
-            </mat-card-content>
-          </mat-card>
-
-          <mat-card class="stat-card">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon color="accent">schedule</mat-icon>
-                Tempo Médio
-              </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-number">25min</div>
-              <div class="stat-label">tempo médio de atendimento</div>
-            </mat-card-content>
-          </mat-card>
+  <!-- Modal de Detalhes da Mesa -->
+  <div class="mesa-detalhes-modal" *ngIf="mesaSelecionada" [class.mobile-fullscreen]="isMobile">
+    <div class="detalhes-header">
+      <button mat-icon-button (click)="fecharDetalhesMesa()" class="back-button-details">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h2>Mesa {{ mesaSelecionada.nome }}</h2>
+    </div>
+    
+    <div class="detalhes-content">
+      <div class="mesa-info">
+        <div class="info-item">
+          <mat-icon>table_restaurant</mat-icon>
+          <div class="info-text">
+            <span class="label">Capacidade</span>
+            <span class="value">{{ mesaSelecionada.capacidade }} Pessoas</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <mat-icon>schedule</mat-icon>
+          <div class="info-text">
+            <span class="label">Status</span>
+            <span class="value">{{ getStatusText(mesaSelecionada.status) }}</span>
+          </div>
+        </div>
+        
+        <div class="info-item" *ngIf="mesaSelecionada.tempoOcupacao">
+          <mat-icon>timer</mat-icon>
+          <div class="info-text">
+            <span class="label">Tempo Ocupada</span>
+            <span class="value">{{ mesaSelecionada.tempoOcupacao }}</span>
+          </div>
+        </div>
+        
+        <div class="info-item" *ngIf="mesaSelecionada.reserva">
+          <mat-icon>event</mat-icon>
+          <div class="info-text">
+            <span class="label">Reserva</span>
+            <span class="value">{{ mesaSelecionada.reserva.cliente }} - {{ mesaSelecionada.reserva.horario }}</span>
+          </div>
         </div>
       </div>
-    </mat-tab>
-  </mat-tab-group>
+      
+      <div class="garcoms-atendendo" *ngIf="getGarcomsAtendendoMesa(mesaSelecionada.id).length > 0">
+        <h4>Garçons Atendendo</h4>
+        <div class="garcoms-list">
+          <div *ngFor="let garcom of getGarcomsAtendendoMesa(mesaSelecionada.id)" class="garcom-item">
+            <nz-avatar [nzSize]="32" [nzSrc]="garcom.foto" nzIcon="person"></nz-avatar>
+            <span>{{ garcom.nome }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mesa-actions">
+        <button mat-flat-button color="primary" (click)="iniciarAtendimento(mesaSelecionada)" 
+                *ngIf="mesaSelecionada.status === 'LIVRE' || mesaSelecionada.status === 'RESERVADA'">
+          <mat-icon>person_add</mat-icon>
+          Iniciar Atendimento
+        </button>
+        
+        <button mat-stroked-button (click)="verCardapio()">
+          <mat-icon>restaurant_menu</mat-icon>
+          Ver Cardápio
+        </button>
+        
+        <button mat-stroked-button (click)="liberarMesa(mesaSelecionada)" 
+                *ngIf="mesaSelecionada.status === 'EM_ATENDIMENTO' || mesaSelecionada.status === 'OCUPADA'">
+          <mat-icon>event_available</mat-icon>
+          Liberar Mesa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal do Cardápio -->
+  <div class="cardapio-modal" *ngIf="mostrarCardapio">
+    <div class="cardapio-overlay" (click)="fecharCardapio()"></div>
+    <div class="cardapio-content">
+      <div class="cardapio-header">
+        <h3>Cardápio</h3>
+        <button mat-icon-button (click)="fecharCardapio()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="cardapio-categorias">
+        <div *ngFor="let categoria of cardapioCategorias" class="categoria-section">
+          <h4>{{ categoria.nome }}</h4>
+          <div class="itens-grid">
+            <div *ngFor="let item of categoria.itens" class="item-card" (click)="adicionarItemAoCarrinho(item)">
+              <div class="item-info">
+                <h5>{{ item.nome }}</h5>
+                <p>{{ item.descricao }}</p>
+                <span class="item-preco">{{ item.preco | currency:'BRL' }}</span>
+              </div>
+              <button mat-icon-button class="add-item-btn">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
