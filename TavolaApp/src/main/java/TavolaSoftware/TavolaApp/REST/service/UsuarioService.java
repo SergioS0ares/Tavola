@@ -70,21 +70,21 @@ public class UsuarioService {
         }
 
         // Processa a imagem de background
-        if (request.getImagemBackground() != null && uploadUtils.isBase64Image(request.getImagemBackground())) {
-             if (usuario.getImagemBackground() != null) {
+        if (request.getImagemPrincipal() != null && uploadUtils.isBase64Image(request.getImagemPrincipal())) {
+             if (usuario.getImagemPrincipal() != null) {
                 // <<< CORREÇÃO AQUI >>>
-                String urlAntigaBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemBackground());
+                String urlAntigaBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
                 uploadUtils.deletarArquivoPeloCaminho(urlAntigaBg);
             }
             // <<< CORREÇÃO AQUI >>>
-            String nomeArquivoBg = uploadUtils.processUsuarioImagem(request.getImagemBackground());
-            usuario.setImagemBackground(nomeArquivoBg); // Salva SÓ o nome
-        } else if (request.getImagemBackground() != null && request.getImagemBackground().isBlank()){
-             if (usuario.getImagemBackground() != null) {
-                String urlAntigaBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemBackground());
+            String nomeArquivoBg = uploadUtils.processUsuarioImagem(request.getImagemPrincipal());
+            usuario.setImagemPrincipal(nomeArquivoBg); // Salva SÓ o nome
+        } else if (request.getImagemPrincipal() != null && request.getImagemPrincipal().isBlank()){
+             if (usuario.getImagemPrincipal() != null) {
+                String urlAntigaBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
                 uploadUtils.deletarArquivoPeloCaminho(urlAntigaBg);
             }
-            usuario.setImagemBackground(null);
+            usuario.setImagemPrincipal(null);
         }
 
         return usuarioRepo.save(usuario);
@@ -101,8 +101,8 @@ public class UsuarioService {
                  String urlImagem = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagem());
                  uploadUtils.deletarArquivoPeloCaminho(urlImagem);
             }
-             if (usuario.getImagemBackground() != null) {
-                 String urlBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemBackground());
+             if (usuario.getImagemPrincipal() != null) {
+                 String urlBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
                  uploadUtils.deletarArquivoPeloCaminho(urlBg);
             }
 
@@ -117,6 +117,6 @@ public class UsuarioService {
     }
 
     public String getUrlImagemBackground(Usuario usuario) {
-         return uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemBackground());
+         return uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
     }
 }

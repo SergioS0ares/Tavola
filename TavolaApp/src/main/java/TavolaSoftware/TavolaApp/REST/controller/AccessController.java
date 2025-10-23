@@ -310,7 +310,7 @@ public class AccessController {
                     usuario.getId(), 
                     usuario.getEmail(),
                     usuario.getImagem(),
-                    usuario.getImagemBackground()
+                    usuario.getImagemPrincipal()
             ));
         } catch (Exception e) { 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erro ao processar refresh token: " + e.getMessage());
@@ -357,7 +357,7 @@ public class AccessController {
             usuario.getId(),
             usuario.getEmail(),
             usuario.getImagem(),
-            usuario.getImagemBackground()
+            usuario.getImagemPrincipal()
         );
 
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()

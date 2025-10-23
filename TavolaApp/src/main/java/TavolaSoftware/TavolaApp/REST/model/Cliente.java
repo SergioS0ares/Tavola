@@ -27,11 +27,12 @@ public class Cliente {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    // Alterações aqui para o mapeamento correto da lista de favoritos
-    @ElementCollection(fetch = FetchType.LAZY) // LAZY é geralmente melhor para coleções
+    @ElementCollection(fetch = FetchType.LAZY) 
     @CollectionTable(name = "cliente_favoritos", joinColumns = @JoinColumn(name = "cliente_id"))
-    @Column(name = "restaurante_id") // Nome da coluna na tabela de junção que armazena o UUID do restaurante
-    private List<UUID> favoritos = new ArrayList<>(); // Inicializa a lista e torna privada
+    @Column(name = "restaurante_id") 
+    private List<UUID> favoritos = new ArrayList<>(); 
+    
+    
     
     public UUID getId() {
     	return id;
@@ -49,7 +50,6 @@ public class Cliente {
     	this.usuario = usuario;
     }
 
-    // Getter e Setter para favoritos
     public List<UUID> getFavoritos() {
         if (this.favoritos == null) { // Garante que a lista nunca seja nula ao ser acessada
             this.favoritos = new ArrayList<>();

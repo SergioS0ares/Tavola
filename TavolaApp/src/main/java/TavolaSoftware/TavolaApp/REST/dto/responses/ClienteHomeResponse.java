@@ -1,7 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.dto.responses;
 
 import java.util.List;
-import java.util.ArrayList; // <<< NOVO IMPORT
+import java.util.ArrayList;
 
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
@@ -13,15 +13,17 @@ public class ClienteHomeResponse {
     private String nome;
     private String tipoCozinha;
     private double mediaAvaliacao;
-    private List<String> imagem; // O tipo List<String> está correto
-    private int totalAvaliacao; // Agora este campo será preenchido
+    
+    // --- CAMPO ALTERADO ---
+    // Removemos a lista de imagens e usamos um campo dedicado para a imagem principal
+    private String imagemPrincipal; // Era List<String> imagem
+    
+    private int totalAvaliacao;
     private Endereco endereco;
 
-    // Construtor padrão
     public ClienteHomeResponse() {
     }
 
-    // Construtor que aceita a entidade Restaurante
     public ClienteHomeResponse(Restaurante restaurante) {
         this.id = restaurante.getId() != null ? restaurante.getId().toString() : null;
 
@@ -33,79 +35,42 @@ public class ClienteHomeResponse {
 
         this.tipoCozinha = restaurante.getTipoCozinha();
         this.mediaAvaliacao = restaurante.getMediaAvaliacao();
-
-        // <<< CORREÇÃO 1: Preenchendo o total de avaliações >>>
-        // Pegamos o total de avaliações do objeto Restaurante.
         this.totalAvaliacao = restaurante.getTotalDeAvaliacoes();
 
-        // <<< CORREÇÃO 2: Lógica para a lista de imagens >>>
-        // Inicializamos a lista de imagens.
-        this.imagem = new ArrayList<>();
-        // Verificamos se o restaurante possui imagens.
-        if (restaurante.getImagens() != null && !restaurante.getImagens().isEmpty()) {
-            // Adicionamos apenas a primeira imagem da lista (a imagem principal).
-            // Isso satisfaz o tipo List<String> e a necessidade do front-end.
-            this.imagem.add(restaurante.getImagens().get(0));
-        }
+        // --- LÓGICA DE CONSTRUÇÃO ATUALIZADA ---
+        // Agora pegamos o nome do arquivo do novo campo 'imagemPrincipal'
+        // A URL completa (com /upl/...) será montada no Service
+        this.imagemPrincipal = restaurante.getImagemPrincipal(); 
+        
+        // A lógica antiga (pegar .get(0) da galeria) foi removida.
     }
 
     // Getters e Setters
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public String getNome() {
-        return nome;
-    }
+    public String getTipoCozinha() { return tipoCozinha; }
+    public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    public double getMediaAvaliacao() { return mediaAvaliacao; }
+    public void setMediaAvaliacao(double mediaAvaliacao) { this.mediaAvaliacao = mediaAvaliacao; }
 
-    public String getTipoCozinha() {
-        return tipoCozinha;
+    // --- MÉTODOS ATUALIZADOS ---
+    public String getImagemPrincipal() {
+        return imagemPrincipal;
     }
+    public void setImagemPrincipal(String imagemPrincipal) {
+        this.imagemPrincipal = imagemPrincipal;
+    }
+    // --- FIM DA ATUALIZAÇÃO ---
 
-    public void setTipoCozinha(String tipoCozinha) {
-        this.tipoCozinha = tipoCozinha;
-    }
+    public int getTotalAvaliacao() { return totalAvaliacao; }
+    public void setTotalAvaliacao(int totalAvaliacao) { this.totalAvaliacao = totalAvaliacao; }
 
-    // <<< CORREÇÃO 3: Renomeando os getters e setters para consistência >>>
-    public double getMediaAvaliacao() {
-        return mediaAvaliacao;
-    }
-
-    public void setMediaAvaliacao(double mediaAvaliacao) {
-        this.mediaAvaliacao = mediaAvaliacao;
-    }
-
-    // <<< CORREÇÃO 4: Getters e setters corretos para a lista de imagens >>>
-    public List<String> getImagem() {
-        return imagem;
-    }
-
-    public void setImagem(List<String> imagem) {
-        this.imagem = imagem;
-    }
-
-    public int getTotalAvaliacao() {
-        return totalAvaliacao;
-    }
-
-    public void setTotalAvaliacao(int totalAvaliacao) {
-        this.totalAvaliacao = totalAvaliacao;
-    }
-
-    public Endereco getEndereco() {
-        return endereco;
-    }
-
-    public void setEndereco(Endereco endereco) {
-        this.endereco = endereco;
-    }
+    public Endereco getEndereco() { return endereco; }
+    public void setEndereco(Endereco endereco) { this.endereco = endereco; }
 }

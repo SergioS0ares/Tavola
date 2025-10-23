@@ -14,7 +14,7 @@ public class UsuarioResponse {
     private Endereco endereco;
     private String telefone;
     private String imagem;
-    private String imagemBackground;
+    private String imagemPrincipal;
 
     public UsuarioResponse(Usuario usuario) {
         this.id = usuario.getId();
@@ -24,7 +24,7 @@ public class UsuarioResponse {
         this.endereco = usuario.getEndereco();
         this.telefone = usuario.getTelefone();
         this.imagem = usuario.getImagem();
-        this.imagemBackground = usuario.getImagemBackground();
+        this.imagemPrincipal = usuario.getImagemPrincipal();
     }
 
     // <<< INÍCIO DOS GETTERS E SETTERS ADICIONADOS >>>
@@ -85,11 +85,11 @@ public class UsuarioResponse {
         this.imagem = imagem;
     }
 
-    public String getImagemBackground() {
-        return imagemBackground;
+    public String getImagemPrincipal() {
+        return imagemPrincipal;
     }
 
-    public void setImagemBackground(String imagemBackground) {
-        this.imagemBackground = imagemBackground;
+    public void setImagemPrncipal(String imagemBackground) {
+        this.imagemPrincipal = imagemBackground;
     }
 }

@@ -20,6 +20,7 @@ public class UploadUtils {
     private static final Path USUARIOS_DIR = Paths.get(BASE_DIR, "usuarios");
     private static final Path RESTAURANTES_DIR = Paths.get(BASE_DIR, "restaurantes");
     private static final Path CARDAPIOS_DIR = Paths.get(BASE_DIR, "cardapios");
+    private static final Path GARCONS_DIR = Paths.get(BASE_DIR, "garcons");
 
     // Verifica se é uma string Base64 de imagem (genérica)
     public boolean isBase64Image(String input) {
@@ -105,6 +106,38 @@ public class UploadUtils {
         // Salva na pasta de cardápios
         return processBase64(imagemBase64, CARDAPIOS_DIR); // Retorna SÓ o nome do arquivo
     }
+    
+    public String processRestauranteImagemPrincipal(String imagemInput) throws IOException {
+        if (isBase64Image(imagemInput)) {
+            return processBase64(imagemInput, RESTAURANTES_DIR); // Retorna SÓ o nome do arquivo
+        } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
+            return findNameByURL(imagemInput); // Garante que só o nome seja retornado
+        }
+        
+        if (imagemInput == null || imagemInput.isBlank()) {
+            return null;
+        }
+        
+        throw new IOException("A string fornecida parece ser Base64 mas é inválida.");
+    }
+    
+    public String processGarcomImagem(String imagemInput) throws IOException {
+        if (isBase64Image(imagemInput)) {
+            // Se for uma nova imagem Base64, processa e salva
+            return processBase64(imagemInput, GARCONS_DIR); // Salva na pasta de garçons
+        } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
+            // Se não for Base64, assume que é um nome de arquivo existente (URL antiga) e o mantém
+            return findNameByURL(imagemInput); // Garante que só o nome seja retornado
+        }
+        
+        // Se for nula ou vazia
+        if (imagemInput == null || imagemInput.isBlank()) {
+            return null;
+        }
+        
+        // Se começar com "data:" mas não for válida
+        throw new IOException("A string fornecida parece ser Base64 mas é inválida.");
+    }
 
     /**
      * Reconstrói a URL relativa completa a partir do tipo e nome do arquivo.
@@ -114,15 +147,23 @@ public class UploadUtils {
         if (nomeArquivo == null || nomeArquivo.isBlank()) {
             return null;
         }
-        // Garante que não duplique /upl/ se já for uma URL (caso de fallback)
         if (nomeArquivo.startsWith("/upl/")) {
             return nomeArquivo;
         }
-        // Garante que o tipo esteja no plural correto para a URL
+        
         String tipoUrl = tipo.toLowerCase();
-        if (!tipoUrl.endsWith("s")) {
+        
+        // --- ADIÇÃO AO MÉTODO ---
+        // Garante "garcom" -> "garcons"
+        if (tipoUrl.equals("garcom")) { 
+            tipoUrl = "garcons";
+        } 
+        // --- FIM DA ADIÇÃO ---
+        
+        else if (!tipoUrl.endsWith("s")) {
             tipoUrl += "s"; // ex: usuario -> usuarios
         }
+        
         return "/" + BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
     }
 
@@ -147,6 +188,7 @@ public class UploadUtils {
                 case "usuarios": pastaFisica = USUARIOS_DIR; break;
                 case "restaurantes": pastaFisica = RESTAURANTES_DIR; break;
                 case "cardapios": pastaFisica = CARDAPIOS_DIR; break;
+                case "garcons": pastaFisica = GARCONS_DIR; break;
                 default:
                     System.err.println("Tipo desconhecido ao tentar deletar arquivo: " + tipo);
                     return;

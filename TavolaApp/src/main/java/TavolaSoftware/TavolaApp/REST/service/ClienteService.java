@@ -100,21 +100,21 @@ public class ClienteService {
 
             // Atualiza Imagem de Background
             if (request.getImagemBackgroundBase64() != null && uplUtil.isBase64Image(request.getImagemBackgroundBase64())) {
-                if (usuarioParaAtualizar.getImagemBackground() != null) {
+                if (usuarioParaAtualizar.getImagemPrincipal() != null) {
                      // <<< CORREÇÃO AQUI >>>
-                    String urlAntigaBg = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagemBackground());
+                    String urlAntigaBg = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagemPrincipal());
                     uplUtil.deletarArquivoPeloCaminho(urlAntigaBg);
                 }
                 // <<< CORREÇÃO AQUI >>>
                 String nomeArquivoBg = uplUtil.processUsuarioImagem(request.getImagemBackgroundBase64());
-                usuarioParaAtualizar.setImagemBackground(nomeArquivoBg); // Salva SÓ o nome
+                usuarioParaAtualizar.setImagemPrincipal(nomeArquivoBg); // Salva SÓ o nome
             } else if (request.getImagemBackgroundBase64() != null && request.getImagemBackgroundBase64().isBlank()) {
                 // Remove imagem se string vazia for enviada
-                 if (usuarioParaAtualizar.getImagemBackground() != null) {
-                    String urlAntigaBg = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagemBackground());
+                 if (usuarioParaAtualizar.getImagemPrincipal() != null) {
+                    String urlAntigaBg = uplUtil.construirUrlRelativa("usuarios", usuarioParaAtualizar.getImagemPrincipal());
                     uplUtil.deletarArquivoPeloCaminho(urlAntigaBg);
                 }
-                usuarioParaAtualizar.setImagemBackground(null);
+                usuarioParaAtualizar.setImagemPrincipal(null);
             }
         } catch (IOException e) {
             throw new RuntimeException("Erro ao processar imagem: " + e.getMessage(), e);
@@ -147,8 +147,8 @@ public class ClienteService {
                  String urlImagem = uplUtil.construirUrlRelativa("usuarios", usuario.getImagem());
                  uplUtil.deletarArquivoPeloCaminho(urlImagem);
             }
-             if (usuario.getImagemBackground() != null) {
-                 String urlBg = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemBackground());
+             if (usuario.getImagemPrincipal() != null) {
+                 String urlBg = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
                  uplUtil.deletarArquivoPeloCaminho(urlBg);
             }
 
@@ -175,6 +175,6 @@ public class ClienteService {
     }
 
     public String getUrlImagemBackground(Cliente cliente) {
-         return (cliente.getUsuario() != null) ? uplUtil.construirUrlRelativa("usuarios", cliente.getUsuario().getImagemBackground()) : null;
+         return (cliente.getUsuario() != null) ? uplUtil.construirUrlRelativa("usuarios", cliente.getUsuario().getImagemPrincipal()) : null;
     }
 }

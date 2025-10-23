@@ -44,8 +44,8 @@ public class Usuario {
     @Column(name = "imagem_usuario")
     private String imagem;
 
-    @Column(name = "background_usuario")
-    private String imagemBackground;
+    @Column(name = "apresentacao_usuario")
+    private String imagemPrincipal;
 
     @Column(name = "imagem_repositorio_usuario") // Explicitando o nome da coluna
     private UUID idImagem; // Este campo parece ser um identificador para uma imagem num repositório externo
@@ -85,9 +85,9 @@ public class Usuario {
 
     public String getImagem() { return imagem; }
     public void setImagem(String imagem) { this.imagem = imagem; }
-
-    public String getImagemBackground() { return imagemBackground; }
-    public void setImagemBackground(String imagemBackground) { this.imagemBackground = imagemBackground; }
+    
+    public String getImagemPrincipal() { return imagemPrincipal; }
+    public void setImagemPrincipal(String imagemPrincipal) { this.imagemPrincipal = imagemPrincipal; }
     
     public UUID getIdImagem() { return idImagem; }
     public void setIdImagem(UUID idImagem) { this.idImagem = idImagem; }

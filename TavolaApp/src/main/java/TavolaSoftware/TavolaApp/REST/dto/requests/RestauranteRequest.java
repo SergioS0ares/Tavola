@@ -12,18 +12,19 @@ public class RestauranteRequest {
     private String emailUsuario;
     private String senhaUsuario;
     private Endereco enderecoUsuario;
-    private String telefoneUsuario; // <<< NOVO CAMPO
+    private String telefoneUsuario;
     
 
     // Campos específicos do Restaurante
     private String tipoCozinha;
-    private String descricao; // <<< NOVO CAMPO
-    private List<String> imagens;
+    private String descricao;
+    private String imagemPrincipal; // Imagem de fachada (Base64 ou nome do arquivo)
+    private List<String> imagens; // Galeria de imagens
     private List<HorarioFuncionamento> horariosFuncionamento;
     private Set<String> nomesServicos;
     private Integer limiteReservasDiarias;
 
-    // Getters e Setters para TODOS os campos...
+    // Getters e Setters...
     public String getNomeUsuario() { return nomeUsuario; }
     public void setNomeUsuario(String nomeUsuario) { this.nomeUsuario = nomeUsuario; }
 
@@ -36,14 +37,17 @@ public class RestauranteRequest {
     public Endereco getEnderecoUsuario() { return enderecoUsuario; }
     public void setEnderecoUsuario(Endereco enderecoUsuario) { this.enderecoUsuario = enderecoUsuario; }
 
-    public String getTelefoneUsuario() { return telefoneUsuario; } // <<< GETTER
-    public void setTelefoneUsuario(String telefoneUsuario) { this.telefoneUsuario = telefoneUsuario; } // <<< SETTER
+    public String getTelefoneUsuario() { return telefoneUsuario; }
+    public void setTelefoneUsuario(String telefoneUsuario) { this.telefoneUsuario = telefoneUsuario; }
 
     public String getTipoCozinha() { return tipoCozinha; }
     public void setTipoCozinha(String tipoCozinha) { this.tipoCozinha = tipoCozinha; }
 
-    public String getDescricao() { return descricao; } // <<< GETTER
-    public void setDescricao(String descricao) { this.descricao = descricao; } // <<< SETTER
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public String getImagemPrincipal() { return imagemPrincipal; }
+    public void setImagemPrincipal(String imagemPrincipal) { this.imagemPrincipal = imagemPrincipal; }
 
     public List<String> getImagens() { return imagens; }
     public void setImagens(List<String> imagens) { this.imagens = imagens; }

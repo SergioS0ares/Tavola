@@ -73,11 +73,6 @@ public class AccessService {
         Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade())
                 .orElseThrow(() -> new RuntimeException("Credenciais inválidas."));
 
-        // 3. Verifica se o garçom está ativo
-        if (!garcom.isAtivo()) {
-            throw new RuntimeException("Este usuário de funcionário está inativo.");
-        }
-
         // 4. Valida a senha do garçom
         if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) {
             throw new RuntimeException("Credenciais inválidas.");
@@ -99,7 +94,7 @@ public class AccessService {
             TipoUsuario.FUNCIONARIO.toString(),
             garcom.getId(),
             restaurante.getEmail(), // E-mail de referência é o do restaurante
-            garcom.getFotoUrl(),
+            garcom.getImagem(),
             null // Background
         );
     }
