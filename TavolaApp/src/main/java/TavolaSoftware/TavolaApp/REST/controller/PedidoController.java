@@ -12,13 +12,13 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/auth/pedidos")
+@RequestMapping("/auth/api/restaurantes/{idRestaurante}/pedidos")
 public class PedidoController {
 
     @Autowired
     private PedidoService pedidoService;
     
-    @PostMapping
+    @PostMapping ("/{mesaId}/salvar")
     public ResponseEntity<?> criarPedido(@PathVariable UUID mesaId, @RequestBody PedidoRequest request) {
         try {
             // A lógica de extrair o garçom do token será feita no service
@@ -52,4 +52,45 @@ public class PedidoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
         }
     }
+    
+
+	@PutMapping ("/{mesaId}/atender")
+	public void c() {
+		/*
+		 * esse método vai alterar o Status de pedido de null ou de AGUARDANDO_PEDIDO para ATENDENDO apenas isso...
+		 * não vamos colocar nenhum payload. mas podemos fazer um tratamento de exceção para casos como o Status
+		 * não estar nem 'AGUARDANDO_ATENDIMENTO', nem em null.
+		 * */
+	}
+	
+	@PutMapping ("/{mesaId}/liberar")
+	public void d() {
+		/*
+		 * esse método está aqui para desassociar um garçom do atendimento
+		 * */
+	}
+	
+	@GetMapping ("/{mesaId}/ativos")
+	public void e() {
+		/*
+		 * puxa pedidos pendentes para a mesa expecífica
+		 * */
+	}
+	
+	
 }
+
+
+/*
+ * aqui a enum do Status de pedido pra vc tomar de conhecimento:
+public enum PedidoStatus {
+    AGUARDANDO_ATENDIMENTO, // O cliente chamou o garçom, mas ainda não fez um pedido
+    ATENDIMENTO,			// O cliente chamou (ou não, sei lá) e ESTÁ atendido.
+    PENDENTE,               // O cliente fez um pedido de item, aguardando ação
+    EM_PREPARO,             // Status futuro para a Cozinha usar
+    PRONTO,                 // Status futuro para a Cozinha usar
+    ENTREGUE,               // O garçom entregou o item/atendeu ao chamado
+    CANCELADO;              // O pedido/chamado foi cancelado
+}
+ * */
+ 
