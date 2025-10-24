@@ -19,8 +19,8 @@
   padding: 20px;
   margin: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
+      display: flex;
+      align-items: center;
   gap: 20px;
   
   .garcom-avatar {
@@ -33,14 +33,14 @@
     h3 {
       margin: 0 0 4px 0;
       font-size: 20px;
-      font-weight: 600;
+          font-weight: 600;
       color: $text-color;
-    }
-    
-    p {
+        }
+
+        p {
       margin: 0 0 12px 0;
       color: rgba(59, 34, 27, 0.7);
-      font-size: 14px;
+          font-size: 14px;
     }
     
     .garcom-stats {
@@ -66,11 +66,11 @@
   
   .garcom-actions {
     flex-shrink: 0;
-    
+
     button {
       color: $text-color;
       border-color: rgba(59, 34, 27, 0.3);
-      
+
       &:hover {
         background-color: rgba(246, 189, 56, 0.1);
         border-color: $primary-color;
@@ -84,7 +84,7 @@
   display: none;
   width: calc(100% - 32px);
   margin: 0 auto 16px auto;
-  
+
   ::ng-deep {
     .mat-button-toggle-group {
       width: 100%;
@@ -119,7 +119,7 @@
         
         span {
           font-size: 14px;
-          font-weight: 500;
+        font-weight: 500;
         }
       }
       
@@ -142,6 +142,34 @@
     }
   }
 }
+
+// Date Navigator Styles
+.date-navigator-area {
+  background-color: white;
+  border-radius: $border-radius;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  .date-navigator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    
+    button {
+      color: $text-color;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+// Calendar Modal Styles - Usando padrão global tavola-dialog
 
 // Layout de colunas
 .painel-content-columns {
@@ -180,6 +208,8 @@
   overflow-y: auto;
   flex-shrink: 0;
   border-radius: $border-radius;
+  display: flex;
+  flex-direction: column;
   
   .pedidos-header {
     display: flex;
@@ -198,8 +228,8 @@
     button {
       color: $text-color;
       border-color: rgba(59, 34, 27, 0.3);
-      
-      &:hover {
+
+  &:hover {
         background-color: rgba(246, 189, 56, 0.1);
         border-color: $primary-color;
       }
@@ -208,6 +238,8 @@
   
   .pedidos-list {
     padding: 16px;
+    flex: 1;
+    overflow-y: auto;
     
     .pedido-card {
       background-color: #f9f9f9;
@@ -216,10 +248,15 @@
       margin-bottom: 12px;
       border: 1px solid rgba(0, 0, 0, 0.08);
       transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
       
       &:hover {
         background-color: #f0f0f0;
         border-color: $primary-color;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
       
       .pedido-header {
@@ -227,27 +264,27 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 12px;
-        
-        .mesa-info {
-          display: flex;
-          align-items: center;
+
+  .mesa-info {
+      display: flex;
+      align-items: center;
           gap: 6px;
           color: $text-color;
           font-weight: 500;
-          
-          mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
             line-height: 18px;
-          }
-        }
-        
+    }
+  }
+
         .pedido-status {
-          padding: 4px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
           
           &.status-ativo {
             background-color: #e8f5e8;
@@ -267,45 +304,59 @@
       }
       
       .pedido-itens {
-        margin-bottom: 12px;
-        
         .pedido-item {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 4px 0;
+          padding: 8px 0;
           border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-          
+          transition: background-color 0.2s ease;
+
           &:last-child {
             border-bottom: none;
           }
-          
+
+          &:hover {
+            background-color: rgba(246, 189, 56, 0.05);
+            border-radius: 4px;
+            padding: 8px 4px;
+          }
+
           .item-quantidade {
             font-weight: 600;
             color: $primary-color;
             min-width: 30px;
+            font-size: 14px;
           }
           
           .item-nome {
             flex: 1;
             margin: 0 8px;
             color: $text-color;
+            font-size: 14px;
+            line-height: 1.4;
           }
           
           .item-preco {
             font-weight: 500;
             color: $text-color;
+            font-size: 14px;
           }
         }
       }
-      
+
       .pedido-actions {
         display: flex;
         gap: 8px;
+        margin-top: 8px;
         
         button {
           flex: 1;
-          font-size: 12px;
+          font-size: 13px;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-weight: 500;
+          transition: all 0.2s ease;
           
           &.mat-stroked-button {
             color: $text-color;
@@ -314,6 +365,7 @@
             &:hover {
               background-color: rgba(246, 189, 56, 0.1);
               border-color: $primary-color;
+              transform: translateY(-1px);
             }
           }
           
@@ -323,6 +375,8 @@
             
             &:hover {
               background-color: color.adjust($primary-color, $lightness: -5%);
+              transform: translateY(-1px);
+              box-shadow: 0 2px 4px rgba(246, 189, 56, 0.3);
             }
           }
         }
@@ -358,12 +412,73 @@
     }
   }
   
-  // Indicador de garçom
-  .garcom-indicator {
+  // Tempo de ocupação no canto superior direito
+  .tempo-ocupacao-overlay {
     position: absolute;
     top: 4px;
     right: 4px;
-    z-index: 5;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    z-index: 3;
+    white-space: nowrap;
+  }
+  
+  // Indicador de status mais visível para mesas circulares
+  .status-indicator-icon {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 16px;
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  // Overlay dos garçons maior e com borda amarela
+  .garcons-overlay {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    display: flex;
+    gap: -12px;
+    z-index: 4;
+
+    .avatar-garcom {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: $primary-color;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      border: 3px solid white;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      &.mais-garcons {
+        background-color: $text-color-light;
+        border-color: $primary-color;
+      }
+    }
   }
   
   // Status da mesa
@@ -408,322 +523,192 @@
     }
   }
   
-  // Tempo de ocupação
-  .tempo-ocupacao {
-    position: absolute;
-    bottom: 4px;
-    left: 4px;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 2px 6px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 500;
-    z-index: 5;
-    
-    mat-icon {
-      font-size: 12px;
-      width: 12px;
-      height: 12px;
-      line-height: 12px;
-    }
-  }
 }
 
 // Modal de detalhes da mesa
-.mesa-detalhes-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+// Modal de detalhes da mesa - Usando padrão global tavola-dialog
+
+// Modal do cardápio - Usando padrão global tavola-dialog
+
+// Estilos específicos para modais do painel do garçom
+.tavola-dialog {
+  // Usar estilos globais do styles.scss
   
-  .detalhes-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+  // Ajustes específicos para mobile
+  &.mobile-fullscreen {
+    .dialog-container {
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      border-radius: 0;
+      margin: 0;
+    }
+  }
+  
+  // Estilos específicos para o conteúdo dos modais
+  .mesa-info {
     margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #e8e8e8;
     
-    .back-button-details {
-      color: $text-color;
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
       
-      &:hover {
-        background-color: rgba(246, 189, 56, 0.1);
+      mat-icon {
+        color: $primary-color;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+      }
+      
+      .info-text {
+        display: flex;
+        flex-direction: column;
+        
+        .label {
+          font-size: 12px;
+          color: rgba(59, 34, 27, 0.7);
+          margin-bottom: 2px;
+        }
+        
+        .value {
+          font-size: 14px;
+          font-weight: 500;
+          color: $text-color;
+        }
       }
     }
+  }
+  
+  .garcoms-atendendo {
+    margin-bottom: 24px;
     
-    h2 {
-      margin: 0;
-      font-size: 20px;
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
       font-weight: 500;
       color: $text-color;
     }
-  }
-  
-  .detalhes-content {
-    background-color: white;
-    border-radius: $border-radius;
-    padding: 24px;
-    max-width: 500px;
-    width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
     
-    .mesa-info {
-      margin-bottom: 24px;
-      
-      .info-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-        
-        mat-icon {
-          color: $primary-color;
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-          line-height: 20px;
-        }
-        
-        .info-text {
-          display: flex;
-          flex-direction: column;
-          
-          .label {
-            font-size: 12px;
-            color: rgba(59, 34, 27, 0.7);
-            margin-bottom: 2px;
-          }
-          
-          .value {
-            font-size: 14px;
-            font-weight: 500;
-            color: $text-color;
-          }
-        }
-      }
-    }
-    
-    .garcoms-atendendo {
-      margin-bottom: 24px;
-      
-      h4 {
-        margin: 0 0 12px 0;
-        font-size: 16px;
-        font-weight: 500;
-        color: $text-color;
-      }
-      
-      .garcoms-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        
-        .garcom-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px;
-          background-color: #f9f9f9;
-          border-radius: 8px;
-          
-          span {
-            font-size: 14px;
-            color: $text-color;
-          }
-        }
-      }
-    }
-    
-    .mesa-actions {
+    .garcoms-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       
-      button {
-        width: 100%;
+      .garcom-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
         
-        &.mat-flat-button {
-          background-color: $primary-color;
+        span {
+          font-size: 14px;
           color: $text-color;
-          
-          &:hover {
-            background-color: color.adjust($primary-color, $lightness: -5%);
-          }
-        }
-        
-        &.mat-stroked-button {
-          color: $text-color;
-          border-color: rgba(59, 34, 27, 0.3);
-          
-          &:hover {
-            background-color: rgba(246, 189, 56, 0.1);
-            border-color: $primary-color;
-          }
         }
       }
     }
   }
   
-  &.mobile-fullscreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1000;
-    margin: 0;
-    border-radius: 0;
-    overflow-y: auto;
-    animation: slideInUp 0.3s ease-out;
+  .mesa-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     
-    .detalhes-header {
-      position: sticky;
-      top: 0;
-      background-color: white;
-      z-index: 10;
-      padding: 16px;
-      border-bottom: 1px solid #e8e8e8;
-    }
-  }
-}
-
-// Modal do cardápio
-.cardapio-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  
-  .cardapio-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
-  }
-  
-  .cardapio-content {
-    position: relative;
-    z-index: 1001;
-    background-color: white;
-    border-radius: $border-radius;
-    padding: 24px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    width: 100%;
-    
-    .cardapio-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e8e8e8;
+    button {
+      width: 100%;
       
-      h3 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 500;
-        color: $text-color;
-      }
-      
-      button {
+      &.mat-flat-button {
+        background-color: $primary-color;
         color: $text-color;
         
         &:hover {
+          background-color: color.adjust($primary-color, $lightness: -5%);
+        }
+      }
+      
+      &.mat-stroked-button {
+        color: $text-color;
+        border-color: rgba(59, 34, 27, 0.3);
+        
+        &:hover {
           background-color: rgba(246, 189, 56, 0.1);
+          border-color: $primary-color;
         }
       }
     }
-    
-    .cardapio-categorias {
-      .categoria-section {
-        margin-bottom: 32px;
+  }
+  
+  // Estilos específicos para o cardápio
+  .cardapio-categorias {
+    .categoria-section {
+      margin-bottom: 32px;
+      
+      h4 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 500;
+        color: $text-color;
+        padding-bottom: 8px;
+        border-bottom: 2px solid $primary-color;
+      }
+      
+      .itens-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
         
-        h4 {
-          margin: 0 0 16px 0;
-          font-size: 18px;
-          font-weight: 500;
-          color: $text-color;
-          padding-bottom: 8px;
-          border-bottom: 2px solid $primary-color;
-        }
-        
-        .itens-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 16px;
+        .item-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px;
+          background-color: #f9f9f9;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 1px solid transparent;
           
-          .item-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
+          &:hover {
+            background-color: #f0f0f0;
+            border-color: $primary-color;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+          
+          .item-info {
+            flex: 1;
+            
+            h5 {
+              margin: 0 0 4px 0;
+              font-size: 16px;
+              font-weight: 500;
+              color: $text-color;
+            }
+            
+            p {
+              margin: 0 0 8px 0;
+              font-size: 14px;
+              color: rgba(59, 34, 27, 0.7);
+              line-height: 1.4;
+            }
+            
+            .item-preco {
+              font-size: 16px;
+              font-weight: 600;
+              color: $primary-color;
+            }
+          }
+          
+          .add-item-btn {
+            color: $primary-color;
             
             &:hover {
-              background-color: #f0f0f0;
-              border-color: $primary-color;
-              transform: translateY(-2px);
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-            
-            .item-info {
-              flex: 1;
-              
-              h5 {
-                margin: 0 0 4px 0;
-                font-size: 16px;
-                font-weight: 500;
-                color: $text-color;
-              }
-              
-              p {
-                margin: 0 0 8px 0;
-                font-size: 14px;
-                color: rgba(59, 34, 27, 0.7);
-                line-height: 1.4;
-              }
-              
-              .item-preco {
-                font-size: 16px;
-                font-weight: 600;
-                color: $primary-color;
-              }
-            }
-            
-            .add-item-btn {
-              color: $primary-color;
-              
-              &:hover {
-                background-color: rgba(246, 189, 56, 0.1);
-              }
+              background-color: rgba(246, 189, 56, 0.1);
             }
           }
         }
@@ -774,6 +759,63 @@
     border-top: 1px solid #e8e8e8;
     border-radius: 16px;
     margin: 0 16px 16px 16px;
+    max-height: 60vh; // Limita a altura em mobile
+    
+    .pedidos-list {
+      padding: 12px;
+      
+      .pedido-card {
+        padding: 12px;
+        margin-bottom: 8px;
+        
+        .pedido-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+          
+          .mesa-info {
+            font-size: 16px;
+            font-weight: 600;
+          }
+          
+          .pedido-status {
+            align-self: flex-end;
+            font-size: 11px;
+            padding: 3px 6px;
+          }
+        }
+        
+        .pedido-itens {
+          .pedido-item {
+            padding: 6px 0;
+            
+            .item-quantidade {
+              font-size: 13px;
+              min-width: 25px;
+            }
+            
+            .item-nome {
+              font-size: 13px;
+              margin: 0 6px;
+            }
+            
+            .item-preco {
+              font-size: 13px;
+            }
+          }
+        }
+        
+        .pedido-actions {
+          flex-direction: column;
+          gap: 6px;
+          
+          button {
+            font-size: 12px;
+            padding: 10px 16px;
+          }
+        }
+      }
+    }
   }
   
   .garcom-info-card {
@@ -809,9 +851,63 @@
 
 @media (max-width: 576px) {
   .garcom-info-card {
+    margin: 8px;
+    padding: 16px;
+    
     .garcom-stats {
       flex-direction: column;
       gap: 8px;
+    }
+  }
+  
+  .pedidos-column {
+    margin: 0 8px 16px 8px;
+    
+    .pedidos-header {
+      padding: 12px 16px;
+      
+      h3 {
+        font-size: 16px;
+      }
+    }
+    
+    .pedidos-list {
+      padding: 8px;
+      
+      .pedido-card {
+        padding: 10px;
+        
+        .pedido-header {
+          .mesa-info {
+            font-size: 14px;
+          }
+        }
+        
+        .pedido-itens {
+          .pedido-item {
+            .item-quantidade {
+              font-size: 12px;
+              min-width: 20px;
+            }
+            
+            .item-nome {
+              font-size: 12px;
+              margin: 0 4px;
+            }
+            
+            .item-preco {
+              font-size: 12px;
+            }
+          }
+        }
+        
+        .pedido-actions {
+          button {
+            font-size: 11px;
+            padding: 8px 12px;
+          }
+        }
+      }
     }
   }
   
@@ -839,15 +935,6 @@
   }
 }
 
-// Tooltip customizado
-::ng-deep .tavola-tooltip {
-  background-color: rgba(59, 34, 27, 0.9) !important;
-  color: white !important;
-  font-size: 12px !important;
-  padding: 8px 12px !important;
-  border-radius: 6px !important;
-}
-
 // Menu customizado
 ::ng-deep .tavola-menu-bar {
   .mat-mdc-menu-content {
@@ -861,6 +948,18 @@
     padding: 8px 16px;
     font-size: 14px;
     
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+    }
+    
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.1);
+    }
+  }
+}
     mat-icon {
       font-size: 18px;
       width: 18px;

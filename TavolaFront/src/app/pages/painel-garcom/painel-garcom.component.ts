@@ -8,12 +8,17 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialogModule } from '@angular/material/dialog';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CalendarioReservasComponent } from '../reservas/calendario-reservas/calendario-reservas.component';
+import { AuthService } from '../../core/services/auth.service';
 import { Subject, interval, Subscription } from 'rxjs';
 import { takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -98,11 +103,15 @@ interface CardapioItem {
     MatProgressSpinnerModule,
     MatButtonToggleModule,
     MatDividerModule,
+    MatDialogModule,
     NzEmptyModule,
     NzAvatarModule,
     NzIconModule,
     NzImageModule,
     NzModalModule,
+    NzDatePickerModule,
+    FormsModule,
+    CalendarioReservasComponent,
   ],
   templateUrl: './painel-garcom.component.html',
   styleUrls: ['./painel-garcom.component.scss']
@@ -150,16 +159,21 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   mostrarCardapio = false;
   cardapioCategorias: CardapioCategoria[] = [];
 
+  // Navegação de data
+  dataAtual = new Date();
+  mostrarCalendario = false;
+
   // Controle de tempo
   private tempoInterval?: Subscription;
   private destroy$ = new Subject<void>();
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.checkMobile();
     this.carregarDadosIniciais();
     this.iniciarAtualizacaoTempo();
+    this.carregarDadosGarcom();
   }
 
   ngOnDestroy(): void {
@@ -183,6 +197,19 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     this.carregarAmbientes();
     this.carregarPedidosAtivos();
     this.carregarCardapio();
+  }
+
+  private carregarDadosGarcom(): void {
+    const perfil = this.authService.perfil;
+    if (perfil) {
+      this.garcomInfo.nome = perfil.nome;
+      this.garcomInfo.foto = perfil.imagem || 'assets/png/avatar-padrao-garcom-tavola.png';
+      
+      // Se for FUNCIONARIO, usar avatar específico do garçom
+      if (perfil.tipo === 'FUNCIONARIO') {
+        this.garcomInfo.foto = perfil.imagem || 'assets/png/avatar-padrao-garcom-tavola.png';
+      }
+    }
   }
 
   private carregarAmbientes(): void {
@@ -551,5 +578,77 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     // Implementar lógica de finalização do turno
     console.log('Finalizando turno...');
     this.router.navigate(['/home']);
+  }
+
+  // Navegação de data
+  diaAnterior(): void {
+    const dataAnterior = new Date(this.dataAtual);
+    dataAnterior.setDate(dataAnterior.getDate() - 1);
+    this.dataAtual = dataAnterior;
+    this.carregarDadosIniciais();
+  }
+
+  proximoDia(): void {
+    const proximaData = new Date(this.dataAtual);
+    proximaData.setDate(proximaData.getDate() + 1);
+    this.dataAtual = proximaData;
+    this.carregarDadosIniciais();
+  }
+
+  nzDatePickerChange(data: Date): void {
+    this.dataAtual = data;
+    this.carregarDadosIniciais();
+  }
+
+  abrirCalendario(): void {
+    this.mostrarCalendario = true;
+  }
+
+  selecionarDataDoCalendario(data: Date): void {
+    this.dataAtual = data;
+    this.mostrarCalendario = false;
+    this.carregarDadosIniciais();
+  }
+
+  getReservasParaCalendario(): any[] {
+    // Simulação de reservas para o calendário
+    // Em uma implementação real, isso viria de um serviço
+    return [
+      {
+        id: '1',
+        cliente: 'João Silva',
+        pessoas: 4,
+        data: new Date(),
+        horario: '19:30',
+        status: 'CONFIRMADA'
+      },
+      {
+        id: '2',
+        cliente: 'Maria Santos',
+        pessoas: 2,
+        data: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        horario: '20:00',
+        status: 'PENDENTE'
+      }
+    ];
+  }
+
+  // Função para tooltip do indicador "+N" dos garçons
+  getNomesGarconsExtras(mesaId: string): string {
+    const garcons = this.getGarcomsAtendendoMesa(mesaId);
+    if (!garcons || garcons.length <= 2) return '';
+    return 'Mais: ' + garcons.slice(2).map((g: GarcomInfo) => g.nome).join(', ');
+  }
+
+  // Função para formatar o tempo (ajustada para mais concisão)
+  calcularTempoOcupacao(timestamp?: number | Date): string {
+    if (!timestamp) return '';
+    const inicio = timestamp instanceof Date ? timestamp.getTime() : timestamp;
+    const agora = Date.now();
+    const diffMs = agora - inicio;
+    const diffMin = Math.floor(diffMs / 60000); // Usar floor para minutos completos
+
+    if (diffMin < 1) return '< 1m';
+    return `${diffMin}m`;
   }
 }

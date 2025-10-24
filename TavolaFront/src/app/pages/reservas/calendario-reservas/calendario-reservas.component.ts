@@ -37,12 +37,23 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
       <ul *nzDateCell="let date" class="eventos-dia">
         <ng-container *ngIf="getReservasParaData(date).length > 0">
           <li *ngFor="let reserva of getReservasParaData(date); let i = index" class="evento-item">
-            <nz-badge 
-              [nzStatus]="getStatusBadge(reserva.status)" 
-              [nzText]="reserva.cliente + ' (' + reserva.pessoas + 'P)'"
-              [matTooltip]="getTooltipStatus(reserva.status)" 
-              matTooltipClass="tavola-tooltip">
-            </nz-badge>
+            <div class="reserva-info" [matTooltip]="getTooltipReserva(reserva)" matTooltipClass="tavola-tooltip">
+              <div class="cliente-info">
+                <span class="cliente-nome">{{ reserva.cliente }}</span>
+                <span class="pessoas-info">
+                  <mat-icon>person</mat-icon>
+                  {{ reserva.pessoas }}
+                </span>
+              </div>
+              <div class="horario-info">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ reserva.horario }}</span>
+              </div>
+              <div class="status-badge" [ngClass]="'status-' + reserva.status.toLowerCase()">
+                <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
+                <span>{{ getStatusText(reserva.status) }}</span>
+              </div>
+            </div>
           </li>
         </ng-container>
       </ul>
@@ -115,17 +126,119 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
 }
 
 .evento-item {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   
-  .ant-badge-status {
-    overflow: hidden;
-    white-space: nowrap;
-    width: 100%;
-    text-overflow: ellipsis;
-    font-size: 12px;
-    line-height: 1.3;
-    display: block;
-    padding: 2px 0;
+  .reserva-info {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #e8e8e8;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #f0f0f0;
+      border-color: #F6BD38;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cliente-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      
+      .cliente-nome {
+        font-weight: 600;
+        color: #3B221B;
+        font-size: 13px;
+      }
+      
+      .pessoas-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #666;
+        font-size: 11px;
+        
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          line-height: 14px;
+        }
+      }
+    }
+    
+    .horario-info {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #666;
+      font-size: 11px;
+      margin-bottom: 4px;
+      
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+      }
+    }
+    
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      width: fit-content;
+      
+      mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        line-height: 12px;
+      }
+      
+      &.status-confirmada {
+        background-color: #e8f5e8;
+        color: #4CAF50;
+      }
+      
+      &.status-ativa {
+        background-color: #e8f5e8;
+        color: #4CAF50;
+      }
+      
+      &.status-concluida {
+        background-color: #e8f5e8;
+        color: #4CAF50;
+      }
+      
+      &.status-pendente {
+        background-color: #fff3e0;
+        color: #FF9800;
+      }
+      
+      &.status-lista_espera {
+        background-color: #fff3e0;
+        color: #FF9800;
+      }
+      
+      &.status-cancelada_restaurante {
+        background-color: #ffebee;
+        color: #F44336;
+      }
+      
+      &.status-nao_compareceu {
+        background-color: #ffebee;
+        color: #F44336;
+      }
+    }
   }
 }
 
@@ -285,6 +398,48 @@ export class CalendarioReservasComponent implements OnChanges {
         return "Cliente não compareceu"
       default:
         return "Status desconhecido"
+    }
+  }
+
+  getTooltipReserva(reserva: IReserva): string {
+    return `${reserva.cliente} - ${reserva.pessoas} pessoas às ${reserva.horario}`;
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case "CONFIRMADA":
+      case "ATIVA":
+      case "CONCLUIDA":
+        return "check_circle"
+      case "PENDENTE":
+      case "LISTA_ESPERA":
+        return "schedule"
+      case "CANCELADA_RESTAURANTE":
+      case "NAO_COMPARECEU":
+        return "cancel"
+      default:
+        return "help"
+    }
+  }
+
+  getStatusText(status: string): string {
+    switch (status) {
+      case "CONFIRMADA":
+        return "Confirmada"
+      case "ATIVA":
+        return "Ativa"
+      case "CONCLUIDA":
+        return "Concluída"
+      case "PENDENTE":
+        return "Pendente"
+      case "LISTA_ESPERA":
+        return "Lista de Espera"
+      case "CANCELADA_RESTAURANTE":
+        return "Cancelada"
+      case "NAO_COMPARECEU":
+        return "Não Compareceu"
+      default:
+        return "Desconhecido"
     }
   }
 }

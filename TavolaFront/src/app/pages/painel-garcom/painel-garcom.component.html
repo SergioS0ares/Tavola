@@ -29,8 +29,8 @@
           <mat-icon>schedule</mat-icon>
           <span>{{ tempoTrabalho }}</span>
         </div>
+        </div>
       </div>
-    </div>
     <div class="garcom-actions">
       <button mat-stroked-button (click)="finalizarTurno()" [disabled]="mesasAtendidas > 0">
         <mat-icon>logout</mat-icon>
@@ -53,9 +53,51 @@
     </mat-button-toggle-group>
   </div>
 
+  <!-- Navegador de Data Mobile -->
+  <div class="date-navigator-area" *ngIf="isMobile">
+    <div class="date-navigator">
+      <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <nz-date-picker
+        nzFormat="dd/MM/yyyy"
+        [(ngModel)]="dataAtual"
+        (ngModelChange)="nzDatePickerChange($event)"
+        nzAllowClear="false"
+      ></nz-date-picker>
+      <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+        <mat-icon>calendar_month</mat-icon>
+      </button>
+    </div>
+  </div>
+
   <div class="painel-content-columns">
     <!-- Mapa de Mesas -->
     <div class="mapa-mesas-column" *ngIf="visualizacaoAtiva === 'mapa' || !isMobile">
+      <!-- Navegador de Data Desktop -->
+      <div class="date-navigator-area" *ngIf="!isMobile">
+        <div class="date-navigator">
+          <button mat-icon-button (click)="diaAnterior()" aria-label="Dia anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <nz-date-picker
+            nzFormat="dd/MM/yyyy"
+            [(ngModel)]="dataAtual"
+            (ngModelChange)="nzDatePickerChange($event)"
+            nzAllowClear="false"
+          ></nz-date-picker>
+          <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+            <mat-icon>calendar_month</mat-icon>
+      </button>
+    </div>
+  </div>
+
       <div class="mesas-container">
         <!-- HEADER COM AS ABAS DE AMBIENTE -->
         <div class="areas-header">
@@ -77,14 +119,14 @@
                     <span>{{ ambiente.nome }}</span>
                   </button>
                 </div>
+                </div>
               </div>
-            </div>
             
             <button mat-icon-button class="nav-arrow right-arrow" *ngIf="mostrarSetaDireita" (click)="scrollAmbientes('right')">
               <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
+              </button>
         </div>
+      </div>
 
         <!-- Grid de mesas -->
         <div *ngIf="ambienteAtivo" class="mesas-grid-container">
@@ -105,39 +147,40 @@
                 [matTooltip]="getTooltipMesa(mesa)" 
                 matTooltipClass="tavola-tooltip">
                 
-                <div class="mesa-menu" (click)="$event.stopPropagation()">
-                  <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
-                    <mat-icon>more_vert</mat-icon>
-                  </button>
-                  <mat-menu #mesaMenu="matMenu" class="tavola-menu-bar">
-                    <button mat-menu-item (click)="iniciarAtendimento(mesa)" *ngIf="mesa.status === 'LIVRE' || mesa.status === 'RESERVADA'">
-                      <mat-icon>person_add</mat-icon>
-                      <span>Iniciar Atendimento</span>
-                    </button>
-                    <button mat-menu-item (click)="colaborarAtendimento(mesa)" *ngIf="mesa.status === 'EM_ATENDIMENTO'">
-                      <mat-icon>group_add</mat-icon>
-                      <span>Colaborar no Atendimento</span>
-                    </button>
-                    <button mat-menu-item (click)="verDetalhesMesa(mesa)">
-                      <mat-icon>info</mat-icon>
-                      <span>Ver Detalhes</span>
-                    </button>
-                    <button mat-menu-item (click)="liberarMesa(mesa)" *ngIf="mesa.status === 'EM_ATENDIMENTO' || mesa.status === 'OCUPADA'">
-                      <mat-icon>event_available</mat-icon>
-                      <span>Liberar Mesa</span>
-                    </button>
-                    <button mat-menu-item (click)="removerAtendimento(mesa)" *ngIf="isGarcomAtendendoMesa(mesa.id)">
-                      <mat-icon>person_remove</mat-icon>
-                      <span>Remover Atendimento</span>
-                    </button>
-                  </mat-menu>
-                </div>
                 
                 <div class="mesa-visual" [ngClass]="{'mesa-circular': mesa.tipo === 'circular'}">
-                  <span class="mesa-capacidade">{{ mesa.capacidade }} P</span>
-                  <!-- Indicador de garçom atendendo -->
-                  <div class="garcom-indicator" *ngIf="mesa.status === 'EM_ATENDIMENTO'">
-                    <nz-avatar [nzSize]="24" [nzSrc]="getGarcomAtendendo(mesa.id)?.foto" nzIcon="person"></nz-avatar>
+                  <!-- Tempo de ocupação no canto superior direito -->
+                  <div class="tempo-ocupacao-overlay" *ngIf="(mesa.status === 'OCUPADA' || mesa.status === 'EM_ATENDIMENTO') && mesa.tempoOcupacao">
+                    <span>{{ mesa.tempoOcupacao }}</span>
+                  </div>
+                  
+                  <!-- Indicador de status no canto superior esquerdo -->
+                  <mat-icon 
+                    *ngIf="mesa.status !== 'LIVRE'" 
+                    class="status-indicator-icon">
+                    {{ getStatusIcon(mesa.status) }}
+              </mat-icon>
+              
+                  <span class="mesa-capacidade">
+                    {{ mesa.capacidade }}
+                    <mat-icon class="person-icon">person</mat-icon>
+                  </span>
+                  
+                  <!-- Overlay dos garçons no canto inferior direito -->
+                  <div class="garcons-overlay" *ngIf="getGarcomsAtendendoMesa(mesa.id).length > 0">
+                    <div *ngFor="let garcom of getGarcomsAtendendoMesa(mesa.id) | slice:0:2" 
+                         class="avatar-garcom" 
+                         [matTooltip]="garcom.nome" 
+                         matTooltipClass="tavola-tooltip">
+                      <img *ngIf="garcom.foto" [src]="garcom.foto" [alt]="garcom.nome"/>
+                      <span *ngIf="!garcom.foto">{{ garcom.nome.substring(0,1) }}</span>
+                    </div>
+                    <div *ngIf="getGarcomsAtendendoMesa(mesa.id).length > 2" 
+                         class="avatar-garcom mais-garcons" 
+                         [matTooltip]="getNomesGarconsExtras(mesa.id)" 
+                         matTooltipClass="tavola-tooltip">
+                      +{{ getGarcomsAtendendoMesa(mesa.id).length - 2 }}
+                    </div>
                   </div>
                 </div>
                 
@@ -146,17 +189,6 @@
                   <span>{{ mesa.nome }}</span>
                 </div>
                 
-                <!-- Status da mesa -->
-                <div class="mesa-status" [ngClass]="'status-' + mesa.status.toLowerCase()">
-                  <mat-icon>{{ getStatusIcon(mesa.status) }}</mat-icon>
-                  <span>{{ getStatusText(mesa.status) }}</span>
-                </div>
-                
-                <!-- Tempo de ocupação -->
-                <div class="tempo-ocupacao" *ngIf="mesa.tempoOcupacao">
-                  <mat-icon>schedule</mat-icon>
-                  <span>{{ mesa.tempoOcupacao }}</span>
-                </div>
               </div>
               
             </div>
@@ -224,15 +256,20 @@
   </div>
 
   <!-- Modal de Detalhes da Mesa -->
-  <div class="mesa-detalhes-modal" *ngIf="mesaSelecionada" [class.mobile-fullscreen]="isMobile">
-    <div class="detalhes-header">
-      <button mat-icon-button (click)="fecharDetalhesMesa()" class="back-button-details">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <h2>Mesa {{ mesaSelecionada.nome }}</h2>
-    </div>
-    
-    <div class="detalhes-content">
+  <div class="tavola-dialog" *ngIf="mesaSelecionada" [class.mobile-fullscreen]="isMobile">
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <div class="header-icon">
+          <mat-icon>table_restaurant</mat-icon>
+        </div>
+        <h1 mat-dialog-title>Mesa {{ mesaSelecionada.nome }}</h1>
+        <p class="subtitle">Detalhes e informações da mesa</p>
+        <button mat-icon-button (click)="fecharDetalhesMesa()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <mat-dialog-content class="dialog-content">
       <div class="mesa-info">
         <div class="info-item">
           <mat-icon>table_restaurant</mat-icon>
@@ -293,21 +330,27 @@
                 *ngIf="mesaSelecionada.status === 'EM_ATENDIMENTO' || mesaSelecionada.status === 'OCUPADA'">
           <mat-icon>event_available</mat-icon>
           Liberar Mesa
-        </button>
+                </button>
+              </div>
+      </mat-dialog-content>
+        </div>
       </div>
-    </div>
-  </div>
 
   <!-- Modal do Cardápio -->
-  <div class="cardapio-modal" *ngIf="mostrarCardapio">
-    <div class="cardapio-overlay" (click)="fecharCardapio()"></div>
-    <div class="cardapio-content">
-      <div class="cardapio-header">
-        <h3>Cardápio</h3>
-        <button mat-icon-button (click)="fecharCardapio()">
+  <div class="tavola-dialog" *ngIf="mostrarCardapio">
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <div class="header-icon">
+          <mat-icon>restaurant_menu</mat-icon>
+        </div>
+        <h1 mat-dialog-title>Cardápio</h1>
+        <p class="subtitle">Selecione os itens para adicionar ao pedido</p>
+        <button mat-icon-button (click)="fecharCardapio()" class="close-button">
           <mat-icon>close</mat-icon>
         </button>
       </div>
+      
+      <mat-dialog-content class="dialog-content">
       
       <div class="cardapio-categorias">
         <div *ngFor="let categoria of cardapioCategorias" class="categoria-section">
@@ -326,6 +369,32 @@
           </div>
         </div>
       </div>
+      </mat-dialog-content>
+        </div>
+      </div>
+
+  <!-- Modal do Calendário -->
+  <div class="tavola-dialog" *ngIf="mostrarCalendario">
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <div class="header-icon">
+          <mat-icon>calendar_today</mat-icon>
+        </div>
+        <h1 mat-dialog-title>Calendário de Reservas</h1>
+        <p class="subtitle">Visualize as reservas por data</p>
+        <button mat-icon-button (click)="mostrarCalendario = false" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <mat-dialog-content class="dialog-content">
+        <app-calendario-reservas 
+          [reservas]="getReservasParaCalendario()" 
+          (dataSeleccionada)="selecionarDataDoCalendario($event)"
+          (fechar)="mostrarCalendario = false">
+        </app-calendario-reservas>
+      </mat-dialog-content>
     </div>
   </div>
 </div>
+

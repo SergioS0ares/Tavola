@@ -196,6 +196,9 @@ export class LayoutPrincipalComponent implements OnInit {
     if (this.auth.perfil?.tipo === "RESTAURANTE") {
       return "assets/png/avatar-padrao-restaurante-tavola.png"
     }
+    if (this.auth.perfil?.tipo === "FUNCIONARIO") {
+      return "assets/png/avatar-padrao-garcom-tavola.png"
+    }
     return "assets/png/avatar-padrao-tavola-cordeirinho.png"
   }
 

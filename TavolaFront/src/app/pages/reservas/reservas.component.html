@@ -511,7 +511,10 @@
                     </mat-menu>
                   </div>
                   <div class="mesa-visual" [ngClass]="{'mesa-circular': mesa.tipo === 'circular'}">
-                    <span class="mesa-capacidade">{{ mesa.capacidade }} P</span>
+                      <span class="mesa-capacidade">
+                        {{ mesa.capacidade }}
+                        <mat-icon class="person-icon">person</mat-icon>
+                      </span>
                   </div>
                   <div class="mesa-etiqueta" [ngClass]="{'mesa-vip': mesa.vip}">
                     <nz-icon *ngIf="mesa.vip" nzType="crown" nzTheme="outline" class="vip-icon"></nz-icon>
