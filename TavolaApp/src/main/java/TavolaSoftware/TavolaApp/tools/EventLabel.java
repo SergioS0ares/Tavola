@@ -10,6 +10,8 @@ public enum EventLabel {
 	RESERVA_UPDATE_MESA,				// a reserva mudou de mesa
 	RESERVA_UPDATE_NEW,					// nova reserva
 	CLIENTE_UPDATE_NOTIFICACAO,			// cliente recebeu uma nova notificação
-	RESTAURANTE_UPDATE_NOTIFICACAO;		// restaurante recebeu uma nova notificação
+	RESTAURANTE_UPDATE_NOTIFICACAO,		// restaurante recebeu uma nova notificação
+	MESA_LIBERADA, 
+	MESA_ATENDIMENTO;		
 	// caso apareçam mais...
 }

@@ -15,8 +15,7 @@ public class GarcomResponse {
         this.id = garcom.getId();
         this.nome = garcom.getNome();
         this.codigoIdentidade = garcom.getCodigoIdentidade();
-        this.ativo = garcom.isAtivo();
-        this.imagem = garcom.getFotoUrl();
+        this.imagem = garcom.getImagem();
     }
 
     // --- GETTERS ---
@@ -36,7 +35,7 @@ public class GarcomResponse {
         return ativo;
     }
 
-    public String getFotoUrl() {
+    public String getImagem() {
         return imagem;
     }
 }

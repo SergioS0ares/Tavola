@@ -27,4 +27,8 @@ public class PedidoResponse {
     public String getNomeGarcom() { return nomeGarcom; }
     public LocalDateTime getDataHora() { return dataHora; }
     public PedidoStatus getStatus() { return status; }
+
+	public void setStatus(PedidoStatus status) {
+		this.status = status;
+	}
 }

@@ -1,8 +1,5 @@
 package TavolaSoftware.TavolaApp.tools;
 
-import org.springframework.stereotype.Component;
-
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,311 +7,214 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-
-@Component
-public class UploadUtils {
-
-    public boolean isPrincipalBase64Image(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return false;
-        }
-        return input.startsWith("data:principal/") && input.contains(";base64,");
-    }
-    
-    public boolean isBase64Image(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return false;
-        }
-        return input.startsWith("data:image/") && input.contains(";base64,");
-    }
-
-    private String processBase64(String base64StringComCabecalho, String pasta, String extensao, String tipoDeDadoPrefixo) throws IOException {
-        if (tipoDeDadoPrefixo == null || tipoDeDadoPrefixo.trim().isEmpty() || !tipoDeDadoPrefixo.matches("^[a-zA-Z0-9]+$")) {
-            throw new IllegalArgumentException("Prefixo do tipo de dado inválido: " + tipoDeDadoPrefixo);
-        }
-
-        String base64Data = base64StringComCabecalho.replaceFirst("^data:" + tipoDeDadoPrefixo + "/[^;]+;base64,", "");
-        byte[] decodedBytes = Base64.getDecoder().decode(base64Data);
-
-        Path pastaPath = Paths.get(pasta);
-        if (!Files.exists(pastaPath)) {
-            Files.createDirectories(pastaPath);
-        }
-
-        String nomeArquivo = UUID.randomUUID().toString() + "." + extensao;
-        Path filePath = pastaPath.resolve(nomeArquivo);
-
-        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
-            fos.write(decodedBytes);
-        }
-        return nomeArquivo;
-    }
-
-    public List<String> processRestauranteImagens(List<String> imagensInput, UUID restauranteId) throws IOException {
-        List<String> caminhosProcessados = new ArrayList<>();
-        String caminhoPrincipal = null;
-        List<String> caminhosOutras = new ArrayList<>();
-        
-        String pasta = "upl/restaurantes/" + restauranteId.toString();
-        
-        for (String imagem : imagensInput) {
-            if (isPrincipalBase64Image(imagem)) {
-                String nomeArquivo = processBase64(imagem, pasta, "jpg", "principal");
-                caminhoPrincipal = "/upl/restaurantes/" + restauranteId + "/" + nomeArquivo;
-            } else if (isBase64Image(imagem)) {
-                String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-                caminhosOutras.add("/upl/restaurantes/" + restauranteId + "/" + nomeArquivo);
-            } else if (imagem != null && !imagem.isEmpty()) {
-                caminhosOutras.add(imagem);
-            }
-        }
-        
-        if (caminhoPrincipal != null) {
-            caminhosProcessados.add(caminhoPrincipal);
-        }
-        caminhosProcessados.addAll(caminhosOutras);
-        
-        return caminhosProcessados;
-    }
-
-    public String processUsuarioImagem(String imagem, UUID usuarioId) throws IOException {
-        if (!isBase64Image(imagem)) { 
-            throw new IOException("A string fornecida não é uma imagem Base64 válida (deve começar com data:image/)");
-        }
-
-        String pasta = "upl/usuarios/" + usuarioId.toString();
-        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-        return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo;
-    }
-
-    public String processCardapioImagem(String imagem, UUID restauranteId, UUID cardapioId) throws IOException {
-        if (!isBase64Image(imagem)) {
-            throw new IOException("A string fornecida não é uma imagem Base64 válida");
-        }
-
-        String pasta = "upl/cardapios/" + restauranteId.toString();
-        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-        return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo;
-    }
-
-    public void deletarPasta(String caminhoPasta) {
-        Path diretorio = Paths.get(caminhoPasta);
-        if (Files.exists(diretorio)) {
-            try {
-                Files.walk(diretorio)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            } catch (IOException e) {
-                System.err.println("Erro ao deletar a pasta " + caminhoPasta + ": " + e.getMessage());
-            }
-        }
-    }
-    
-    public void deletarArquivoPeloCaminho(String caminhoRelativo) {
-        if (caminhoRelativo == null || caminhoRelativo.isBlank()) {
-            return;
-        }
-        try {
-            // Remove a barra inicial, se houver, para criar um caminho relativo ao projeto
-            String caminhoNoSistema = caminhoRelativo.startsWith("/") ? caminhoRelativo.substring(1) : caminhoRelativo;
-            Path pathArquivo = Paths.get(caminhoNoSistema);
-            
-            Files.deleteIfExists(pathArquivo);
-            
-        } catch (IOException e) {
-            System.err.println("Erro ao tentar deletar o arquivo " + caminhoRelativo + ": " + e.getMessage());
-        }
-    }
-    
-    public void removeOrfans(String pasta, Set<String> arquivosParaManter) {
-        File directory = new File(pasta);
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (!arquivosParaManter.contains(file.getName())) {
-                        file.delete();
-                    }
-                }
-            }
-        }
-    }
-
-    public String findNameByURL(String url) {
-        if (url == null || url.isEmpty()) {
-            return null;
-        }
-        String[] parts = url.split("/");
-        return parts.length > 0 ? parts[parts.length - 1] : null;
-    }
-}
-
-/*
-// ===================================================================================
-// VERSÃO ATUAL (PARA KUBERNETES) COMENTADA PARA REFERÊNCIA FUTURA
-// ===================================================================================
-
-package TavolaSoftware.TolaApp.tools;
 
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 @Component
 public class UploadUtils {
-	
-    private static final String UPLOAD_DIR = "/app/uploads";
 
+    // Define os diretórios base planos
+    private static final String BASE_DIR = "upl";
+    private static final Path USUARIOS_DIR = Paths.get(BASE_DIR, "usuarios");
+    private static final Path RESTAURANTES_DIR = Paths.get(BASE_DIR, "restaurantes");
+    private static final Path CARDAPIOS_DIR = Paths.get(BASE_DIR, "cardapios");
+    private static final Path GARCONS_DIR = Paths.get(BASE_DIR, "garcons");
 
-    public boolean isPrincipalBase64Image(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return false;
-        }
-        return input.startsWith("data:principal/") && input.contains(";base64,");
-    }
-    
+    // Verifica se é uma string Base64 de imagem (genérica)
     public boolean isBase64Image(String input) {
         if (input == null || input.trim().isEmpty()) {
             return false;
         }
-        return input.startsWith("data:image/") && input.contains(";base64,");
+        // Aceita qualquer 'data:image/...' ou o antigo 'data:principal/...' por segurança
+        return (input.startsWith("data:image/") || input.startsWith("data:principal/"))
+               && input.contains(";base64,");
     }
 
-    private String processBase64(String base64StringComCabecalho, Path pastaPath, String extensao, String tipoDeDadoPrefixo) throws IOException {
-        String base64Data = base64StringComCabecalho.replaceFirst("^data:" + tipoDeDadoPrefixo + "/[^;]+;base64,", "");
+    /**
+     * Processa a string Base64, salva o arquivo na pasta de destino e retorna SÓ o nome do arquivo.
+     */
+    private String processBase64(String base64StringComCabecalho, Path pastaDestino) throws IOException {
+        // Remove o cabeçalho (data:image/jpeg;base64, ou data:principal/...)
+        String base64Data = base64StringComCabecalho.substring(base64StringComCabecalho.indexOf(",") + 1);
         byte[] decodedBytes = Base64.getDecoder().decode(base64Data);
 
-        if (!Files.exists(pastaPath)) {
-            Files.createDirectories(pastaPath);
+        // Garante que a pasta de destino exista
+        if (!Files.exists(pastaDestino)) {
+            Files.createDirectories(pastaDestino);
         }
 
+        // Determina a extensão (default jpg, mas tenta pegar do cabeçalho se possível)
+        String extensao = "jpg";
+        if (base64StringComCabecalho.contains("data:image/png")) {
+            extensao = "png";
+        } else if (base64StringComCabecalho.contains("data:image/gif")) {
+            extensao = "gif";
+        } // Adicione outros tipos se precisar
+
         String nomeArquivo = UUID.randomUUID().toString() + "." + extensao;
-        Path filePath = pastaPath.resolve(nomeArquivo);
+        Path filePath = pastaDestino.resolve(nomeArquivo);
 
         try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
             fos.write(decodedBytes);
         }
-        return nomeArquivo;
+        return nomeArquivo; // Retorna SÓ o nome do arquivo (uuid.ext)
     }
 
-    public List<String> processRestauranteImagens(List<String> imagensInput, UUID restauranteId) throws IOException {
-        List<String> caminhosProcessados = new ArrayList<>();
-        String caminhoPrincipal = null;
-        List<String> caminhosOutras = new ArrayList<>();
-        
-        // <<< MUDANÇA 2: Usamos o UPLOAD_DIR para montar o caminho de salvamento.
-        Path pasta = Path.of(UPLOAD_DIR, "restaurantes", restauranteId.toString());
-        
+    /**
+     * Processa uma lista de imagens (Base64 ou nomes de arquivo existentes) para a galeria do restaurante.
+     * Retorna uma lista contendo APENAS os nomes dos arquivos salvos ou mantidos.
+     */
+    public List<String> processRestauranteGaleria(List<String> imagensInput) throws IOException {
+        List<String> nomesArquivosProcessados = new ArrayList<>();
+
         for (String imagem : imagensInput) {
-            if (isPrincipalBase64Image(imagem)) {
-                String nomeArquivo = processBase64(imagem, pasta, "jpg", "principal");
-                // A URL retornada para o frontend continua a mesma! O frontend não precisa saber onde salvamos.
-                caminhoPrincipal = "/upl/restaurantes/" + restauranteId + "/" + nomeArquivo;
-            } else if (isBase64Image(imagem)) {
-                String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-                caminhosOutras.add("/upl/restaurantes/" + restauranteId + "/" + nomeArquivo);
-            } else if (imagem != null && !imagem.isEmpty()) {
-                caminhosOutras.add(imagem);
+            if (isBase64Image(imagem)) {
+                // Salva a nova imagem na pasta de restaurantes e adiciona o nome à lista
+                String nomeArquivo = processBase64(imagem, RESTAURANTES_DIR);
+                nomesArquivosProcessados.add(nomeArquivo);
+            } else if (imagem != null && !imagem.isBlank() && !imagem.startsWith("data:")) {
+                // Se não for Base64, assume que é um nome de arquivo existente e mantém na lista
+                nomesArquivosProcessados.add(findNameByURL(imagem)); // Garante que só o nome seja adicionado
             }
+            // Ignora strings vazias ou nulas
         }
-        
-        if (caminhoPrincipal != null) {
-            caminhosProcessados.add(caminhoPrincipal);
-        }
-        caminhosProcessados.addAll(caminhosOutras);
-        
-        return caminhosProcessados;
+        return nomesArquivosProcessados; // Retorna a lista de nomes de arquivo
     }
 
-    public String processUsuarioImagem(String imagem, UUID usuarioId) throws IOException {
-        if (!isBase64Image(imagem)) { 
-            throw new IOException("A string fornecida não é uma imagem Base64 válida (deve começar com data:image/)");
+    /**
+     * Processa uma imagem Base64 para perfil ou background de usuário.
+     * Retorna APENAS o nome do arquivo salvo.
+     */
+    public String processUsuarioImagem(String imagemBase64) throws IOException {
+        if (!isBase64Image(imagemBase64)) {
+            throw new IOException("A string fornecida não é uma imagem Base64 válida.");
         }
-
-        // <<< MUDANÇA 3: Usamos o UPLOAD_DIR para montar o caminho de salvamento.
-        Path pasta = Path.of(UPLOAD_DIR, "usuarios", usuarioId.toString());
-        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-        // A URL retornada para o frontend continua a mesma!
-        return "/upl/usuarios/" + usuarioId + "/" + nomeArquivo;
+        // Salva na pasta de usuários
+        return processBase64(imagemBase64, USUARIOS_DIR); // Retorna SÓ o nome do arquivo
     }
 
-    public String processCardapioImagem(String imagem, UUID restauranteId, UUID cardapioId) throws IOException {
-        if (!isBase64Image(imagem)) {
-            throw new IOException("A string fornecida não é uma imagem Base64 válida");
+    /**
+     * Processa uma imagem Base64 para item de cardápio.
+     * Retorna APENAS o nome do arquivo salvo.
+     */
+    public String processCardapioImagem(String imagemBase64) throws IOException {
+        if (!isBase64Image(imagemBase64)) {
+            throw new IOException("A string fornecida não é uma imagem Base64 válida.");
         }
-        // <<< MUDANÇA 4: Usamos o UPLOAD_DIR para montar o caminho de salvamento.
-        Path pasta = Path.of(UPLOAD_DIR, "cardapios", restauranteId.toString());
-        String nomeArquivo = processBase64(imagem, pasta, "jpg", "image");
-        // A URL retornada para o frontend continua a mesma!
-        return "/upl/cardapios/" + restauranteId + "/" + nomeArquivo;
-    }
-
-    public void deletarPasta(String caminhoPasta) {
-        Path diretorio = Path.of(UPLOAD_DIR, caminhoPasta);
-        if (Files.exists(diretorio)) {
-            try {
-                Files.walk(diretorio)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            } catch (IOException e) {
-                System.err.println("Erro ao deletar a pasta " + caminhoPasta + ": " + e.getMessage());
-            }
-        }
+        // Salva na pasta de cardápios
+        return processBase64(imagemBase64, CARDAPIOS_DIR); // Retorna SÓ o nome do arquivo
     }
     
+    public String processRestauranteImagemPrincipal(String imagemInput) throws IOException {
+        if (isBase64Image(imagemInput)) {
+            return processBase64(imagemInput, RESTAURANTES_DIR); // Retorna SÓ o nome do arquivo
+        } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
+            return findNameByURL(imagemInput); // Garante que só o nome seja retornado
+        }
+        
+        if (imagemInput == null || imagemInput.isBlank()) {
+            return null;
+        }
+        
+        throw new IOException("A string fornecida parece ser Base64 mas é inválida.");
+    }
+    
+    public String processGarcomImagem(String imagemInput) throws IOException {
+        if (isBase64Image(imagemInput)) {
+            // Se for uma nova imagem Base64, processa e salva
+            return processBase64(imagemInput, GARCONS_DIR); // Salva na pasta de garçons
+        } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
+            // Se não for Base64, assume que é um nome de arquivo existente (URL antiga) e o mantém
+            return findNameByURL(imagemInput); // Garante que só o nome seja retornado
+        }
+        
+        // Se for nula ou vazia
+        if (imagemInput == null || imagemInput.isBlank()) {
+            return null;
+        }
+        
+        // Se começar com "data:" mas não for válida
+        throw new IOException("A string fornecida parece ser Base64 mas é inválida.");
+    }
+
+    /**
+     * Reconstrói a URL relativa completa a partir do tipo e nome do arquivo.
+     * Ex: /upl/usuarios/uuid-arquivo.jpg
+     */
+    public String construirUrlRelativa(String tipo, String nomeArquivo) {
+        if (nomeArquivo == null || nomeArquivo.isBlank()) {
+            return null;
+        }
+        if (nomeArquivo.startsWith("/upl/")) {
+            return nomeArquivo;
+        }
+        
+        String tipoUrl = tipo.toLowerCase();
+        
+        // --- ADIÇÃO AO MÉTODO ---
+        // Garante "garcom" -> "garcons"
+        if (tipoUrl.equals("garcom")) { 
+            tipoUrl = "garcons";
+        } 
+        // --- FIM DA ADIÇÃO ---
+        
+        else if (!tipoUrl.endsWith("s")) {
+            tipoUrl += "s"; // ex: usuario -> usuarios
+        }
+        
+        return "/" + BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
+    }
+
+    /**
+     * Deleta um arquivo específico pela sua URL relativa (ex: /upl/usuarios/uuid.jpg).
+     */
     public void deletarArquivoPeloCaminho(String caminhoRelativo) {
-        if (caminhoRelativo == null || caminhoRelativo.isBlank()) {
-            return;
+        if (caminhoRelativo == null || caminhoRelativo.isBlank() || !caminhoRelativo.startsWith("/" + BASE_DIR + "/")) {
+            return; // Ignora caminhos inválidos
         }
         try {
-            String caminhoNoDisco = caminhoRelativo.replaceFirst("/upl", UPLOAD_DIR);
-            Path pathArquivo = Paths.get(caminhoNoDisco);
-            
+            // Extrai o tipo e o nome do arquivo da URL
+            // Ex: /upl/usuarios/uuid.jpg -> ["", "upl", "usuarios", "uuid.jpg"]
+            String[] parts = caminhoRelativo.split("/");
+            if (parts.length < 4) return; // Formato inválido
+
+            String tipo = parts[2]; // "usuarios", "restaurantes", "cardapios"
+            String nomeArquivo = parts[3];
+
+            Path pastaFisica;
+            switch (tipo) {
+                case "usuarios": pastaFisica = USUARIOS_DIR; break;
+                case "restaurantes": pastaFisica = RESTAURANTES_DIR; break;
+                case "cardapios": pastaFisica = CARDAPIOS_DIR; break;
+                case "garcons": pastaFisica = GARCONS_DIR; break;
+                default:
+                    System.err.println("Tipo desconhecido ao tentar deletar arquivo: " + tipo);
+                    return;
+            }
+
+            Path pathArquivo = pastaFisica.resolve(nomeArquivo);
             Files.deleteIfExists(pathArquivo);
-            
+            System.out.println("Arquivo deletado (se existia): " + pathArquivo.toString());
+
         } catch (IOException e) {
             System.err.println("Erro ao tentar deletar o arquivo " + caminhoRelativo + ": " + e.getMessage());
         }
     }
-    
-    public void removeOrfans(String pasta, Set<String> arquivosParaManter) {
-        File directory = new File(pasta);
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (!arquivosParaManter.contains(file.getName())) {
-                        file.delete();
-                    }
-                }
-            }
-        }
-    }
 
+    /**
+     * Extrai apenas o nome do arquivo de uma URL completa ou parcial.
+     */
     public String findNameByURL(String url) {
         if (url == null || url.isEmpty()) {
             return null;
+        }
+        // Se já não contém '/', assume que é só o nome
+        if (!url.contains("/")) {
+            return url;
         }
         String[] parts = url.split("/");
         return parts.length > 0 ? parts[parts.length - 1] : null;
     }
 }
-
-*/

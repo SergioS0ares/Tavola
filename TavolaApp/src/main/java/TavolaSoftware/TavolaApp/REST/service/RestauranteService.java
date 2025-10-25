@@ -37,37 +37,16 @@ import TavolaSoftware.TavolaApp.tools.UploadUtils;
 @Service
 public class RestauranteService {
 
-    @Autowired
-    private RestauranteRepository repoRestaurante;
-
-    @Autowired
-    private UsuarioRepository repoUsuario;
+    @Autowired private RestauranteRepository repoRestaurante;
+    @Autowired private UsuarioRepository repoUsuario;
+    @Autowired private ServicoRepository repoServico;
+    @Autowired private UploadUtils uplUtil;
+    @Autowired private BCryptPasswordEncoder encoder;
+    @Autowired private RecomendacaoService recomendacaoService;
+    @Autowired private ClienteRepository clienteRepository;
+    @Autowired private ReservaService reservaService;
     
-    @Autowired
-    private ServicoRepository repoServico;
-
-    @Autowired
-    private UploadUtils uplUtil;
-
-    @Autowired
-    private BCryptPasswordEncoder encoder;
-    
-    @Autowired
-    private RecomendacaoService recomendacaoService;
-    
-    @Autowired
-    private ClienteRepository clienteRepository;
-    
-    @Autowired
-    private ReservaService reservaService;
-    
-    /**
-     * Busca restaurantes filtrando pela cidade.
-     * @param cidade O nome da cidade.
-     * @return Uma lista de ClienteHomeResponse.
-     */
     @Transactional(readOnly = true)
-    // >>> ALTERAÇÃO 3: O tipo de retorno agora é List<ClienteHomeResponse> <<<
     public List<ClienteHomeResponse> findByCidade(String cidade) {
         if (cidade == null || cidade.trim().isEmpty()) {
             return new ArrayList<>();
@@ -75,13 +54,19 @@ public class RestauranteService {
 
         List<Restaurante> restaurantes = repoRestaurante.findByUsuarioEnderecoCidadeIgnoreCase(cidade.trim());
         
-        // >>> ALTERAÇÃO 4: Convertendo a lista de Restaurante para ClienteHomeResponse. <<<
-        // A lógica complexa anterior foi removida, pois o ClienteHomeResponse é mais simples.
+        // --- LÓGICA ATUALIZADA ---
+        // Precisamos montar a URL da imagemPrincipal aqui
         return restaurantes.stream()
-            .map(ClienteHomeResponse::new) // Usando referência do construtor para um código mais limpo
+            .map(restaurante -> {
+                ClienteHomeResponse dto = new ClienteHomeResponse(restaurante);
+                // Monta a URL completa para a imagem principal
+                dto.setImagemPrincipal(uplUtil.construirUrlRelativa("restaurantes", restaurante.getImagemPrincipal()));
+                return dto;
+            })
             .collect(Collectors.toList());
     }
     
+    // ... (método calcularValorMedioPorPessoa sem alterações) ...
     private double calcularValorMedioPorPessoa(Restaurante restaurante) {
         if (restaurante.getCardapio() == null || restaurante.getCardapio().isEmpty()) {
             return 0.0;
@@ -103,11 +88,11 @@ public class RestauranteService {
         return BigDecimal.valueOf(valorTotalDasMedias).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
     
+    // ... (método getFavoritosDoClienteLogado sem alterações) ...
     private List<UUID> getFavoritosDoClienteLogado() {
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             
-            // --- CORREÇÃO AQUI ---
             return repoUsuario.findByEmail(emailUsuarioLogado)
                     .filter(usuario -> usuario.getTipo() == TipoUsuario.CLIENTE)
                     .flatMap(usuario -> clienteRepository.findById(usuario.getId()))
@@ -124,11 +109,8 @@ public class RestauranteService {
         
         try {
             String emailUsuarioLogado = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-            // --- CORREÇÃO AQUI ---
             Optional<Usuario> usuarioOpt = repoUsuario.findByEmail(emailUsuarioLogado);
             if (usuarioOpt.isPresent() && usuarioOpt.get().getTipo() == TipoUsuario.CLIENTE) {
-                // A ordenação modifica a lista 'restaurantes' diretamente
                 recomendacaoService.ordenarRestaurantesPorRecomendacao(restaurantes, usuarioOpt.get().getId());
             }
         } catch (Exception e) {
@@ -143,34 +125,43 @@ public class RestauranteService {
             responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
             responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
             responseDto.setDatasLotadas(reservaService.getDatasLotadas(restaurante.getId()));
-
-            List<String> principalImageOnly = new ArrayList<>();
-            List<String> imagensDoRestaurante = restaurante.getImagens();
-
-            if (imagensDoRestaurante != null && !imagensDoRestaurante.isEmpty()) {
-                principalImageOnly.add(imagensDoRestaurante.get(0));
-            }
-            responseDto.setImagens(principalImageOnly);
+            responseDto.setImagemPrincipal(uplUtil.construirUrlRelativa("restaurantes", restaurante.getImagemPrincipal()));
 
             return responseDto;
         }).collect(Collectors.toList());
     }
 
     public Optional<RestauranteResponse> findById(UUID id) {
-        Optional<Restaurante> restauranteOpt = repoRestaurante.findById(id);
+        return repoRestaurante.findById(id).map(restaurante -> {
+            RestauranteResponse responseDto = new RestauranteResponse(restaurante);
 
-        if (restauranteOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        
-        Restaurante restaurante = restauranteOpt.get();
-        List<UUID> favoritosDoCliente = getFavoritosDoClienteLogado();
-        RestauranteResponse responseDto = new RestauranteResponse(restaurante);
-        responseDto.setFavorito(favoritosDoCliente.contains(restaurante.getId()));
-        responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
-        responseDto.setDatasLotadas(reservaService.getDatasLotadas(restaurante.getId()));
+            Usuario usuario = restaurante.getUsuario();
+            responseDto.setImagemUsuario(uplUtil.construirUrlRelativa("usuarios", usuario.getImagem()));
+            
+            // --- LÓGICA ATUALIZADA ---
+            // Corrigido para usar o método 'getImagemPrincipal()'
+            responseDto.setImagemPrincipalUsuario(uplUtil.construirUrlRelativa("usuarios", usuario.getImagemPrincipal())); 
+            
+            // 1. Montar a URL da Imagem Principal do Restaurante
+            responseDto.setImagemPrincipal(uplUtil.construirUrlRelativa("restaurantes", restaurante.getImagemPrincipal()));
 
-        return Optional.of(responseDto);
+            // 2. Montar as URLs da Galeria
+            if (restaurante.getImagens() != null) {
+                List<String> urlsGaleria = restaurante.getImagens().stream()
+                    .map(nomeArquivo -> uplUtil.construirUrlRelativa("restaurantes", nomeArquivo))
+                    .collect(Collectors.toList());
+                responseDto.setImagens(urlsGaleria); // 'imagens' agora é a galeria
+            } else {
+                 responseDto.setImagens(Collections.emptyList());
+            }
+            // --- FIM DA ATUALIZAÇÃO ---
+            
+            responseDto.setFavorito(getFavoritosDoClienteLogado().contains(restaurante.getId()));
+            responseDto.setValorMedioPorPessoa(calcularValorMedioPorPessoa(restaurante));
+            responseDto.setDatasLotadas(reservaService.getDatasLotadas(restaurante.getId()));
+
+            return responseDto;
+        });
     }
     
     @Transactional
@@ -211,19 +202,28 @@ public class RestauranteService {
             Set<Servico> servicosParaAssociar = new HashSet<>();
             for (String nomeServico : request.getNomesServicos()) { 
                 Servico serv = repoServico.findByNome(nomeServico)
-                                .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
+                                .orElseGet(() -> repoServico.save(new Servico(nomeServico)));
                 servicosParaAssociar.add(serv);
             }
             restaurante.setServicos(servicosParaAssociar); 
         }
 
-        if (request.getImagens() != null && !request.getImagens().isEmpty()) { 
-            try {
-                List<String> caminhosImagens = uplUtil.processRestauranteImagens(request.getImagens(), usuarioSalvo.getId());
-                restaurante.setImagens(caminhosImagens);
-            } catch (IOException e) {
-                throw new RuntimeException("Erro ao processar imagens do restaurante: " + e.getMessage(), e);
+        try {
+            // --- LÓGICA ATUALIZADA ---
+            // 1. Processar a Imagem Principal (Fachada)
+            if (request.getImagemPrincipal() != null && !request.getImagemPrincipal().isBlank()) {
+                String nomeArquivoPrincipal = uplUtil.processRestauranteImagemPrincipal(request.getImagemPrincipal());
+                restaurante.setImagemPrincipal(nomeArquivoPrincipal);
             }
+
+            // 2. Processar a Galeria de Imagens
+            if (request.getImagens() != null && !request.getImagens().isEmpty()) { 
+                List<String> nomesArquivosGaleria = uplUtil.processRestauranteGaleria(request.getImagens());
+                restaurante.setImagens(nomesArquivosGaleria);
+            }
+            // --- FIM DA ATUALIZAÇÃO ---
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar imagens do restaurante: " + e.getMessage(), e);
         }
         
         return repoRestaurante.save(restaurante);
@@ -233,54 +233,88 @@ public class RestauranteService {
     public Restaurante updateFromRequest(UUID id, RestauranteRequest request) {
         Restaurante restauranteExistente = repoRestaurante.findById(id)
             .orElseThrow(() -> new RuntimeException("Restaurante não encontrado com ID: " + id));
+        Usuario usuarioAssociado = restauranteExistente.getUsuario();
 
-        Usuario usuarioAssociado = restauranteExistente.getUsuario(); 
-
-        if (request.getNomeUsuario() != null && !request.getNomeUsuario().isBlank()) { usuarioAssociado.setNome(request.getNomeUsuario()); }
-        if (request.getSenhaUsuario() != null && !request.getSenhaUsuario().isBlank()) { usuarioAssociado.setSenha(encoder.encode(request.getSenhaUsuario())); }
-        if (request.getEnderecoUsuario() != null) { usuarioAssociado.setEndereco(request.getEnderecoUsuario()); }
-        if (request.getTelefoneUsuario() != null && !request.getTelefoneUsuario().isBlank()) { usuarioAssociado.setTelefone(request.getTelefoneUsuario()); }
-        
+        // ... (lógica de atualização do usuário) ...
+        if (request.getNomeUsuario() != null && !request.getNomeUsuario().isBlank()) {
+            usuarioAssociado.setNome(request.getNomeUsuario());
+        }
+        if (request.getEnderecoUsuario() != null) {
+            usuarioAssociado.setEndereco(request.getEnderecoUsuario());
+        }
+        if (request.getTelefoneUsuario() != null) {
+            usuarioAssociado.setTelefone(request.getTelefoneUsuario());
+        }
         repoUsuario.save(usuarioAssociado);
 
-        if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) { restauranteExistente.setTipoCozinha(request.getTipoCozinha()); }
-        if (request.getDescricao() != null && !request.getDescricao().isBlank()) { restauranteExistente.setDescricao(request.getDescricao()); }
-        if (request.getHorariosFuncionamento() != null) { restauranteExistente.setHorariosFuncionamento(request.getHorariosFuncionamento()); }
-        if (request.getNomesServicos() != null) { 
-            Set<Servico> servicosAtualizados = new HashSet<>();
-            if (!request.getNomesServicos().isEmpty()) { 
-                for (String nomeServico : request.getNomesServicos()) { 
-                    Servico serv = repoServico.findByNome(nomeServico)
-                                    .orElseGet(() -> repoServico.save(new Servico(nomeServico, "")));
-                    servicosAtualizados.add(serv);
+        // ... (lógica de atualização do restaurante: tipoCozinha, descricao, etc.) ...
+        if (request.getTipoCozinha() != null && !request.getTipoCozinha().isBlank()) {
+            restauranteExistente.setTipoCozinha(request.getTipoCozinha());
+        }
+        if (request.getDescricao() != null) {
+            restauranteExistente.setDescricao(request.getDescricao());
+        }
+        if (request.getHorariosFuncionamento() != null) {
+            restauranteExistente.setHorariosFuncionamento(request.getHorariosFuncionamento());
+        }
+        if (request.getNomesServicos() != null) {
+           Set<Servico> servicosParaAssociar = new HashSet<>();
+           for (String nomeServico : request.getNomesServicos()) {
+               Servico serv = repoServico.findByNome(nomeServico)
+                               .orElseGet(() -> repoServico.save(new Servico(nomeServico)));
+               servicosParaAssociar.add(serv);
+           }
+           restauranteExistente.setServicos(servicosParaAssociar);
+        }
+        if (request.getLimiteReservasDiarias() != null && request.getLimiteReservasDiarias() >= 0) {
+           restauranteExistente.setLimiteReservasDiarias(request.getLimiteReservasDiarias());
+        }
+       
+        try {
+            // --- LÓGICA ATUALIZADA ---
+            
+            // 1. Processar a Imagem Principal (Fachada)
+            // Se uma nova imagem (Base64) ou um nome de arquivo diferente foi enviado
+            if (request.getImagemPrincipal() != null) { 
+                String nomeAntigo = restauranteExistente.getImagemPrincipal();
+                String nomeNovo = uplUtil.processRestauranteImagemPrincipal(request.getImagemPrincipal());
+                
+                restauranteExistente.setImagemPrincipal(nomeNovo);
+
+                // Deletar a imagem antiga se ela mudou
+                if (nomeAntigo != null && !nomeAntigo.equals(nomeNovo)) {
+                    String urlAntiga = uplUtil.construirUrlRelativa("restaurantes", nomeAntigo);
+                    uplUtil.deletarArquivoPeloCaminho(urlAntiga);
                 }
             }
-            restauranteExistente.setServicos(servicosAtualizados); 
-        }
-        if (request.getImagens() != null && !request.getImagens().isEmpty()) { 
-            try {
-                List<String> caminhosImagens = uplUtil.processRestauranteImagens(request.getImagens(), restauranteExistente.getId());
-                restauranteExistente.setImagens(caminhosImagens);
-            } catch (IOException e) {
-                throw new RuntimeException("Erro ao processar imagens do restaurante durante atualização: " + e.getMessage(), e);
+
+            // 2. Processar a Galeria de Imagens
+            if (request.getImagens() != null) {
+                List<String> nomesArquivosAtuais = restauranteExistente.getImagens() != null ? new ArrayList<>(restauranteExistente.getImagens()) : new ArrayList<>();
+                List<String> nomesArquivosProcessados = uplUtil.processRestauranteGaleria(request.getImagens());
+
+                // Deletar imagens da galeria que foram removidas
+                for (String nomeAntigo : nomesArquivosAtuais) {
+                    if (!nomesArquivosProcessados.contains(nomeAntigo)) {
+                        String urlAntigaGaleria = uplUtil.construirUrlRelativa("restaurantes", nomeAntigo);
+                        uplUtil.deletarArquivoPeloCaminho(urlAntigaGaleria);
+                    }
+                }
+                restauranteExistente.setImagens(nomesArquivosProcessados);
             }
+            // --- FIM DA ATUALIZAÇÃO ---
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar imagens do restaurante: " + e.getMessage(), e);
         }
-        if (request.getLimiteReservasDiarias() != null) {
-            if (request.getLimiteReservasDiarias() >= 0) {
-                restauranteExistente.setLimiteReservasDiarias(request.getLimiteReservasDiarias());
-            }
-        }
-        
+
         return repoRestaurante.save(restauranteExistente);
     }
 
+    // ... (método deleteById e getByEmail sem alterações) ...
     @Transactional
     public void deleteById(UUID id) {
         if (repoRestaurante.existsById(id)) {
             repoRestaurante.deleteById(id);
-            
-            String pastaImagens = "upl/restaurantes/" + id.toString();
-            uplUtil.deletarPasta(pastaImagens);
             
         } else {
             throw new RuntimeException("Restaurante não encontrado para deleção com ID: " + id);
@@ -293,5 +327,9 @@ public class RestauranteService {
 
             return repoRestaurante.findByUsuario(usuario)
                 .orElseThrow(() -> new RuntimeException("Restaurante não encontrado para o usuário: " + email));
+    }
+    
+    public Optional<Restaurante> findEntityById(UUID id) {
+        return repoRestaurante.findById(id);
     }
 }

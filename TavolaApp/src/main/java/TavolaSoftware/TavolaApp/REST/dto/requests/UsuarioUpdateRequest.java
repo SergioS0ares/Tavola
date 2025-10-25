@@ -46,7 +46,7 @@ public class UsuarioUpdateRequest {
         this.imagem = imagem;
     }
 
-    public String getImagemBackground() {
+    public String getImagemPrincipal() {
         return imagemBackground;
     }
 

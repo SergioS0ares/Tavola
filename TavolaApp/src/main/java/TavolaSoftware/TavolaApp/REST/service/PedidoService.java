@@ -1,8 +1,11 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -53,9 +56,210 @@ public class PedidoService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
     
-    @Autowired private CardapioRepository cardapioRepository;
+    @Autowired 
+    private CardapioRepository cardapioRepository;
+    
+    // @Autowired 
+    // private ItemPedidoRepository itemPedidoRepository; // <--- REMOVIDO (Correto!)
 
+    
+    @Transactional
+    public PedidoResponse atenderChamadoMesa(UUID mesaId) {
+        // 1. Extrai dados do garçom logado
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        Claims claims = jwtUtil.parseToken(token);
+        UUID garcomId = UUID.fromString(claims.get("garcomId", String.class));
+        UUID restauranteId = UUID.fromString(claims.get("restauranteId", String.class));
 
+        // 2. Busca Garçom e Mesa
+        Garcom garcom = garcomRepository.findById(garcomId)
+            .orElseThrow(() -> new EntityNotFoundException("Garçom não encontrado."));
+        Mesa mesa = mesaRepository.findById(mesaId)
+            .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada."));
+
+        // 3. Validação de Segurança
+        if (!mesa.getAmbiente().getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. A mesa não pertence ao seu restaurante.");
+        }
+
+        // 4. Encontra o "chamado" (Pedido sem itens em AGUARDANDO_ATENDIMENTO)
+        //    Ou cria um novo pedido de atendimento se não existir um chamado aberto.
+        Pedido pedidoAtendimento = pedidoRepository
+            .findFirstByMesaIdAndStatusAndItensIsEmpty(mesaId, PedidoStatus.AGUARDANDO_ATENDIMENTO)
+            .orElseGet(() -> {
+                // Se não há chamado explícito, cria um novo pedido de "atendimento"
+                Pedido novoChamado = new Pedido();
+                novoChamado.setMesa(mesa);
+                novoChamado.setGarcom(garcom); // Garçom que está atendendo
+                novoChamado.setRestaurante(mesa.getAmbiente().getRestaurante());
+                novoChamado.setDataHora(LocalDateTime.now());
+                novoChamado.setStatus(PedidoStatus.ATENDIMENTO); // Já inicia em atendimento
+                return pedidoRepository.save(novoChamado); // Salva primeiro para ter ID
+            });
+
+        // 5. Se encontrou um chamado existente, atualiza
+        if (pedidoAtendimento.getStatus() == PedidoStatus.AGUARDANDO_ATENDIMENTO) {
+            pedidoAtendimento.setStatus(PedidoStatus.ATENDIMENTO);
+            pedidoAtendimento.setGarcom(garcom); // Associa o garçom que atendeu
+            pedidoAtendimento = pedidoRepository.save(pedidoAtendimento);
+        }
+        // Se já estava em ATENDIMENTO (criado no orElseGet), não faz nada extra.
+
+        // 6. Notifica via WebSocket (opcional, pode notificar outros garçons ou a gerência)
+        String topic = "/topic/restaurante/" + restauranteId + "/mesas/" + mesaId; // Tópico específico da mesa
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.MESA_ATENDIMENTO, new PedidoResponse(pedidoAtendimento))); // DTO adaptado
+
+        return new PedidoResponse(pedidoAtendimento);
+    }
+    
+    @Transactional
+    public void liberarAtendimentoMesa(UUID mesaId) {
+        // 1. Extrai dados do garçom logado
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        Claims claims = jwtUtil.parseToken(token);
+        UUID garcomId = UUID.fromString(claims.get("garcomId", String.class));
+        UUID restauranteId = UUID.fromString(claims.get("restauranteId", String.class));
+
+        // 2. Busca a Mesa (para validação do restaurante)
+        Mesa mesa = mesaRepository.findById(mesaId)
+            .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada."));
+        if (!mesa.getAmbiente().getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. A mesa não pertence ao seu restaurante.");
+        }
+
+        // 3. Encontra o Pedido de ATENDIMENTO (sem itens) associado a ESTE garçom e mesa
+        Pedido pedidoAtendimento = pedidoRepository
+            .findFirstByMesaIdAndGarcomIdAndStatusAndItensIsEmpty(mesaId, garcomId, PedidoStatus.ATENDIMENTO)
+            .orElseThrow(() -> new EntityNotFoundException("Nenhum atendimento ativo encontrado para você nesta mesa."));
+
+        // 4. Finaliza o atendimento: Muda status para ENTREGUE e deleta (como no updateStatus)
+        //    Ou apenas desassocia o garçom, dependendo da regra de negócio.
+        //    Vamos seguir a lógica do updateStatus: marcar como ENTREGUE e deletar.
+        pedidoAtendimento.setStatus(PedidoStatus.ENTREGUE); // Marca como finalizado
+
+        // 5. Notifica via WebSocket ANTES de deletar
+        String topicPedido = "/topic/restaurante/" + restauranteId + "/pedidos"; // Tópico geral de pedidos
+        messagingTemplate.convertAndSend(topicPedido, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_CANCEL, new PedidoResponse(pedidoAtendimento))); // Sinaliza remoção
+
+        String topicMesa = "/topic/restaurante/" + restauranteId + "/mesas/" + mesaId; // Tópico específico da mesa
+        messagingTemplate.convertAndSend(topicMesa, new WebSocketMessage(EventLabel.MESA_LIBERADA, Map.of("mesaId", mesaId))); // Sinaliza liberação
+
+        // 6. Deleta o pedido de atendimento
+        pedidoRepository.delete(pedidoAtendimento);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> findPedidosAtivosPorMesa(UUID mesaId) {
+        // 1. Extrai dados do garçom/restaurante logado
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        Claims claims = jwtUtil.parseToken(token);
+        UUID restauranteId = UUID.fromString(claims.get("restauranteId", String.class));
+
+        // 2. Busca a Mesa (para validação)
+        Mesa mesa = mesaRepository.findById(mesaId)
+            .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada."));
+        if (!mesa.getAmbiente().getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. A mesa não pertence ao seu restaurante.");
+        }
+
+        // 3. Define os status considerados "ativos" para um pedido de item
+        Set<PedidoStatus> statusAtivos = Set.of(
+            PedidoStatus.PENDENTE,
+            PedidoStatus.EM_PREPARO,
+            PedidoStatus.PRONTO
+            // Não inclui ATENDIMENTO (chamado) nem AGUARDANDO_ATENDIMENTO
+        );
+
+        // 4. Busca os pedidos da mesa com os status ativos E que tenham itens
+        List<Pedido> pedidosAtivos = pedidoRepository.findByMesaIdAndStatusInAndItensIsNotEmpty(mesaId, statusAtivos);
+
+        // 5. Mapeia para DTOs
+        return pedidosAtivos.stream()
+                .map(PedidoResponse::new)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public PedidoResponse adicionarRemoverItensPedido(UUID idPedido, PedidoRequest request) {
+        // 1. Extrai dados do garçom/restaurante logado
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        Claims claims = jwtUtil.parseToken(token);
+        UUID restauranteId = UUID.fromString(claims.get("restauranteId", String.class));
+        // UUID garcomId = UUID.fromString(claims.get("garcomId", String.class)); // Pode ser útil para auditoria
+
+        // 2. Busca o Pedido
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado: " + idPedido));
+
+        // 3. Validações
+        if (!pedido.getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. O pedido não pertence ao seu restaurante.");
+        }
+        // Permite adicionar itens apenas se PENDENTE? Ou também EM_PREPARO? Decisão de negócio.
+        // Vamos permitir apenas se PENDENTE por segurança.
+        if (pedido.getStatus() != PedidoStatus.PENDENTE) {
+             throw new IllegalStateException("Não é possível adicionar/remover itens de um pedido que não está 'PENDENTE'. Status atual: " + pedido.getStatus());
+        }
+        if (request.getItens() == null) { // Permite remover todos os itens? Sim.
+             request.setItens(new ArrayList<>()); // Garante lista vazia se for nulo
+        }
+
+        // --- LÓGICA DE ATUALIZAÇÃO (REPLACE) ---
+        // 1. Remove os itens antigos (graças ao orphanRemoval=true)
+        //    O código comentado abaixo (que usaria o ItemPedidoRepository) não é necessário.
+        //    List<ItemPedido> itensAntigos = new ArrayList<>(pedido.getItens());
+        //    pedido.getItens().clear(); // Remove da coleção gerenciada pelo pedido
+        //    itemPedidoRepository.deleteAll(itensAntigos); // Deleta do banco
+        pedido.getItens().clear(); // Simples e correto com orphanRemoval=true
+
+        // 2. Adiciona os novos itens (lógica similar ao criarPedido)
+        List<ItemPedido> novosItens = request.getItens().stream().map(itemDto -> {
+            Cardapio itemDeCardapio = cardapioRepository.findById(itemDto.getCardapioItemId())
+                .orElseThrow(() -> new EntityNotFoundException("Item de cardápio não encontrado: " + itemDto.getCardapioItemId()));
+
+            if (!itemDeCardapio.getRestaurante().getId().equals(restauranteId)) {
+                throw new SecurityException("Item do cardápio " + itemDeCardapio.getNome() + " não pertence a este restaurante.");
+            }
+
+            ItemPedido itemPedido = new ItemPedido();
+            itemPedido.setPedido(pedido); // Vincula ao pedido existente
+            itemPedido.setProdutoId(itemDeCardapio.getId());
+            itemPedido.setNomeProduto(itemDeCardapio.getNome());
+            itemPedido.setPrecoUnitario(itemDeCardapio.getPreco());
+            itemPedido.setQuantidade(itemDto.getQuantidade());
+            itemPedido.setObservacoes(itemDto.getObservacao());
+            return itemPedido;
+        }).collect(Collectors.toList());
+
+        pedido.getItens().addAll(novosItens); // Adiciona os novos itens à coleção
+
+        // Se a lista ficou vazia após a atualização, cancelamos o pedido? Ou mantemos PENDENTE?
+        // Vamos cancelar se ficar vazio.
+        if (pedido.getItens().isEmpty()) {
+            pedido.setStatus(PedidoStatus.CANCELADO);
+            // Deleção ou notificação de cancelamento? Seguir lógica do updateStatus: deletar
+             // Notifica ANTES de deletar
+            String topicCancel = "/topic/restaurante/" + restauranteId + "/pedidos";
+            messagingTemplate.convertAndSend(topicCancel, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_CANCEL, new PedidoResponse(pedido)));
+            pedidoRepository.delete(pedido);
+            // Retornar o quê? Talvez lançar uma exceção ou retornar null/Optional.empty()?
+            // Por ora, vamos retornar o DTO antes de deletar (embora não vá existir mais). Melhor seria void.
+            // Ajuste: Vamos retornar o response e deixar o controller retornar 204 se for cancelado.
+             PedidoResponse responseAntesDeDeletar = new PedidoResponse(pedido);
+             responseAntesDeDeletar.setStatus(PedidoStatus.CANCELADO); // Força o status no DTO
+             return responseAntesDeDeletar; // Indica que foi cancelado/deletado
+        } else {
+             // 3. Salva o pedido atualizado
+             Pedido pedidoAtualizado = pedidoRepository.save(pedido);
+
+             // 4. Notifica via WebSocket
+             String topicUpdate = "/topic/restaurante/" + restauranteId + "/pedidos";
+             messagingTemplate.convertAndSend(topicUpdate, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, new PedidoResponse(pedidoAtualizado))); // Ou um label PEDIDO_UPDATE_ITEMS
+
+             return new PedidoResponse(pedidoAtualizado);
+        }
+    }
+    
     @Transactional
     public Optional<Pedido> updateStatus(UUID idPedido, String novoStatusStr) {
         PedidoStatus novoStatus;

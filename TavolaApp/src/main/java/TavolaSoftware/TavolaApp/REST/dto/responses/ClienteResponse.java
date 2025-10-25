@@ -13,7 +13,7 @@ public class ClienteResponse {
     private String telefone; // <<< NOVO CAMPO
     private Endereco endereco;
     private String imagemPerfil;
-    private String imagemBackground;
+    private String imagemPrincipal;
 
     public ClienteResponse(Cliente cliente) {
         this.id = cliente.getId();
@@ -24,7 +24,7 @@ public class ClienteResponse {
             this.telefone = usuario.getTelefone(); // <<< ADICIONADO AQUI
             this.endereco = usuario.getEndereco();
             this.imagemPerfil = usuario.getImagem();
-            this.imagemBackground = usuario.getImagemBackground();
+            this.imagemPrincipal = usuario.getImagemPrincipal();
         }
     }
 
@@ -35,7 +35,7 @@ public class ClienteResponse {
     public String getTelefone() { return telefone; } // <<< GETTER NOVO
     public Endereco getEndereco() { return endereco; }
     public String getImagemPerfil() { return imagemPerfil; }
-    public String getImagemBackground() { return imagemBackground; }
+    public String getImagemBackground() { return imagemPrincipal; }
 
     // Setters
     public void setId(UUID id) { this.id = id; }
@@ -44,5 +44,5 @@ public class ClienteResponse {
     public void setTelefone(String telefone) { this.telefone = telefone; } // <<< SETTER NOVO
     public void setEndereco(Endereco endereco) { this.endereco = endereco; }
     public void setImagemPerfil(String imagemPerfil) { this.imagemPerfil = imagemPerfil; }
-    public void setImagemBackground(String imagemBackground) { this.imagemBackground = imagemBackground; }
+    public void setImagemBackground(String imagemBackground) { this.imagemPrincipal = imagemBackground; }
 }

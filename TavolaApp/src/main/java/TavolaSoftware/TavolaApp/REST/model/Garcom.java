@@ -18,7 +18,7 @@ public class Garcom {
     @Column(name = "nome_garcom", nullable = false)
     private String nome;
 
-    @Column(name = "foto_url")
+    @Column(name = "imagem_garcom")
     private String imagem; // Para o futuro
 
     @Column(name = "codigo_identidade", nullable = false)
@@ -26,9 +26,6 @@ public class Garcom {
 
     @Column(name = "senha_garcom", nullable = false)
     private String senha; // Armazenaremos o hash da senha aqui
-
-    @Column(name = "ativo", nullable = false)
-    private boolean ativo = true;
 
 	public UUID getId() {
 		return this.id;
@@ -42,11 +39,7 @@ public class Garcom {
 		return this.codigoIdentidade;
 	}
 
-	public boolean isAtivo() {
-		return this.ativo;
-	}
-
-    public String getFotoUrl() {
+    public String getImagem() {
     	return this.imagem;
     }
 
@@ -66,10 +59,6 @@ public class Garcom {
 		this.restaurante = restaurante2;
 	}
 
-	public void setAtivo(boolean b) {
-		this.ativo = b;
-	}
-
 	public String getSenha() {
 		return this.senha;
 	}
@@ -78,7 +67,7 @@ public class Garcom {
 		return this.restaurante;	
 	}
 
-	public void setFotoUrl(String fotoUrl2) {
-		this.imagem = fotoUrl2;
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
 	}
 }

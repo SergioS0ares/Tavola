@@ -1,28 +1,28 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.requests.AvaliacaoRequest;
-import TavolaSoftware.TavolaApp.REST.dto.requests.ClienteUpdateRequest;
-import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
-import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteResponse;
-import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
-import TavolaSoftware.TavolaApp.REST.model.Cliente;
-import TavolaSoftware.TavolaApp.REST.service.AvaliacaoService;
-import TavolaSoftware.TavolaApp.REST.service.ClienteService;
-import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
-// UploadUtils não é mais necessário aqui se a lógica foi para o service
-// ResponseExceptionHandler não é mais necessário aqui se não houver validações manuais
-// BCrypt não é mais necessário aqui
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import TavolaSoftware.TavolaApp.REST.dto.requests.ClienteUpdateRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteResponse;
+import TavolaSoftware.TavolaApp.REST.model.Cliente;
+import TavolaSoftware.TavolaApp.REST.service.ClienteService;
 
 @RestController
 @RequestMapping("/auth/clientes")
@@ -30,12 +30,6 @@ public class ClienteController {
 
     @Autowired
     private ClienteService serv;
-
-    @Autowired
-    private AvaliacaoService servAvaliacao;
-
-    @Autowired
-    private RestauranteService servRestaurante;
     
     /*
      * GET auth/clientes/favoritos
@@ -81,30 +75,7 @@ public class ClienteController {
         return ResponseEntity.ok(serv.findAll());
     }
 
-    /*
-     * POST auth/clientes/avaliar/{id}
-     * Endpoint para o cliente avaliar um restaurante
-     * */
-    @PostMapping("/avaliar/{restauranteId}")
-    public ResponseEntity<?> avaliar(@PathVariable UUID restauranteId, @RequestBody AvaliacaoRequest avaliacaoRequest) { /* ... seu código ... */
-        try {
-            String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            servAvaliacao.avaliarRestaurante(
-                avaliacaoRequest.getScore(), avaliacaoRequest.getComentario(), restauranteId, emailCliente
-            );
-            Optional<RestauranteResponse> restauranteResponseOpt = servRestaurante.findById(restauranteId);
-            if (restauranteResponseOpt.isPresent()) {
-                return ResponseEntity.status(HttpStatus.OK).body(restauranteResponseOpt.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurante não encontrado após avaliação.");
-            }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao realizar avaliação: " + e.getMessage());
-        }
-    }
-
+    
     /*
      * POST auth/clientes/favoritar/{id}
      * Endpoint para o cliente favoritar um restaurante

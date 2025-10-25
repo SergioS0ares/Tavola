@@ -3,14 +3,18 @@ package TavolaSoftware.TavolaApp.REST.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import TavolaSoftware.TavolaApp.REST.dto.responses.AvaliacaoResponse; // Adicione
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteAvaliacoesResponse; // Adicione
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
@@ -19,32 +23,23 @@ import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.tools.Lexico;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.EntityNotFoundException; // Adicione
+
 
 @Service
 public class AvaliacaoService {
 
-    @Autowired 
-    private RestauranteRepository repoRestaurante;
+    @Autowired private RestauranteRepository repoRestaurante;
+    @Lazy @Autowired private RestauranteService restauranteService;
+    @Autowired private ClienteService servCliente; 
+    @Autowired private AvaliacaoRepository avaliacaoRepository;
+    @Autowired private JavaMailSender mailSender;
+    @Autowired private Lexico lexico;
 
-    @Autowired
-    private ClienteService servCliente; 
-
-    @Autowired
-    private AvaliacaoRepository avaliacaoRepository;
-
-    // <<< NOVAS DEPENDÊNCIAS PARA ENVIO DE E-MAIL >>>
-    @Autowired
-    private JavaMailSender mailSender;
-    @Autowired
-    private Lexico lexico;
-
+    
     @Value("${spring.mail.username}")
     private String emailRemetente;
 
-
-    // ===================================================================
-    // LÓGICA DE AVALIAÇÃO (COM GESTÃO DE COMENTÁRIOS APRIMORADA)
-    // ===================================================================
     
     @Transactional
     public Avaliacao avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) {
@@ -114,10 +109,6 @@ public class AvaliacaoService {
         return (int) Math.round(score / 2.0);
     }
 
-    // ===================================================================
-    // NOVA FUNCIONALIDADE: E-MAIL DE LEMBRETE DE AVALIAÇÃO
-    // ===================================================================
-
     public void enviarEmailLembreteAvaliacao(Reserva reserva) {
         try {
             Cliente cliente = reserva.getCliente();
@@ -140,6 +131,21 @@ public class AvaliacaoService {
             System.err.println("Erro ao enviar e-mail de lembrete de avaliação: " + e.getMessage());
         }
     }
+    
+    @Transactional(readOnly = true)
+    public RestauranteAvaliacoesResponse getAvaliacoesDetalhadasPorRestaurante(UUID restauranteId) {
+
+        Restaurante restaurante = restauranteService.findEntityById(restauranteId)
+            .orElseThrow(() -> new EntityNotFoundException("Restaurante não encontrado com ID: " + restauranteId));
+
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findDetalhadaByRestauranteId(restauranteId);
+
+        List<AvaliacaoResponse> avaliacoesDto = avaliacoes.stream()
+            .map(AvaliacaoResponse::new) // Usa o construtor do DTO
+            .collect(Collectors.toList());
+
+        return new RestauranteAvaliacoesResponse(restaurante, avaliacoesDto);
+    }
 
     /**
      * Gera o corpo HTML para o e-mail de lembrete de avaliação.
@@ -147,7 +153,7 @@ public class AvaliacaoService {
     private String criarCorpoEmailLembrete(String nomeCliente, String nomeRestaurante, UUID restauranteId) {
         // TODO: Substituir o link '#' pela URL real da tela do restaurante no frontend.
         // Ex: String linkParaAvaliar = "https://www.seusite.com/restaurantes/" + restauranteId;
-        String linkParaAvaliar = "#"; 
+        String linkParaAvaliar = "http://localhost:4200/home/agendamento-reservas-restaurante/" + restauranteId + "?verificarNotificacao=true";
 
         return """
             <!DOCTYPE html>

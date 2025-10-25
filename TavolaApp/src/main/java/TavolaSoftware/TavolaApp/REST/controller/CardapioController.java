@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import TavolaSoftware.TavolaApp.REST.dto.responses.CardapioResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.PublicCardapioResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.CardapioService;
@@ -48,7 +50,7 @@ public class CardapioController {
     }
 
     /**
-     * Endpoint PÚBLICO para um CLIENTE ver os itens disponíveis no cardápio de um restaurante específico.
+     * Endpoint para um CLIENTE ver os itens disponíveis no cardápio de um restaurante específico.
      * @param restauranteId O ID do restaurante a ser consultado (vindo da URL).
      * @return Uma lista de itens de cardápio disponíveis.
      */
@@ -62,6 +64,40 @@ public class CardapioController {
                                                     .map(CardapioResponse::new)
                                                     .collect(Collectors.toList());
                                                     
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/public/{restauranteId}")
+    public ResponseEntity<?> getPublicCardapioCompleto(@PathVariable UUID restauranteId) {
+        
+        // 1. Usamos nosso novo método helper para buscar a ENTIDADE Restaurante.
+        Optional<Restaurante> restauranteOpt = restauranteServ.findEntityById(restauranteId);
+
+        // 2. Verificamos se o restaurante foi encontrado.
+        if (restauranteOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body(Map.of("erro", "Restaurante não encontrado com o ID fornecido."));
+        }
+        
+        // Se foi encontrado, podemos pegar o objeto com segurança.
+        Restaurante restaurante = restauranteOpt.get();
+
+        // 3. Buscamos a lista de itens do cardápio (lógica que já funcionava).
+        List<Cardapio> cardapiosDisponiveis = serv.findAllByDisponivel(restauranteId);
+
+        // 4. Convertemos a lista de entidades Cardapio para DTOs CardapioResponse.
+        List<CardapioResponse> cardapioResponseList = cardapiosDisponiveis.stream()
+                                                            .map(CardapioResponse::new)
+                                                            .collect(Collectors.toList());
+                                                    
+        // 5. Montamos a resposta final no formato que o Sérgio pediu.
+        PublicCardapioResponse response = new PublicCardapioResponse(
+            restaurante.getUsuario().getNome(),
+            restaurante.getUsuario().getImagem(),
+            cardapioResponseList
+        );
+
+        // 6. Retornamos o pacote completo.
         return ResponseEntity.ok(response);
     }
 

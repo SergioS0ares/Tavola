@@ -296,7 +296,7 @@ usuarioRepository.findByEmail(emailUsuarioLogado);
 
         Usuario usuarioLogado = usuarioRepository.findByEmail(emailUsuarioLogado)
                 .orElseThrow(() -> new SecurityException("Usuário não autenticado."));
-usuarioRepository.findByEmail(emailUsuarioLogado);
+        usuarioRepository.findByEmail(emailUsuarioLogado);
         if (usuarioLogado == null) {
             throw new RuntimeException("Usuário não autenticado.");
         }

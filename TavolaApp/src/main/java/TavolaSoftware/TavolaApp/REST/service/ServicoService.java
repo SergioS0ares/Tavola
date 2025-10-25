@@ -18,13 +18,13 @@ public class ServicoService {
     private ServicoRepository servicoRepository; // Renomeado para servicoRepository
 
     @Transactional
-    public Servico save(String nomeServico, String descricaoServico) {
+    public Servico save(String nomeServico) {
         Optional<Servico> existingServico = servicoRepository.findByNome(nomeServico);
         if (existingServico.isPresent()) {
             return existingServico.get(); // Retorna o serviço existente se já houver um com o mesmo nome
         }
 
-        Servico novoServico = new Servico(nomeServico, descricaoServico);
+        Servico novoServico = new Servico(nomeServico);
         return servicoRepository.save(novoServico);
     }
 
@@ -33,7 +33,7 @@ public class ServicoService {
         Set<Servico> servicos = new HashSet<>();
         for (String nomeServico : nomesServicos) {
             // Pode adicionar uma descrição padrão ou requerer DTOs para descrições
-            Servico servico = save(nomeServico, ""); // Descrição vazia por padrão
+            Servico servico = save(nomeServico); // Descrição vazia por padrão
             servicos.add(servico);
         }
         return servicos;
@@ -72,16 +72,15 @@ public class ServicoService {
         }
 
         servico.setNome(novoNome);
-        servico.setDescricao(novaDescricao);
         return servicoRepository.save(servico);
     }
     
     // Método para obter ou criar um serviço, útil ao atribuir a restaurantes
     @Transactional
-    public Servico getOrCreateServico(String nomeServico, String descricaoServico) {
+    public Servico getOrCreateServico(String nomeServico) {
         return servicoRepository.findByNome(nomeServico)
                 .orElseGet(() -> {
-                    Servico newServico = new Servico(nomeServico, descricaoServico);
+                    Servico newServico = new Servico(nomeServico);
                     return servicoRepository.save(newServico);
                 });
     }

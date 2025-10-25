@@ -73,11 +73,6 @@ public class AccessService {
         Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade())
                 .orElseThrow(() -> new RuntimeException("Credenciais inválidas."));
 
-        // 3. Verifica se o garçom está ativo
-        if (!garcom.isAtivo()) {
-            throw new RuntimeException("Este usuário de funcionário está inativo.");
-        }
-
         // 4. Valida a senha do garçom
         if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) {
             throw new RuntimeException("Credenciais inválidas.");
@@ -99,7 +94,7 @@ public class AccessService {
             TipoUsuario.FUNCIONARIO.toString(),
             garcom.getId(),
             restaurante.getEmail(), // E-mail de referência é o do restaurante
-            garcom.getFotoUrl(),
+            garcom.getImagem(),
             null // Background
         );
     }
@@ -109,21 +104,14 @@ public class AccessService {
         // --- CORREÇÃO AQUI ---
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
-        // Se o Optional estiver vazio (usuário não encontrado), simplesmente paramos a execução.
-        // Isso evita que um atacante descubra quais e-mails estão cadastrados no sistema.
         if (usuarioOpt.isEmpty()) {
             System.out.println("Solicitação de reset para e-mail não cadastrado: " + email);
             return;
         }
-
-        // Se chegamos aqui, o usuário existe. Podemos extraí-lo com segurança.
         Usuario usuario = usuarioOpt.get();
-        
-        // O restante do método continua exatamente igual
         passwordResetTokenRepository.deleteByUsuarioId(usuario.getId());
 
-        String token = UUID.randomUUID().toString();
-
+        String token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setUsuario(usuario);
         resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(30));
@@ -131,7 +119,7 @@ public class AccessService {
 
         passwordResetTokenRepository.save(resetToken);
 
-        String urlDeRedefinicao = "http://localhost:4200/redefinir-senha?token=" + token;
+        String urlDeRedefinicao = "http://localhost:4200/redefinir-senha/" + token;
 
         enviarEmailResetSenha(usuario.getEmail(), usuario.getNome(), urlDeRedefinicao);
     }

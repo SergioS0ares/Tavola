@@ -26,9 +26,6 @@ public class Servico { // Renomeado de Tags para Servico
     @Column(name = "servico_nome", nullable = false, unique = true, length = 100)
     private String nome; // Renomeado de 'tag' para 'nome'
 
-    @Column(name = "descricao_servicos", length = 255) // Adicione uma descrição opcional
-    private String descricao;
-
     // Relacionamento ManyToMany com Restaurante
     // mappedBy indica que a entidade Restaurante é dona do relacionamento
     @ManyToMany(mappedBy = "servicos")
@@ -38,11 +35,6 @@ public class Servico { // Renomeado de Tags para Servico
 
     public Servico(String nome) {
         this.nome = nome;
-    }
-
-    public Servico(String nome, String descricao) {
-        this.nome = nome;
-        this.descricao = descricao;
     }
 
     // Getters e Setters
@@ -60,14 +52,6 @@ public class Servico { // Renomeado de Tags para Servico
 
     public void setNome(String nome) {
         this.nome = nome;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
     }
 
     public Set<Restaurante> getRestaurantes() {
@@ -96,7 +80,6 @@ public class Servico { // Renomeado de Tags para Servico
         return "Servico{" +
                "id=" + id +
                ", nome='" + nome + '\'' +
-               ", descricao='" + descricao + '\'' +
                '}';
     }
 }

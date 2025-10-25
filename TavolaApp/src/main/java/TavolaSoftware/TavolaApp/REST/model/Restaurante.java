@@ -42,6 +42,9 @@ public class Restaurante {
                      joinColumns = @JoinColumn(name = "restaurante_id", referencedColumnName = "usuario_id"))
     @Column(name = "imagens_restaurante")
     private List<String> imagens = new ArrayList<>();
+    
+    @Column(name = "imagem_principal_restaurante")
+    private String imagemPrincipal; // Armazena o nome do arquivo (ex: uuid.jpg)
 
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL)
     private List<Cardapio> cardapio = new ArrayList<>();
@@ -51,9 +54,6 @@ public class Restaurante {
     
     @Column(name = "total_avaliacao_restaurante")
     private int totalDeAvaliacoes = 0;
-
-    @Column(name = "imagens_id_restaurante")
-    private UUID idImagemRepository;
     
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Avaliacao> avaliacoes = new ArrayList<>();
@@ -111,8 +111,6 @@ public class Restaurante {
     public void setMediaAvaliacao(double mediaAvaliacao) { this.mediaAvaliacao = mediaAvaliacao; }
     public int getTotalDeAvaliacoes() { return totalDeAvaliacoes; }
     public void setTotalDeAvaliacoes(int totalDeAvaliacoes) { this.totalDeAvaliacoes = totalDeAvaliacoes; }
-    public UUID getIdImagemRepository() { return idImagemRepository; }
-    public void setIdImagemRepository(UUID idImagemRepository) { this.idImagemRepository = idImagemRepository; }
     public List<Avaliacao> getAvaliacoes() { return avaliacoes; }
     public void setAvaliacoes(List<Avaliacao> avaliacoes) { /* ... */ }
     public void addAvaliacao(Avaliacao avaliacao) { /* ... */ }
@@ -126,5 +124,7 @@ public class Restaurante {
     public String getEnderecoResumido() { if (this.usuario == null) { return "Endereço não informado";} return this.usuario.getEnderecoResumido();}
     public Integer getLimiteReservasDiarias() {return limiteReservasDiarias;}
     public void setLimiteReservasDiarias(Integer limiteReservasDiarias) {this.limiteReservasDiarias = limiteReservasDiarias;}
+    public String getImagemPrincipal() { return imagemPrincipal; }
+    public void setImagemPrincipal(String imagemPrincipal) { this.imagemPrincipal = imagemPrincipal; }
     
 }
