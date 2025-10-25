@@ -1,8 +1,5 @@
 package TavolaSoftware.TavolaApp.REST.dto.responses;
 
-import java.util.List;
-import java.util.ArrayList; // <<< NOVO IMPORT
-
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Usuario;
 import TavolaSoftware.TavolaApp.tools.Endereco;
@@ -13,7 +10,7 @@ public class ClienteHomeResponse {
     private String nome;
     private String tipoCozinha;
     private double mediaAvaliacao;
-    private List<String> imagem; // O tipo List<String> está correto
+    private String imagemPrincipal; // O tipo List<String> está correto
     private int totalAvaliacao; // Agora este campo será preenchido
     private Endereco endereco;
 
@@ -40,13 +37,7 @@ public class ClienteHomeResponse {
 
         // <<< CORREÇÃO 2: Lógica para a lista de imagens >>>
         // Inicializamos a lista de imagens.
-        this.imagem = new ArrayList<>();
-        // Verificamos se o restaurante possui imagens.
-        if (restaurante.getImagens() != null && !restaurante.getImagens().isEmpty()) {
-            // Adicionamos apenas a primeira imagem da lista (a imagem principal).
-            // Isso satisfaz o tipo List<String> e a necessidade do front-end.
-            this.imagem.add(restaurante.getImagens().get(0));
-        }
+        this.imagemPrincipal = restaurante.getImagemPrincipal();
     }
 
     // Getters e Setters
@@ -75,7 +66,6 @@ public class ClienteHomeResponse {
         this.tipoCozinha = tipoCozinha;
     }
 
-    // <<< CORREÇÃO 3: Renomeando os getters e setters para consistência >>>
     public double getMediaAvaliacao() {
         return mediaAvaliacao;
     }
@@ -85,12 +75,12 @@ public class ClienteHomeResponse {
     }
 
     // <<< CORREÇÃO 4: Getters e setters corretos para a lista de imagens >>>
-    public List<String> getImagem() {
-        return imagem;
+    public String getImagemPrincipal() {
+        return imagemPrincipal;
     }
 
-    public void setImagem(List<String> imagem) {
-        this.imagem = imagem;
+    public void setImagemPrincipal(String string) {
+        this.imagemPrincipal = string;
     }
 
     public int getTotalAvaliacao() {

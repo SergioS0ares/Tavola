@@ -32,11 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Ignorar autenticação nas rotas públicas
         if (
         		path.equals("/auth/reenviar-codigo") ||
+        		path.equals("/auth/esqueci-senha") ||
         	    path.equals("/auth/register") ||
         	    path.equals("/swagger-ui.html") ||
         	    path.equals("/auth/verificar") ||
         	    path.equals("/auth/refresh") ||
         	    path.equals("/auth/login") ||
+        		path.startsWith("/auth/mudar-senha") ||
         	    path.startsWith("/v3/api-docs") ||      
         	    path.startsWith("/swagger-ui") ||      
         	    path.startsWith("/upl")

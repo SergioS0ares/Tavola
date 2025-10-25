@@ -11,7 +11,7 @@ public class LoginResponse {
     
     // <<< NOVOS CAMPOS ADICIONADOS >>>
     private String imagem;
-    private String imagemBackground;
+    private String imagemPrincipal;
 
     public LoginResponse(String token, String nome, String tipoUsuario, UUID id, String email, String imagem, String imagemBackground) {
         this.token = token;
@@ -21,7 +21,7 @@ public class LoginResponse {
         this.email = email;
         // <<< ATRIBUIÇÃO DOS NOVOS CAMPOS >>>
         this.imagem = imagem;
-        this.imagemBackground = imagemBackground;
+        this.imagemPrincipal = imagemBackground;
     }
 
     public String getToken() { return token; }
@@ -32,5 +32,5 @@ public class LoginResponse {
 
     // <<< GETTERS PARA OS NOVOS CAMPOS >>>
     public String getImagem() { return imagem; }
-    public String getImagemBackground() { return imagemBackground; }
+    public String getImagemPrincipal() { return imagemPrincipal; }
 }
