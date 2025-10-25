@@ -66,4 +66,7 @@ public class Mesa {
     public void setReservas(List<Reserva> reservas) { this.reservas = reservas; }
     public MesaStatus getStatus() { return status; }
     public void setStatus(MesaStatus status) { this.status = status;}
+	public String getNumero() {
+		return nome;
+	}
 }

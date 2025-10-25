@@ -15,6 +15,8 @@ import TavolaSoftware.TavolaApp.tools.StatusReserva;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
+	
+	List<Reserva> findByRestauranteIdAndDataReserva(UUID restauranteId, LocalDate data);
 
     /**
      * Busca todas as reservas de um cliente específico com ordenação dinâmica.

@@ -5,22 +5,27 @@ import TavolaSoftware.TavolaApp.REST.model.Ambiente;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.repository.AmbienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.MesaRepository;
+import TavolaSoftware.TavolaApp.REST.repository.ReservaRepository; // <--- 1. IMPORTAR
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.MesaStatus;
+import TavolaSoftware.TavolaApp.REST.dto.responses.MesaComReservasResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.MesaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.WebSocketMessage;
 import TavolaSoftware.TavolaApp.tools.EventLabel;
 import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class MesaService {
@@ -36,6 +41,44 @@ public class MesaService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    
+    @Autowired
+    private ReservaRepository reservaRepository; // <--- 2. INJETAR O REPOSITÓRIO
+
+    @Transactional(readOnly = true)
+    public List<MesaComReservasResponse> findMesasComReservasPorAmbienteEData(UUID idAmbiente, LocalDate data) {
+        // Validação de Segurança: Garante que o ambiente pertence ao restaurante do Garçom logado
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        Claims claims = jwtUtil.parseToken(token);
+        UUID restauranteIdDoGarcom = UUID.fromString(claims.get("restauranteId", String.class));
+
+        Ambiente ambiente = ambienteRepository.findById(idAmbiente)
+                .orElseThrow(() -> new EntityNotFoundException("Ambiente não encontrado: " + idAmbiente));
+
+        if (!ambiente.getRestaurante().getId().equals(restauranteIdDoGarcom)) {
+            throw new SecurityException("Acesso negado. Este ambiente não pertence ao seu restaurante.");
+        }
+
+        // 1. Busca todas as mesas do ambiente
+        List<Mesa> mesasDoAmbiente = mesaRepository.findByAmbienteId(idAmbiente);
+
+        // 2. Busca todas as reservas do restaurante para a data específica
+        //    (Filtramos por restaurante para otimizar e depois associamos às mesas)
+        
+        // --- 3. CORREÇÃO AQUI ---
+        // ANTES: List<ReservaResponse> reservasDoDia = ReservaRepository.findByRestauranteIdAndDataReserva(restauranteIdDoGarcom, data)
+        List<ReservaResponse> reservasDoDia = reservaRepository.findByRestauranteIdAndDataReserva(restauranteIdDoGarcom, data)
+                .stream()
+                .map(ReservaResponse::new) // Converte para DTO
+                .collect(Collectors.toList());
+
+        // 3. Mapeia cada mesa para o DTO de resposta, incluindo suas reservas filtradas
+        return mesasDoAmbiente.stream()
+                .map(mesa -> new MesaComReservasResponse(mesa, reservasDoDia))
+                .collect(Collectors.toList());
+    }
+    
+    // ... (Restante do código do MesaService.java sem alterações) ...
     
     /**
      * Cria uma nova mesa e a associa a um ambiente.
