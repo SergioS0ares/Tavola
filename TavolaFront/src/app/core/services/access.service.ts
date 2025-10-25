@@ -81,19 +81,11 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
   }
 
   /**
-   * Valida o token de redefinição de senha ao carregar a página.
-   * O backend deve verificar o token e o cookie de sessão.
-   */
-  validarTokenRedefinicao(token: string): Observable<{ valid: boolean }> {
-    // A requisição envia o token e, por padrão, o cookie (withCredentials)
-    return this.httpClient.post<{ valid: boolean }>(`${this.apiUrl}/validar-token-redefinicao`, { token }, { withCredentials: true });
-  }
-
-  /**
-   * Envia a nova senha e o token para o backend para concluir a redefinição.
+   * Envia a nova senha para o backend para concluir a redefinição.
+   * O token é passado na URL como path parameter.
    */
   redefinirSenha(token: string, novaSenha: string): Observable<any> {
-    return this.httpClient.post(`${this.apiUrl}/redefinir-senha`, { token, novaSenha }, { withCredentials: true });
+    return this.httpClient.post(`${this.apiUrl}/mudar-senha/${token}`, { novaSenha }, { withCredentials: true });
   }
 
   /**

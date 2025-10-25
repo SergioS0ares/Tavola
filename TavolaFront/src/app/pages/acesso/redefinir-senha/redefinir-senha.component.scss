@@ -182,6 +182,16 @@ mat-error {
     }
 }
 
+// Animação de loading
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 @media (max-width: 600px) {
     .reset-form {
         max-width: 100%;

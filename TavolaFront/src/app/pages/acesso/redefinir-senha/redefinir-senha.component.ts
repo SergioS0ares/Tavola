@@ -13,11 +13,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
-// Validador customizado para verificar se as senhas são iguais
+// Validador customizado para verificar se as senhas são iguais (mesmo do signup)
 export function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const newPassword = control.get('novaSenha')?.value;
-  const confirmPassword = control.get('confirmarSenha')?.value;
-  return newPassword === confirmPassword ? null : { mismatch: true };
+  const password = control.get('novaSenha')?.value;
+  const passwordConfirm = control.get('confirmarSenha');
+  if (password !== passwordConfirm?.value) {
+    passwordConfirm?.setErrors({ passwordMismatch: true });
+  } else {
+    const currentErrors = { ...passwordConfirm?.errors };
+    delete currentErrors['passwordMismatch'];
+    passwordConfirm?.setErrors(Object.keys(currentErrors).length ? currentErrors : null);
+  }
+  return null;
 }
 
 @Component({
@@ -40,9 +47,7 @@ export class RedefinirSenhaComponent implements OnInit {
   resetForm: FormGroup;
   token: string | null = null;
   
-  isLoading = true; // Começa carregando para validar o token
-  isTokenValid = false; // Controla se o formulário deve ser exibido
-  errorMessage: string | null = null;
+  isLoading = false; // Não precisa mais de loading inicial
   hidePassword = true;
   hideConfirmPassword = true;
 
@@ -54,43 +59,35 @@ export class RedefinirSenhaComponent implements OnInit {
 
   constructor() {
     this.resetForm = this.fb.group({
-      novaSenha: ['', [Validators.required, Validators.minLength(6)]],
+      novaSenha: ['', [Validators.required, this.validadorSenhaForte]],
       confirmarSenha: ['', [Validators.required]]
     }, { validators: passwordMatchValidator });
   }
 
   ngOnInit(): void {
-    // 1. Captura o token da URL
-    this.token = this.route.snapshot.paramMap.get('token');
+    // Captura o token dos query parameters
+    this.token = this.route.snapshot.queryParamMap.get('token');
+    
+    console.log('Token capturado da URL:', this.token);
 
     if (!this.token) {
-      this.handleInvalidToken("Token de redefinição não encontrado na URL.");
+      this.toastService.error("Token de redefinição não encontrado na URL.", "Erro");
+      this.router.navigate(['/login']);
       return;
     }
-
-    // 2. Envia o token para validação no backend
-    this.accessService.validarTokenRedefinicao(this.token).subscribe({
-      next: (response) => {
-        if (response.valid) {
-          this.isTokenValid = true;
-          this.isLoading = false;
-        } else {
-          this.handleInvalidToken("Este link para redefinição de senha é inválido ou expirou.");
-        }
-      },
-      error: () => {
-        this.handleInvalidToken("Ocorreu um erro ao validar seu link. Por favor, tente novamente.");
-      }
-    });
   }
 
-  private handleInvalidToken(message: string): void {
-    this.errorMessage = message;
-    this.isTokenValid = false;
-    this.isLoading = false;
-    this.toastService.error(message, "Acesso Negado");
-    // Opcional: redirecionar para o login após alguns segundos
-    setTimeout(() => this.router.navigate(['/login']), 5000);
+  // Validador de senha forte (mesmo do signup)
+  validadorSenhaForte = (control: AbstractControl): ValidationErrors | null => {
+    const valor = control.value;
+    if (!valor) return null;
+    const erros: ValidationErrors = {};
+    if (valor.length < 8) {
+      erros['minCaracteres'] = true;
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
+      erros['semCaractereEspecial'] = true;
+    }
+    return Object.keys(erros).length ? erros : null;
   }
 
   onSubmit(): void {
@@ -99,15 +96,18 @@ export class RedefinirSenhaComponent implements OnInit {
       return;
     }
 
+    this.isLoading = true;
     const novaSenha = this.resetForm.get('novaSenha')?.value;
     
     this.accessService.redefinirSenha(this.token, novaSenha).subscribe({
-      next: () => {
+      next: (response) => {
+        this.isLoading = false;
         this.toastService.success("Sua senha foi redefinida com sucesso!", "Sucesso!");
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        const errorMessage = err.error?.message || "Não foi possível redefinir sua senha. Tente solicitar um novo link.";
+        this.isLoading = false;
+        const errorMessage = err.error?.erro || err.error?.message || "Não foi possível redefinir sua senha. Tente solicitar um novo link.";
         this.toastService.error(errorMessage, "Erro");
       }
     });
