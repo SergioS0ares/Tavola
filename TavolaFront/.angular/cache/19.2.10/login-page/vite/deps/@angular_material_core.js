@@ -16,12 +16,10 @@ import {
   MatOption,
   MatOptionModule,
   MatOptionSelectionChange,
+  MatPseudoCheckboxModule,
   _countGroupLabelsBeforeOption,
   _getOptionScrollPosition
-} from "./chunk-BIUMD2LX.js";
-import {
-  MatPseudoCheckboxModule
-} from "./chunk-WNXZTISI.js";
+} from "./chunk-F2PKOF5N.js";
 import {
   MatPseudoCheckbox
 } from "./chunk-UJ5JDD3P.js";

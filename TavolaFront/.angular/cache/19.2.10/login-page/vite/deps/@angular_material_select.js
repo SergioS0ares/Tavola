@@ -13,8 +13,7 @@ import {
   MatOptionModule,
   _countGroupLabelsBeforeOption,
   _getOptionScrollPosition
-} from "./chunk-BIUMD2LX.js";
-import "./chunk-WNXZTISI.js";
+} from "./chunk-F2PKOF5N.js";
 import {
   CdkConnectedOverlay,
   CdkOverlayOrigin,

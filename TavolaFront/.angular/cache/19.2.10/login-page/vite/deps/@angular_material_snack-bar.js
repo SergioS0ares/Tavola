@@ -1,9 +1,9 @@
-import "./chunk-OIBNGD5S.js";
 import {
   Overlay,
   OverlayConfig,
   OverlayModule
 } from "./chunk-Y7SQT7IH.js";
+import "./chunk-OIBNGD5S.js";
 import {
   BasePortalOutlet,
   CdkPortalOutlet,
