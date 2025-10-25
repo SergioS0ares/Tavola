@@ -65,8 +65,8 @@ export class RedefinirSenhaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Captura o token dos query parameters
-    this.token = this.route.snapshot.queryParamMap.get('token');
+    // Captura o token dos path parameters
+    this.token = this.route.snapshot.paramMap.get('token');
     
     console.log('Token capturado da URL:', this.token);
 
@@ -84,28 +84,40 @@ export class RedefinirSenhaComponent implements OnInit {
     const erros: ValidationErrors = {};
     if (valor.length < 8) {
       erros['minCaracteres'] = true;
-    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
+    }
+    if (valor.length >= 8 && !/[!@#$%^&*(),.?":{}|<>]/.test(valor)) {
       erros['semCaractereEspecial'] = true;
     }
     return Object.keys(erros).length ? erros : null;
   }
 
   onSubmit(): void {
+    console.log('onSubmit chamado');
+    console.log('Formulário válido:', this.resetForm.valid);
+    console.log('Token:', this.token);
+    console.log('Erros do formulário:', this.resetForm.errors);
+    console.log('Erros novaSenha:', this.resetForm.get('novaSenha')?.errors);
+    console.log('Erros confirmarSenha:', this.resetForm.get('confirmarSenha')?.errors);
+
     if (this.resetForm.invalid || !this.token) {
+      console.log('Formulário inválido ou token ausente');
       this.resetForm.markAllAsTouched();
       return;
     }
 
+    console.log('Iniciando requisição de redefinição de senha');
     this.isLoading = true;
     const novaSenha = this.resetForm.get('novaSenha')?.value;
     
     this.accessService.redefinirSenha(this.token, novaSenha).subscribe({
       next: (response) => {
+        console.log('Resposta da redefinição:', response);
         this.isLoading = false;
         this.toastService.success("Sua senha foi redefinida com sucesso!", "Sucesso!");
         this.router.navigate(['/login']);
       },
       error: (err) => {
+        console.error('Erro na redefinição:', err);
         this.isLoading = false;
         const errorMessage = err.error?.erro || err.error?.message || "Não foi possível redefinir sua senha. Tente solicitar um novo link.";
         this.toastService.error(errorMessage, "Erro");
