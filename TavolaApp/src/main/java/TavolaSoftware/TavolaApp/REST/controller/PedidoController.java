@@ -40,13 +40,18 @@ public class PedidoController {
     @PutMapping("/{idPedido}/status")
     public ResponseEntity<?> updatePedidoStatus(@PathVariable UUID idPedido, @RequestBody StatusUpdateRequest request) {
         try {
-            var pedidoAtualizadoOpt = pedidoService.updateStatus(idPedido, request.getNovoStatus());
+            var pedidoAtualizadoOpt = pedidoService.updateStatus(idPedido, request.getNovoStatus()); // Retorna Optional<Pedido>
             
-            // Se o Optional contiver um pedido, significa que ele foi atualizado (retorna 200 OK com o corpo).
-            // Se estiver vazio, significa que foi deletado (retorna 204 No Content).
+            // Se o Optional contiver um pedido, significa que ele foi atualizado.
+            // Se estiver vazio, significa que foi deletado (ENTREGUE/CANCELADO).
+            
+            // --- CORREÇÃO AQUI ---
             return pedidoAtualizadoOpt
-                    .map(pedido -> ResponseEntity.ok(pedido)) // Supondo que você terá um PedidoResponse
-                    .orElseGet(() -> ResponseEntity.noContent().build());
+                    // ANTES: .map(pedido -> ResponseEntity.ok(pedido))
+                    // DEPOIS: Converte a entidade Pedido para o DTO PedidoResponse
+                    .map(pedido -> ResponseEntity.ok(new PedidoResponse(pedido))) // <<< MUDANÇA
+                    .orElseGet(() -> ResponseEntity.noContent().build()); // Mantém 204 se deletado
+            // --- FIM DA CORREÇÃO ---
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -56,71 +61,6 @@ public class PedidoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
         }
     }
-    
-
-    @PutMapping ("/{mesaId}/atender")
-	public ResponseEntity<?> atenderMesa(
-            @PathVariable UUID idRestaurante, // Vem da URL principal
-            @PathVariable UUID mesaId
-    ) {
-		/*
-		 * esse método vai alterar o Status de pedido de null ou de AGUARDANDO_PEDIDO para ATENDENDO apenas isso...
-		 * não vamos colocar nenhum payload. mas podemos fazer um tratamento de exceção para casos como o Status
-		 * não estar nem 'AGUARDANDO_ATENDIMENTO', nem em null.
-		 * */
-         try {
-            PedidoResponse pedidoAtendido = pedidoService.atenderChamadoMesa(mesaId);
-            return ResponseEntity.ok(pedidoAtendido);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
-        } catch (IllegalStateException e) {
-             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage())); // Ex: Mesa já atendida
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao atender mesa: " + e.getMessage()));
-        }
-	}
-
-	@PutMapping ("/{mesaId}/liberar")
-	public ResponseEntity<?> liberarMesa(
-            @PathVariable UUID idRestaurante, // Vem da URL principal
-            @PathVariable UUID mesaId
-    ) {
-		/*
-		 * esse método está aqui para desassociar um garçom do atendimento
-		 * */
-         try {
-            pedidoService.liberarAtendimentoMesa(mesaId);
-            return ResponseEntity.noContent().build(); // 204 OK, sem corpo
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao liberar mesa: " + e.getMessage()));
-        }
-	}
-
-	@GetMapping ("/{mesaId}/ativos")
-	public ResponseEntity<?> getPedidosAtivosDaMesa(
-            @PathVariable UUID idRestaurante, // Vem da URL principal
-            @PathVariable UUID mesaId
-    ) {
-		/*
-		 * puxa pedidos pendentes para a mesa específica
-		 * */
-         try {
-            List<PedidoResponse> pedidos = pedidoService.findPedidosAtivosPorMesa(mesaId);
-            return ResponseEntity.ok(pedidos);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar pedidos ativos: " + e.getMessage()));
-        }
-	}
 
 	@PutMapping ("/{idPedido}/add")
 	public ResponseEntity<?> adicionarRemoverItens(

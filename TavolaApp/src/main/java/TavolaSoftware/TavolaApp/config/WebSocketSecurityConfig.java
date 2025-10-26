@@ -28,7 +28,7 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
     private JwtUtil jwtUtil;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService; //
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
@@ -43,9 +43,15 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
                         if (jwtUtil.isTokenValid(jwt)) {
                             String username = jwtUtil.parseToken(jwt).getSubject();
                             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                            
+                            // --- CORREÇÃO AQUI ---
+                            // Antes: new UsernamePasswordAuthenticationToken(userDetails, null, ...)
+                            // Agora: Guardamos o 'jwt' nas credenciais
                             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
-                            accessor.setUser(authentication);
+                                userDetails, jwt, userDetails.getAuthorities()); // <<< MUDANÇA
+                            // --- FIM DA CORREÇÃO ---
+
+                            accessor.setUser(authentication); //
                         }
                     }
                 }

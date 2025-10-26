@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("[JwtFilter] Recebida requisição para o path: " + path + " Método: " + request.getMethod());
 
         // Ignorar autenticação nas rotas públicas
+        // (Esta lista é usada apenas para LOG, a regra de segurança REAL está no SecurityConfig)
         if (
         		path.equals("/auth/reenviar-codigo") ||
         		path.equals("/auth/esqueci-senha") ||
@@ -39,11 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         	    path.equals("/auth/refresh") ||
         	    path.equals("/auth/login") ||
         		path.startsWith("/auth/mudar-senha") ||
+                path.equals("/auth/login/garcom") || // <<< ADICIONADO login/garcom
         	    path.startsWith("/v3/api-docs") ||      
         	    path.startsWith("/swagger-ui") ||      
         	    path.startsWith("/upl")
         	) {
-        	    System.out.println("[JwtFilter] Path público, ignorando autenticação JWT: " + path); // Log existente e mantido
+        	    System.out.println("[JwtFilter] Path público (ou ignorado pelo filtro), pulando autenticação JWT: " + path);
         	    filterChain.doFilter(request, response);
         	    return;
         	}
@@ -53,9 +55,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             System.out.println("[JwtFilter] Cabeçalho Authorization ausente ou não começa com 'Bearer ' para o path: " + path);
-            // Para endpoints protegidos, se não houver token, a requisição prossegue mas será barrada pelo Spring Security
-            // resultando em 401 (ou 403 se alguma outra autenticação residual existir e não for suficiente).
-            // Não é necessário enviar erro aqui, pois o Spring Security cuidará disso se o endpoint for protegido.
             filterChain.doFilter(request, response);
             return;
         }
@@ -67,11 +66,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = jwtUtil.parseToken(token).getSubject(); //
             System.out.println("[JwtFilter] Token VÁLIDO para o usuário: " + username + " no path: " + path);
 
-            // Se o contexto de segurança já tiver uma autenticação, não sobrescrever (pode acontecer em alguns cenários)
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                
+                // --- CORREÇÃO AQUI ---
+                // Antes: new UsernamePasswordAuthenticationToken(username, null, null)
+                // Agora: Guardamos o 'token' nas credenciais para o PedidoService usar
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        username, null, null // Não precisamos de credenciais (senha) aqui, apenas o principal
+                        username, token, null // <<< MUDANÇA (de null para token)
                 );
+                // --- FIM DA CORREÇÃO ---
+
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication); //
                 System.out.println("[JwtFilter] Contexto de segurança populado para: " + username);
@@ -79,8 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                  System.out.println("[JwtFilter] Contexto de segurança já continha autenticação para: " + SecurityContextHolder.getContext().getAuthentication().getName());
             }
         } else {
-            System.out.println("[JwtFilter] Token INVÁLIDO (segundo jwtUtil.isTokenValid) para o path: " + path); // Log existente e mantido
-            // Limpar qualquer contexto de segurança que possa existir de uma tentativa anterior
+            System.out.println("[JwtFilter] Token INVÁLIDO (segundo jwtUtil.isTokenValid) para o path: " + path); //
             SecurityContextHolder.clearContext(); //
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token JWT inválido ou expirado"); //
             return; // Interrompe a cadeia de filtros

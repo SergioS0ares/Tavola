@@ -7,7 +7,6 @@ public class GarcomResponse {
     private UUID id;
     private String nome;
     private String codigoIdentidade;
-    private boolean ativo;
     private String imagem;
 
     // Construtor
@@ -30,11 +29,7 @@ public class GarcomResponse {
     public String getCodigoIdentidade() {
         return codigoIdentidade;
     }
-
-    public boolean isAtivo() {
-        return ativo;
-    }
-
+    
     public String getImagem() {
         return imagem;
     }

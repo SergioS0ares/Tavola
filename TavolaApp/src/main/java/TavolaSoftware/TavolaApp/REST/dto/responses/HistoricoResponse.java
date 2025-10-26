@@ -40,8 +40,7 @@ public class HistoricoResponse {
                                 restaurante.getEndereco().getBairro() + ", " + restaurante.getEndereco().getCidade() : 
                                 "Endereço não informado";
         
-        this.imagemRestaurante = (restaurante.getImagens() != null && !restaurante.getImagens().isEmpty()) ? 
-                                 restaurante.getImagens().get(0) : null;
+        this.imagemRestaurante = restaurante.getImagemPrincipal();
         
         this.horariosFuncionamento = restaurante.getHorariosFuncionamento();
     }

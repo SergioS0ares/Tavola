@@ -195,21 +195,30 @@ public class PedidoService {
         if (!pedido.getRestaurante().getId().equals(restauranteId)) {
             throw new SecurityException("Acesso negado. O pedido não pertence ao seu restaurante.");
         }
-        // Permite adicionar itens apenas se PENDENTE? Ou também EM_PREPARO? Decisão de negócio.
-        // Vamos permitir apenas se PENDENTE por segurança.
-        if (pedido.getStatus() != PedidoStatus.PENDENTE) {
-             throw new IllegalStateException("Não é possível adicionar/remover itens de um pedido que não está 'PENDENTE'. Status atual: " + pedido.getStatus());
+        
+        // --- INÍCIO DA CORREÇÃO ---
+        // Define os status que BLOQUEIAM a edição
+        Set<PedidoStatus> statusBloqueados = Set.of(
+            PedidoStatus.EM_PREPARO,
+            PedidoStatus.PRONTO,
+            PedidoStatus.ENTREGUE,
+            PedidoStatus.CANCELADO
+        );
+
+        // ANTES: if (pedido.getStatus() != PedidoStatus.PENDENTE) { ... }
+        
+        // DEPOIS: Se o status atual estiver na lista de bloqueados, lança a exceção
+        if (statusBloqueados.contains(pedido.getStatus())) {
+             throw new IllegalStateException("Não é possível adicionar/remover itens de um pedido que está 'EM PREPARO', 'PRONTO', 'ENTREGUE' ou 'CANCELADO'. Status atual: " + pedido.getStatus());
         }
+        // --- FIM DA CORREÇÃO ---
+        
         if (request.getItens() == null) { // Permite remover todos os itens? Sim.
              request.setItens(new ArrayList<>()); // Garante lista vazia se for nulo
         }
 
         // --- LÓGICA DE ATUALIZAÇÃO (REPLACE) ---
         // 1. Remove os itens antigos (graças ao orphanRemoval=true)
-        //    O código comentado abaixo (que usaria o ItemPedidoRepository) não é necessário.
-        //    List<ItemPedido> itensAntigos = new ArrayList<>(pedido.getItens());
-        //    pedido.getItens().clear(); // Remove da coleção gerenciada pelo pedido
-        //    itemPedidoRepository.deleteAll(itensAntigos); // Deleta do banco
         pedido.getItens().clear(); // Simples e correto com orphanRemoval=true
 
         // 2. Adiciona os novos itens (lógica similar ao criarPedido)
@@ -232,19 +241,24 @@ public class PedidoService {
         }).collect(Collectors.toList());
 
         pedido.getItens().addAll(novosItens); // Adiciona os novos itens à coleção
+        
+        // --- ADIÇÃO DE LÓGICA ---
+        // Se estávamos em ATENDIMENTO (um chamado vazio) e adicionamos itens,
+        // o status deve mudar para PENDENTE (para a cozinha).
+        if (pedido.getStatus() == PedidoStatus.ATENDIMENTO || pedido.getStatus() == PedidoStatus.AGUARDANDO_ATENDIMENTO) {
+            pedido.setStatus(PedidoStatus.PENDENTE);
+        }
+        // --- FIM DA ADIÇÃO ---
 
-        // Se a lista ficou vazia após a atualização, cancelamos o pedido? Ou mantemos PENDENTE?
-        // Vamos cancelar se ficar vazio.
+
+        // Se a lista ficou vazia após a atualização, cancelamos o pedido?
         if (pedido.getItens().isEmpty()) {
             pedido.setStatus(PedidoStatus.CANCELADO);
-            // Deleção ou notificação de cancelamento? Seguir lógica do updateStatus: deletar
-             // Notifica ANTES de deletar
+             
             String topicCancel = "/topic/restaurante/" + restauranteId + "/pedidos";
             messagingTemplate.convertAndSend(topicCancel, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_CANCEL, new PedidoResponse(pedido)));
             pedidoRepository.delete(pedido);
-            // Retornar o quê? Talvez lançar uma exceção ou retornar null/Optional.empty()?
-            // Por ora, vamos retornar o DTO antes de deletar (embora não vá existir mais). Melhor seria void.
-            // Ajuste: Vamos retornar o response e deixar o controller retornar 204 se for cancelado.
+            
              PedidoResponse responseAntesDeDeletar = new PedidoResponse(pedido);
              responseAntesDeDeletar.setStatus(PedidoStatus.CANCELADO); // Força o status no DTO
              return responseAntesDeDeletar; // Indica que foi cancelado/deletado
@@ -254,7 +268,7 @@ public class PedidoService {
 
              // 4. Notifica via WebSocket
              String topicUpdate = "/topic/restaurante/" + restauranteId + "/pedidos";
-             messagingTemplate.convertAndSend(topicUpdate, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, new PedidoResponse(pedidoAtualizado))); // Ou um label PEDIDO_UPDATE_ITEMS
+             messagingTemplate.convertAndSend(topicUpdate, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, new PedidoResponse(pedidoAtualizado)));
 
              return new PedidoResponse(pedidoAtualizado);
         }
@@ -336,8 +350,7 @@ public class PedidoService {
         novoPedido.setGarcom(garcom);
         novoPedido.setRestaurante(mesa.getAmbiente().getRestaurante());
         novoPedido.setDataHora(LocalDateTime.now());
-        novoPedido.setStatus(PedidoStatus.PENDENTE); // Ou o status que a cozinha deve receber
-
+        novoPedido.setStatus(PedidoStatus.EM_PREPARO);
         // 5. Vincula o cliente, se um ID foi fornecido
         if (request.getClienteId() != null) {
             Cliente cliente = clienteRepository.findById(request.getClienteId())

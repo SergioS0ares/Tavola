@@ -30,40 +30,50 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // <<< BEAN DE CONFIGURAÇÃO DE CORS UNIFICADO >>>
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Defina as origens permitidas explicitamente
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://64.181.187.11"));
-        // Defina os métodos permitidos
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Permita todos os cabeçalhos
-        configuration.setAllowedHeaders(List.of("*"));
-        // <<< ESTA É A LINHA MAIS IMPORTANTE PARA COOKIES >>>
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://64.181.187.11")); //
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); //
+        configuration.setAllowedHeaders(List.of("*")); //
+        configuration.setAllowCredentials(true); //
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Aplica para todos os endpoints
+        source.registerCorsConfiguration("/**", configuration); //
         return source;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Aplica a configuração de CORS definida no bean acima
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            
+            // --- CORREÇÃO DE SEGURANÇA AQUI ---
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/auth/**", // Simplificado para permitir todos os endpoints de autenticação
+                    // Rotas públicas (baseadas no seu JwtFilter e SecurityConfig)
+                    "/auth/register",
+                    "/auth/login",
+                    "/auth/login/garcom",
+                    "/auth/verificar",
+                    "/auth/refresh",
+                    "/auth/reenviar-codigo",
+                    "/auth/esqueci-senha",
+                    "/auth/mudar-senha/**", // A rota de reset com token
+                    
+                    // Rotas do Swagger e Arquivos
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/upl/**"
                 ).permitAll()
+                // ANTES: /auth/** era todo permitAll
+                // AGORA: Qualquer outra requisição DEVE ser autenticada
                 .anyRequest().authenticated()
             )
+            // --- FIM DA CORREÇÃO ---
+
             .sessionManagement(sess ->
                 sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )

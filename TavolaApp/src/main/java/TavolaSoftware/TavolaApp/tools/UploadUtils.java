@@ -64,54 +64,71 @@ public class UploadUtils {
 
     /**
      * Processa uma lista de imagens (Base64 ou nomes de arquivo existentes) para a galeria do restaurante.
-     * Retorna uma lista contendo APENAS os nomes dos arquivos salvos ou mantidos.
+     * Retorna uma lista contendo as URLs RELATIVAS COMPLETAS.
      */
     public List<String> processRestauranteGaleria(List<String> imagensInput) throws IOException {
-        List<String> nomesArquivosProcessados = new ArrayList<>();
+        List<String> urlsProcessadas = new ArrayList<>();
 
         for (String imagem : imagensInput) {
             if (isBase64Image(imagem)) {
-                // Salva a nova imagem na pasta de restaurantes e adiciona o nome à lista
+                // Salva a nova imagem
                 String nomeArquivo = processBase64(imagem, RESTAURANTES_DIR);
-                nomesArquivosProcessados.add(nomeArquivo);
+                // ATUALIZAÇÃO: Adiciona a URL completa
+                urlsProcessadas.add(construirUrlRelativa("restaurantes", nomeArquivo));
+                
             } else if (imagem != null && !imagem.isBlank() && !imagem.startsWith("data:")) {
-                // Se não for Base64, assume que é um nome de arquivo existente e mantém na lista
-                nomesArquivosProcessados.add(findNameByURL(imagem)); // Garante que só o nome seja adicionado
+                // Se não for Base64, assume que é um nome/URL e reconstrói a URL
+                String nomeArquivo = findNameByURL(imagem); // Garante que só o nome seja usado
+                // ATUALIZAÇÃO: Reconstrói a URL completa
+                urlsProcessadas.add(construirUrlRelativa("restaurantes", nomeArquivo));
             }
             // Ignora strings vazias ou nulas
         }
-        return nomesArquivosProcessados; // Retorna a lista de nomes de arquivo
+        return urlsProcessadas; // Retorna a lista de URLs
     }
 
     /**
      * Processa uma imagem Base64 para perfil ou background de usuário.
-     * Retorna APENAS o nome do arquivo salvo.
+     * Retorna a URL RELATIVA COMPLETA (ex: upl/usuarios/uuid.jpg).
      */
     public String processUsuarioImagem(String imagemBase64) throws IOException {
         if (!isBase64Image(imagemBase64)) {
             throw new IOException("A string fornecida não é uma imagem Base64 válida.");
         }
         // Salva na pasta de usuários
-        return processBase64(imagemBase64, USUARIOS_DIR); // Retorna SÓ o nome do arquivo
+        String nomeArquivo = processBase64(imagemBase64, USUARIOS_DIR);
+        // ATUALIZAÇÃO: Retorna a URL completa
+        return construirUrlRelativa("usuarios", nomeArquivo);
     }
 
     /**
      * Processa uma imagem Base64 para item de cardápio.
-     * Retorna APENAS o nome do arquivo salvo.
+     * Retorna a URL RELATIVA COMPLETA (ex: upl/cardapios/uuid.jpg).
      */
     public String processCardapioImagem(String imagemBase64) throws IOException {
         if (!isBase64Image(imagemBase64)) {
             throw new IOException("A string fornecida não é uma imagem Base64 válida.");
         }
         // Salva na pasta de cardápios
-        return processBase64(imagemBase64, CARDAPIOS_DIR); // Retorna SÓ o nome do arquivo
+        String nomeArquivo = processBase64(imagemBase64, CARDAPIOS_DIR);
+        // ATUALIZAÇÃO: Retorna a URL completa
+        return construirUrlRelativa("cardapios", nomeArquivo);
     }
     
+    /**
+     * Processa uma imagem (Base64 ou URL antiga) para a imagem principal do restaurante.
+     * Retorna a URL RELATIVA COMPLETA (ex: upl/restaurantes/uuid.jpg).
+     */
     public String processRestauranteImagemPrincipal(String imagemInput) throws IOException {
         if (isBase64Image(imagemInput)) {
-            return processBase64(imagemInput, RESTAURANTES_DIR); // Retorna SÓ o nome do arquivo
+            String nomeArquivo = processBase64(imagemInput, RESTAURANTES_DIR);
+            // ATUALIZAÇÃO: Retorna a URL completa
+            return construirUrlRelativa("restaurantes", nomeArquivo);
+            
         } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
-            return findNameByURL(imagemInput); // Garante que só o nome seja retornado
+            // ATUALIZAÇÃO: Reconstrói a URL completa a partir do nome
+            String nomeArquivo = findNameByURL(imagemInput); 
+            return construirUrlRelativa("restaurantes", nomeArquivo);
         }
         
         if (imagemInput == null || imagemInput.isBlank()) {
@@ -121,13 +138,22 @@ public class UploadUtils {
         throw new IOException("A string fornecida parece ser Base64 mas é inválida.");
     }
     
+    /**
+     * Processa uma imagem (Base64 ou URL antiga) para o perfil do garçom.
+     * Retorna a URL RELATIVA COMPLETA (ex: upl/garcons/uuid.jpg).
+     */
     public String processGarcomImagem(String imagemInput) throws IOException {
         if (isBase64Image(imagemInput)) {
             // Se for uma nova imagem Base64, processa e salva
-            return processBase64(imagemInput, GARCONS_DIR); // Salva na pasta de garçons
+            String nomeArquivo = processBase64(imagemInput, GARCONS_DIR);
+            // ATUALIZAÇÃO: Retorna a URL completa
+            return construirUrlRelativa("garcons", nomeArquivo);
+            
         } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
-            // Se não for Base64, assume que é um nome de arquivo existente (URL antiga) e o mantém
-            return findNameByURL(imagemInput); // Garante que só o nome seja retornado
+            // Se não for Base64, assume que é um nome/URL e reconstrói
+            String nomeArquivo = findNameByURL(imagemInput);
+            // ATUALIZAÇÃO: Retorna a URL completa
+            return construirUrlRelativa("garcons", nomeArquivo);
         }
         
         // Se for nula ou vazia
@@ -141,43 +167,58 @@ public class UploadUtils {
 
     /**
      * Reconstrói a URL relativa completa a partir do tipo e nome do arquivo.
-     * Ex: /upl/usuarios/uuid-arquivo.jpg
+     * ATUALIZADO: Retorna upl/usuarios/uuid-arquivo.jpg (sem barra inicial)
      */
     public String construirUrlRelativa(String tipo, String nomeArquivo) {
         if (nomeArquivo == null || nomeArquivo.isBlank()) {
             return null;
         }
-        if (nomeArquivo.startsWith("/upl/")) {
+        // Se já for a URL relativa correta (sem a barra inicial), retorna ela mesma
+        if (nomeArquivo.startsWith(BASE_DIR + "/")) {
             return nomeArquivo;
+        }
+        // Se for a URL com a barra inicial (formato antigo), remove a barra
+        if (nomeArquivo.startsWith("/" + BASE_DIR + "/")) {
+             return nomeArquivo.substring(1);
         }
         
         String tipoUrl = tipo.toLowerCase();
         
-        // --- ADIÇÃO AO MÉTODO ---
         // Garante "garcom" -> "garcons"
         if (tipoUrl.equals("garcom")) { 
             tipoUrl = "garcons";
         } 
-        // --- FIM DA ADIÇÃO ---
         
         else if (!tipoUrl.endsWith("s")) {
             tipoUrl += "s"; // ex: usuario -> usuarios
         }
         
-        return "/" + BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
+        // ATUALIZAÇÃO: Removida a barra inicial "/"
+        return BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
     }
 
     /**
-     * Deleta um arquivo específico pela sua URL relativa (ex: /upl/usuarios/uuid.jpg).
+     * Deleta um arquivo específico pela sua URL relativa (ex: upl/usuarios/uuid.jpg).
      */
     public void deletarArquivoPeloCaminho(String caminhoRelativo) {
-        if (caminhoRelativo == null || caminhoRelativo.isBlank() || !caminhoRelativo.startsWith("/" + BASE_DIR + "/")) {
+        if (caminhoRelativo == null || caminhoRelativo.isBlank()) {
+            return;
+        }
+        
+        // Adiciona a barra inicial se estiver faltando, para compatibilidade com o split
+        String caminhoParaSplit = caminhoRelativo;
+        if (!caminhoRelativo.startsWith("/")) {
+             caminhoParaSplit = "/" + caminhoRelativo;
+        }
+
+        if (!caminhoParaSplit.startsWith("/" + BASE_DIR + "/")) {
             return; // Ignora caminhos inválidos
         }
+        
         try {
             // Extrai o tipo e o nome do arquivo da URL
             // Ex: /upl/usuarios/uuid.jpg -> ["", "upl", "usuarios", "uuid.jpg"]
-            String[] parts = caminhoRelativo.split("/");
+            String[] parts = caminhoParaSplit.split("/");
             if (parts.length < 4) return; // Formato inválido
 
             String tipo = parts[2]; // "usuarios", "restaurantes", "cardapios"
