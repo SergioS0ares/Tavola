@@ -25,7 +25,9 @@ export class AuthInterceptor implements HttpInterceptor {
     '/auth/register',
     '/auth/verificar',
     '/auth/reenviar-codigo',
-    '/auth/refresh' // Adicionar refresh aqui também é uma boa prática
+    '/auth/refresh',
+    '/auth/redefinir-senha',
+    'auth/mudar-senha/'
   ];
 
   constructor(
