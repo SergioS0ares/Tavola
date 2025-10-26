@@ -7,6 +7,8 @@ export interface IFavorito {
   id: string;
   nome: string;
   imagem: string[];
+  imagens?: string[];
+  imagemPrincipal?: string;
   endereco: {
     cep: string;
     estado: string;

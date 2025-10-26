@@ -51,10 +51,10 @@
         </div>
         
         <!-- Card estilo home com nz-image -->
-        <div class="home-style-card" *ngIf="imagemPrincipal">
+        <div class="home-style-card" *ngIf="imagemPrincipalPreview">
           <nz-image-group>
             <div class="restaurant-card">
-              <img nz-image [nzSrc]="imagemPrincipal.url" alt="Imagem principal do restaurante" class="restaurant-image">
+              <img nz-image [nzSrc]="imagemPrincipalPreview.url" alt="Imagem principal do restaurante" class="restaurant-image">
               <div class="image-overlay">
                 <div class="photo-tag">Principal</div>
                 <button mat-icon-button class="remove-img-btn" (click)="removerImagemPrincipal(); $event.stopPropagation()" type="button">

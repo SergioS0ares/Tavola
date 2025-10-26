@@ -77,6 +77,7 @@ export class MeuRestauranteComponent implements OnInit {
   ]
 
   imagensBase64: string[] = []
+  imagemPrincipal: string | null = null
   previews: { url: string; tipo: "principal" | "galeria" }[] = []
 
   private auth = inject(AuthService)
@@ -119,9 +120,18 @@ export class MeuRestauranteComponent implements OnInit {
         horariosArray.clear()
         data.horariosFuncionamento?.forEach((h) => horariosArray.push(this.criarGrupoHorario(h)))
 
-        this.imagensBase64 = (data.imagens || []).map((img) =>
-          img.startsWith("data:") ? img : this.getCorretedImageUrl(img),
-        )
+        // Separar imagem principal das demais imagens
+        if (data.imagens && data.imagens.length > 0) {
+          this.imagemPrincipal = data.imagens[0].startsWith("data:") 
+            ? data.imagens[0] 
+            : this.getCorretedImageUrl(data.imagens[0])
+          this.imagensBase64 = data.imagens.slice(1).map((img) =>
+            img.startsWith("data:") ? img : this.getCorretedImageUrl(img),
+          )
+        } else {
+          this.imagemPrincipal = null
+          this.imagensBase64 = []
+        }
         this.atualizarPreviews()
 
         this.isLoading = false
@@ -164,11 +174,7 @@ export class MeuRestauranteComponent implements OnInit {
           const finalString = "data:image/jpeg;base64," + base64String.split(",")[1]
 
           if (tipo === "principal") {
-            // Remove o primeiro item (que é a imagem principal atual), se houver
-            if (this.imagensBase64.length > 0) {
-              this.imagensBase64.shift()
-            }
-            this.imagensBase64.unshift(finalString) // Adiciona a nova imagem principal no início
+            this.imagemPrincipal = finalString
           } else {
             this.imagensBase64.push(finalString)
           }
@@ -184,26 +190,30 @@ export class MeuRestauranteComponent implements OnInit {
     this.atualizarPreviews()
   }
 
-  get imagemPrincipal(): { url: string; tipo: "principal" | "galeria" } | null {
-    const principal = this.previews.find((p) => p.tipo === "principal")
-    return principal || null
+  get imagemPrincipalPreview(): { url: string; tipo: "principal" | "galeria" } | null {
+    if (this.imagemPrincipal) {
+      return {
+        url: this.imagemPrincipal.startsWith("data:") ? this.imagemPrincipal : this.getCorretedImageUrl(this.imagemPrincipal),
+        tipo: "principal"
+      }
+    }
+    return null
   }
 
   // Método para remover imagem principal
   removerImagemPrincipal(): void {
-    // A imagem principal é sempre a primeira no array
-    if (this.imagensBase64.length > 0) {
-      this.imagensBase64.splice(0, 1)
-      this.atualizarPreviews()
-      this.toastr.success('Imagem principal removida com sucesso!')
-    }
+    this.imagemPrincipal = null
+    this.atualizarPreviews()
+    this.toastr.success('Imagem principal removida com sucesso!')
   }
 
   private atualizarPreviews(): void {
-    this.previews = this.imagensBase64.map((imgBase64OrUrl, index) => ({
+    const galeriaPreviews = this.imagensBase64.map((imgBase64OrUrl) => ({
       url: imgBase64OrUrl.startsWith("data:") ? imgBase64OrUrl : this.getCorretedImageUrl(imgBase64OrUrl),
-      tipo: index === 0 ? "principal" : "galeria", // Primeira imagem é sempre principal
+      tipo: "galeria" as const,
     }))
+    
+    this.previews = galeriaPreviews
     this.cdr.detectChanges()
   }
 
@@ -234,6 +244,7 @@ export class MeuRestauranteComponent implements OnInit {
       descricao: formValue.descricao,
       horariosFuncionamento: formValue.horariosFuncionamento,
       nomesServicos: servicosNomes,
+      imagemPrincipal: this.imagemPrincipal,
       imagens: this.imagensBase64,
     }
 

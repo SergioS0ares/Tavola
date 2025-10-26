@@ -363,6 +363,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getImagemRestaurante(r: IRestaurante): string {
+    if (r.imagemPrincipal) {
+      return r.imagemPrincipal.startsWith('/') ? `${environment.apiUrl}` + r.imagemPrincipal : r.imagemPrincipal;
+    }
     if (r.imagens && r.imagens.length > 0 && r.imagens[0]) {
       return r.imagens[0].startsWith('/') ? `${environment.apiUrl}` + r.imagens[0] : r.imagens[0];
     }

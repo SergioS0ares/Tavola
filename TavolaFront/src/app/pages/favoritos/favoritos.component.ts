@@ -51,15 +51,25 @@ export class FavoritosComponent implements OnInit {
       })
   }
 
-  public getImagemUrl(imagens: string[] | null): string {
-    // Se o array de imagens existir e não estiver vazio
-    if (imagens && imagens.length > 0) {
-      const path = imagens[0]; // Pega o primeiro caminho da imagem do array
+  public getImagemUrl(favorito: IFavorito): string {
+    // Prioriza imagemPrincipal se existir
+    if (favorito.imagemPrincipal) {
+      const path = favorito.imagemPrincipal;
       if (path && path.startsWith("assets/")) {
         return path;
       }
       return this.authService.getAbsoluteImageUrl(path);
     }
+    
+    // Fallback para primeira imagem do array se imagemPrincipal não existir
+    if (favorito.imagens && favorito.imagens.length > 0) {
+      const path = favorito.imagens[0];
+      if (path && path.startsWith("assets/")) {
+        return path;
+      }
+      return this.authService.getAbsoluteImageUrl(path);
+    }
+    
     // Se não houver imagem, retorna uma imagem padrão
     return 'assets/png/avatar-padrao-restaurante-tavola.png';
   }

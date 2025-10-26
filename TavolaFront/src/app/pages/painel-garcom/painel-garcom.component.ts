@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -19,76 +19,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CalendarioReservasComponent } from '../reservas/calendario-reservas/calendario-reservas.component';
 import { AuthService } from '../../core/services/auth.service';
-import { Subject, interval, Subscription } from 'rxjs';
-import { takeUntil, switchMap, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Subject, interval, Subscription, Observable } from 'rxjs';
+import { takeUntil, take, finalize } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
-// Interfaces
-interface GarcomInfo {
-  id: string;
-  nome: string;
-  foto?: string;
-  turno: string;
-  inicioTurno: Date;
-}
-
-interface Mesa {
-  id: string;
-  nome: string;
-  capacidade: number;
-  tipo: 'retangular' | 'circular';
-  vip: boolean;
-  status: 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO';
-  tempoOcupacao?: string;
-  reserva?: {
-    id: string;
-    cliente: string;
-    horario: string;
-    telefone?: string;
-  };
-  garcomsAtendendo?: string[];
-}
-
-interface Ambiente {
-  id: string;
-  nome: string;
-  mesas: Mesa[];
-}
-
-interface Pedido {
-  id: string;
-  mesaId: string;
-  mesaNome: string;
-  status: 'ATIVO' | 'PREPARANDO' | 'PRONTO' | 'ENTREGUE';
-  itens: PedidoItem[];
-  total: number;
-  dataCriacao: Date;
-  garcomId: string;
-}
-
-interface PedidoItem {
-  id: string;
-  nome: string;
-  quantidade: number;
-  preco: number;
-  observacoes?: string;
-  status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO' | 'ENTREGUE';
-}
-
-interface CardapioCategoria {
-  id: string;
-  nome: string;
-  itens: CardapioItem[];
-}
-
-interface CardapioItem {
-  id: string;
-  nome: string;
-  descricao: string;
-  preco: number;
-  categoria: string;
-  disponivel: boolean;
-}
+// Importar o serviço e interfaces
+import { PainelGarcomService, GarcomInfo, Mesa, Ambiente, Pedido, IReserva } from '../../core/services/painel-garcom.service';
+import { DialogMesaAcoesComponent } from './dialog-mesa-acoes/dialog-mesa-acoes.component';
+import { DialogCardapioGarcomComponent } from './dialog-cardapio-garcom/dialog-cardapio-garcom.component';
 
 @Component({
   selector: 'app-painel-garcom',
@@ -135,11 +73,13 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     cardapio: false
   };
 
+  // Observables para a UI (ligados ao serviço)
+  public ambientes$!: Observable<Ambiente[]>;
+  public pedidosAtivos$!: Observable<Pedido[]>;
+  
   // Dados das mesas e ambientes
-  ambientes: Ambiente[] = [];
   ambienteAtivo: Ambiente | null = null;
   mesasAtendidas = 0;
-  tempoTrabalho = '0h 0m';
 
   // Visualização
   visualizacaoAtiva: 'mapa' | 'pedidos' = 'mapa';
@@ -152,22 +92,30 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   // Mesa selecionada
   mesaSelecionada: Mesa | null = null;
 
-  // Pedidos
-  pedidosAtivos: Pedido[] = [];
-
   // Cardápio
   mostrarCardapio = false;
-  cardapioCategorias: CardapioCategoria[] = [];
 
   // Navegação de data
   dataAtual = new Date();
-  mostrarCalendario = false;
-
+  
+  // Calendário
+  reservasParaCalendario: IReserva[] = [];
+  isLoadingCalendario = false;
+  
+  // Filtro de mesas por status
+  statusFiltroAtivo: string | null = null; // null = todos, ou 'LIVRE', 'OCUPADA', etc.
+  
   // Controle de tempo
-  private tempoInterval?: Subscription;
+  private timerSubscription?: Subscription;
   private destroy$ = new Subject<void>();
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    private dialog: MatDialog,
+    private painelGarcomService: PainelGarcomService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.checkMobile();
@@ -179,8 +127,8 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.tempoInterval) {
-      this.tempoInterval.unsubscribe();
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
     }
   }
 
@@ -194,9 +142,20 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   }
 
   private carregarDadosIniciais(): void {
-    this.carregarAmbientes();
-    this.carregarPedidosAtivos();
-    this.carregarCardapio();
+    // Em vez de carregar mocks, subscrevemos aos observables do serviço
+    this.ambientes$ = this.painelGarcomService.ambientes$;
+    this.pedidosAtivos$ = this.painelGarcomService.pedidosAtivos$;
+    
+    // Subscrever aos ambientes para definir o ambiente ativo
+    this.ambientes$.pipe(takeUntil(this.destroy$)).subscribe(ambientes => {
+      if (ambientes.length > 0 && !this.ambienteAtivo) {
+        this.ambienteAtivo = ambientes[0];
+        this.verificarVisibilidadeSetas();
+      }
+    });
+    
+    // Carrega os dados iniciais do "backend"
+    this.painelGarcomService.carregarDadosIniciaisMock();
   }
 
   private carregarDadosGarcom(): void {
@@ -212,161 +171,46 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     }
   }
 
-  private carregarAmbientes(): void {
-    this.isLoading.ambientes = true;
-    
-    // Simulação de dados - substituir por chamada real da API
-    setTimeout(() => {
-      this.ambientes = [
-        {
-          id: '1',
-          nome: 'Salão Principal',
-          mesas: this.gerarMesas('Salão', 12)
-        },
-        {
-          id: '2',
-          nome: 'Varanda',
-          mesas: this.gerarMesas('Varanda', 8)
-        },
-        {
-          id: '3',
-          nome: 'Área VIP',
-          mesas: this.gerarMesas('VIP', 4)
-        }
-      ];
-      
-      if (this.ambientes.length > 0) {
-        this.ambienteAtivo = this.ambientes[0];
-      }
-      
-      this.isLoading.ambientes = false;
-      this.verificarVisibilidadeSetas();
-    }, 1000);
-  }
-
-  private gerarMesas(prefixo: string, quantidade: number): Mesa[] {
-    const mesas: Mesa[] = [];
-    const statuses: Mesa['status'][] = ['LIVRE', 'OCUPADA', 'RESERVADA', 'EM_ATENDIMENTO'];
-    
-    for (let i = 1; i <= quantidade; i++) {
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const mesa: Mesa = {
-        id: `${prefixo.toLowerCase()}-${i}`,
-        nome: `${prefixo} ${i}`,
-        capacidade: Math.floor(Math.random() * 6) + 2,
-        tipo: Math.random() > 0.7 ? 'circular' : 'retangular',
-        vip: prefixo === 'VIP' || Math.random() > 0.8,
-        status,
-        tempoOcupacao: status === 'OCUPADA' || status === 'EM_ATENDIMENTO' ? 
-          `${Math.floor(Math.random() * 2)}h ${Math.floor(Math.random() * 60)}m` : undefined,
-        garcomsAtendendo: status === 'EM_ATENDIMENTO' ? [this.garcomInfo.id] : []
-      };
-
-      if (status === 'RESERVADA') {
-        mesa.reserva = {
-          id: `reserva-${i}`,
-          cliente: `Cliente ${i}`,
-          horario: `${18 + Math.floor(Math.random() * 4)}:${Math.floor(Math.random() * 2) * 30}`,
-          telefone: `(11) 9999-${String(i).padStart(4, '0')}`
-        };
-      }
-
-      mesas.push(mesa);
-    }
-
-    return mesas;
-  }
-
-  private carregarPedidosAtivos(): void {
-    this.isLoading.pedidos = true;
-    
-    // Simulação de dados - substituir por chamada real da API
-    setTimeout(() => {
-      this.pedidosAtivos = [
-        {
-          id: '1',
-          mesaId: 'salao-1',
-          mesaNome: 'Salão 1',
-          status: 'ATIVO',
-          itens: [
-            { id: '1', nome: 'Pizza Margherita', quantidade: 1, preco: 45.90, status: 'PENDENTE' },
-            { id: '2', nome: 'Coca-Cola 350ml', quantidade: 2, preco: 8.50, status: 'PENDENTE' }
-          ],
-          total: 62.90,
-          dataCriacao: new Date(),
-          garcomId: this.garcomInfo.id
-        }
-      ];
-      
-      this.isLoading.pedidos = false;
-    }, 500);
-  }
-
-  private carregarCardapio(): void {
-    this.isLoading.cardapio = true;
-    
-    // Simulação de dados - substituir por chamada real da API
-    setTimeout(() => {
-      this.cardapioCategorias = [
-        {
-          id: '1',
-          nome: 'Pizzas',
-          itens: [
-            { id: '1', nome: 'Pizza Margherita', descricao: 'Molho de tomate, mussarela e manjericão', preco: 45.90, categoria: 'Pizzas', disponivel: true },
-            { id: '2', nome: 'Pizza Calabresa', descricao: 'Molho de tomate, mussarela e calabresa', preco: 52.90, categoria: 'Pizzas', disponivel: true }
-          ]
-        },
-        {
-          id: '2',
-          nome: 'Bebidas',
-          itens: [
-            { id: '3', nome: 'Coca-Cola 350ml', descricao: 'Refrigerante gelado', preco: 8.50, categoria: 'Bebidas', disponivel: true },
-            { id: '4', nome: 'Suco de Laranja', descricao: 'Suco natural de laranja', preco: 12.90, categoria: 'Bebidas', disponivel: true }
-          ]
-        }
-      ];
-      
-      this.isLoading.cardapio = false;
-    }, 300);
-  }
-
   private iniciarAtualizacaoTempo(): void {
-    this.tempoInterval = interval(60000) // Atualiza a cada minuto
+    this.timerSubscription = interval(300000) // Atualiza a cada 5 minutos
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        this.atualizarTempoTrabalho();
+        
         this.atualizarTempoOcupacaoMesas();
       });
   }
 
-  private atualizarTempoTrabalho(): void {
-    const agora = new Date();
-    const diferenca = agora.getTime() - this.garcomInfo.inicioTurno.getTime();
-    const horas = Math.floor(diferenca / (1000 * 60 * 60));
-    const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
-    this.tempoTrabalho = `${horas}h ${minutos}m`;
-  }
+  
 
   private atualizarTempoOcupacaoMesas(): void {
-    this.ambientes.forEach(ambiente => {
-      ambiente.mesas.forEach(mesa => {
-        if (mesa.status === 'OCUPADA' || mesa.status === 'EM_ATENDIMENTO') {
-          // Simulação de atualização de tempo
-          const tempoAtual = mesa.tempoOcupacao || '0h 0m';
-          const [h, m] = tempoAtual.split('h ')[0].split('h');
-          const horas = parseInt(h) || 0;
-          const minutos = parseInt(m.replace('m', '')) || 0;
-          const novoMinuto = minutos + 1;
-          
-          if (novoMinuto >= 60) {
-            mesa.tempoOcupacao = `${horas + 1}h 0m`;
-          } else {
-            mesa.tempoOcupacao = `${horas}h ${novoMinuto}m`;
-          }
+    // Atualiza o display de tempo das mesas
+    const ambientesAtuais = this.painelGarcomService.getAmbientesAtuais();
+    let precisaAtualizar = false;
+
+    const novosAmbientes = ambientesAtuais.map(ambiente => ({
+      ...ambiente,
+      mesas: ambiente.mesas.map(mesa => {
+        let tempoFormatado = mesa.tempoOcupacaoDisplay; // Mantém o valor anterior por padrão
+        if (mesa.inicioOcupacao && (mesa.status === 'OCUPADA' || mesa.status === 'EM_ATENDIMENTO')) {
+          tempoFormatado = this.formatarTempoOcupacaoMinutos(mesa.inicioOcupacao); // Usa a nova função de minutos
+        } else {
+          tempoFormatado = undefined; // Limpa se não estiver ocupada/atendida
         }
-      });
-    });
+
+        if (mesa.tempoOcupacaoDisplay !== tempoFormatado) {
+          precisaAtualizar = true;
+          return { ...mesa, tempoOcupacaoDisplay: tempoFormatado };
+        }
+        return mesa; // Retorna a mesa sem modificação se o tempo não mudou
+      })
+    }));
+
+    // Atualiza o BehaviorSubject SÓ SE houver mudanças nos displays de tempo
+    if (precisaAtualizar) {
+      this.painelGarcomService.atualizarAmbientes(novosAmbientes);
+    }
   }
+  
 
   // Navegação de ambientes
   selecionarAmbiente(ambiente: Ambiente): void {
@@ -399,11 +243,73 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   // Gestão de mesas
   selecionarMesa(mesa: Mesa): void {
-    this.mesaSelecionada = mesa;
+    console.log('Abrindo dialog para:', mesa);
+    const todosGarcons = this.painelGarcomService.getGarconsDisponiveis();
+    
+    // Abre o novo Dialog
+    const dialogRef = this.dialog.open(DialogMesaAcoesComponent, {
+      width: '500px',
+      data: { 
+        mesa: mesa,
+        garcom: this.garcomInfo, // Passa o garçom atual
+        garconsDisponiveis: todosGarcons // Lista de garçons disponíveis
+      },
+      panelClass: 'tavola-dialog-wrapper' // Classe para styling global
+    });
+
+    // Ouve o resultado do dialog
+    dialogRef.afterClosed().subscribe(resultado => {
+      if (!resultado || !resultado.acao) return; // Fechou sem ação
+      
+      const mesaId = mesa.id;
+      const garcomId = this.garcomInfo.id;
+
+      switch (resultado.acao) {
+        case 'ocupar_mesa':
+          this.painelGarcomService.ocuparMesa(mesaId);
+          break;
+        case 'iniciar_atendimento':
+          this.painelGarcomService.iniciarAtendimento(mesaId, garcomId);
+          this.mesasAtendidas++;
+          break;
+        case 'liberar_mesa':
+          this.painelGarcomService.liberarMesa(mesaId);
+          this.mesasAtendidas = Math.max(0, this.mesasAtendidas - 1);
+          break;
+        case 'ver_cardapio':
+          this.abrirDialogCardapio(mesaId);
+          break;
+        case 'fazer_pedido':
+          this.abrirDialogCardapio(mesaId);
+          break;
+        case 'adicionar_garcom_especifico':
+          this.painelGarcomService.adicionarGarcomAMesa(mesaId, resultado.garcomId);
+          break;
+        case 'remover_garcom':
+          this.painelGarcomService.removerGarcomDaMesa(mesaId, resultado.garcomId);
+          break;
+      }
+    });
   }
 
   fecharDetalhesMesa(): void {
     this.mesaSelecionada = null;
+  }
+
+
+  // NOVA FUNÇÃO HELPER: Formata apenas em minutos
+  private formatarTempoOcupacaoMinutos(inicio?: Date): string {
+    if (!inicio) return '';
+    const agora = Date.now();
+    const diffMs = agora - new Date(inicio).getTime();
+    const diffMin = Math.floor(diffMs / 60000); // Apenas minutos totais
+
+    if (diffMin < 1) return '< 1m';
+    if (diffMin < 60) return `${diffMin}m`;
+
+    const horas = Math.floor(diffMin / 60);
+    const minutos = diffMin % 60;
+    return `${horas}h ${minutos}m`;
   }
 
   getTooltipMesa(mesa: Mesa): string {
@@ -417,8 +323,8 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
       tooltip += `\nReserva: ${mesa.reserva.cliente} às ${mesa.reserva.horario}`;
     }
     
-    if (mesa.tempoOcupacao) {
-      tooltip += `\nOcupada há: ${mesa.tempoOcupacao}`;
+    if (mesa.tempoOcupacaoDisplay) {
+      tooltip += `\nOcupada há: ${mesa.tempoOcupacaoDisplay}`;
     }
     
     return tooltip;
@@ -447,16 +353,8 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   // Funcionalidades de atendimento
   iniciarAtendimento(mesa: Mesa): void {
     if (mesa.status === 'LIVRE' || mesa.status === 'RESERVADA') {
-      const eraReservada = mesa.status === 'RESERVADA';
-      mesa.status = 'EM_ATENDIMENTO';
-      mesa.garcomsAtendendo = [this.garcomInfo.id];
+      this.painelGarcomService.iniciarAtendimento(mesa.id, this.garcomInfo.id);
       this.mesasAtendidas++;
-      
-      if (eraReservada && mesa.reserva) {
-        // Atualizar status da reserva para ativa
-        console.log('Reserva ativada:', mesa.reserva.id);
-      }
-      
       this.fecharDetalhesMesa();
     }
   }
@@ -473,9 +371,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   liberarMesa(mesa: Mesa): void {
     if (mesa.status === 'EM_ATENDIMENTO' || mesa.status === 'OCUPADA') {
-      mesa.status = 'LIVRE';
-      mesa.garcomsAtendendo = [];
-      mesa.tempoOcupacao = undefined;
+      this.painelGarcomService.liberarMesa(mesa.id);
       this.mesasAtendidas = Math.max(0, this.mesasAtendidas - 1);
       this.fecharDetalhesMesa();
     }
@@ -487,8 +383,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
       this.mesasAtendidas = Math.max(0, this.mesasAtendidas - 1);
       
       if (mesa.garcomsAtendendo.length === 0) {
-        mesa.status = 'LIVRE';
-        mesa.tempoOcupacao = undefined;
+        this.painelGarcomService.liberarMesa(mesa.id);
       }
       
       this.fecharDetalhesMesa();
@@ -496,17 +391,12 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   }
 
   isGarcomAtendendoMesa(mesaId: string): boolean {
-    const mesa = this.ambientes
-      .flatMap(a => a.mesas)
-      .find(m => m.id === mesaId);
-    
+    const mesa = this.ambienteAtivo?.mesas.find((m: Mesa) => m.id === mesaId);
     return mesa?.garcomsAtendendo?.includes(this.garcomInfo.id) || false;
   }
 
   getGarcomAtendendo(mesaId: string): GarcomInfo | null {
-    const mesa = this.ambientes
-      .flatMap(a => a.mesas)
-      .find(m => m.id === mesaId);
+    const mesa = this.ambienteAtivo?.mesas.find((m: Mesa) => m.id === mesaId);
     
     if (mesa?.garcomsAtendendo?.length) {
       // Retorna o primeiro garçom (simulação)
@@ -517,16 +407,22 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   }
 
   getGarcomsAtendendoMesa(mesaId: string): GarcomInfo[] {
-    const mesa = this.ambientes
-      .flatMap(a => a.mesas)
-      .find(m => m.id === mesaId);
-    
+    // 1. Pega os ambientes MAIS ATUAIS do serviço
+    const ambientes = this.painelGarcomService.getAmbientesAtuais(); 
+    const ambienteDaMesa = ambientes.find(amb => amb.mesas.some(m => m.id === mesaId));
+    const mesa = ambienteDaMesa?.mesas.find((m: Mesa) => m.id === mesaId);
+
     if (mesa?.garcomsAtendendo?.length) {
-      // Simulação - retorna o garçom atual
-      return [this.garcomInfo];
+      // 2. Pega a lista COMPLETA de garçons disponíveis
+      const todosGarcons = this.painelGarcomService.getGarconsDisponiveis();
+
+      // 3. Mapeia os IDs para os OBJETOS GarcomInfo
+      return mesa.garcomsAtendendo
+        .map(id => todosGarcons.find(g => g.id === id)) // Encontra o objeto GarcomInfo
+        .filter((g): g is GarcomInfo => !!g); // Filtra caso algum ID não seja encontrado
     }
-    
-    return [];
+
+    return []; // Retorna array vazio se não houver garçons
   }
 
   verDetalhesMesa(mesa: Mesa): void {
@@ -535,12 +431,42 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   // Gestão de pedidos
   atualizarPedidos(): void {
-    this.carregarPedidosAtivos();
+    // Os pedidos são atualizados automaticamente via observable
+    console.log('Pedidos atualizados via observable');
   }
 
-  adicionarItemPedido(pedido: Pedido): void {
-    this.mostrarCardapio = true;
-    // Implementar lógica para adicionar item ao pedido
+  editarPedido(pedido: Pedido): void {
+    this.abrirDialogCardapio(pedido.mesaId, pedido.id);
+  }
+
+  async removerPedido(pedido: Pedido): Promise<void> {
+    const result = await Swal.fire({
+      title: 'Remover Pedido',
+      text: `Tem certeza que deseja remover o pedido da Mesa ${pedido.mesaNome}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#F44336',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sim, remover!',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      this.painelGarcomService.removerPedido(pedido.id);
+      
+      Swal.fire({
+        title: 'Removido!',
+        text: 'O pedido foi removido com sucesso.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+  }
+
+  calcularTotalPedido(pedido: Pedido): number {
+    return pedido.itens.reduce((total, item) => total + (item.preco * item.quantidade), 0);
   }
 
   verPedidoCompleto(pedido: Pedido): void {
@@ -557,9 +483,27 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     this.mostrarCardapio = false;
   }
 
-  adicionarItemAoCarrinho(item: CardapioItem): void {
+  adicionarItemAoCarrinho(item: any): void {
     // Implementar lógica para adicionar item ao carrinho
     console.log('Adicionar item ao carrinho:', item);
+  }
+
+  // Abrir dialog do cardápio
+  abrirDialogCardapio(mesaId: string, pedidoId?: string): void {
+    const dialogRef = this.dialog.open(DialogCardapioGarcomComponent, {
+      width: '700px',
+      data: { 
+        mesaId: mesaId,
+        pedidoId: pedidoId
+      },
+      panelClass: 'tavola-dialog-wrapper'
+    });
+
+    dialogRef.afterClosed().subscribe(resultado => {
+      if (resultado) {
+        console.log('Cardápio fechado com sucesso');
+      }
+    });
   }
 
   // Visualização
@@ -567,18 +511,6 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     this.visualizacaoAtiva = event.value;
   }
 
-  // Finalizar turno
-  finalizarTurno(): void {
-    if (this.mesasAtendidas > 0) {
-      // Mostrar confirmação ou impedir finalização
-      console.log('Não é possível finalizar turno com mesas em atendimento');
-      return;
-    }
-    
-    // Implementar lógica de finalização do turno
-    console.log('Finalizando turno...');
-    this.router.navigate(['/home']);
-  }
 
   // Navegação de data
   diaAnterior(): void {
@@ -596,17 +528,59 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   }
 
   nzDatePickerChange(data: Date): void {
-    this.dataAtual = data;
-    this.carregarDadosIniciais();
+    if (data) {
+      // Cria um novo objeto Date para garantir que a data seja o início do dia
+      this.dataAtual = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+      console.log('[PainelGarcom] Nova data selecionada:', this.dataAtual.toLocaleDateString());
+      this.carregarDadosIniciais(); // Recarrega os dados principais (ambientes, pedidos)
+      this.cdr.detectChanges(); // Garante atualização da UI para a nova data
+    }
   }
 
   abrirCalendario(): void {
-    this.mostrarCalendario = true;
+    // 1. CARREGA os dados ANTES de abrir o dialog
+    this.carregarReservasParaCalendario(this.dataAtual, () => {
+      // 2. ABRE o dialog APÓS os dados serem carregados (dentro do callback)
+      const dialogRef = this.dialog.open(CalendarioReservasComponent, {
+        width: '80vw',
+        maxWidth: '900px',
+        maxHeight: '90vh',
+        panelClass: 'tavola-dialog-wrapper', // Tua classe global
+        data: { 
+          // Passa a data inicial e as reservas carregadas
+          initialDate: this.dataAtual, 
+          reservas: this.reservasParaCalendario 
+        }
+      });
+
+      // 3. Lida com o resultado (data selecionada)
+      dialogRef.afterClosed().subscribe(dataSelecionada => {
+        if (dataSelecionada instanceof Date) {
+          // Chama a MESMA função que o nzDatePicker usa para atualizar
+          this.nzDatePickerChange(dataSelecionada); 
+        } else {
+          console.log('Calendário fechado sem selecionar data.');
+        }
+      });
+    });
+  }
+
+  carregarReservasParaCalendario(data: Date, callback: () => void): void {
+    // Simulação: Assume que o PainelGarcomService tem um método similar
+    // ou que você busca de outra forma. Adapte conforme necessário.
+    console.log(`[PainelGarcom] Carregando reservas para calendário em ${data.toLocaleDateString()}`);
+    this.isLoadingCalendario = true; 
+    
+    // ----- SUBSTITUA PELA TUA LÓGICA REAL DE BUSCA -----
+    // Exemplo usando MOCK do serviço (adapte se for API real)
+    this.reservasParaCalendario = this.painelGarcomService.getReservasParaCalendarioMock(data); 
+    console.log('[PainelGarcom] Reservas para calendário (mock):', this.reservasParaCalendario);
+    this.isLoadingCalendario = false;
+    callback(); 
   }
 
   selecionarDataDoCalendario(data: Date): void {
     this.dataAtual = data;
-    this.mostrarCalendario = false;
     this.carregarDadosIniciais();
   }
 
@@ -650,5 +624,31 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
     if (diffMin < 1) return '< 1m';
     return `${diffMin}m`;
+  }
+
+  // === MÉTODOS PARA FILTRO DE MESAS POR STATUS ===
+
+  // Método para filtrar mesas por status
+  filtrarMesasPorStatus(status: string | null): void {
+    this.statusFiltroAtivo = status;
+    console.log('[PainelGarcom] Filtro de status alterado para:', status);
+  }
+
+  // Método para verificar se uma mesa deve ser exibida baseada no filtro
+  deveExibirMesa(mesa: Mesa): boolean {
+    if (!this.statusFiltroAtivo) {
+      return true; // Mostra todas as mesas se não há filtro
+    }
+    return mesa.status === this.statusFiltroAtivo;
+  }
+
+  // Método para obter a classe CSS do filtro ativo
+  getClasseFiltroStatus(status: string | null): string {
+    return this.statusFiltroAtivo === status ? 'filtro-ativo' : '';
+  }
+
+  // Método para limpar o filtro (mostrar todas as mesas)
+  limparFiltroStatus(): void {
+    this.statusFiltroAtivo = null;
   }
 }

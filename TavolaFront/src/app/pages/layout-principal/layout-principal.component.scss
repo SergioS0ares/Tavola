@@ -47,6 +47,7 @@
     border-radius: 16px;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    margin-right: 12px; // Adiciona espaçamento para ficar próximo ao sino
     
     mat-icon {
       font-size: 24px;
@@ -60,6 +61,19 @@
       border-color: rgba(255, 255, 255, 0.5);
       transform: scale(1.05);
       box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+    }
+
+    // Ajuste para mobile - posicionamento à esquerda do sino
+    @media (max-width: 700px) {
+      margin-right: 8px;
+      width: 48px;
+      height: 48px;
+      
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
     }
   }
 
@@ -686,8 +700,8 @@
       gap: 16px;
 
       .avatar {
-        width: 48px;
-        height: 48px;
+        width: 56px; // Aumentado de 48px para 56px
+        height: 56px; // Aumentado de 48px para 56px
         border-radius: 50%;
         overflow: hidden;
         border: 3px solid rgba(255, 255, 255, 0.5);
@@ -726,6 +740,37 @@
 
     &:hover mat-icon {
       transform: rotate(180deg);
+    }
+  }
+
+  // Avatar mobile - sem div de menu trigger, apenas o avatar maior
+  .user-avatar-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    .avatar-mobile {
+      width: 60px; // Avatar maior no mobile
+      height: 60px; // Avatar maior no mobile
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    &:hover .avatar-mobile {
+      border-color: rgba(255, 255, 255, 0.8);
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     }
   }
 }

@@ -118,10 +118,9 @@ export class ConfiguracoesComponent implements OnInit {
         servicos: restData.servicos,
         imagens: restData.imagens,
       }
-      this.previewImage =
-        restData.imagens && restData.imagens.length > 0
-          ? this.getCorretedImageUrl(restData.imagens[0])
-          : "assets/png/avatar-padrao-restaurante-tavola.png"
+      this.previewImage = restData.imagemUsuarioo
+        ? this.getCorretedImageUrl(restData.imagemUsuarioo)
+        : "assets/png/avatar-padrao-restaurante-tavola.png"
     } else {
       const clientData = data as IUserData
       this.userData = {
@@ -212,11 +211,10 @@ export class ConfiguracoesComponent implements OnInit {
 
       if (
         !payload.imagem &&
-        this.userData.imagens &&
-        this.userData.imagens.length > 0 &&
+        this.userData.imagemUsuarioo &&
         !this.previewImage?.includes("avatar-padrao")
       ) {
-        payload.imagem = this.userData.imagens[0]
+        payload.imagem = this.userData.imagemUsuarioo
       }
     } else {
       if (!payload.imagem && this.userData.imagemPerfil && !this.previewImage?.includes("avatar-padrao")) {
@@ -310,11 +308,7 @@ export class ConfiguracoesComponent implements OnInit {
         this.previewImage = reader.result as string
       
         if (this.isRestaurante) {
-          if (this.userData.imagens) {
-            this.userData.imagens[0] = this.previewImage
-          } else {
-            this.userData.imagens = [this.previewImage]
-          }
+          this.userData.imagemUsuarioo = this.previewImage
         } else {
           this.userData.imagemPerfil = this.previewImage
         }

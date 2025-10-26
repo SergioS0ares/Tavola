@@ -123,16 +123,6 @@
       <mat-icon aria-hidden="true">menu</mat-icon>
     </button>
     
-    <!-- Search icon button when sticky and not expanded -->
-    <button 
-      class="search-icon-btn" 
-      *ngIf="showStickySearchBar && !searchExpanded"
-      (click)="expandSearch()"
-      type="button"
-      aria-label="Expandir busca">
-      <mat-icon>search</mat-icon>
-    </button>
-
     <!-- Expanded search container (GitHub/99 Food style) -->
     <div class="expanded-search-container" *ngIf="showStickySearchBar && searchExpanded">
       <!-- City chip -->
@@ -195,6 +185,16 @@
     
     <!-- Hide header actions when search is expanded on mobile -->
     <div class="header-actions" *ngIf="!searchExpanded" style="display: flex; align-items: center; gap: 20px;"> 
+      <!-- Search icon button when sticky and not expanded - positioned next to bell -->
+      <button 
+        class="search-icon-btn" 
+        *ngIf="showStickySearchBar && !searchExpanded"
+        (click)="expandSearch()"
+        type="button"
+        aria-label="Expandir busca">
+        <mat-icon>search</mat-icon>
+      </button>
+
       <div class="notifications" *ngIf="isCliente">
         <button 
           mat-icon-button 
@@ -310,17 +310,24 @@
       </div>
 
       <!-- Enhanced User menu -->
-      <div class="user-menu" [matMenuTriggerFor]="menu" role="button" tabindex="0" aria-label="Menu do usuário">
+      <div class="user-menu" [matMenuTriggerFor]="menu" role="button" tabindex="0" aria-label="Menu do usuário" *ngIf="!(isMobile$ | async)">
         <div class="user-info">
           <div class="avatar">
             <img [src]="userAvatar" [alt]="'Avatar de ' + userName">
           </div>
-          <div class="user-details" *ngIf="!(isMobile$ | async)">
+          <div class="user-details">
             <span class="user-name">{{ userName }}</span>
             <span class="user-type">{{ userType === 'FUNCIONARIO' ? 'Funcionário' : userType }}</span>
           </div>
         </div>
-        <mat-icon *ngIf="!(isMobile$ | async)" aria-hidden="true">keyboard_arrow_down</mat-icon>
+        <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
+      </div>
+
+      <!-- Mobile User Avatar - simplified without menu trigger -->
+      <div class="user-avatar-mobile" *ngIf="(isMobile$ | async)" [matMenuTriggerFor]="menu" role="button" tabindex="0" aria-label="Menu do usuário">
+        <div class="avatar-mobile">
+          <img [src]="userAvatar" [alt]="'Avatar de ' + userName">
+        </div>
       </div>
 
       <mat-menu #menu="matMenu" class="user-dropdown">
