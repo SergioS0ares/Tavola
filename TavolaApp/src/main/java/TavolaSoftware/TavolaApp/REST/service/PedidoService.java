@@ -157,7 +157,7 @@ public class PedidoService {
     
     @Transactional
     public Optional<Pedido> updateStatus(UUID idPedido, String novoStatusStr) {
-        // ... (Parse do novoStatus e extração de token - sem alterações) ...
+        // ... (Parse do novoStatus, extração de token, busca do pedido, validação - sem alterações) ...
         PedidoStatus novoStatus;
         try {
             novoStatus = PedidoStatus.valueOf(novoStatusStr.toUpperCase());
@@ -168,8 +168,6 @@ public class PedidoService {
         Claims claims = jwtUtil.parseToken(token);
         UUID restauranteIdDoGarcom = UUID.fromString(claims.get("restauranteId", String.class));
         UUID garcomId = UUID.fromString(claims.get("garcomId", String.class));
-        
-        // Busca pedido e valida restaurante (sem alterações)
         Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado: " + idPedido));
         if (!pedido.getRestaurante().getId().equals(restauranteIdDoGarcom)) {
@@ -179,23 +177,33 @@ public class PedidoService {
         pedido.setStatus(novoStatus); //
 
         // Associa garçom se ENTREGUE (sem alterações)
-        if (novoStatus == PedidoStatus.ENTREGUE) {
+        if (novoStatus == PedidoStatus.ENTREGUE) { //
             Garcom garcom = garcomRepository.findById(garcomId)
                 .orElseThrow(() -> new EntityNotFoundException("Garçom não encontrado."));
-            pedido.setGarcom(garcom); 
+            pedido.setGarcom(garcom); //
         }
 
-        // Notificação e deleção se ENTREGUE ou CANCELADO (sem alterações)
+        // Define o canal e o tipo de evento (sem alterações)
         String topic = "/topic/restaurante/" + restauranteIdDoGarcom + "/pedidos"; //
         EventLabel eventLabel = (novoStatus == PedidoStatus.CANCELADO) ? EventLabel.PEDIDO_UPDATE_CANCEL : EventLabel.PEDIDO_UPDATE_NEW; //
 
-        if (novoStatus == PedidoStatus.ENTREGUE || novoStatus == PedidoStatus.CANCELADO) { //
+        // --- CORREÇÃO AQUI ---
+        // REGRA DE NEGÓCIO: SE O NOVO STATUS FOR *CANCELADO*, DELETAMOS O PEDIDO.
+        // ANTES: if (novoStatus == PedidoStatus.ENTREGUE || novoStatus == PedidoStatus.CANCELADO) {
+        if (novoStatus == PedidoStatus.CANCELADO) { // DEPOIS: Só deleta se for CANCELADO
+        // --- FIM DA CORREÇÃO ---
+            
+            // Dispara a mensagem ANTES de deletar (sem alterações)
             messagingTemplate.convertAndSend(topic, new WebSocketMessage(eventLabel, new PedidoResponse(pedido))); //
+            
             pedidoRepository.delete(pedido); //
             return Optional.empty(); //
         } else {
+            // Se for PENDENTE, EM_PREPARO, PRONTO ou ENTREGUE, apenas salva e notifica
             Pedido pedidoAtualizado = pedidoRepository.save(pedido); //
+
             messagingTemplate.convertAndSend(topic, new WebSocketMessage(eventLabel, new PedidoResponse(pedidoAtualizado))); //
+            
             return Optional.of(pedidoAtualizado); //
         }
     }

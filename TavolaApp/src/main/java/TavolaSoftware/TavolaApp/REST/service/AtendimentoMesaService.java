@@ -86,16 +86,16 @@ public class AtendimentoMesaService {
     @Transactional
     public void finalizarAtendimento(Mesa mesa) {
         AtendimentoMesa atendimento = atendimentoRepository.findAtendimentoAtivoByMesaId(mesa.getId())
-                .orElse(null); // Pode já ter sido finalizado ou nunca existiu
+                .orElse(null); 
 
         if (atendimento == null || !atendimento.isAtivo()) {
+            // ... (código para garantir mesa LIVRE) ...
             System.out.println("Nenhum atendimento ativo encontrado para finalizar na mesa: " + mesa.getId());
-            // Garante que a mesa fique livre mesmo assim
             if(mesa.getStatus() != MesaStatus.LIVRE) {
                 mesa.setStatus(MesaStatus.LIVRE);
                 mesaRepository.save(mesa);
             }
-            return; // Nada a fazer
+            return; 
         }
 
         // 1. Marca o atendimento como inativo
@@ -107,43 +107,44 @@ public class AtendimentoMesaService {
         LocalDateTime inicio = atendimento.getHoraInicio();
         LocalDateTime fim = atendimento.getHoraFim();
 
-        // Busca todos os pedidos ENTREGUES ou CONCLUÍDOS para esta mesa neste período
-        // (Ajuste os status conforme sua necessidade)
+        // Busca pedidos (retorna List)
         List<Pedido> pedidosDoAtendimento = pedidoRepository.findByMesaIdAndDataHoraBetweenAndStatusIn(
-                mesa.getId(), inicio, fim, Set.of(PedidoStatus.ENTREGUE) // Incluiria CONCLUIDO se existisse
+                mesa.getId(), inicio, fim, Set.of(PedidoStatus.ENTREGUE) 
         );
 
-        // Calcula o valor total
+        // Calcula valor total (sem alterações)
         double valorTotal = pedidosDoAtendimento.stream()
             .flatMap(p -> p.getItens().stream())
             .mapToDouble(item -> item.getPrecoUnitario() * item.getQuantidade())
             .sum();
 
-        // Coleta os garçons que fizeram os pedidos (pode ser diferente dos que estavam no AtendimentoMesa)
+        // Coleta garçons (retorna Set)
         Set<Garcom> garconsDosPedidos = pedidosDoAtendimento.stream()
                 .map(Pedido::getGarcom)
                 .collect(Collectors.toSet());
-        // Adiciona também os garçons que estavam registrados no AtendimentoMesa
-        garconsDosPedidos.addAll(atendimento.getGarcons());
+        garconsDosPedidos.addAll(atendimento.getGarcons()); // Adiciona os do atendimento ativo
 
         // 3. Cria o RegistroAtendimento
         RegistroAtendimento registro = new RegistroAtendimento();
+        // ... (setRestaurante, setMesa, setCliente, setHoraInicio, setHoraFim, setValorTotal - sem alterações) ...
         registro.setRestaurante(atendimento.getRestaurante());
         registro.setMesa(mesa);
-        // Tenta buscar o cliente do primeiro pedido (se houver)
         registro.setCliente(pedidosDoAtendimento.stream().map(Pedido::getCliente).filter(c -> c != null).findFirst().orElse(null));
         registro.setHoraInicio(inicio);
         registro.setHoraFim(fim);
         registro.setValorTotal(valorTotal);
-        registro.setPedidos(pedidosDoAtendimento);
-        registro.setGarcons(new ArrayList<>(garconsDosPedidos)); // Converte Set para List
+
+        // <<< MUDANÇA AQUI >>>
+        // Converte a List de Pedidos para um Set antes de atribuir
+        registro.setPedidos(new HashSet<>(pedidosDoAtendimento)); 
+        
+        // <<< MUDANÇA AQUI >>>
+        // Atribui diretamente o Set de Garçons
+        registro.setGarcons(garconsDosPedidos); 
 
         registroRepository.save(registro);
 
-        // 4. Marca a mesa como LIVRE (a chamada original a este método deveria vir do MesaService)
-        // mesa.setStatus(MesaStatus.LIVRE); // Já deve ser feito pelo chamador (MesaService)
-        // mesaRepository.save(mesa);
-        
+        // ... (restante do método) ...
         System.out.println("Atendimento finalizado e registro criado para mesa: " + mesa.getId());
     }
 

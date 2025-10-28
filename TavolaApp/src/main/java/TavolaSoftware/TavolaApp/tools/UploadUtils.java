@@ -174,12 +174,12 @@ public class UploadUtils {
             return null;
         }
         // Se já for a URL relativa correta (sem a barra inicial), retorna ela mesma
-        if (nomeArquivo.startsWith(BASE_DIR + "/")) {
+        if (nomeArquivo.startsWith("/" + BASE_DIR + "/")) { // (Verifica se já começa com /upl/)
             return nomeArquivo;
-        }
-        // Se for a URL com a barra inicial (formato antigo), remove a barra
-        if (nomeArquivo.startsWith("/" + BASE_DIR + "/")) {
-             return nomeArquivo.substring(1);
+       }
+
+        if (nomeArquivo.startsWith(BASE_DIR + "/")) { // (Verifica se começa com upl/)
+            return "/" + nomeArquivo; // Adiciona a barra
         }
         
         String tipoUrl = tipo.toLowerCase();
@@ -193,8 +193,7 @@ public class UploadUtils {
             tipoUrl += "s"; // ex: usuario -> usuarios
         }
         
-        // ATUALIZAÇÃO: Removida a barra inicial "/"
-        return BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
+        return "/" + BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
     }
 
     /**

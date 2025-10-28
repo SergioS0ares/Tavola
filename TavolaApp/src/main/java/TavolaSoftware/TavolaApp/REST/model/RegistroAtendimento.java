@@ -1,7 +1,8 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -51,28 +52,23 @@ public class RegistroAtendimento {
     @Column(name = "valor_total")
     private Double valorTotal; //
 
-    /**
-     * Lista de todos os pedidos entregues neste atendimento.
-     */
     @ManyToMany
     @JoinTable(
         name = "registro_atendimento_pedidos",
         joinColumns = @JoinColumn(name = "registro_id"),
         inverseJoinColumns = @JoinColumn(name = "pedido_id")
     )
-    private List<Pedido> pedidos; //
+    private Set<Pedido> pedidos = new HashSet<>(); // Inicializar para evitar NullPointerException
 
-    /**
-     * Lista de todos os garçons que participaram deste atendimento.
-     */
     @ManyToMany
     @JoinTable(
         name = "registro_atendimento_garcons",
         joinColumns = @JoinColumn(name = "registro_id"),
         inverseJoinColumns = @JoinColumn(name = "garcom_id")
     )
-    private List<Garcom> garcons; //
-
+    private Set<Garcom> garcons = new HashSet<>(); // Inicializar para evitar NullPointerException
+    
+    
     // Getters e Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -88,8 +84,12 @@ public class RegistroAtendimento {
     public void setHoraFim(LocalDateTime horaFim) { this.horaFim = horaFim; }
     public Double getValorTotal() { return valorTotal; }
     public void setValorTotal(Double valorTotal) { this.valorTotal = valorTotal; }
-    public List<Pedido> getPedidos() { return pedidos; }
-    public void setPedidos(List<Pedido> pedidos) { this.pedidos = pedidos; }
-    public List<Garcom> getGarcons() { return garcons; }
-    public void setGarcons(List<Garcom> garcons) { this.garcons = garcons; }
+
+    // <<< GETTER/SETTER ATUALIZADO >>>
+    public Set<Pedido> getPedidos() { return pedidos; }
+    public void setPedidos(Set<Pedido> pedidos) { this.pedidos = pedidos; }
+    
+    // <<< GETTER/SETTER ATUALIZADO >>>
+    public Set<Garcom> getGarcons() { return garcons; }
+    public void setGarcons(Set<Garcom> garcons) { this.garcons = garcons; }
 }
