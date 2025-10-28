@@ -16,7 +16,7 @@ export interface IRestaurante {
   descricao?: string;
   imagens: string[];
   imagemPrincipal?: string;
-  imagemUsuarioo?: string;
+  imagemUsuario?: string;
   mediaAvaliacao: number;
   totalDeAvaliacoes: number;
   horariosFuncionamento?: { diaSemana: string; abertura: string; fechamento: string }[];

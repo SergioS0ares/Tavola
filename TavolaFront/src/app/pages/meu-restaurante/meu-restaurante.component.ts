@@ -1,4 +1,4 @@
-import { Component, inject, type OnInit, ChangeDetectorRef } from "@angular/core"
+import { Component, inject, type OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormBuilder, type FormGroup, type FormArray, Validators, ReactiveFormsModule } from "@angular/forms"
 import { MatFormFieldModule } from "@angular/material/form-field"
@@ -10,9 +10,11 @@ import { MatChipsModule } from "@angular/material/chips"
 import { MatAutocompleteModule } from "@angular/material/autocomplete"
 import { MatCardModule } from "@angular/material/card"
 import { MatDividerModule } from "@angular/material/divider"
+import { MatExpansionModule } from '@angular/material/expansion'
 // NG-Zorro imports
 import { NzModalModule } from "ng-zorro-antd/modal"
 import { NzImageModule } from "ng-zorro-antd/image"
+import { QRCodeModule } from 'angularx-qrcode'
 import Swal from "sweetalert2"
 import { GlobalSpinnerComponent } from "../../spin/global-spinner/global-spinner.component"
 
@@ -36,18 +38,23 @@ import { environment } from "../../../environments/environment"
     MatAutocompleteModule,
     MatCardModule,
     MatDividerModule,
+    MatExpansionModule,
     // NG-Zorro imports
     NzModalModule,
     NzImageModule,
+    QRCodeModule,
     GlobalSpinnerComponent,
   ],
   templateUrl: "./meu-restaurante.component.html",
   styleUrls: ["./meu-restaurante.component.scss"],
 })
-export class MeuRestauranteComponent implements OnInit {
+export class MeuRestauranteComponent implements OnInit, OnDestroy {
   restauranteForm!: FormGroup
   isLoading = true
   isGalleryVisible = false
+  restauranteId: string | null = null
+  urlCardapioPublico: string | null = null
+  qrCodeWidth = 200
 
   tiposCozinha = [
     "Italiana",
@@ -86,9 +93,21 @@ export class MeuRestauranteComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef)
   private toastr = inject(ToastrService)
 
+  private resizeHandler = () => this.ajustarLarguraQrCode()
+
   ngOnInit(): void {
     this.iniciarFormulario()
     this.carregarDadosDoRestaurante()
+    this.gerarUrlQrCode()
+    this.ajustarLarguraQrCode()
+    
+    // Adiciona listener para redimensionamento
+    window.addEventListener('resize', this.resizeHandler)
+  }
+
+  ngOnDestroy(): void {
+    // Remove listener para evitar memory leaks
+    window.removeEventListener('resize', this.resizeHandler)
   }
 
   iniciarFormulario(): void {
@@ -301,5 +320,47 @@ export class MeuRestauranteComponent implements OnInit {
 
   isMobile(): boolean {
     return window.innerWidth <= 768
+  }
+
+  private gerarUrlQrCode(): void {
+    const idRestaurante = this.auth.perfil?.id
+    this.restauranteId = idRestaurante || null
+
+    if (this.restauranteId) {
+      this.urlCardapioPublico = `${window.location.origin}/cardapio/${this.restauranteId}`
+      console.log('URL pública do cardápio:', this.urlCardapioPublico)
+    } else {
+      console.error("ID do Restaurante não encontrado para gerar QR Code.")
+    }
+  }
+
+  downloadQrCodeComoImagem(): void {
+    const qrElement: HTMLElement | null = document.querySelector('.qrcode-para-download qrcode img')
+    if (qrElement && qrElement instanceof HTMLImageElement) {
+      const link = document.createElement('a')
+      link.href = qrElement.src
+      link.download = `qrcode-cardapio-${this.restauranteId || 'restaurante'}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      this.toastr.success("QR Code descarregado como imagem PNG.")
+    } else {
+      console.error("Elemento QR Code (img) não encontrado para download.")
+      this.toastr.error("Erro ao descarregar QR Code como imagem.")
+    }
+  }
+
+  ajustarLarguraQrCode(): void {
+    const width = window.innerWidth
+    if (width <= 480) {
+      this.qrCodeWidth = 150
+    } else if (width <= 768) {
+      this.qrCodeWidth = 180
+    } else if (width <= 1024) {
+      this.qrCodeWidth = 200
+    } else {
+      this.qrCodeWidth = 200
+    }
+    this.cdr.detectChanges()
   }
 }

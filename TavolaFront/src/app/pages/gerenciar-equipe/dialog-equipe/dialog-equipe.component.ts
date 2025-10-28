@@ -71,7 +71,7 @@ export class DialogEquipeComponent implements OnInit {
       const dados: IDadosMembro = {
         nome: this.form.value.nome,
         senha: this.form.value.senha,
-        fotoUrl: '' // Foto será enviada vazia inicialmente
+        imagem: '' // Foto será enviada vazia inicialmente
       };
 
       if (this.data.editMode) {

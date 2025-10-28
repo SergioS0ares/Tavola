@@ -4,8 +4,7 @@ export interface IMembroEquipe {
   codigo: string;
   codigoIdentidade?: string; // Campo da API
   senha: string;
-  imagem?: string | null;
-  fotoUrl?: string | null; // Campo da API
+  imagem?: string | null;// Campo da API
   dataCriacao: string;
   ativo: boolean;
 }

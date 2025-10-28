@@ -66,6 +66,16 @@ $border-radius: 16px; // Bordas mais arredondadas
   max-width: 800px;
   margin: 40px auto;
   padding: 0 16px;
+
+  @media (max-width: 768px) {
+    margin: 24px 12px;
+    padding: 0;
+  }
+
+  @media (max-width: 480px) {
+    margin: 16px 8px;
+    max-width: 100%;
+  }
 }
 
 // Page header removido - agora usando tavola-page-header global
@@ -81,6 +91,10 @@ mat-card {
   
   &:hover {
     border-color: $primary-color;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 16px;
   }
 }
 
@@ -112,6 +126,14 @@ mat-card {
     .edit-icon {
       color: #3B221B;
     }
+
+    @media (max-width: 480px) {
+      padding: 12px 16px;
+      
+      h3 {
+        font-size: 16px;
+      }
+    }
   }
 
   .card-content {
@@ -121,6 +143,18 @@ mat-card {
     mat-form-field {
       width: 100%;
       margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      padding: 20px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 16px;
+      
+      mat-form-field {
+        margin-bottom: 12px;
+      }
     }
   }
 }
@@ -220,7 +254,9 @@ mat-card {
     z-index: 1;
   }
 
-  
+  @media (max-width: 480px) {
+    height: 160px;
+  }
 }
 
 // Card estilo home para imagem principal
@@ -245,8 +281,13 @@ mat-card {
         transform: scale(1.02);
       }
     }
+
+    @media (max-width: 480px) {
+      height: 250px;
+    }
+  }
     
-    .image-overlay {
+  .image-overlay {
       position: absolute;
       top: 0;
       left: 0;
@@ -306,7 +347,6 @@ mat-card {
         }
       }
     }
-  }
 }
 
 // Galeria irregular estilo home
@@ -702,6 +742,13 @@ mat-card {
         background: #f4b942;
       }
     }
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
+      padding: 16px;
+    }
   }
 }
 
@@ -714,15 +761,23 @@ mat-card {
   background: #FAFAFA;
   border-radius: 12px;
   border: 1px solid #f0f0f0;
+  flex-wrap: wrap;
 
   .dia-semana-field {
-    flex: 1;
+    flex: 1 1 150px;
+    min-width: 150px;
   }
 
   .horario-inputs {
     display: flex;
     gap: 16px;
-    flex: 2;
+    flex: 2 1 300px;
+    min-width: 200px;
+
+    mat-form-field {
+      flex: 1;
+      min-width: 100px;
+    }
   }
 
   .remove-horario-btn {
@@ -730,10 +785,31 @@ mat-card {
     background: white;
     border: 1px solid #DA4A24;
     border-radius: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
     
     &:hover {
       background: #DA4A24;
       color: white;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+
+    .horario-inputs {
+      flex-direction: column;
+      gap: 12px;
+      flex-basis: auto;
+      min-width: unset;
+    }
+
+    .remove-horario-btn {
+      margin-left: 0;
+      align-self: flex-end;
     }
   }
 }
@@ -752,6 +828,11 @@ mat-card {
     box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
     background: linear-gradient(135deg, #f4b942 0%, #F6BD38 100%);
   }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    margin-top: 8px;
+  }
 }
 
 .form-actions {
@@ -761,6 +842,11 @@ mat-card {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
+
+  @media (max-width: 768px) {
+    margin-top: 24px;
+    padding-top: 16px;
+  }
 }
 
 .save-btn {
@@ -773,6 +859,11 @@ mat-card {
   
   &:hover {
     background: #f4b942 !important;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    padding: 16px 24px !important;
   }
 }
 
@@ -942,5 +1033,380 @@ mat-card {
   }
   100% {
     opacity: 0.6;
+  }
+}
+
+// Estilos para o Painel Expansível do QR Code
+.qrcode-expansion-panel {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  background-color: white;
+  border-radius: $border-radius !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(246, 189, 56, 0.3);
+
+  &.mat-expansion-panel {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .mat-expansion-panel-header {
+    height: 64px;
+    background-color: transparent;
+    padding: 0 24px;
+    border-radius: $border-radius !important;
+
+    &:hover {
+      background-color: rgba(246, 189, 56, 0.05);
+    }
+
+    &.mat-expanded {
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+  }
+
+  .mat-expansion-panel-header-title {
+    color: #3B221B;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    mat-icon {
+      color: $primary-color;
+    }
+  }
+
+  .mat-expansion-panel-header-description {
+    color: rgba(59, 34, 27, 0.6);
+    font-weight: 400;
+    font-size: 13px;
+    align-items: center;
+  }
+
+  .mat-expansion-panel-content .mat-expansion-panel-body {
+    padding: 16px 24px 24px 24px;
+    border-top: 1px solid rgba(246, 189, 56, 0.3);
+  }
+
+  .conteudo-qrcode-panel {
+    p {
+      color: rgba(59, 34, 27, 0.7);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .qrcode-e-link {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+
+      .qrcode-container {
+        border: 1px solid rgba(59, 34, 27, 0.1);
+        padding: 12px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+
+        qrcode {
+          display: block;
+          max-width: 100%;
+        }
+      }
+
+      .link-container {
+        flex: 1;
+        min-width: 200px;
+
+        p {
+          margin-bottom: 8px;
+          color: #3B221B;
+          font-weight: 600;
+        }
+
+        .link-externo {
+          color: $accent-color;
+          text-decoration: none;
+          word-break: break-all;
+          font-weight: 500;
+          font-size: 13px;
+          line-height: 1.4;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+    .acoes-download {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(246, 189, 56, 0.15);
+
+      button {
+        gap: 8px;
+        color: $primary-color;
+        border-color: rgba($primary-color, 0.5);
+
+        &:hover {
+          background-color: rgba($primary-color, 0.05);
+          border-color: $primary-color;
+        }
+
+        mat-icon {
+          color: $primary-color;
+        }
+      }
+
+      .dica-word {
+        font-size: 12px;
+        color: rgba(59, 34, 27, 0.6);
+        margin-left: 8px;
+        font-style: italic;
+      }
+    }
+
+    .erro-qrcode {
+      color: $accent-color;
+      font-weight: 500;
+      padding: 10px;
+      background-color: rgba(218, 74, 36, 0.05);
+      border-left: 3px solid $accent-color;
+      border-radius: 4px;
+    }
+  }
+}
+
+// Ajustes Responsivos para o Painel QR Code
+@media (max-width: 768px) {
+  .qrcode-expansion-panel {
+    margin-top: 16px;
+    margin-bottom: 16px;
+
+    .mat-expansion-panel-header {
+      height: auto;
+      min-height: 56px;
+      padding: 12px 16px;
+
+      .mat-expansion-panel-header-title {
+        font-size: 15px;
+        gap: 8px;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+
+    .mat-expansion-panel-header-description {
+      display: none !important;
+    }
+
+    .mat-expansion-panel-content .mat-expansion-panel-body {
+      padding: 16px;
+    }
+
+    .conteudo-qrcode-panel {
+      p:first-child {
+        font-size: 14px;
+        margin-bottom: 16px;
+        line-height: 1.4;
+      }
+
+      .qrcode-e-link {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 20px !important;
+        margin-bottom: 24px !important;
+
+        .qrcode-container {
+          width: auto !important;
+          max-width: 200px !important;
+          padding: 10px !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          flex-shrink: 0 !important;
+
+          qrcode {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+
+            img {
+              display: block !important;
+              max-width: 100% !important;
+              height: auto !important;
+            }
+          }
+        }
+
+        .link-container {
+          width: 100% !important;
+          min-width: unset !important;
+          max-width: 100% !important;
+          overflow: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+
+          p {
+            font-size: 14px !important;
+            margin-bottom: 8px !important;
+            text-align: center !important;
+            font-weight: 600 !important;
+          }
+
+          .link-externo {
+            font-size: 12px !important;
+            display: block !important;
+            word-break: break-all !important;
+            padding: 10px 12px !important;
+            background-color: #f5f5f5 !important;
+            border-radius: 6px !important;
+            line-height: 1.5 !important;
+            color: $accent-color !important;
+            text-align: center !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            hyphens: auto !important;
+            -webkit-hyphens: auto !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+        }
+      }
+
+      .acoes-download {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding-top: 16px !important;
+        margin-top: 16px !important;
+        border-top: 1px solid rgba(246, 189, 56, 0.15) !important;
+
+        button {
+          justify-content: center !important;
+          width: 100% !important;
+          font-size: 14px !important;
+          padding: 12px 16px !important;
+          display: flex !important;
+          align-items: center !important;
+
+          mat-icon {
+            font-size: 18px !important;
+            width: 18px !important;
+            height: 18px !important;
+          }
+        }
+
+        .dica-word {
+          text-align: center !important;
+          margin: 10px 0 0 0 !important;
+          font-size: 11px !important;
+          padding: 0 8px !important;
+          font-style: italic !important;
+          display: block !important;
+        }
+      }
+
+      .erro-qrcode {
+        font-size: 13px !important;
+        padding: 12px !important;
+        margin: 0 !important;
+        line-height: 1.4 !important;
+        text-align: center !important;
+      }
+    }
+  }
+}
+
+// Ajustes para telas muito pequenas (menores que 480px)
+@media (max-width: 480px) {
+  .qrcode-expansion-panel {
+    margin-top: 12px;
+    margin-bottom: 12px;
+
+    .mat-expansion-panel-header {
+      padding: 10px 12px;
+      min-height: 52px;
+
+      .mat-expansion-panel-header-title {
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .mat-expansion-panel-content .mat-expansion-panel-body {
+      padding: 12px;
+    }
+
+    .conteudo-qrcode-panel {
+      p:first-child {
+        font-size: 13px;
+        margin-bottom: 12px;
+        line-height: 1.3;
+      }
+
+      .qrcode-e-link {
+        gap: 12px !important;
+
+        .qrcode-container {
+          max-width: 180px !important;
+          padding: 8px !important;
+        }
+
+        .link-container {
+          p {
+            font-size: 13px !important;
+          }
+
+          .link-externo {
+            font-size: 11px !important;
+            padding: 8px 10px !important;
+            border-radius: 4px !important;
+            line-height: 1.4 !important;
+          }
+        }
+      }
+
+      .acoes-download {
+        gap: 10px !important;
+        padding-top: 12px !important;
+
+        button {
+          font-size: 13px !important;
+          padding: 10px 14px !important;
+        }
+
+        .dica-word {
+          font-size: 10px !important;
+        }
+      }
+
+      .erro-qrcode {
+        font-size: 12px !important;
+        padding: 10px !important;
+        text-align: center !important;
+      }
+    }
   }
 }

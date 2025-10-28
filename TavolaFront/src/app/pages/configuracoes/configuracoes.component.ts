@@ -118,8 +118,8 @@ export class ConfiguracoesComponent implements OnInit {
         servicos: restData.servicos,
         imagens: restData.imagens,
       }
-      this.previewImage = restData.imagemUsuarioo
-        ? this.getCorretedImageUrl(restData.imagemUsuarioo)
+      this.previewImage = restData.imagemUsuario
+        ? this.getCorretedImageUrl(restData.imagemUsuario)
         : "assets/png/avatar-padrao-restaurante-tavola.png"
     } else {
       const clientData = data as IUserData
@@ -211,10 +211,10 @@ export class ConfiguracoesComponent implements OnInit {
 
       if (
         !payload.imagem &&
-        this.userData.imagemUsuarioo &&
+        this.userData.imagemUsuario &&
         !this.previewImage?.includes("avatar-padrao")
       ) {
-        payload.imagem = this.userData.imagemUsuarioo
+        payload.imagem = this.userData.imagemUsuario
       }
     } else {
       if (!payload.imagem && this.userData.imagemPerfil && !this.previewImage?.includes("avatar-padrao")) {
@@ -308,7 +308,7 @@ export class ConfiguracoesComponent implements OnInit {
         this.previewImage = reader.result as string
       
         if (this.isRestaurante) {
-          this.userData.imagemUsuarioo = this.previewImage
+          this.userData.imagemUsuario = this.previewImage
         } else {
           this.userData.imagemPerfil = this.previewImage
         }
@@ -352,40 +352,6 @@ export class ConfiguracoesComponent implements OnInit {
     }
     return Object.keys(erros).length ? erros : null
   }
-
-  // deleteAccount() {
-  //   Swal.fire({
-  //     title: "Tem certeza?",
-  //     text: "Sua conta será apagada para sempre!",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#DA4A24",
-  //     cancelButtonColor: "#3B221B",
-  //     confirmButtonText: "Sim, apagar",
-  //     cancelButtonText: "Cancelar",
-  //   }).then((result) => {
-  //     if (result.isConfirmed) {
-  //       this.loading = true
-  //       const deleteObservable = this.isRestaurante
-  //         ? this.restauranteService.deleteRestaurante()
-  //         : this.clienteService.deleteCliente()
-
-  //       deleteObservable.subscribe({
-  //         next: () => {
-  //           this.toastr.success("Conta apagada com sucesso.")
-  //           this.auth.clearAuthData()
-  //           this.router.navigate(["/login"])
-  //           this.loading = false
-  //         },
-  //         error: (err) => {
-  //           this.toastr.error("Erro ao apagar a conta.")
-  //           console.error(err)
-  //           this.loading = false
-  //         },
-  //       })
-  //     }
-  //   })
-  // }
 
   private getCorretedImageUrl(path: string): string {
     if (!path) return ""

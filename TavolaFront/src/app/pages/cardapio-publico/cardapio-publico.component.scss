@@ -1,0 +1,276 @@
+@use '../../../styles/variables.scss' as *;
+
+// Container principal da página pública
+.cardapio-publico-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 16px 64px 16px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  color: #3B221B;
+}
+
+// Cabeçalho com Logo e Título
+.header-publico {
+  text-align: center;
+  margin-bottom: 32px;
+
+  .logo-img {
+    max-width: 80px;
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #3B221B;
+    margin: 0;
+  }
+}
+
+// Estilos para Loading, Erro e Vazio
+.loading-spinner, .error-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+
+  p {
+    margin-top: 16px;
+    color: #6c757d;
+    font-weight: 500;
+  }
+}
+
+// Conteúdo do Menu Público
+.menu-content-publico {
+  .menu-intro-publico {
+    margin-bottom: 32px;
+    padding: 24px;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #3B221B;
+    }
+    p {
+      color: #6c757d;
+      margin: 0;
+      font-size: 15px;
+    }
+  }
+
+  .categorias-content {
+    .categoria-section {
+      margin-bottom: 40px;
+
+      .categoria-titulo {
+        font-size: 24px;
+        margin-bottom: 24px;
+        border-bottom: 3px solid #F6BD38;
+        padding-bottom: 8px;
+        color: #3B221B;
+        font-weight: 700;
+      }
+
+      .itens-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .item-card {
+          background-color: white;
+          border-radius: 16px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+          transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+          overflow: hidden;
+
+          &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+          }
+
+          .item-content {
+            display: flex;
+            align-items: flex-start;
+
+            .item-image {
+              width: 100px;
+              height: 100px;
+              flex-shrink: 0;
+              border-radius: 16px 0 0 16px;
+              overflow: hidden;
+
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+            }
+
+            .item-info {
+              flex: 1;
+              padding: 16px;
+
+              .item-nome {
+                font-size: 17px;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: #3B221B;
+              }
+
+              .item-descricao {
+                font-size: 14px;
+                color: #6c757d;
+                margin-bottom: 10px;
+                line-height: 1.4;
+              }
+
+              .item-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+
+                .tag-chip {
+                  background-color: #FFF4D6;
+                  color: #3B221B;
+                  padding: 4px 10px;
+                  font-size: 11px;
+                  border-radius: 12px;
+                  font-weight: 500;
+                }
+              }
+            }
+
+            .item-preco {
+              padding: 16px;
+              font-size: 17px;
+              font-weight: 700;
+              color: #DA4A24;
+              white-space: nowrap;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .cardapio-publico-container {
+    padding: 24px 12px 48px 12px;
+  }
+
+  .header-publico {
+    .page-title {
+      font-size: 24px;
+    }
+  }
+
+  .menu-content-publico {
+    .menu-intro-publico {
+      padding: 16px;
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    .categorias-content .categoria-section {
+      .categoria-titulo {
+        font-size: 20px;
+        margin-bottom: 16px;
+      }
+
+      .itens-lista .item-card .item-content {
+        align-items: center;
+
+        .item-image {
+          width: 80px;
+          height: 80px;
+          border-radius: 16px;
+        }
+
+        .item-info {
+          padding: 12px;
+        }
+
+        .item-preco {
+          padding: 12px;
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .header-publico {
+    margin-bottom: 24px;
+
+    .logo-img {
+      max-width: 60px;
+      margin-bottom: 12px;
+    }
+
+    .page-title {
+      font-size: 20px;
+    }
+  }
+
+  .menu-content-publico {
+    .menu-intro-publico {
+      h2 {
+        font-size: 18px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+
+    .categorias-content .categoria-section {
+      .categoria-titulo {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+
+      .itens-lista .item-card .item-content {
+        flex-direction: column;
+        align-items: stretch;
+
+        .item-image {
+          width: 100%;
+          height: 150px;
+          border-radius: 16px 16px 0 0;
+        }
+
+        .item-info {
+          text-align: center;
+          padding: 12px 12px 8px 12px;
+
+          .item-tags {
+            justify-content: center;
+          }
+        }
+
+        .item-preco {
+          text-align: center;
+          padding: 8px 12px 12px 12px;
+          border-top: 1px solid #eee;
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+

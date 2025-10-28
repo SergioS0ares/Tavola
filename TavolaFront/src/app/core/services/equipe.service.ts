@@ -35,8 +35,7 @@ export class EquipeService {
         codigo: garcom.codigoIdentidade,
         codigoIdentidade: garcom.codigoIdentidade,
         senha: '', // Senha não é retornada pelo GET
-        imagem: garcom.fotoUrl,
-        fotoUrl: garcom.fotoUrl,
+        imagem: garcom.imagem,
         dataCriacao: new Date().toISOString(), // Campo não retornado pela API
         ativo: garcom.ativo
       })))
@@ -51,7 +50,7 @@ export class EquipeService {
     const payload = {
       nome: dados.nome,
       senha: dados.senha,
-      fotoUrl: dados.fotoUrl || ''
+      imagem: dados.imagem || ''
     };
 
     return this.restauranteService.postGarcom(idRestaurante, payload);
@@ -65,7 +64,7 @@ export class EquipeService {
     const payload = {
       nome: dados.nome,
       senha: dados.senha,
-      fotoUrl: dados.fotoUrl || ''
+      imagem: dados.imagem || ''
     };
 
     return this.restauranteService.putGarcom(idRestaurante, id, payload);
@@ -87,7 +86,7 @@ export class EquipeService {
     const payload = {
       nome: nome,
       senha: senha,
-      fotoUrl: fotoBase64
+      imagem: fotoBase64
     };
 
     return this.restauranteService.putGarcom(idRestaurante, id, payload);

@@ -212,6 +212,50 @@
       </div>
     </mat-card>
 
+    <!-- Seção de QR Code -->
+    <mat-expansion-panel class="qrcode-expansion-panel">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>qr_code</mat-icon>
+          QR Code do Cardápio Público
+        </mat-panel-title>
+        <mat-panel-description>
+          Gerar e carregar o código para partilhar o cardápio online
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="conteudo-qrcode-panel" *ngIf="urlCardapioPublico; else erroQrCode">
+        <p>Utilize este QR code nas suas mesas, website ou materiais de divulgação para que os clientes acedam facilmente ao cardápio online.</p>
+
+        <div class="qrcode-e-link">
+          <div class="qrcode-container qrcode-para-download">
+            <qrcode
+              [qrdata]="urlCardapioPublico"
+              [width]="qrCodeWidth"
+              elementType="img" 
+              [errorCorrectionLevel]="'M'">
+            </qrcode>
+          </div>
+          <div class="link-container">
+            <p><strong>Link direto:</strong></p>
+            <a [href]="urlCardapioPublico" target="_blank" class="link-externo">{{ urlCardapioPublico }}</a>
+          </div>
+        </div>
+
+        <div class="acoes-download">
+          <button mat-stroked-button color="primary" (click)="downloadQrCodeComoImagem()">
+            <mat-icon>image</mat-icon>
+            Descarregar Imagem (PNG)
+          </button>
+          <span class="dica-word">(Para Word, carregue a imagem e insira no documento)</span>
+        </div>
+      </div>
+
+      <ng-template #erroQrCode>
+        <p class="erro-qrcode">Não foi possível gerar o QR Code. Verifique se o ID do restaurante está configurado corretamente.</p>
+      </ng-template>
+    </mat-expansion-panel>
+
     <!-- Ações Finais -->
     <div class="form-actions">
       <button mat-raised-button class="save-btn" (click)="salvarAlteracoes()">

@@ -23,6 +23,7 @@
     "@angular/router": "^19.2.9",
     "@ant-design/icons-angular": "^19.0.0",
     "@sweetalert2/ngx-sweetalert2": "^13.0.0",
+    "angularx-qrcode": "^17.0.1",
     "lucide-angular": "^0.511.0",
     "ng-zorro-antd": "^19.2.2",
     "ngx-mask": "^16.4.2",

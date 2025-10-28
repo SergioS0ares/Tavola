@@ -86,11 +86,11 @@ export class RestauranteService {
     return this.http.get<any[]>(`${this.apiUrl.replace('/auth/restaurantes', '/auth/api/restaurantes')}/${idRestaurante}/garcons`);
   }
 
-  postGarcom(idRestaurante: string, payload: { nome: string; senha: string; fotoUrl: string }): Observable<any> {
+  postGarcom(idRestaurante: string, payload: { nome: string; senha: string; imagem: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl.replace('/auth/restaurantes', '/auth/api/restaurantes')}/${idRestaurante}/garcons`, payload);
   }
 
-  putGarcom(idRestaurante: string, idGarcom: string, payload: { nome: string; senha: string; fotoUrl: string }): Observable<any> {
+  putGarcom(idRestaurante: string, idGarcom: string, payload: { nome: string; senha: string; imagem: string }): Observable<any> {
     return this.http.put<any>(`${this.apiUrl.replace('/auth/restaurantes', '/auth/api/restaurantes')}/${idRestaurante}/garcons/${idGarcom}`, payload);
   }
 
