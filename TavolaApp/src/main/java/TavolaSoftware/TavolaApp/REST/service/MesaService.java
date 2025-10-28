@@ -43,7 +43,10 @@ public class MesaService {
     private SimpMessagingTemplate messagingTemplate;
     
     @Autowired
-    private ReservaRepository reservaRepository; // <--- 2. INJETAR O REPOSITÓRIO
+    private ReservaRepository reservaRepository; 
+
+    @Autowired
+    private AtendimentoMesaService atendimentoMesaService;
 
     @Transactional(readOnly = true)
     public List<MesaComReservasResponse> findMesasComReservasPorAmbienteEData(UUID idAmbiente, LocalDate data) {
@@ -59,14 +62,8 @@ public class MesaService {
             throw new SecurityException("Acesso negado. Este ambiente não pertence ao seu restaurante.");
         }
 
-        // 1. Busca todas as mesas do ambiente
         List<Mesa> mesasDoAmbiente = mesaRepository.findByAmbienteId(idAmbiente);
 
-        // 2. Busca todas as reservas do restaurante para a data específica
-        //    (Filtramos por restaurante para otimizar e depois associamos às mesas)
-        
-        // --- 3. CORREÇÃO AQUI ---
-        // ANTES: List<ReservaResponse> reservasDoDia = ReservaRepository.findByRestauranteIdAndDataReserva(restauranteIdDoGarcom, data)
         List<ReservaResponse> reservasDoDia = reservaRepository.findByRestauranteIdAndDataReserva(restauranteIdDoGarcom, data)
                 .stream()
                 .map(ReservaResponse::new) // Converte para DTO
@@ -78,14 +75,6 @@ public class MesaService {
                 .collect(Collectors.toList());
     }
     
-    // ... (Restante do código do MesaService.java sem alterações) ...
-    
-    /**
-     * Cria uma nova mesa e a associa a um ambiente.
-     * @param request DTO com os dados da nova mesa.
-     * @param ambienteId ID do ambiente ao qual a mesa pertencerá.
-     * @return A entidade Mesa que foi salva.
-     */
     public Mesa createMesa(MesaRequest request, UUID ambienteId) {
         // 1. Busca o ambiente ao qual a mesa pertencerá.
         Ambiente ambiente = ambienteRepository.findById(ambienteId)
@@ -103,10 +92,6 @@ public class MesaService {
         return mesaRepository.save(novaMesa);
     }
     
-    /*
-     * Atualiza o status da mesa, olha a enum de status de mesa pra ver os valores, 
-     * tô com preguiça de escrever tudo isso aqui.
-     * */
     @Transactional
     public Mesa updateStatus(UUID idMesa, String novoStatusStr) {
         MesaStatus novoStatus;
@@ -116,63 +101,50 @@ public class MesaService {
             throw new IllegalArgumentException("Status de mesa inválido: " + novoStatusStr);
         }
 
-        // Para pegar o token do garçom, precisamos extrair do contexto de segurança
         String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
         Claims claims = jwtUtil.parseToken(token);
-        UUID restauranteIdDoGarcom = UUID.fromString(claims.get("restanteId", String.class));
+
+        UUID restauranteIdDoUsuario = UUID.fromString(claims.get("restauranteId", String.class)); 
         
         Mesa mesa = mesaRepository.findById(idMesa)
                 .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada com o id: " + idMesa));
 
-        if (!mesa.getAmbiente().getRestaurante().getId().equals(restauranteIdDoGarcom)) {
+        if (!mesa.getAmbiente().getRestaurante().getId().equals(restauranteIdDoUsuario)) {
             throw new SecurityException("Acesso negado. Você não tem permissão para gerenciar esta mesa.");
         }
 
-        mesa.setStatus(novoStatus);
+        MesaStatus statusAntigo = mesa.getStatus();
         
-     // 1. Define o "canal" (tópico) para o qual a mensagem será enviada.
-        //    Será um canal exclusivo para este restaurante.
-        String topic = "/topic/restaurante/" + restauranteIdDoGarcom + "/mesas";
+        mesa.setStatus(novoStatus);
+        Mesa mesaSalva = mesaRepository.save(mesa);
 
-        // 2. Cria a mensagem no nosso formato padrão (o "envelope").
-        //    Usamos o "payload rico", enviando o objeto MesaResponse completo.
+        if ((statusAntigo == MesaStatus.OCUPADA || statusAntigo == MesaStatus.RESERVADA) && novoStatus == MesaStatus.LIVRE) {
+            atendimentoMesaService.finalizarAtendimento(mesaSalva); // Passa a mesa já salva
+        }
+
+        String topic = "/topic/restaurante/" + restauranteIdDoUsuario + "/mesas";
         WebSocketMessage mensagem = new WebSocketMessage(
             EventLabel.MESA_UPDATE_STATUS, 
-            MesaResponse.fromEntity(mesa)
+            MesaResponse.fromEntity(mesaSalva) // Use a mesa já salva
         );
-
-        // 3. Dispara a mensagem para todos os clientes inscritos no tópico.
         System.out.println("Disparando mensagem para o tópico: " + topic);
         messagingTemplate.convertAndSend(topic, mensagem);
         
-        return mesaRepository.save(mesa);
+        return mesaSalva;
     }
 
-    /**
-     * Atualiza os dados de uma mesa existente.
-     * @param idMesa O ID da mesa a ser atualizada.
-     * @param request DTO com os novos dados.
-     * @return A entidade Mesa atualizada.
-     */
     public Mesa updateMesa(UUID idMesa, MesaRequest request) {
-        // 1. Encontra a mesa existente.
         Mesa mesaExistente = mesaRepository.findById(idMesa)
                 .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada com o id: " + idMesa));
 
-        // 2. Atualiza os campos.
         mesaExistente.setNome(request.getNome());
         mesaExistente.setTipo(request.getTipo());
         mesaExistente.setCapacidade(request.getCapacidade());
         mesaExistente.setVip(request.isVip());
 
-        // 3. Salva as alterações.
         return mesaRepository.save(mesaExistente);
     }
-    
-    /**
-     * Deleta uma mesa pelo seu ID.
-     * @param idMesa O ID da mesa a ser deletada.
-     */
+
     public void deleteMesa(UUID idMesa) {
         if (!mesaRepository.existsById(idMesa)) {
             throw new EntityNotFoundException("Mesa não encontrada com o id: " + idMesa);
@@ -180,11 +152,6 @@ public class MesaService {
         mesaRepository.deleteById(idMesa);
     }
 
-    /**
-     * Busca todas as mesas de um ambiente.
-     * @param ambienteId ID do ambiente.
-     * @return Lista de mesas.
-     */
     public List<Mesa> getMesasByAmbiente(UUID ambienteId) {
         return mesaRepository.findByAmbienteId(ambienteId);
     }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import TavolaSoftware.TavolaApp.tools.MesaStatus;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -37,6 +39,9 @@ public class Mesa {
 
     @Column(name = "vip_mesa", nullable = false)
     private boolean vip;
+    
+    @OneToOne(mappedBy = "mesa", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private AtendimentoMesa atendimentoAtivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ambiente_id", nullable = false)
@@ -66,7 +71,7 @@ public class Mesa {
     public void setReservas(List<Reserva> reservas) { this.reservas = reservas; }
     public MesaStatus getStatus() { return status; }
     public void setStatus(MesaStatus status) { this.status = status;}
-	public String getNumero() {
-		return nome;
-	}
+	public String getNumero() {return nome;}
+	public AtendimentoMesa getAtendimentoAtivo() { return atendimentoAtivo; }
+    public void setAtendimentoAtivo(AtendimentoMesa atendimentoAtivo) { this.atendimentoAtivo = atendimentoAtivo; }
 }

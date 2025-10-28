@@ -73,10 +73,7 @@ public class PedidoController {
 		 * */
          try {
             PedidoResponse pedidoAtualizado = pedidoService.adicionarRemoverItensPedido(idPedido, request);
-             // Verifica se o pedido foi cancelado (e deletado) porque ficou sem itens
-             if (pedidoAtualizado.getStatus() == PedidoStatus.CANCELADO) {
-                 return ResponseEntity.noContent().build(); // Retorna 204 se foi cancelado/deletado
-             }
+             
             return ResponseEntity.ok(pedidoAtualizado);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));

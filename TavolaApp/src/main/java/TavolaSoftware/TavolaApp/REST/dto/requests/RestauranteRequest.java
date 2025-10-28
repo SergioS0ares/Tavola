@@ -13,18 +13,21 @@ public class RestauranteRequest {
     private String senhaUsuario;
     private Endereco enderecoUsuario;
     private String telefoneUsuario;
-    
+    private String imagemUsuario;
+    private String imagemPrincipal; // Imagem de fachada (Base64 ou nome do arquivo)
 
     // Campos específicos do Restaurante
     private String tipoCozinha;
     private String descricao;
-    private String imagemPrincipal; // Imagem de fachada (Base64 ou nome do arquivo)
     private List<String> imagens; // Galeria de imagens
     private List<HorarioFuncionamento> horariosFuncionamento;
     private Set<String> nomesServicos;
     private Integer limiteReservasDiarias;
 
     // Getters e Setters...
+    public String getImagemUsuario() {return imagemUsuario;}
+    public void setImagemUsuario(String img) {this.imagemUsuario = img;} 
+    
     public String getNomeUsuario() { return nomeUsuario; }
     public void setNomeUsuario(String nomeUsuario) { this.nomeUsuario = nomeUsuario; }
 

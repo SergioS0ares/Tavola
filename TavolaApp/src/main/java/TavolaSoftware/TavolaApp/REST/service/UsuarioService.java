@@ -59,8 +59,8 @@ public class UsuarioService {
                 uploadUtils.deletarArquivoPeloCaminho(urlAntiga);
             }
             // <<< CORREÇÃO AQUI >>>
-            String nomeArquivo = uploadUtils.processUsuarioImagem(request.getImagem());
-            usuario.setImagem(nomeArquivo); // Salva SÓ o nome
+            String urlCompleta = uploadUtils.processUsuarioImagem(request.getImagem());
+            usuario.setImagem(urlCompleta);
         } else if (request.getImagem() != null && request.getImagem().isBlank()) {
              if (usuario.getImagem() != null) {
                 String urlAntiga = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagem());
@@ -69,26 +69,27 @@ public class UsuarioService {
             usuario.setImagem(null);
         }
 
-        // Processa a imagem de background
         if (request.getImagemPrincipal() != null && uploadUtils.isBase64Image(request.getImagemPrincipal())) {
-             if (usuario.getImagemPrincipal() != null) {
-                // <<< CORREÇÃO AQUI >>>
-                String urlAntigaBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
-                uploadUtils.deletarArquivoPeloCaminho(urlAntigaBg);
-            }
-            // <<< CORREÇÃO AQUI >>>
-            String nomeArquivoBg = uploadUtils.processUsuarioImagem(request.getImagemPrincipal());
-            usuario.setImagemPrincipal(nomeArquivoBg); // Salva SÓ o nome
-        } else if (request.getImagemPrincipal() != null && request.getImagemPrincipal().isBlank()){
-             if (usuario.getImagemPrincipal() != null) {
-                String urlAntigaBg = uploadUtils.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
-                uploadUtils.deletarArquivoPeloCaminho(urlAntigaBg);
-            }
-            usuario.setImagemPrincipal(null);
-        }
+            if (usuario.getImagemPrincipal() != null) {
+               String urlAntigaBg = usuario.getImagemPrincipal(); // O BD já tem a URL completa
+               uploadUtils.deletarArquivoPeloCaminho(urlAntigaBg);
+           }
+           // `processUsuarioImagem` retorna a URL completa
+           String urlCompletaBg = uploadUtils.processUsuarioImagem(request.getImagemPrincipal());
+           
+           // ANTES: usuario.setImagemPrincipal(nomeArquivoBg); // Salva SÓ o nome
+           usuario.setImagemPrincipal(urlCompletaBg); // DEPOIS: Salva a URL completa
+           
+       } else if (request.getImagemPrincipal() != null && request.getImagemPrincipal().isBlank()){
+            if (usuario.getImagemPrincipal() != null) {
+               String urlAntigaBg = usuario.getImagemPrincipal(); // O BD já tem a URL completa
+               uploadUtils.deletarArquivoPeloCaminho(urlAntigaBg);
+           }
+           usuario.setImagemPrincipal(null);
+       }
 
-        return usuarioRepo.save(usuario);
-    }
+       return usuarioRepo.save(usuario);
+   }
 
     @Transactional
     public void deleteUserById(UUID id) {
