@@ -1,6 +1,7 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
 import TavolaSoftware.TavolaApp.REST.model.AtendimentoMesa;
+import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Garcom;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
 import TavolaSoftware.TavolaApp.REST.model.Pedido;
@@ -141,6 +142,23 @@ public class AtendimentoMesaService {
         // <<< MUDANÇA AQUI >>>
         // Atribui diretamente o Set de Garçons
         registro.setGarcons(garconsDosPedidos); 
+        
+     // <<< LÓGICA DO NOME DO CLIENTE >>>
+        // Tenta buscar o cliente do primeiro pedido
+        Cliente clienteDoPedido = pedidosDoAtendimento.stream()
+            .map(Pedido::getCliente)
+            .filter(c -> c != null)
+            .findFirst().orElse(null);
+            
+        if (clienteDoPedido != null) {
+            registro.setCliente(clienteDoPedido);
+            // Não precisamos do nome ocasional se temos o cliente real
+            registro.setNomeClienteOcasional(null); 
+        } else {
+            // Se não achou cliente nos pedidos, usa o nome ocasional do atendimento
+            registro.setCliente(null);
+            registro.setNomeClienteOcasional(atendimento.getNomeClienteOcasional()); // Copia o nome "Bundão"
+        }
 
         registroRepository.save(registro);
 

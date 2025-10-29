@@ -23,32 +23,40 @@ public class RegistroAtendimentoResponse {
     private List<String> nomesGarcons; // Lista de nomes
     private int totalPedidos; // Quantidade de pedidos
 
-    // Construtor (já existente)
     public RegistroAtendimentoResponse(RegistroAtendimento registro) {
         this.id = registro.getId();
         this.horaInicio = registro.getHoraInicio();
         this.horaFim = registro.getHoraFim();
-        this.valorTotal = registro.getValorTotal(); // <<< Atribuição do valor total
+        this.valorTotal = registro.getValorTotal();
 
         if (registro.getMesa() != null) {
             this.nomeMesa = registro.getMesa().getNome();
             this.mesaId = registro.getMesa().getId();
         }
 
+        // <<< LÓGICA DO NOME DO CLIENTE NO DTO >>>
         if (registro.getCliente() != null && registro.getCliente().getUsuario() != null) {
+            // Se tem Cliente E Usuario, usa o nome do Usuario
             this.nomeCliente = registro.getCliente().getUsuario().getNome();
+        } else if (registro.getNomeClienteOcasional() != null && !registro.getNomeClienteOcasional().isBlank()) {
+            // Senão, se tem nome ocasional, usa ele
+            this.nomeCliente = registro.getNomeClienteOcasional();
         } else {
+            // Senão, usa o padrão
             this.nomeCliente = "Não identificado";
         }
+        // <<< FIM DA LÓGICA DO NOME >>>
 
         if (registro.getGarcons() != null) {
-            this.nomesGarcons = registro.getGarcons().stream()
+            // ... (lógica dos nomes dos garçons - sem alteração) ...
+             this.nomesGarcons = registro.getGarcons().stream()
                 .map(Garcom::getNome)
                 .distinct()
                 .collect(Collectors.toList());
         }
 
         if (registro.getPedidos() != null) {
+            // ... (lógica do total de pedidos - sem alteração) ...
             this.totalPedidos = registro.getPedidos().size();
         }
     }

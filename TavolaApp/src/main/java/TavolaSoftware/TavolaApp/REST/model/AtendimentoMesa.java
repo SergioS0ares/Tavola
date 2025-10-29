@@ -1,56 +1,64 @@
 package TavolaSoftware.TavolaApp.REST.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Representa a sessão de atendimento ATIVA em uma mesa específica.
- * Registra quais garçons estão atualmente responsáveis ou interagindo com a mesa.
- * Substitui a necessidade dos status de Pedido AGUARDANDO_ATENDIMENTO e ATENDIMENTO.
- */
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 @Entity
 @Table(name = "atendimento_mesa")
 public class AtendimentoMesa {
 
+    // ... (id) ...
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Relação OneToOne: Uma mesa só pode ter UM atendimento ativo por vez.
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mesa_id", nullable = false, unique = true)
+    // <<< MUDANÇA AQUI: OneToOne -> ManyToOne >>>
+    @ManyToOne(fetch = FetchType.LAZY)
+    // <<< MUDANÇA AQUI: Remover unique = true >>>
+    @JoinColumn(name = "mesa_id", nullable = false) // unique = true REMOVIDO
     private Mesa mesa;
 
+    // ... (restaurante, garcons, ativo, horaInicio, horaFim - sem alterações) ...
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurante_id", nullable = false)
     private Restaurante restaurante;
-
-    /**
-     * Garçons que estão ATUALMENTE atendendo ou registraram interação
-     * com esta mesa nesta sessão.
-     */
+    
     @ManyToMany
     @JoinTable(
         name = "atendimento_mesa_garcons",
         joinColumns = @JoinColumn(name = "atendimento_id"),
         inverseJoinColumns = @JoinColumn(name = "garcom_id")
     )
-    private Set<Garcom> garcons = new HashSet<>(); //
+    private Set<Garcom> garcons = new HashSet<>(); 
 
     @Column(name = "ativo", nullable = false)
-    private boolean ativo = true; // Indica se a sessão de atendimento está em curso.
+    private boolean ativo = true; 
 
     @Column(name = "hora_inicio", nullable = false)
-    private LocalDateTime horaInicio; // Momento em que o atendimento começou (primeiro garçom/chamado)
+    private LocalDateTime horaInicio; 
 
-    // Hora de fim será preenchida quando a mesa for liberada (ativo=false)
     @Column(name = "hora_fim")
     private LocalDateTime horaFim;
+    
+ // <<< NOVO CAMPO >>>
+    @Column(name = "nome_cliente_ocasional")
+    private String nomeClienteOcasional; // Armazena o nome fornecido no balcão
 
-    // Getters e Setters
+    // Getters e Setters (sem alterações)
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public Mesa getMesa() { return mesa; }
@@ -65,4 +73,7 @@ public class AtendimentoMesa {
     public void setHoraInicio(LocalDateTime horaInicio) { this.horaInicio = horaInicio; }
     public LocalDateTime getHoraFim() { return horaFim; }
     public void setHoraFim(LocalDateTime horaFim) { this.horaFim = horaFim; }
+ // <<< GETTER/SETTER PARA O NOVO CAMPO >>>
+    public String getNomeClienteOcasional() { return nomeClienteOcasional; }
+    public void setNomeClienteOcasional(String nomeClienteOcasional) { this.nomeClienteOcasional = nomeClienteOcasional; }
 }
