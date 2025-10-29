@@ -31,6 +31,6 @@ export class CardapioService {
   }
 
   listarItensPublicos(idRestaurante: string) {
-    return this.http.get<IItemCardapio[]>(`${this.apiUrl}/restaurante/${idRestaurante}`);
+    return this.http.get<IItemCardapio[]>(`${this.apiUrl}/public/${idRestaurante}`);
   }
 }

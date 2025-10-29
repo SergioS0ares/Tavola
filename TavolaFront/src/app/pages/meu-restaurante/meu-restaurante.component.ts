@@ -327,7 +327,7 @@ export class MeuRestauranteComponent implements OnInit, OnDestroy {
     this.restauranteId = idRestaurante || null
 
     if (this.restauranteId) {
-      this.urlCardapioPublico = `${window.location.origin}/cardapio/${this.restauranteId}`
+      this.urlCardapioPublico = `${window.location.origin}/cardapio-publico/${this.restauranteId}`
       console.log('URL pública do cardápio:', this.urlCardapioPublico)
     } else {
       console.error("ID do Restaurante não encontrado para gerar QR Code.")
