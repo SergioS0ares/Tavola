@@ -27,16 +27,15 @@ import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.service.CardapioService;
 import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
 import TavolaSoftware.TavolaApp.tools.ResponseExceptionHandler;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 @RestController
 @RequestMapping("/auth/cardapios")
 public class CardapioController {
 
-    @Autowired
-    private CardapioService serv;
-
-    @Autowired
-    private RestauranteService restauranteServ;
+    @Autowired private CardapioService serv; 
+    @Autowired private RestauranteService restauranteServ;
+    @Autowired private UploadUtils uplUtil;
 
 
     // GET - self
@@ -89,11 +88,13 @@ public class CardapioController {
         List<CardapioResponse> cardapioResponseList = cardapiosDisponiveis.stream()
                                                             .map(CardapioResponse::new)
                                                             .collect(Collectors.toList());
-                                                    
+
+        String urlImagemUsuario = uplUtil.construirUrlRelativa("usuarios", restaurante.getUsuario().getImagem());
+        
         // 5. Montamos a resposta final no formato que o Sérgio pediu.
         PublicCardapioResponse response = new PublicCardapioResponse(
             restaurante.getUsuario().getNome(),
-            restaurante.getUsuario().getImagem(),
+            urlImagemUsuario,
             cardapioResponseList
         );
 

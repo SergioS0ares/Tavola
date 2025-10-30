@@ -50,6 +50,7 @@ import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.REST.service.AccessService;
 import TavolaSoftware.TavolaApp.REST.service.TrustTokenService;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -66,6 +67,7 @@ public class AccessController {
     @Autowired private AccessService accessService;
     @Autowired private ServicoRepository repoServico;
     @Autowired private TrustTokenService rememberMeService;
+    @Autowired private UploadUtils uplUtil; // <<< INJETAR O UPLOADUTILS
 
     // Constantes e ferramentas para o gerenciamento do cookie de confiança
     private static final String TRUST_COOKIE_NAME = "tavolaTrusts";
@@ -349,6 +351,9 @@ public class AccessController {
             .maxAge(30 * 24 * 60 * 60)
             .sameSite("Lax")
             .build();
+        
+        String urlImagemPerfil = uplUtil.construirUrlRelativa("usuarios", usuario.getImagem());
+        String urlImagemPrincipal = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
 
         LoginResponse loginResponse = new LoginResponse(
             accessToken,
@@ -356,8 +361,10 @@ public class AccessController {
             usuario.getTipo().toString(),
             usuario.getId(),
             usuario.getEmail(),
-            usuario.getImagem(),
-            usuario.getImagemPrincipal()
+            // ANTES: usuario.getImagem()
+            urlImagemPerfil, // DEPOIS
+            // ANTES: usuario.getImagemPrincipal()
+            urlImagemPrincipal // DEPOIS
         );
 
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()

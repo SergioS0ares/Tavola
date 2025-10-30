@@ -15,6 +15,9 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "data_hora_pedido", nullable = false)
+    private LocalDateTime dataHora;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mesa_id", nullable = false)
     private Mesa mesa;
@@ -34,9 +37,9 @@ public class Pedido {
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedido> itens = new ArrayList<>();
-
-    @Column(name = "data_hora_pedido", nullable = false)
-    private LocalDateTime dataHora;
+    
+    @ManyToMany(mappedBy = "pedidos")
+    private List<RegistroAtendimento> registrosDeAtendimento;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status_pedido", nullable = false)
@@ -59,4 +62,6 @@ public class Pedido {
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
     public PedidoStatus getStatus() { return status; }
     public void setStatus(PedidoStatus status) { this.status = status; }
+    public List<RegistroAtendimento> getRegistrosDeAtendimento() { return registrosDeAtendimento; }
+    public void setRegistrosDeAtendimento(List<RegistroAtendimento> registrosDeAtendimento) { this.registrosDeAtendimento = registrosDeAtendimento; }
 }

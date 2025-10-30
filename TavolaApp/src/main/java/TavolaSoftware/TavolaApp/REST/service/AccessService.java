@@ -22,6 +22,7 @@ import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.TipoUsuario;
+import TavolaSoftware.TavolaApp.tools.UploadUtils;
 
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
@@ -32,26 +33,14 @@ import java.util.UUID;
 @Service
 public class AccessService {
 
-    @Autowired
-    private JavaMailSender mailSender;
-    
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-    
-    @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-    
-    @Autowired
-    private RestauranteRepository repoRestaurante;
-    
-    @Autowired
-    private GarcomRepository repoGarcom;
-    
-    @Autowired
-    private JwtUtil jwt;
+    @Autowired private JavaMailSender mailSender;    
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private BCryptPasswordEncoder passwordEncoder;    
+    @Autowired private PasswordResetTokenRepository passwordResetTokenRepository;    
+    @Autowired private RestauranteRepository repoRestaurante;    
+    @Autowired private GarcomRepository repoGarcom;    
+    @Autowired private JwtUtil jwt;
+    @Autowired private UploadUtils uplUtil; // <<< INJETAR O UPLOADUTILS
     
     @Value("${spring.mail.username}")
     private String emailRemetente;
@@ -86,6 +75,8 @@ public class AccessService {
                 garcom.getId(),
                 restaurante.getId()
         );
+        
+        String urlImagemGarcom = uplUtil.construirUrlRelativa("garcons", garcom.getImagem());
 
         // Retorna o token, nome do garçom e tipo FUNCIONARIO
         return new LoginResponse(
@@ -94,7 +85,7 @@ public class AccessService {
             TipoUsuario.FUNCIONARIO.toString(),
             garcom.getId(),
             restaurante.getEmail(), // E-mail de referência é o do restaurante
-            garcom.getImagem(),
+            urlImagemGarcom,
             null // Background
         );
     }

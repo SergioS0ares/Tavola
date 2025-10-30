@@ -51,9 +51,12 @@ public class CardapioService {
         // Processa a imagem (Base64) e salva SÓ o filename
         if (cardapio.getImagem() != null && uplUtil.isBase64Image(cardapio.getImagem())) {
             try {
-                // <<< CORREÇÃO AQUI >>>
-                String nomeArquivo = uplUtil.processCardapioImagem(cardapio.getImagem());
-                cardapio.setImagem(nomeArquivo); // Salva SÓ o nome do arquivo
+                // `processCardapioImagem` retorna a URL completa
+                String urlCompleta = uplUtil.processCardapioImagem(cardapio.getImagem());
+                
+                // ANTES: cardapio.setImagem(nomeArquivo); // Salva SÓ o nome do arquivo
+                cardapio.setImagem(urlCompleta); // DEPOIS: Salva a URL completa
+                
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao salvar imagem de cardápio", e);
             }
@@ -64,18 +67,7 @@ public class CardapioService {
 
         return repo.save(cardapio);
     }
-
-    @Transactional
-    public List<Cardapio> saveMultiple(List<Cardapio> cardapios, Restaurante restaurante) {
-        // Lógica sem alterações, pois chama o 'save' individual
-        List<Cardapio> salvos = new ArrayList<>();
-        for (Cardapio cardapio : cardapios) {
-            Cardapio salvo = this.save(cardapio, restaurante);
-            salvos.add(salvo);
-        }
-        return salvos;
-    }
-
+    
     public List<Cardapio> findAllByDisponivel(UUID restauranteId) {
         return repo.findAllDisponiveisByRestaurante(restauranteId);
     }
@@ -124,20 +116,20 @@ public class CardapioService {
         // Atualiza a imagem (se enviada como Base64)
         if (dadosParaAtualizar.getImagem() != null && uplUtil.isBase64Image(dadosParaAtualizar.getImagem())) {
             try {
-                // Deleta a imagem antiga (se existir) usando o nome do arquivo
                 if (cardapioExistente.getImagem() != null && !cardapioExistente.getImagem().isBlank()) {
-                    // <<< CORREÇÃO AQUI >>>
-                    String urlAntiga = uplUtil.construirUrlRelativa("cardapios", cardapioExistente.getImagem());
+                    // Está correto, pois o BD (idealmente) tem a URL
+                    String urlAntiga = cardapioExistente.getImagem();
                     uplUtil.deletarArquivoPeloCaminho(urlAntiga);
                 }
 
-                // Processa a nova imagem e salva SÓ o filename
-                // <<< CORREÇÃO AQUI >>>
-                String nomeNovoArquivo = uplUtil.processCardapioImagem(dadosParaAtualizar.getImagem());
-                cardapioExistente.setImagem(nomeNovoArquivo); // Salva só o nome
+                // `processCardapioImagem` retorna a URL completa
+                String urlNovaCompleta = uplUtil.processCardapioImagem(dadosParaAtualizar.getImagem());
+                
+                // ANTES: cardapioExistente.setImagem(nomeNovoArquivo); // Salva só o nome
+                cardapioExistente.setImagem(urlNovaCompleta); // DEPOIS: Salva a URL completa
 
             } catch (IOException e) {
-                throw new RuntimeException("Erro ao processar a nova imagem do cardápio: " + e.getMessage(), e);
+                throw new RuntimeException("Erro ao processar a nova imagem do cardápio: " + e.getMessage());
             }
         } else if (dadosParaAtualizar.getImagem() != null && dadosParaAtualizar.getImagem().isBlank()) {
             // Se enviou string vazia, remove a imagem existente
