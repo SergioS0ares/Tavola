@@ -159,15 +159,15 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
 }
 
 .filtros-btn {
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 15px;
+  background: #f8f9fa;
+  color: #495057;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
   padding: 0 16px;
   height: 44px;
   margin: 0;
   font-size: 1.05rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   transition: all 0.2s ease;
   cursor: pointer;
   outline: none;
@@ -178,21 +178,28 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
   gap: 6px;
 
   &:hover, &:focus {
-    background: #5a6268;
-    color: white;
+    background: #e9ecef;
+    border-color: #c22523;
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    box-shadow: 0 4px 12px rgba(194, 37, 35, 0.2);
+    
+    mat-icon {
+      color: #c22523;
+    }
   }
 
   mat-icon {
     font-size: 18px;
     width: 18px;
     height: 18px;
+    color: #495057;
+    transition: color 0.2s ease;
   }
 
   .btn-text {
     font-size: 12px;
     font-weight: 600;
+    color: #495057;
   }
 }
 
@@ -373,14 +380,28 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
     }
   }
   
-  // Gray filter button
+  // Filter button - estilo layout-principal
   .filtros-btn {
-    background: #6c757d;
-    color: white;
+    background: #f8f9fa;
+    color: #495057;
+    border: 2px solid #e9ecef;
+    
+    mat-icon {
+      color: #495057;
+    }
+    
+    .btn-text {
+      color: #495057;
+    }
     
     &:hover, &:active {
-      background: #5a6268;
-      box-shadow: 0 6px 16px rgba(108, 117, 125, 0.4);
+      background: #e9ecef;
+      border-color: #c22523;
+      box-shadow: 0 6px 16px rgba(194, 37, 35, 0.3);
+      
+      mat-icon {
+        color: #c22523;
+      }
     }
   }
   
