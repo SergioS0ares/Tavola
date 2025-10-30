@@ -1,19 +1,16 @@
 package TavolaSoftware.TavolaApp.REST.dto.requests;
 
-public class StatusUpdateRequest {
-
-    private String novoStatus;
+/**
+ * DTO para definir ou atualizar o nome do cliente (não cadastrado)
+ * associado a um atendimento de mesa ativo.
+ */
+// <<< CLASSE RENOMEADA >>> (Era ClienteOcasionalRequest)
+public class NomeClienteRequest {
     
-    // <<< RENOMEADO >>>
+    // <<< CAMPO RENOMEADO >>>
     private String nomeCliente; // Era nomeClienteOcasional
 
     // Getters e Setters
-    public String getNovoStatus() {
-        return novoStatus;
-    }
-    public void setNovoStatus(String novoStatus) {
-        this.novoStatus = novoStatus;
-    }
     // <<< RENOMEADO >>>
     public String getNomeCliente() { // Era getNomeClienteOcasional
         return nomeCliente;

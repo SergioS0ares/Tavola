@@ -1,5 +1,17 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import TavolaSoftware.TavolaApp.REST.model.AtendimentoMesa;
 import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Garcom;
@@ -14,18 +26,6 @@ import TavolaSoftware.TavolaApp.REST.repository.RegistroAtendimentoRepository;
 import TavolaSoftware.TavolaApp.tools.MesaStatus;
 import TavolaSoftware.TavolaApp.tools.PedidoStatus;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class AtendimentoMesaService {
@@ -38,25 +38,22 @@ public class AtendimentoMesaService {
 
     /**
      * Garçom registra que está iniciando o atendimento em uma mesa.
-     * Cria um novo AtendimentoMesa se não existir um ativo, ou adiciona o garçom a um existente.
-     * Garante que a mesa seja marcada como OCUPADA.
+     * (Método sem alterações)
      */
     @Transactional
     public AtendimentoMesa iniciarAtendimento(UUID mesaId, UUID garcomId) {
+        // ... (lógica existente de iniciarAtendimento)
         Mesa mesa = mesaRepository.findById(mesaId)
                 .orElseThrow(() -> new EntityNotFoundException("Mesa não encontrada: " + mesaId));
         Garcom garcom = garcomRepository.findById(garcomId)
                 .orElseThrow(() -> new EntityNotFoundException("Garçom não encontrado: " + garcomId));
 
-        // Validação de Segurança
         if (!mesa.getAmbiente().getRestaurante().getId().equals(garcom.getRestaurante().getId())) {
             throw new SecurityException("Acesso negado. O garçom não pertence ao restaurante desta mesa.");
         }
         
-        // Verifica se já existe um atendimento ativo para esta mesa
         AtendimentoMesa atendimento = atendimentoRepository.findAtendimentoAtivoByMesaId(mesaId)
                 .orElseGet(() -> {
-                    // Se não existe, cria um novo
                     AtendimentoMesa novoAtendimento = new AtendimentoMesa();
                     novoAtendimento.setMesa(mesa);
                     novoAtendimento.setRestaurante(mesa.getAmbiente().getRestaurante());
@@ -65,14 +62,10 @@ public class AtendimentoMesaService {
                     return novoAtendimento;
                 });
 
-        // Adiciona o garçom à lista (Set garante que não haverá duplicados)
         atendimento.getGarcons().add(garcom);
         
-        // Garante que a mesa está marcada como ocupada
         if (mesa.getStatus() != MesaStatus.OCUPADA) {
             mesa.setStatus(MesaStatus.OCUPADA);
-            // Idealmente, o MesaService.updateStatus seria chamado aqui para disparar o WebSocket,
-            // mas para simplificar, atualizamos diretamente. Considere refatorar depois.
             mesaRepository.save(mesa); 
         }
 
@@ -81,8 +74,7 @@ public class AtendimentoMesaService {
 
     /**
      * Finaliza a sessão de atendimento ativa de uma mesa.
-     * Marca o AtendimentoMesa como inativo, calcula totais, cria o RegistroAtendimento (histórico).
-     * ESTE MÉTODO SERÁ CHAMADO QUANDO A MESA FOR MARCADA COMO 'LIVRE'.
+     * (Método ATUALIZADO para usar nomeCliente)
      */
     @Transactional
     public void finalizarAtendimento(Mesa mesa) {
@@ -90,7 +82,7 @@ public class AtendimentoMesaService {
                 .orElse(null); 
 
         if (atendimento == null || !atendimento.isAtivo()) {
-            // ... (código para garantir mesa LIVRE) ...
+            // ... (código de fallback para garantir mesa LIVRE) ...
             System.out.println("Nenhum atendimento ativo encontrado para finalizar na mesa: " + mesa.getId());
             if(mesa.getStatus() != MesaStatus.LIVRE) {
                 mesa.setStatus(MesaStatus.LIVRE);
@@ -99,52 +91,38 @@ public class AtendimentoMesaService {
             return; 
         }
 
-        // 1. Marca o atendimento como inativo
+        // 1. Marca o atendimento como inativo (sem alterações)
         atendimento.setAtivo(false);
         atendimento.setHoraFim(LocalDateTime.now());
         atendimentoRepository.save(atendimento);
 
-        // 2. Coleta os dados para o RegistroAtendimento
+        // 2. Coleta os dados (sem alterações)
         LocalDateTime inicio = atendimento.getHoraInicio();
         LocalDateTime fim = atendimento.getHoraFim();
-
-        // Busca pedidos (retorna List)
         List<Pedido> pedidosDoAtendimento = pedidoRepository.findByMesaIdAndDataHoraBetweenAndStatusIn(
                 mesa.getId(), inicio, fim, Set.of(PedidoStatus.ENTREGUE) 
         );
-
-        // Calcula valor total (sem alterações)
         double valorTotal = pedidosDoAtendimento.stream()
             .flatMap(p -> p.getItens().stream())
             .mapToDouble(item -> item.getPrecoUnitario() * item.getQuantidade())
             .sum();
-
-        // Coleta garçons (retorna Set)
         Set<Garcom> garconsDosPedidos = pedidosDoAtendimento.stream()
                 .map(Pedido::getGarcom)
                 .collect(Collectors.toSet());
-        garconsDosPedidos.addAll(atendimento.getGarcons()); // Adiciona os do atendimento ativo
+        garconsDosPedidos.addAll(atendimento.getGarcons());
 
-        // 3. Cria o RegistroAtendimento
+        // 3. Cria o RegistroAtendimento (sem alterações)
         RegistroAtendimento registro = new RegistroAtendimento();
-        // ... (setRestaurante, setMesa, setCliente, setHoraInicio, setHoraFim, setValorTotal - sem alterações) ...
         registro.setRestaurante(atendimento.getRestaurante());
         registro.setMesa(mesa);
         registro.setCliente(pedidosDoAtendimento.stream().map(Pedido::getCliente).filter(c -> c != null).findFirst().orElse(null));
         registro.setHoraInicio(inicio);
         registro.setHoraFim(fim);
         registro.setValorTotal(valorTotal);
-
-        // <<< MUDANÇA AQUI >>>
-        // Converte a List de Pedidos para um Set antes de atribuir
         registro.setPedidos(new HashSet<>(pedidosDoAtendimento)); 
-        
-        // <<< MUDANÇA AQUI >>>
-        // Atribui diretamente o Set de Garçons
         registro.setGarcons(garconsDosPedidos); 
         
-     // <<< LÓGICA DO NOME DO CLIENTE >>>
-        // Tenta buscar o cliente do primeiro pedido
+        // <<< LÓGICA DO NOME DO CLIENTE ATUALIZADA >>>
         Cliente clienteDoPedido = pedidosDoAtendimento.stream()
             .map(Pedido::getCliente)
             .filter(c -> c != null)
@@ -152,31 +130,46 @@ public class AtendimentoMesaService {
             
         if (clienteDoPedido != null) {
             registro.setCliente(clienteDoPedido);
-            // Não precisamos do nome ocasional se temos o cliente real
-            registro.setNomeClienteOcasional(null); 
+            // ANTES: registro.setNomeClienteOcasional(null);
+            registro.setNomeCliente(null); // DEPOIS
         } else {
-            // Se não achou cliente nos pedidos, usa o nome ocasional do atendimento
             registro.setCliente(null);
-            registro.setNomeClienteOcasional(atendimento.getNomeClienteOcasional()); // Copia o nome "Bundão"
+            // ANTES: registro.setNomeClienteOcasional(atendimento.getNomeClienteOcasional());
+            registro.setNomeCliente(atendimento.getNomeCliente()); // DEPOIS
         }
+        // <<< FIM DA ATUALIZAÇÃO >>>
 
         registroRepository.save(registro);
 
-        // ... (restante do método) ...
         System.out.println("Atendimento finalizado e registro criado para mesa: " + mesa.getId());
     }
 
     /**
      * Busca o AtendimentoMesa ativo para uma dada mesa.
-     * Útil para verificar se uma mesa está sendo atendida.
+     * (Método sem alterações)
      */
     @Transactional(readOnly = true)
     public Optional<AtendimentoMesa> getAtendimentoAtivo(UUID mesaId) {
         return atendimentoRepository.findAtendimentoAtivoByMesaId(mesaId);
     }
+    
+    // <<< NOVO MÉTODO (Opção C) >>>
+    @Transactional
+    public AtendimentoMesa definirNomeCliente(UUID mesaId, String nomeCliente, UUID restauranteId) {
+        
+        // 1. Busca o atendimento ATIVO
+        AtendimentoMesa atendimento = atendimentoRepository.findAtendimentoAtivoByMesaId(mesaId)
+                .orElseThrow(() -> new EntityNotFoundException("Nenhum atendimento ativo encontrado para a mesa: " + mesaId));
+
+        // 2. Validação de Segurança
+        if (!atendimento.getRestaurante().getId().equals(restauranteId)) {
+            throw new SecurityException("Acesso negado. O atendimento não pertence a este restaurante.");
+        }
+
+        // 3. Define o nome
+        atendimento.setNomeCliente(nomeCliente);
+        return atendimentoRepository.save(atendimento);
+    }
 }
 
-// TODO: Adicionar método para remover um garçom específico do atendimento (se necessário)
-// TODO: Integrar a chamada a finalizarAtendimento() no MesaService.updateStatus quando status for LIVRE.
-// TODO: Rever a lógica de criação de Pedido para talvez exigir um AtendimentoMesa ativo.
-// TODO: Como o "chamado" (cliente chama garçom) funciona agora? Cria um AtendimentoMesa sem garçons? Ou notifica via WebSocket?
+// TODOs removidos conforme instruções

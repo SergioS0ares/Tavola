@@ -42,10 +42,9 @@ public class RegistroAtendimento {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
-    
- // <<< NOVO CAMPO >>>
-    @Column(name = "nome_cliente_ocasional")
-    private String nomeClienteOcasional; // Guarda o nome se 'cliente' for nulo
+
+    @Column(name = "nome_cliente") // Era nome_cliente_ocasional
+    private String nomeCliente; // Guarda o nome se 'cliente' for nulo
 
     @Column(name = "hora_inicio", nullable = false)
     private LocalDateTime horaInicio; //
@@ -96,8 +95,8 @@ public class RegistroAtendimento {
     // <<< GETTER/SETTER ATUALIZADO >>>
     public Set<Garcom> getGarcons() { return garcons; }
     public void setGarcons(Set<Garcom> garcons) { this.garcons = garcons; }
-    
- // <<< GETTER/SETTER PARA O NOVO CAMPO >>>
-    public String getNomeClienteOcasional() { return nomeClienteOcasional; }
-    public void setNomeClienteOcasional(String nomeClienteOcasional) { this.nomeClienteOcasional = nomeClienteOcasional; }
+
+    // <<< GETTER/SETTER RENOMEADO >>>
+    public String getNomeCliente() { return nomeCliente; }
+    public void setNomeCliente(String nomeCliente) { this.nomeCliente = nomeCliente; }
 }

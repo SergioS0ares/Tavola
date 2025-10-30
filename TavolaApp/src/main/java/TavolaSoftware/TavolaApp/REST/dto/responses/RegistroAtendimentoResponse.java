@@ -34,21 +34,19 @@ public class RegistroAtendimentoResponse {
             this.mesaId = registro.getMesa().getId();
         }
 
-        // <<< LÓGICA DO NOME DO CLIENTE NO DTO >>>
+        // <<< LÓGICA DO NOME DO CLIENTE ATUALIZADA >>>
         if (registro.getCliente() != null && registro.getCliente().getUsuario() != null) {
-            // Se tem Cliente E Usuario, usa o nome do Usuario
             this.nomeCliente = registro.getCliente().getUsuario().getNome();
-        } else if (registro.getNomeClienteOcasional() != null && !registro.getNomeClienteOcasional().isBlank()) {
-            // Senão, se tem nome ocasional, usa ele
-            this.nomeCliente = registro.getNomeClienteOcasional();
+        // ANTES: } else if (registro.getNomeClienteOcasional() != null && !registro.getNomeClienteOcasional().isBlank()) {
+        } else if (registro.getNomeCliente() != null && !registro.getNomeCliente().isBlank()) { // DEPOIS
+            // ANTES: this.nomeCliente = registro.getNomeClienteOcasional();
+            this.nomeCliente = registro.getNomeCliente(); // DEPOIS
         } else {
-            // Senão, usa o padrão
             this.nomeCliente = "Não identificado";
         }
         // <<< FIM DA LÓGICA DO NOME >>>
 
         if (registro.getGarcons() != null) {
-            // ... (lógica dos nomes dos garçons - sem alteração) ...
              this.nomesGarcons = registro.getGarcons().stream()
                 .map(Garcom::getNome)
                 .distinct()
@@ -56,12 +54,11 @@ public class RegistroAtendimentoResponse {
         }
 
         if (registro.getPedidos() != null) {
-            // ... (lógica do total de pedidos - sem alteração) ...
             this.totalPedidos = registro.getPedidos().size();
         }
     }
 
-    // --- GETTERS E SETTERS GERADOS ---
+    // --- GETTERS E SETTERS (Sem alterações, já estavam corretos) ---
 
     public UUID getId() {return id;}
     public void setId(UUID id) {this.id = id;}

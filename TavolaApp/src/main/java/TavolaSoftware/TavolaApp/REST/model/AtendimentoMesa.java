@@ -54,9 +54,8 @@ public class AtendimentoMesa {
     @Column(name = "hora_fim")
     private LocalDateTime horaFim;
     
- // <<< NOVO CAMPO >>>
-    @Column(name = "nome_cliente_ocasional")
-    private String nomeClienteOcasional; // Armazena o nome fornecido no balcão
+    @Column(name = "nome_cliente") // Era nome_cliente_ocasional
+    private String nomeCliente; // Armazena o nome fornecido (se não houver Cliente associado)
 
     // Getters e Setters (sem alterações)
     public UUID getId() { return id; }
@@ -73,7 +72,6 @@ public class AtendimentoMesa {
     public void setHoraInicio(LocalDateTime horaInicio) { this.horaInicio = horaInicio; }
     public LocalDateTime getHoraFim() { return horaFim; }
     public void setHoraFim(LocalDateTime horaFim) { this.horaFim = horaFim; }
- // <<< GETTER/SETTER PARA O NOVO CAMPO >>>
-    public String getNomeClienteOcasional() { return nomeClienteOcasional; }
-    public void setNomeClienteOcasional(String nomeClienteOcasional) { this.nomeClienteOcasional = nomeClienteOcasional; }
+    public String getNomeCliente() { return nomeCliente; }
+    public void setNomeCliente(String nomeCliente) { this.nomeCliente = nomeCliente; }
 }
