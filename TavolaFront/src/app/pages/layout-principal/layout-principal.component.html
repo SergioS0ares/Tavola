@@ -212,9 +212,9 @@
           </nz-badge>
         </button>
       
-        <mat-menu #menuNotificacoes="matMenu" class="notification-dropdown">
-          <div class="dropdown-header" (click)="$event.stopPropagation();">
-            <div class="header-content">
+        <mat-menu #menuNotificacoes="matMenu">
+          <div  (click)="$event.stopPropagation();">
+            <div >
               <div class="header-icon">
                 <mat-icon>notifications</mat-icon>
               </div>

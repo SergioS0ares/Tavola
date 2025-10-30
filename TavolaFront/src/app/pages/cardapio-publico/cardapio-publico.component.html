@@ -1,7 +1,10 @@
 <div class="cardapio-publico-container">
   <div class="header-publico">
     <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo-img">
-    <h1 class="page-title">{{ nomeRestaurante }}</h1>
+    <div class="restaurante-header-info">
+      <img *ngIf="imagemRestaurante" [src]="imagemRestaurante" [alt]="nomeRestaurante" class="restaurante-img">
+      <h1 class="page-title">{{ nomeRestaurante }}</h1>
+    </div>
   </div>
 
   <div *ngIf="isLoading" class="loading-spinner">

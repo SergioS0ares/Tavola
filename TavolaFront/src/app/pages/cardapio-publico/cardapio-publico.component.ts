@@ -26,6 +26,12 @@ interface CategoriaComItens {
   itens: ItemCardapioPublico[];
 }
 
+interface CardapioPublicoResponse {
+  nomeRestaurante: string;
+  imagemRestaurante?: string;
+  cardapio: ItemCardapioPublico[];
+}
+
 @Component({
   selector: 'app-cardapio-publico',
   standalone: true,
@@ -52,6 +58,7 @@ export class CardapioPublicoComponent implements OnInit {
   isLoading = true;
   hasError = false;
   nomeRestaurante: string = 'Cardápio';
+  imagemRestaurante: string | null = null;
 
   ngOnInit(): void {
     window.scrollTo(0, 0);
@@ -70,12 +77,18 @@ export class CardapioPublicoComponent implements OnInit {
     this.hasError = false;
     this.cardapioService.listarItensPublicos(this.restauranteId!)
       .subscribe({
-        next: (itens) => {
-          this.itensMenu = itens.map(item => ({
+        next: (response) => {
+          this.nomeRestaurante = response.nomeRestaurante || 'Cardápio';
+          this.imagemRestaurante = response.imagemRestaurante 
+            ? this.getImagemCompleta(`/upl/restaurantes/${response.imagemRestaurante}`)
+            : null;
+          
+          this.itensMenu = (response.cardapio || []).map(item => ({
             ...item,
+            categoria: typeof item.categoria === 'string' ? item.categoria : (item.categoria as any)?.nome || 'Outros',
             tags: this.processarTags(item.tags),
             imagem: this.getImagemCompleta(item.imagem)
-          }));
+          } as ItemCardapioPublico));
           this.agruparPorCategoria();
           this.isLoading = false;
         },

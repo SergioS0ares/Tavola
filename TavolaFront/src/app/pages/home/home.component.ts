@@ -237,13 +237,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const termoBusca = this.queryCtrl.value?.trim();
 
     // Monta o payload com os filtros
+    const notaMinimaParaEnvio = (this.filtrosAtuais.notaMinima ?? 0).toString();
+    console.log('Montando payload de pesquisa - filtrosAtuais:', this.filtrosAtuais);
+    console.log('notaMinima para envio:', notaMinimaParaEnvio);
+    
     const payload: IPesquisaRestaurantePayload = {
       termo: termoBusca || '',
       cidade: cidadeBusca || '',
       diaSemana: this.filtrosAtuais.diaSemana,
-      notaMinima: this.filtrosAtuais.notaMinima.toString(),
+      notaMinima: notaMinimaParaEnvio,
       servicos: this.filtrosAtuais.servicos
     };
+    
+    console.log('Payload completo:', payload);
 
     this.restauranteService.pesquisarRestaurantes(payload).subscribe({
       next: (restaurantes: IRestaurante[]) => {
@@ -398,9 +404,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result: FiltrosDialogResult | null) => {
       if (result) {
-        this.filtrosAtuais = result;
-        console.log('Filtros aplicados:', this.filtrosAtuais);
+        console.log('Resultado recebido do dialog:', result);
+        this.filtrosAtuais = {
+          diaSemana: result.diaSemana,
+          notaMinima: result.notaMinima ?? 0, // Garante que seja número
+          servicos: result.servicos || []
+        };
+        console.log('Filtros aplicados (após processar):', this.filtrosAtuais);
         this.toastr.success('Filtros aplicados com sucesso!');
+      } else {
+        console.log('Dialog fechado sem aplicar filtros');
       }
     });
   }

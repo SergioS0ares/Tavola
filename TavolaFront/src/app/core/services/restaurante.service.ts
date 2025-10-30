@@ -24,9 +24,8 @@ export class RestauranteService {
   public allCuisines$: Observable<string[]> = this._allCuisines.asObservable();
 
   constructor() {
-    // Initial fetch of restaurants to populate subjects
-    // This ensures data is loaded when the service is instantiated
-    this.getRestaurantes().subscribe(); 
+    // Removed automatic fetch to avoid duplicate requests
+    // The home component will trigger the initial fetch when needed
   }
 
   // Helper to process restaurant data and update subjects

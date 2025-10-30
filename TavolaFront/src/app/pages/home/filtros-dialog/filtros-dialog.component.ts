@@ -48,7 +48,9 @@ export interface FiltrosDialogResult {
 })
 export class FiltrosDialogComponent implements OnInit {
   filtrosForm!: FormGroup;
-  notaMinima = 0;
+  
+  // NOVA PROPRIEDADE SIMPLES para o ngModel
+  notaMinimaAtual: number = 0;
 
   diasSemana = [
     { value: '', label: 'Qualquer dia' },
@@ -86,16 +88,25 @@ export class FiltrosDialogComponent implements OnInit {
   }
 
   inicializarFormulario(): void {
+    // Garante que notaMinima seja um número válido
+    const notaMinimaInicial = this.data?.notaMinima ?? 0;
+    const notaMinimaNumero = typeof notaMinimaInicial === 'number' ? notaMinimaInicial : Number(notaMinimaInicial) || 0;
+
+    // Cria o form, mas NÃO inclui notaMinima nele diretamente para ngModel
     this.filtrosForm = this.fb.group({
       diaSemana: [this.data?.diaSemana || ''],
       servicos: [this.data?.servicos || []]
     });
 
-    this.notaMinima = this.data?.notaMinima || 0;
+    // Define a propriedade separada para o [(ngModel)]
+    this.notaMinimaAtual = notaMinimaNumero;
+    console.log('Formulário inicializado - notaMinimaAtual:', this.notaMinimaAtual);
   }
 
-  onRateChange(value: number): void {
-    this.notaMinima = value;
+  onNotaChange(value: number): void {
+    console.log('NOTA MUDOU! Novo valor:', value);
+    // O [(ngModel)] já atualiza notaMinimaAtual automaticamente
+    // Este método é apenas para debug
   }
 
   onServicoChange(servico: string, isChecked: boolean): void {
@@ -121,21 +132,30 @@ export class FiltrosDialogComponent implements OnInit {
   }
 
   aplicarFiltros(): void {
+    // Lê o valor diretamente da propriedade ligada ao ngModel
+    const notaMinimaFinal = typeof this.notaMinimaAtual === 'number' ? this.notaMinimaAtual : 0;
+    
+    console.log('Aplicar filtros - notaMinimaAtual:', this.notaMinimaAtual);
+    
     const result: FiltrosDialogResult = {
       diaSemana: this.filtrosForm.get('diaSemana')?.value || '',
-      notaMinima: this.notaMinima,
+      notaMinima: notaMinimaFinal, // Usa o valor da propriedade simples
       servicos: this.filtrosForm.get('servicos')?.value || []
     };
     
+    console.log('Resultado final a ser retornado:', result);
     this.dialogRef.close(result);
   }
 
   limparFiltros(): void {
+    // Reseta a propriedade do ngModel
+    this.notaMinimaAtual = 0;
+    // Reseta o form (sem notaMinima)
     this.filtrosForm.reset({
       diaSemana: '',
       servicos: []
     });
-    this.notaMinima = 0;
+    console.log('Filtros limpos - notaMinimaAtual resetado para 0');
   }
 
   cancelar(): void {

@@ -30,7 +30,15 @@ export class CardapioService {
     return this.http.get<IItemCardapio[]>(`${this.apiUrl}/disponiveis/${idRestaurante}`);
   }
 
-  listarItensPublicos(idRestaurante: string) {
-    return this.http.get<IItemCardapio[]>(`${this.apiUrl}/public/${idRestaurante}`);
+  listarItensPublicos(idRestaurante: string): Observable<{
+    nomeRestaurante: string;
+    imagemRestaurante?: string;
+    cardapio: IItemCardapio[];
+  }> {
+    return this.http.get<{
+      nomeRestaurante: string;
+      imagemRestaurante?: string;
+      cardapio: IItemCardapio[];
+    }>(`${this.apiUrl}/public/${idRestaurante}`);
   }
 }

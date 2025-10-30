@@ -18,6 +18,7 @@ export interface IRestaurante {
   imagemPrincipal?: string;
   imagemUsuario?: string;
   mediaAvaliacao: number;
+  notaMinima: number;
   totalDeAvaliacoes: number;
   horariosFuncionamento?: { diaSemana: string; abertura: string; fechamento: string }[];
   servicos?: string[];

@@ -411,7 +411,7 @@ export class LayoutPrincipalComponent implements OnInit {
 
     const dialogRef = this.dialog.open(AvaliacaoDialogComponent, {
       data: dialogData,
-      width: "600px",
+      width: "500px",
       maxWidth: "90vw",
       disableClose: false,
     })
