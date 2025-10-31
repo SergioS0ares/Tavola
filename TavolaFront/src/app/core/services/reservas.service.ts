@@ -21,7 +21,7 @@ export class ReservasService {
   }
 
   putAtualizarStatusReserva(idReserva: string, status: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${idReserva}/status`, { status });
+    return this.http.put(`${this.apiUrl}/${idReserva}/status`, { novoStatus: status });
   }
 
   putCancelarReserva(idReserva: string): Observable<any> {

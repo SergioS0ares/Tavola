@@ -27,6 +27,9 @@ import { MatInputModule } from '@angular/material/input'
 import { MatSnackBarModule } from '@angular/material/snack-bar'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
 import { MatDialog } from '@angular/material/dialog'
+import { AvaliacaoDialogComponent, type AvaliacaoDialogData } from '../../avaliacao-dialog/avaliacao-dialog.component'
+import { NotificacoesService, type Notificacao } from '../../../core/services/notificacoes.service'
+import { AuthService } from '../../../core/services/auth.service'
 
 // NG-Zorro
 import { NzGridModule } from "ng-zorro-antd/grid"
@@ -234,7 +237,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private spinnerService: GlobalSpinnerService,
     private cardapioService: CardapioService,
     private reservasService: ReservasService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private notificacoesService: NotificacoesService,
+    private authService: AuthService
   ) {}
   public agendamentoId: string | null = null;
   public agendamentoDetails: any; // Replace 'any' with a proper interface
@@ -297,6 +302,11 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       }
       if (params['comentarios']) {
         this.selectedComments = params['comentarios']
+      }
+      
+      // Verificar se deve abrir o dialog de avaliação
+      if (params['verificarNotificacao'] === 'true' && this.restauranteId) {
+        this.verificarEAbrirDialogAvaliacao()
       }
     })
     
@@ -476,6 +486,16 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         this.isFavorite = restaurante.favorito ?? false;
         this.isLoading = false
         this.spinnerService.ocultar()
+        
+        // Após carregar o restaurante, verifica se deve abrir o dialog de avaliação
+        this.route.queryParams.subscribe(qParams => {
+          if (qParams['verificarNotificacao'] === 'true') {
+            // Aguarda um pouco para garantir que tudo foi carregado
+            setTimeout(() => {
+              this.verificarEAbrirDialogAvaliacao()
+            }, 300)
+          }
+        })
       },
       error: (error: any) => {
         console.error('Erro ao carregar dados do restaurante:', error)
@@ -845,5 +865,58 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     if (!imagem) return 'assets/jpg/Comida.jpg';
     if (imagem.startsWith('http')) return imagem;
     return `${environment.apiUrl}${imagem}`;
+  }
+
+  /**
+   * Verifica se há notificação pendente para este restaurante e abre o dialog de avaliação
+   */
+  private verificarEAbrirDialogAvaliacao(): void {
+    if (!this.restauranteId) {
+      console.warn('Restaurante ID não disponível para verificar notificação')
+      return
+    }
+
+    // Busca as notificações
+    this.notificacoesService.getNotificacoes().subscribe({
+      next: (notificacoes: Notificacao[]) => {
+        // Encontra a notificação correspondente ao restauranteId da URL
+        const notificacao = notificacoes.find(n => n.restauranteId === this.restauranteId)
+        
+        if (notificacao) {
+          // Usa o nome do restaurante carregado, ou o nome da notificação como fallback
+          const nomeRestaurante = this.restaurante?.nome || notificacao.nomeRestaurante || 'Restaurante'
+          
+          // Abre o dialog de avaliação com os dados da notificação
+          const dialogData: AvaliacaoDialogData = {
+            idReserva: notificacao.id, // Usa o id da notificação como idReserva
+            nomeRestaurante: nomeRestaurante,
+            dataReserva: notificacao.dataReserva,
+            idNotificacao: notificacao.id // ID para deletar após envio
+          }
+
+          const dialogRef = this.dialog.open(AvaliacaoDialogComponent, {
+            data: dialogData,
+            width: '500px',
+            maxWidth: '90vw',
+            disableClose: false,
+          })
+
+          dialogRef.afterClosed().subscribe((result) => {
+            if (result && result.success) {
+              console.log('Avaliação enviada com sucesso')
+              // Remove o parâmetro da URL após envio
+              this.router.navigate(['/home/agendamento-reservas-restaurante', this.restauranteId], {
+                replaceUrl: true
+              })
+            }
+          })
+        } else {
+          console.log('Nenhuma notificação encontrada para este restaurante')
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao buscar notificações:', error)
+      }
+    })
   }
 }

@@ -15,9 +15,9 @@ import { trigger, transition, style, animate } from "@angular/animations"
 import { HomeComponent } from "../home/home.component" // Importe HomeComponent para verificar a instância
 import { RestauranteService } from "../../core/services/restaurante.service"
 import { ToastrService } from "ngx-toastr"
-import { AvaliacaoService, type AvaliacaoPendente } from "../../core/services/avaliacao.service"
 import { AvaliacaoDialogComponent, type AvaliacaoDialogData } from "../avaliacao-dialog/avaliacao-dialog.component"
 import { MatDialog } from "@angular/material/dialog"
+import { NotificacoesService, type Notificacao } from "../../core/services/notificacoes.service"
 import {
   FiltrosDialogComponent,
   type FiltrosDialogData,
@@ -81,8 +81,8 @@ export class LayoutPrincipalComponent implements OnInit {
   // Referência para o HomeComponent ativo no router-outlet
   private currentHomeComponent: HomeComponent | null = null
 
-  // Propriedades para avaliações pendentes
-  avaliacoesPendentes: AvaliacaoPendente[] = []
+  // Propriedades para notificações
+  avaliacoesPendentes: Notificacao[] = []
   carregandoAvaliacoes = false
   activeTab: "pendentes" | "lidas" = "pendentes"
 
@@ -101,7 +101,7 @@ export class LayoutPrincipalComponent implements OnInit {
   private stickyService = inject(StickySearchService)
   private restauranteService = inject(RestauranteService) // NEW INJECTION
   private toastService = inject(ToastrService)
-  private avaliacaoService = inject(AvaliacaoService)
+  private notificacoesService = inject(NotificacoesService)
   private dialog = inject(MatDialog)
   private breakpointObserver = inject(BreakpointObserver)
 
@@ -163,9 +163,9 @@ export class LayoutPrincipalComponent implements OnInit {
     // Inicializa o estado da sidebar no serviço ao carregar o LayoutPrincipal
     this.stickyService.setSidebarAberta(this.sidebarAberta)
 
-    // Carrega avaliações pendentes se for cliente
+    // Carrega notificações se for cliente
     if (this.isCliente) {
-      this.carregarAvaliacoesPendentes()
+      this.carregarNotificacoes()
     }
 
     this.cityCtrl.valueChanges.subscribe((value) => {
@@ -361,27 +361,27 @@ export class LayoutPrincipalComponent implements OnInit {
     }
   }
 
-  // --- Métodos para avaliações pendentes ---
+  // --- Métodos para notificações ---
 
   /**
-   * Carrega as avaliações pendentes
+   * Carrega as notificações do usuário
    */
-  carregarAvaliacoesPendentes(): void {
+  carregarNotificacoes(): void {
     this.carregandoAvaliacoes = true
-    this.avaliacaoService.getAvaliacoesPendentes().subscribe({
-      next: (avaliacoes) => {
-        this.avaliacoesPendentes = avaliacoes
+    this.notificacoesService.getNotificacoes().subscribe({
+      next: (notificacoes) => {
+        this.avaliacoesPendentes = notificacoes
         this.carregandoAvaliacoes = false
       },
       error: (error) => {
-        console.error("Erro ao carregar avaliações pendentes:", error)
+        console.error("Erro ao carregar notificações:", error)
         this.carregandoAvaliacoes = false
       },
     })
   }
 
   /**
-   * Verifica se há avaliações pendentes
+   * Verifica se há notificações pendentes
    */
   get temAvaliacoesPendentes(): boolean {
     return this.avaliacoesPendentes.length > 0
@@ -402,11 +402,12 @@ export class LayoutPrincipalComponent implements OnInit {
   /**
    * Abre o diálogo de avaliação
    */
-  abrirDialogoAvaliacao(avaliacao: AvaliacaoPendente): void {
+  abrirDialogoAvaliacao(notificacao: Notificacao): void {
     const dialogData: AvaliacaoDialogData = {
-      idReserva: avaliacao.idReserva,
-      nomeRestaurante: avaliacao.nomeRestaurante,
-      dataReserva: avaliacao.dataReserva,
+      idReserva: notificacao.id, // Usa o id da notificação como idReserva
+      nomeRestaurante: notificacao.nomeRestaurante,
+      dataReserva: notificacao.dataReserva,
+      idNotificacao: notificacao.id // ID para deletar após envio
     }
 
     const dialogRef = this.dialog.open(AvaliacaoDialogComponent, {
@@ -418,8 +419,10 @@ export class LayoutPrincipalComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result && result.success) {
-        // Remove a avaliação da lista de pendentes
-        this.avaliacoesPendentes = this.avaliacoesPendentes.filter((a) => a.idReserva !== result.idReserva)
+        // Remove a notificação da lista
+        this.avaliacoesPendentes = this.avaliacoesPendentes.filter((n) => n.id !== result.idNotificacao)
+        // Recarrega as notificações para garantir sincronização
+        this.carregarNotificacoes()
         this.toastService.success("Avaliação enviada com sucesso!")
       }
     })
@@ -438,8 +441,8 @@ export class LayoutPrincipalComponent implements OnInit {
     this.isDrawerVisible = false
   }
 
-  trackByAvaliacaoId(index: number, avaliacao: AvaliacaoPendente): string {
-    return avaliacao.idReserva
+  trackByAvaliacaoId(index: number, notificacao: Notificacao): string {
+    return notificacao.id
   }
 
   /**

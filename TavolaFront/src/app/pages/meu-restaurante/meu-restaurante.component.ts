@@ -140,16 +140,27 @@ export class MeuRestauranteComponent implements OnInit, OnDestroy {
         data.horariosFuncionamento?.forEach((h) => horariosArray.push(this.criarGrupoHorario(h)))
 
         // Separar imagem principal das demais imagens
+        // A imagem principal é sempre a primeira do array 'imagens', não do campo 'imagemPrincipal'
         if (data.imagens && data.imagens.length > 0) {
+          // Usa a primeira imagem do array 'imagens' como imagem principal
           this.imagemPrincipal = data.imagens[0].startsWith("data:") 
             ? data.imagens[0] 
             : this.getCorretedImageUrl(data.imagens[0])
+          // As demais imagens vão para a galeria
           this.imagensBase64 = data.imagens.slice(1).map((img) =>
             img.startsWith("data:") ? img : this.getCorretedImageUrl(img),
           )
         } else {
-          this.imagemPrincipal = null
-          this.imagensBase64 = []
+          // Se não há imagens, verifica se há imagemPrincipal separada (fallback)
+          if (data.imagemPrincipal) {
+            this.imagemPrincipal = data.imagemPrincipal.startsWith("data:") 
+              ? data.imagemPrincipal 
+              : this.getCorretedImageUrl(data.imagemPrincipal)
+            this.imagensBase64 = []
+          } else {
+            this.imagemPrincipal = null
+            this.imagensBase64 = []
+          }
         }
         this.atualizarPreviews()
 
@@ -258,13 +269,18 @@ export class MeuRestauranteComponent implements OnInit, OnDestroy {
     const servicosNomes = formValue.servicos as string[];
     console.log('servicosNomes após o mapeamento:', servicosNomes);
 
+    // Monta o array de imagens com a imagem principal como primeira
+    const todasImagens = this.imagemPrincipal 
+      ? [this.imagemPrincipal, ...this.imagensBase64]
+      : [...this.imagensBase64]
+
     const payload = {
       tipoCozinha: formValue.tipoCozinha,
       descricao: formValue.descricao,
       horariosFuncionamento: formValue.horariosFuncionamento,
       nomesServicos: servicosNomes,
-      imagemPrincipal: this.imagemPrincipal,
-      imagens: this.imagensBase64,
+      imagemPrincipal: this.imagemPrincipal, // Mantém para compatibilidade
+      imagens: todasImagens, // Array completo incluindo a imagem principal como primeira
     }
 
     Swal.fire({

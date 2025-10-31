@@ -9,11 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { ToastrService } from 'ngx-toastr';
 import { AvaliacaoService, DadosAvaliacao } from '../../core/services/avaliacao.service';
+import { NotificacoesService } from '../../core/services/notificacoes.service';
 
 export interface AvaliacaoDialogData {
   idReserva: string;
   nomeRestaurante: string;
   dataReserva: string;
+  idNotificacao?: string; // ID da notificação para deletar após envio
 }
 
 @Component({
@@ -41,6 +43,7 @@ export class AvaliacaoDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<AvaliacaoDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AvaliacaoDialogData,
     private avaliacaoService: AvaliacaoService,
+    private notificacoesService: NotificacoesService,
     private toastService: ToastrService
   ) {}
 
@@ -83,14 +86,33 @@ export class AvaliacaoDialogComponent implements OnInit {
       comentario: this.comentario
     };
 
+    // Primeiro envia a avaliação
     this.avaliacaoService.enviarAvaliacao(this.data.idReserva, dadosAvaliacao).subscribe({
       next: (response) => {
-        this.toastService.success(response.message);
-        this.dialogRef.close({ success: true, idReserva: this.data.idReserva });
+        // Se há idNotificacao, deleta a notificação
+        if (this.data.idNotificacao) {
+          this.notificacoesService.deleteNotificacao(this.data.idNotificacao).subscribe({
+            next: () => {
+              console.log('Notificação removida com sucesso');
+            },
+            error: (error) => {
+              console.error('Erro ao remover notificação:', error);
+              // Não impede o sucesso da avaliação
+            }
+          });
+        }
+
+        this.toastService.success(response?.message || 'Avaliação enviada com sucesso!');
+        this.dialogRef.close({ 
+          success: true, 
+          idReserva: this.data.idReserva,
+          idNotificacao: this.data.idNotificacao 
+        });
       },
       error: (error) => {
         this.toastService.error('Erro ao enviar avaliação. Tente novamente.');
         console.error('Erro ao enviar avaliação:', error);
+        this.enviando = false;
       },
       complete: () => {
         this.enviando = false;
