@@ -25,12 +25,18 @@ public class MesaController {
     private MesaService mesaService;
     
     /**
-     * Endpoint para o GARÇOM atualizar o status de uma mesa.
+     * Endpoint para o GARÇOM (ou Balcão) atualizar o status de uma mesa.
+     * Permite opcionalmente definir o nome do cliente se o status for OCUPADA.
      */
     @PutMapping("/{idMesa}/status")
     public ResponseEntity<?> updateMesaStatus(@PathVariable UUID idMesa, @RequestBody StatusUpdateRequest request) {
         try {
-            Mesa mesaAtualizada = mesaService.updateStatus(idMesa, request.getNovoStatus());
+            // --- CORREÇÃO AQUI ---
+            // ANTES: Mesa mesaAtualizada = mesaService.updateStatus(idMesa, request.getNovoStatus());
+            // DEPOIS: Passamos o DTO completo (request) para o serviço
+            Mesa mesaAtualizada = mesaService.updateStatus(idMesa, request);
+            // --- FIM DA CORREÇÃO ---
+            
             return ResponseEntity.ok(MesaResponse.fromEntity(mesaAtualizada));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
@@ -44,6 +50,7 @@ public class MesaController {
     /**
      * Endpoint para criar uma nova mesa dentro de um ambiente.
      * POST /auth/mesas/ambiente/{idAmbiente}
+     * (Sem alterações)
      */
     @PostMapping("/ambiente/{idAmbiente}")
     public ResponseEntity<MesaResponse> createMesa(@PathVariable UUID idAmbiente, @RequestBody MesaRequest request) {
@@ -54,6 +61,7 @@ public class MesaController {
     /**
      * Endpoint para atualizar uma mesa existente.
      * PUT /auth/mesas/{idMesa}
+     * (Sem alterações)
      */
     @PutMapping("/{idMesa}")
     public ResponseEntity<MesaResponse> updateMesa(@PathVariable UUID idMesa, @RequestBody MesaRequest request) {
@@ -64,6 +72,7 @@ public class MesaController {
     /**
      * Endpoint para deletar uma mesa.
      * DELETE /auth/mesas/{idMesa}
+     * (Sem alterações)
      */
     @DeleteMapping("/{idMesa}")
     public ResponseEntity<Void> deleteMesa(@PathVariable UUID idMesa) {
@@ -74,6 +83,7 @@ public class MesaController {
     /**
      * Endpoint para listar todas as mesas de um ambiente.
      * GET /auth/mesas/ambiente/{idAmbiente}
+     * (Sem alterações)
      */
     @GetMapping("/ambiente/{idAmbiente}")
     public ResponseEntity<List<MesaResponse>> getMesasPorAmbiente(@PathVariable UUID idAmbiente) {
