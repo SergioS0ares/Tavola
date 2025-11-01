@@ -404,7 +404,7 @@ export class LayoutPrincipalComponent implements OnInit {
    */
   abrirDialogoAvaliacao(notificacao: Notificacao): void {
     const dialogData: AvaliacaoDialogData = {
-      idReserva: notificacao.id, // Usa o id da notificação como idReserva
+      restauranteId: notificacao.restauranteId, // Usa o restauranteId da notificação
       nomeRestaurante: notificacao.nomeRestaurante,
       dataReserva: notificacao.dataReserva,
       idNotificacao: notificacao.id // ID para deletar após envio

@@ -50,7 +50,8 @@
   <!-- Galeria de Fotos com NzImageModule -->
   <div class="photo-gallery">
     <nz-image-group>
-      <div class="gallery-grid">
+      <!-- Layout Desktop - Grid -->
+      <div class="gallery-grid desktop-gallery">
         <!-- Foto Principal (Grande) -->
         <div class="main-photo">
           <img nz-image [nzSrc]="restaurantImages[0]" alt="Interior do restaurante">
@@ -78,6 +79,25 @@
             <span>Veja outras {{ totalPhotos }} fotos</span>
           </div>
         </div>
+      </div>
+
+      <!-- Layout Mobile - Slider Horizontal -->
+      <div class="gallery-grid-irregular mobile-gallery">
+        <div 
+          *ngFor="let img of restaurantImages.slice(0, 4); let i = index" 
+          class="mobile-gallery-item"
+          (click)="openGallery()">
+          <img nz-image [nzSrc]="img" alt="Foto do restaurante {{i+1}}" class="gallery-image">
+          
+          <div class="more-overlay" *ngIf="i === 3 && totalPhotos > 0">
+            <span>Veja outras {{ totalPhotos }} fotos</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Indicador de scroll para mobile -->
+      <div class="scroll-indicator mobile-gallery" *ngIf="restaurantImages.length > 1">
+        <span>Deslize para ver mais fotos</span>
       </div>
     </nz-image-group>
   </div>
@@ -263,8 +283,108 @@
       
       <!-- Conteúdo da aba Avaliações -->
       <div *ngIf="activeTabIndex === 2" class="avaliacoes-content">
-        <h2>Avaliações em breve</h2>
-        <p>O conteúdo das avaliações será implementado quando o endpoint estiver pronto.</p>
+        <div *ngIf="carregandoAvaliacoes" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Carregando avaliações...</p>
+        </div>
+
+        <div *ngIf="!carregandoAvaliacoes && avaliacoesData" class="avaliacoes-container">
+          <!-- Título Avaliações -->
+          <h2 class="avaliacoes-titulo">Avaliações</h2>
+
+          <!-- Card de Resumo de Avaliações -->
+          <div class="resumo-avaliacoes-card">
+            <div class="resumo-header">
+              <div class="resumo-left">
+              <div class="circulo-avaliacao">
+                <svg class="progress-circle" width="120" height="120" viewBox="0 0 120 120">
+                  <circle
+                    class="progress-circle-bg"
+                    cx="60"
+                    cy="60"
+                    r="52"
+                    fill="none"
+                    stroke="#E5E5E5"
+                    stroke-width="12"
+                  />
+                  <circle
+                    class="progress-circle-fill"
+                    [attr.stroke-dasharray]="calcularStrokeDasharray(avaliacoesData.mediaAvaliacao)"
+                    [attr.stroke-dashoffset]="0"
+                    cx="60"
+                    cy="60"
+                    r="52"
+                    fill="none"
+                    stroke="#00B26B"
+                    stroke-width="12"
+                    transform="rotate(-90 60 60)"
+                  />
+                </svg>
+                <div class="nota-overlay">
+                  <span class="nota-valor">{{ avaliacoesData.mediaAvaliacao | number:'1.1-1' }}</span>
+                  <span class="nota-max">de 5</span>
+                </div>
+              </div>
+            </div>
+            <div class="resumo-right">
+              <div class="badge-avaliacao" [class.excelente]="avaliacoesData.mediaAvaliacao >= 4.5"
+                   [class.muito-bom]="avaliacoesData.mediaAvaliacao >= 4.0 && avaliacoesData.mediaAvaliacao < 4.5"
+                   [class.bom]="avaliacoesData.mediaAvaliacao >= 3.5 && avaliacoesData.mediaAvaliacao < 4.0"
+                   [class.regular]="avaliacoesData.mediaAvaliacao >= 3.0 && avaliacoesData.mediaAvaliacao < 3.5"
+                   [class.ruim]="avaliacoesData.mediaAvaliacao >= 2.5 && avaliacoesData.mediaAvaliacao < 3.0"
+                   [class.pessimo]="avaliacoesData.mediaAvaliacao < 2.5">
+                {{ getTextoAvaliacao(avaliacoesData.mediaAvaliacao) }}
+              </div>
+              <p class="total-avaliacoes">{{ avaliacoesData.totalAvaliacoes }} {{ avaliacoesData.totalAvaliacoes === 1 ? 'avaliação' : 'avaliações' }}</p>
+              </div>
+            </div>
+
+            <!-- Card Informativo dentro do resumo -->
+            <div class="card-informativo-avaliacoes">
+              <div class="informativo-content">
+                <mat-icon class="informativo-icon">check_circle</mat-icon>
+                <div class="informativo-texto">
+                  <p class="informativo-titulo">Experiências reais de clientes reais</p>
+                  <p class="informativo-descricao">As classificações e as avaliações só podem ser deixadas por clientes que tenham reservado com o Tavola.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        
+
+          <!-- Lista de Avaliações -->
+          <div class="lista-avaliacoes" *ngIf="avaliacoesData.avaliacoes && avaliacoesData.avaliacoes.length > 0">
+            <nz-list [nzDataSource]="avaliacoesData.avaliacoes" [nzRenderItem]="item" [nzItemLayout]="'horizontal'">
+              <ng-template #item let-avaliacao>
+                <div class="comentario-item">
+                  <nz-comment>
+                    <nz-avatar nz-comment-avatar [nzSrc]="getAvatarCliente(avaliacao.imagemCliente)" nzIcon="user"></nz-avatar>
+                    <nz-comment-content>
+                      <div class="avaliacao-header-custom">
+                        <div class="nome-data-wrapper">
+                          <span class="nome-cliente">{{ avaliacao.nomeCliente }}</span>
+                          <span class="data-reserva">{{ formatarDataReserva(avaliacao.dataReserva) }}</span>
+                        </div>
+                        <div class="avaliacao-rating">
+                          <nz-rate [ngModel]="avaliacao.nota" nzDisabled [nzCount]="5" class="rating-stars-comment"></nz-rate>
+                          <span class="nota-numero">{{ avaliacao.nota }}/5</span>
+                        </div>
+                      </div>
+                      <p class="comentario-texto">{{ avaliacao.comentario }}</p>
+                    </nz-comment-content>
+                  </nz-comment>
+                </div>
+              </ng-template>
+            </nz-list>
+          </div>
+
+          <!-- Mensagem quando não há avaliações -->
+          <div *ngIf="!avaliacoesData.avaliacoes || avaliacoesData.avaliacoes.length === 0" class="sem-avaliacoes">
+            <mat-icon>rate_review</mat-icon>
+            <p>Ainda não há avaliações para este restaurante.</p>
+          </div>
+        </div>
       </div>
     </div>
     

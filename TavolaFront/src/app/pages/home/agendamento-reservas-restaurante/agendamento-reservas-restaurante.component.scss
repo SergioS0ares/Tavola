@@ -166,6 +166,21 @@ $tavola-cinza: #F8F9FA;
 .photo-gallery {
   margin-bottom: 24px;
   
+  // Layout Desktop - Grid (visível por padrão)
+  .gallery-grid.desktop-gallery {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 400px;
+  }
+  
+  // Layout Mobile - Slider (escondido por padrão)
+  .gallery-grid-irregular.mobile-gallery,
+  .scroll-indicator.mobile-gallery {
+    display: none;
+  }
+  
   .gallery-grid {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
@@ -1002,6 +1017,106 @@ $tavola-cinza: #F8F9FA;
 }
 
 @media (max-width: 768px) {
+  // 1. CORRIGE O CONTAINER "TORTO"
+  .container-rounded {
+    margin: 12px;
+    padding: 16px;
+    max-width: calc(100% - 24px);
+    border-radius: $border-radius;
+  }
+  
+  .restaurant-header {
+    .title-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      
+      .restaurant-title {
+        font-size: 26px;
+      }
+    }
+  }
+  
+  // 2. IMPLEMENTA A GALERIA MOBILE
+  .photo-gallery {
+    // Esconde o grid do desktop
+    .gallery-grid.desktop-gallery {
+      display: none;
+    }
+    
+    // Mostra e estiliza o slider do mobile (estilo TheFork/meu-restaurante)
+    .gallery-grid-irregular.mobile-gallery {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: auto;
+      gap: 12px;
+      padding: 0 16px;
+      margin: 0 -16px;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .mobile-gallery-item {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+        width: 85%;
+        height: auto;
+        aspect-ratio: 4 / 3;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        
+        .gallery-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        .more-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 14px;
+          text-align: center;
+          z-index: 1;
+        }
+      }
+    }
+    
+    // Mostra o indicador de scroll
+    .scroll-indicator.mobile-gallery {
+      display: block;
+      text-align: center;
+      padding: 12px 0 8px 0;
+      color: rgba(59, 34, 27, 0.5);
+      font-size: 11px;
+      font-weight: 500;
+      
+      &::before {
+        content: "← →";
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+        opacity: 0.7;
+      }
+    }
+  }
+  
   .localizacao-section {
     .endereco-completo {
       flex-direction: column;
@@ -1057,6 +1172,12 @@ $tavola-cinza: #F8F9FA;
 }
 
 @media (max-width: 480px) {
+  .container-rounded {
+    margin: 8px;
+    padding: 12px;
+    max-width: calc(100% - 16px);
+  }
+  
   .full-gallery {
     .gallery-grid-modal {
       grid-template-columns: 1fr;
@@ -1066,6 +1187,92 @@ $tavola-cinza: #F8F9FA;
   .recursos-section {
     .recursos-lista {
       grid-template-columns: 1fr !important;
+    }
+  }
+  
+  // Ajusta o card de item de menu no mobile
+  .menu-content .categorias-content .categoria-section {
+    .categoria-titulo { 
+      font-size: 18px; 
+    }
+    
+    .itens-lista .item-card .item-content {
+      flex-direction: column;
+      align-items: stretch;
+      
+      .item-image {
+        width: 100%;
+        height: 150px;
+        border-radius: $border-radius $border-radius 0 0;
+      }
+      
+      .item-info {
+        text-align: center;
+        padding: 12px 12px 8px 12px;
+        
+        .item-tags { 
+          justify-content: center; 
+        }
+      }
+      
+      .item-preco {
+        text-align: center;
+        padding: 8px 12px 12px 12px;
+        border-top: 1px solid #eee;
+        width: 100%;
+      }
+    }
+  }
+  
+  // Ajustes nas avaliações
+  .avaliacoes-content {
+    .resumo-avaliacoes-card {
+      padding: 20px;
+      
+      .resumo-header {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+    
+    .lista-avaliacoes ::ng-deep .ant-comment {
+      .ant-comment-avatar {
+        margin-right: 12px;
+        
+        ::ng-deep .ant-avatar {
+          width: 48px !important;
+          height: 48px !important;
+          
+          .anticon { 
+            font-size: 24px; 
+          }
+        }
+      }
+      
+      .ant-comment-content {
+        .avaliacao-header-custom {
+          .nome-data-wrapper {
+            .nome-cliente { 
+              font-size: 15px; 
+            }
+            .data-reserva { 
+              font-size: 13px; 
+            }
+          }
+          
+          .avaliacao-rating {
+            gap: 8px;
+            
+            .nota-numero { 
+              font-size: 13px; 
+            }
+          }
+        }
+        
+        .comentario-texto { 
+          font-size: 14px; 
+        }
+      }
     }
   }
   
@@ -1239,4 +1446,301 @@ $tavola-cinza: #F8F9FA;
 .descricao-restaurante {
   white-space: pre-line;
   word-break: break-word;
+}
+
+// Estilos para a aba de Avaliações
+.avaliacoes-content {
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    gap: 16px;
+
+    p {
+      color: $dark-gray;
+      margin: 0;
+    }
+  }
+
+  .avaliacoes-container {
+    .avaliacoes-titulo {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 24px;
+      color: $text-color;
+    }
+
+    .resumo-avaliacoes-card {
+      background: $white;
+      border-radius: $border-radius;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+
+      .resumo-header {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        flex-wrap: wrap;
+      }
+
+      .resumo-left {
+        .circulo-avaliacao {
+          position: relative;
+          display: inline-block;
+
+
+          .progress-circle-fill {
+            transition: stroke-dasharray 0.5s ease;
+          }
+
+          .nota-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            .nota-valor {
+              font-size: 36px;
+              font-weight: 700;
+              color: $text-color;
+              line-height: 1;
+            }
+
+            .nota-max {
+              font-size: 14px;
+              color: $dark-gray;
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+
+      .resumo-right {
+        flex: 1;
+
+        .badge-avaliacao {
+          display: inline-block;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 8px;
+
+          &.excelente {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+          }
+
+          &.muito-bom {
+            background-color: #C8E6C9;
+            color: #388E3C;
+          }
+
+          &.bom {
+            background-color: #DCEDC8;
+            color: #558B2F;
+          }
+
+          &.regular {
+            background-color: #FFF9C4;
+            color: #F57F17;
+          }
+
+          &.ruim {
+            background-color: #FFE0B2;
+            color: #E65100;
+          }
+
+          &.pessimo {
+            background-color: #FFCDD2;
+            color: #C62828;
+          }
+        }
+
+        .total-avaliacoes {
+          font-size: 16px;
+          color: $dark-gray;
+          margin: 0;
+        }
+      }
+
+      .card-informativo-avaliacoes {
+        background: $light-gray;
+        border: 1px solid rgba(59, 34, 27, 0.1);
+        border-radius: $border-radius;
+        padding: 20px;
+        margin-top: 0;
+        margin-bottom: 0;
+
+        .informativo-content {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+
+          .informativo-icon {
+            color: #52c41a;
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+            margin-top: 2px;
+            flex-shrink: 0;
+          }
+
+          .informativo-texto {
+            flex: 1;
+
+            .informativo-titulo {
+              font-size: 16px;
+              font-weight: 600;
+              color: $text-color;
+              margin: 0 0 8px;
+            }
+
+            .informativo-descricao {
+              font-size: 14px;
+              color: rgba(59, 34, 27, 0.8);
+              margin: 0;
+              line-height: 1.6;
+            }
+          }
+        }
+      }
+    }
+
+    .lista-avaliacoes {
+      ::ng-deep {
+        .ant-list-item {
+          padding: 0;
+          border-bottom: none;
+
+          .comentario-item {
+            padding: 24px 0;
+            border-bottom: 2px solid rgba(59, 34, 27, 0.12);
+            margin-bottom: 0;
+
+            &:last-child {
+              border-bottom: none;
+            }
+          }
+        }
+
+        .ant-comment {
+          .ant-comment-inner {
+            padding: 0;
+          }
+
+          .ant-comment-avatar {
+            margin-right: 20px;
+            flex-shrink: 0;
+
+            ::ng-deep .ant-avatar {
+              width: 64px !important;
+              height: 64px !important;
+              border: 2px solid rgba(59, 34, 27, 0.1) !important;
+              border-radius: 50% !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              overflow: hidden !important;
+
+              img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+              }
+
+              .anticon {
+                font-size: 32px;
+              }
+            }
+          }
+
+          .ant-comment-content {
+            .avaliacao-header-custom {
+              margin-bottom: 12px;
+
+              .nome-data-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                margin-bottom: 8px;
+
+                .nome-cliente {
+                  font-size: 16px;
+                  font-weight: 600;
+                  color: $text-color;
+                  line-height: 1.4;
+                }
+
+                .data-reserva {
+                  font-size: 14px;
+                  color: rgba(59, 34, 27, 0.7);
+                  font-weight: 400;
+                }
+              }
+
+              .avaliacao-rating {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .rating-stars-comment {
+                  ::ng-deep .ant-rate {
+                    font-size: 16px;
+                    color: $tavola-amarelo;
+                  }
+                }
+
+                .nota-numero {
+                  font-size: 14px;
+                  font-weight: 600;
+                  color: $text-color;
+                }
+              }
+            }
+
+            .comentario-texto {
+              font-size: 15px;
+              color: rgba(59, 34, 27, 0.8);
+              line-height: 1.6;
+              margin: 0;
+            }
+          }
+        }
+      }
+    }
+
+    .sem-avaliacoes {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 32px;
+      text-align: center;
+
+      mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        color: $medium-gray;
+        margin-bottom: 16px;
+      }
+
+      p {
+        font-size: 16px;
+        color: $dark-gray;
+        margin: 0;
+      }
+    }
+  }
 }

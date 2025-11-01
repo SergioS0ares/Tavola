@@ -32,3 +32,5 @@ export class NotificacoesService {
     return this.http.delete<void>(`${this.apiUrl}/${idNotificacao}`);
   }
 }
+
+

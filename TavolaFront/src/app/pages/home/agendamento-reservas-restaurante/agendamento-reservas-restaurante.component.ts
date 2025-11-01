@@ -30,6 +30,7 @@ import { MatDialog } from '@angular/material/dialog'
 import { AvaliacaoDialogComponent, type AvaliacaoDialogData } from '../../avaliacao-dialog/avaliacao-dialog.component'
 import { NotificacoesService, type Notificacao } from '../../../core/services/notificacoes.service'
 import { AuthService } from '../../../core/services/auth.service'
+import { AvaliacaoService, type AvaliacoesRestaurante, type AvaliacaoCliente } from '../../../core/services/avaliacao.service'
 
 // NG-Zorro
 import { NzGridModule } from "ng-zorro-antd/grid"
@@ -54,6 +55,9 @@ import { NzToolTipModule } from "ng-zorro-antd/tooltip"
 import { NzDrawerModule } from "ng-zorro-antd/drawer"
 import { NzCalendarModule } from "ng-zorro-antd/calendar"
 import { NzBadgeModule } from "ng-zorro-antd/badge"
+import { NzAvatarModule } from "ng-zorro-antd/avatar"
+import { NzCommentModule } from "ng-zorro-antd/comment"
+import { NzListModule } from "ng-zorro-antd/list"
 import { NzMessageService } from "ng-zorro-antd/message"
 import { NZ_I18N, pt_BR } from "ng-zorro-antd/i18n"
 import type { IconDefinition } from "@ant-design/icons-angular"
@@ -136,6 +140,9 @@ const icons: IconDefinition[] = [
     NzDrawerModule,
     NzCalendarModule,
     NzBadgeModule,
+    NzAvatarModule,
+    NzCommentModule,
+    NzListModule,
 
     GoogleMap,
   ],
@@ -225,6 +232,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   dietOptions: string[] = []
   categoriaAtiva = "Destaques"
 
+  // Propriedades das avaliações
+  avaliacoesData: AvaliacoesRestaurante | null = null
+  carregandoAvaliacoes = false
+
   restauranteId!: string
 
   constructor(
@@ -239,7 +250,8 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private reservasService: ReservasService,
     private dialog: MatDialog,
     private notificacoesService: NotificacoesService,
-    private authService: AuthService
+    private authService: AuthService,
+    private avaliacaoService: AvaliacaoService
   ) {}
   public agendamentoId: string | null = null;
   public agendamentoDetails: any; // Replace 'any' with a proper interface
@@ -561,6 +573,9 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     if (index === 1) {
       this.carregarItensMenu();
     }
+    if (index === 2) {
+      this.carregarAvaliacoes();
+    }
   }
 
   scrollToTop(): void {
@@ -868,6 +883,87 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   /**
+   * Carrega as avaliações do restaurante
+   */
+  carregarAvaliacoes(): void {
+    if (!this.restauranteId) return;
+    
+    // Evita carregar novamente se já carregou
+    if (this.avaliacoesData !== null) return;
+
+    this.carregandoAvaliacoes = true;
+    this.avaliacaoService.getAvaliacoesPorRestaurante(this.restauranteId).subscribe({
+      next: (data: AvaliacoesRestaurante) => {
+        this.avaliacoesData = data;
+        this.carregandoAvaliacoes = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar avaliações:', error);
+        this.message.error('Erro ao carregar avaliações');
+        this.carregandoAvaliacoes = false;
+      }
+    });
+  }
+
+  /**
+   * Obtém o avatar do cliente ou retorna o padrão
+   */
+  getAvatarCliente(imagemCliente: string | null): string {
+    if (!imagemCliente) {
+      return 'assets/png/avatar-padrao-tavola-cordeirinho.png';
+    }
+    if (imagemCliente.startsWith('http')) {
+      return imagemCliente;
+    }
+    return `${environment.apiUrl}${imagemCliente}`;
+  }
+
+  /**
+   * Calcula a porcentagem para o círculo de progresso (0-100)
+   */
+  calcularPorcentagemNota(nota: number): number {
+    // Converte de 0-5 para 0-100
+    return (nota / 5) * 100;
+  }
+
+  /**
+   * Calcula o stroke-dasharray para o círculo de progresso
+   */
+  calcularStrokeDasharray(nota: number): string {
+    // Circunferência do círculo: 2 * π * raio (52) = ~326.73
+    const circunferencia = 2 * Math.PI * 52;
+    const porcentagem = this.calcularPorcentagemNota(nota);
+    const preenchido = (porcentagem / 100) * circunferencia;
+    // Retorna "preenchido circunferencia" para criar o efeito de progresso
+    return `${preenchido} ${circunferencia}`;
+  }
+
+  /**
+   * Retorna o texto da avaliação baseado na nota
+   */
+  getTextoAvaliacao(media: number): string {
+    if (media >= 4.5) return 'Excelente';
+    if (media >= 4.0) return 'Muito Bom';
+    if (media >= 3.5) return 'Bom';
+    if (media >= 3.0) return 'Regular';
+    if (media >= 2.5) return 'Ruim';
+    return 'Péssimo';
+  }
+
+  /**
+   * Formata a data da reserva para exibição
+   */
+  formatarDataReserva(dataReserva: string): string {
+    if (!dataReserva) return '';
+    const data = new Date(dataReserva + 'T00:00:00'); // Adiciona hora para evitar problemas de timezone
+    return data.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  /**
    * Verifica se há notificação pendente para este restaurante e abre o dialog de avaliação
    */
   private verificarEAbrirDialogAvaliacao(): void {
@@ -888,7 +984,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
           
           // Abre o dialog de avaliação com os dados da notificação
           const dialogData: AvaliacaoDialogData = {
-            idReserva: notificacao.id, // Usa o id da notificação como idReserva
+            restauranteId: notificacao.restauranteId, // Usa o restauranteId da notificação
             nomeRestaurante: nomeRestaurante,
             dataReserva: notificacao.dataReserva,
             idNotificacao: notificacao.id // ID para deletar após envio

@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { Observable, startWith, map, Subscription } from 'rxjs';
 import { SearchBarComponent } from './search-bar/search-bar.component';
 import { StickySearchService } from '../../core/services/sticky-search.service';
@@ -31,6 +33,8 @@ import { FiltrosDialogComponent, FiltrosDialogData, FiltrosDialogResult } from '
     MatInputModule,
     MatFormFieldModule,
     MatAutocompleteModule,
+    MatButtonModule,
+    MatChipsModule,
     SearchBarComponent,
     RouterModule
   ],
@@ -386,6 +390,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getTotalAvaliacoes(r: IRestaurante): number {
     return r.totalDeAvaliacoes || 0;
+  }
+
+  getPrecoMedio(valor: number | undefined): string {
+    if (!valor) return 'Preço não informado';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor);
+  }
+
+  verRestaurante(idRestaurante: string): void {
+    if (idRestaurante) {
+      this.router.navigate(['/home/agendamento-reservas-restaurante', idRestaurante]);
+    }
   }
 
   abrirDialogFiltros(): void {

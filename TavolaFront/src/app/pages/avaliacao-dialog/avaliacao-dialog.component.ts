@@ -12,7 +12,8 @@ import { AvaliacaoService, DadosAvaliacao } from '../../core/services/avaliacao.
 import { NotificacoesService } from '../../core/services/notificacoes.service';
 
 export interface AvaliacaoDialogData {
-  idReserva: string;
+  idReserva?: string; // Opcional, caso ainda seja necessário
+  restauranteId: string; // ID do restaurante para enviar a avaliação
   nomeRestaurante: string;
   dataReserva: string;
   idNotificacao?: string; // ID da notificação para deletar após envio
@@ -86,8 +87,8 @@ export class AvaliacaoDialogComponent implements OnInit {
       comentario: this.comentario
     };
 
-    // Primeiro envia a avaliação
-    this.avaliacaoService.enviarAvaliacao(this.data.idReserva, dadosAvaliacao).subscribe({
+    // Primeiro envia a avaliação usando restauranteId
+    this.avaliacaoService.enviarAvaliacao(this.data.restauranteId, dadosAvaliacao).subscribe({
       next: (response) => {
         // Se há idNotificacao, deleta a notificação
         if (this.data.idNotificacao) {
@@ -105,7 +106,7 @@ export class AvaliacaoDialogComponent implements OnInit {
         this.toastService.success(response?.message || 'Avaliação enviada com sucesso!');
         this.dialogRef.close({ 
           success: true, 
-          idReserva: this.data.idReserva,
+          restauranteId: this.data.restauranteId,
           idNotificacao: this.data.idNotificacao 
         });
       },

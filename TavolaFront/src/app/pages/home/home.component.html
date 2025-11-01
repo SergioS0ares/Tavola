@@ -86,14 +86,28 @@
       <div class="scrollable-restaurants" #scrollContainer [attr.data-cuisine]="cuisine" (scroll)="onRestaurantScroll($event, cuisine)">
         <div class="restaurants-grid">
           <div class="restaurant-card" *ngFor="let r of groupedRestaurants[cuisine]" [routerLink]="['/home','agendamento-reservas-restaurante', r.id]">
-            <img [src]="getImagemRestaurante(r)" [alt]="r.nome" class="restaurant-img" />
-            <div class="restaurant-info">
-              <div class="restaurant-address">{{ getEnderecoFormatado(r) }}</div>
+            <div class="card-image-container">
+              <img [src]="getImagemRestaurante(r)" [alt]="r.nome" class="restaurant-img" />
+            </div>
+            <div class="restaurant-info card-content">
               <div class="restaurant-name">{{ r.nome }}</div>
-              <div class="restaurant-rating">
-                <mat-icon *ngFor="let star of [1,2,3,4,5]" class="star" [ngClass]="{'filled': star <= getStarCount(r)}">star</mat-icon>
-                <span class="rate-number">{{ r.mediaAvaliacao }}</span>
-                <span class="reviews-count" *ngIf="getTotalAvaliacoes(r) > 0">({{ getTotalAvaliacoes(r) }} avaliações)</span>
+              <div class="restaurant-address">
+                <mat-icon>location_on</mat-icon>
+                {{ getEnderecoFormatado(r) }}
+              </div>
+              <div class="info-row">
+                <div class="rating-section">
+                  <mat-icon class="star-icon">star</mat-icon>
+                  <span>{{ r.mediaAvaliacao.toFixed(1) }}</span>
+                  <span class="reviews-count" *ngIf="getTotalAvaliacoes(r) > 0">({{ getTotalAvaliacoes(r) }} avaliações)</span>
+                </div>
+                <mat-chip-listbox *ngIf="r.tipoCozinha">
+                  <mat-chip>{{ r.tipoCozinha }}</mat-chip>
+                </mat-chip-listbox>
+              </div>
+              <div class="preco-section" *ngIf="r.valorMedioPorPessoa">
+                <mat-icon>attach_money</mat-icon>
+                <span>{{ getPrecoMedio(r.valorMedioPorPessoa) }}</span>
               </div>
             </div>
           </div>
