@@ -20,5 +20,9 @@ public class WebConfig implements WebMvcConfigurer {
      // Mapeia /upl/cardapios/** para a pasta física upl/cardapios/
      registry.addResourceHandler("/upl/cardapios/**")
              .addResourceLocations("file:./upl/cardapios/");
+             
+     // Mapeia /upl/garcons/** para a pasta física upl/garcons/
+     registry.addResourceHandler("/upl/garcons/**")
+             .addResourceLocations("file:./upl/garcons/");
  }
 }
