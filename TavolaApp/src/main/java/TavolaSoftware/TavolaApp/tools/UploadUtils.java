@@ -71,16 +71,18 @@ public class UploadUtils {
 
         for (String imagem : imagensInput) {
             if (isBase64Image(imagem)) {
-                // Salva a nova imagem
                 String nomeArquivo = processBase64(imagem, RESTAURANTES_DIR);
-                // ATUALIZAÇÃO: Adiciona a URL completa
-                urlsProcessadas.add(construirUrlRelativa("restaurantes", nomeArquivo));
+                
+                String url = construirUrlRelativa("restaurantes", nomeArquivo);
+                if (!url.startsWith("/")) {url = "/" + url;}
+                urlsProcessadas.add(url);
                 
             } else if (imagem != null && !imagem.isBlank() && !imagem.startsWith("data:")) {
-                // Se não for Base64, assume que é um nome/URL e reconstrói a URL
-                String nomeArquivo = findNameByURL(imagem); // Garante que só o nome seja usado
-                // ATUALIZAÇÃO: Reconstrói a URL completa
-                urlsProcessadas.add(construirUrlRelativa("restaurantes", nomeArquivo));
+                String nomeArquivo = findNameByURL(imagem);
+
+                String url = construirUrlRelativa("restaurantes", nomeArquivo);
+                if (!url.startsWith("/")) {url = "/" + url;}
+                urlsProcessadas.add(url);
             }
             // Ignora strings vazias ou nulas
         }
@@ -98,7 +100,10 @@ public class UploadUtils {
         // Salva na pasta de usuários
         String nomeArquivo = processBase64(imagemBase64, USUARIOS_DIR);
         // ATUALIZAÇÃO: Retorna a URL completa
-        return construirUrlRelativa("usuarios", nomeArquivo);
+        
+        String url = construirUrlRelativa("usuarios", nomeArquivo);
+        if (!url.startsWith("/")) {url = "/" + url;}
+        return url;
     }
 
     /**
@@ -112,7 +117,10 @@ public class UploadUtils {
         // Salva na pasta de cardápios
         String nomeArquivo = processBase64(imagemBase64, CARDAPIOS_DIR);
         // ATUALIZAÇÃO: Retorna a URL completa
-        return construirUrlRelativa("cardapios", nomeArquivo);
+        
+        String url = construirUrlRelativa("cardapios", nomeArquivo);
+        if (!url.startsWith("/")) {url = "/"  + url;} // garante pra caralho que ele vá ter uma / antes de upl
+        return url;
     }
     
     /**
@@ -123,12 +131,18 @@ public class UploadUtils {
         if (isBase64Image(imagemInput)) {
             String nomeArquivo = processBase64(imagemInput, RESTAURANTES_DIR);
             // ATUALIZAÇÃO: Retorna a URL completa
-            return construirUrlRelativa("restaurantes", nomeArquivo);
+            
+            String url = construirUrlRelativa("restaurantes", nomeArquivo);     
+            if (!url.startsWith("/")) {url = "/" + url;}
+            return url;
             
         } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
             // ATUALIZAÇÃO: Reconstrói a URL completa a partir do nome
             String nomeArquivo = findNameByURL(imagemInput); 
-            return construirUrlRelativa("restaurantes", nomeArquivo);
+            
+            String url = construirUrlRelativa("restaurantes", nomeArquivo);
+            if (!url.startsWith("/")) {url = "/" + url;}
+            return url;
         }
         
         if (imagemInput == null || imagemInput.isBlank()) {
@@ -144,16 +158,18 @@ public class UploadUtils {
      */
     public String processGarcomImagem(String imagemInput) throws IOException {
         if (isBase64Image(imagemInput)) {
-            // Se for uma nova imagem Base64, processa e salva
             String nomeArquivo = processBase64(imagemInput, GARCONS_DIR);
-            // ATUALIZAÇÃO: Retorna a URL completa
-            return construirUrlRelativa("garcons", nomeArquivo);
+            
+            String url = construirUrlRelativa("garcons", nomeArquivo);
+            if (!url.startsWith("/")) {url = "/" + url;}
+            return url;
             
         } else if (imagemInput != null && !imagemInput.isBlank() && !imagemInput.startsWith("data:")) {
-            // Se não for Base64, assume que é um nome/URL e reconstrói
             String nomeArquivo = findNameByURL(imagemInput);
-            // ATUALIZAÇÃO: Retorna a URL completa
-            return construirUrlRelativa("garcons", nomeArquivo);
+
+            String url = construirUrlRelativa("garcons", nomeArquivo); 
+            if (!url.startsWith("/")) {url = "/" + url;}
+            return url; 
         }
         
         // Se for nula ou vazia
@@ -183,15 +199,7 @@ public class UploadUtils {
         }
         
         String tipoUrl = tipo.toLowerCase();
-        
-        // Garante "garcom" -> "garcons"
-        if (tipoUrl.equals("garcom")) { 
-            tipoUrl = "garcons";
-        } 
-        
-        else if (!tipoUrl.endsWith("s")) {
-            tipoUrl += "s"; // ex: usuario -> usuarios
-        }
+        if (tipoUrl.equals("garcom")) {tipoUrl = "garcons";} else if (!tipoUrl.endsWith("s")) {tipoUrl += "s";}
         
         return "/" + BASE_DIR + "/" + tipoUrl + "/" + nomeArquivo;
     }

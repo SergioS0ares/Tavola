@@ -29,8 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Log inicial para cada requisição que passa pelo filtro
         System.out.println("[JwtFilter] Recebida requisição para o path: " + path + " Método: " + request.getMethod());
 
-        // Ignorar autenticação nas rotas públicas
-        // (Esta lista é usada apenas para LOG, a regra de segurança REAL está no SecurityConfig)
         if (
         		path.equals("/auth/reenviar-codigo") ||
         		path.equals("/auth/esqueci-senha") ||
@@ -39,10 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         	    path.equals("/auth/verificar") ||
         	    path.equals("/auth/refresh") ||
         	    path.equals("/auth/login") ||
+        	    path.equals("/auth/login/garcom") ||
+        	    path.startsWith("/auth/cardapios/public/") ||
         		path.startsWith("/auth/mudar-senha") ||
-                path.equals("/auth/login/garcom") || // <<< ADICIONADO login/garcom
-        	    path.startsWith("/v3/api-docs") ||      
-        	    path.startsWith("/swagger-ui") ||      
+        	    path.startsWith("/v3/api-docs") ||
+        	    path.startsWith("/swagger-ui") ||
         	    path.startsWith("/upl")
         	) {
         	    System.out.println("[JwtFilter] Path público (ou ignorado pelo filtro), pulando autenticação JWT: " + path);
