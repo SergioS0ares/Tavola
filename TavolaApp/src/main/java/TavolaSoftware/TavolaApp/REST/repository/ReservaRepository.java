@@ -72,6 +72,19 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
             @Param("status") String status
     );
     
+    /**
+     * Busca reservas ATIVAS ou CONFIRMADAS associadas a uma lista de IDs de mesa
+     * PARA UMA DATA ESPECÍFICA.
+     */
+    @Query("SELECT r FROM Reserva r JOIN r.mesas m WHERE m.id IN :mesaIds " +
+           "AND r.dataReserva = :data " + // <<< FILTRO DE DATA ADICIONADO
+           "AND r.status IN (TavolaSoftware.TavolaApp.tools.StatusReserva.ATIVA, " +
+           "TavolaSoftware.TavolaApp.tools.StatusReserva.CONFIRMADA)")
+    List<Reserva> findReservasConfirmadasByMesaIdsAndData(
+            @Param("mesaIds") List<UUID> mesaIds, 
+            @Param("data") LocalDate data
+    );
+    
     @Query("SELECT COUNT(r) FROM Reserva r WHERE r.restaurante.id = :restauranteId AND r.dataReserva = :data")
     long countByRestauranteIdAndData(@Param("restauranteId") UUID restauranteId, @Param("data") LocalDate data);
 

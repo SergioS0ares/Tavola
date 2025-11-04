@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map; // <<< NOVO IMPORT
 import java.util.Optional;
@@ -43,49 +44,45 @@ public class AmbienteService {
     private ReservaRepository reservaRepository;
     
     /**
-     * Busca a estrutura completa do dashboard de ambientes, mesas, atendimentos e reservas
-     * de forma otimizada (sem N+1 queries).
+     * Busca a estrutura completa do dashboard... filtrada por DATA.
+     *
      */
     @Transactional(readOnly = true)
-    public List<AmbienteDashboardResponse> getAmbienteDashboard(UUID restauranteId) {
+    // <<< ASSINATURA ATUALIZADA >>>
+    public List<AmbienteDashboardResponse> getAmbienteDashboard(UUID restauranteId, LocalDate data) {
         
-        // 1. Busca todos os Ambientes do restaurante
+        // 1. Busca todos os Ambientes do restaurante (sem alteração)
         List<Ambiente> ambientes = ambienteRepository.findByRestauranteId(restauranteId);
         if (ambientes.isEmpty()) {
             return List.of();
         }
         List<UUID> ambienteIds = ambientes.stream().map(Ambiente::getId).collect(Collectors.toList());
 
-        // 2. Busca TODAS as Mesas de TODOS os ambientes de uma vez
+        // 2. Busca TODAS as Mesas de TODOS os ambientes (sem alteração)
         List<Mesa> todasAsMesas = mesaRepository.findByAmbienteIdIn(ambienteIds);
         if (todasAsMesas.isEmpty()) {
-            // Retorna só os ambientes vazios
             return ambientes.stream()
                 .map(amb -> new AmbienteDashboardResponse(amb, List.of()))
                 .collect(Collectors.toList());
         }
         List<UUID> mesaIds = todasAsMesas.stream().map(Mesa::getId).collect(Collectors.toList());
 
-        // 3. Busca TODOS os Atendimentos (ativos e inativos) de TODAS as mesas
-        List<AtendimentoMesa> todosOsAtendimentos = atendimentoMesaRepository.findByMesaIdIn(mesaIds);
+        // 3. Busca Atendimentos (agora FILTRADOS PELA DATA)
+        List<AtendimentoMesa> todosOsAtendimentos = atendimentoMesaRepository.findAtendimentosByMesaIdsAndData(mesaIds, data);
         
-        // 4. Busca TODAS as Reservas (ATIVAS/CONFIRMADAS) de TODAS as mesas
-        List<Reserva> todasAsReservas = reservaRepository.findReservasConfirmadasByMesaIds(mesaIds);
+        // 4. Busca Reservas (agora FILTRADAS PELA DATA)
+        //
+        List<Reserva> todasAsReservas = reservaRepository.findReservasConfirmadasByMesaIdsAndData(mesaIds, data);
 
-        // 5. Agrupa os dados em Mapas para montagem rápida
+        // 5. Agrupa os dados em Mapas (lógica de agrupamento atualizada)
         Map<UUID, List<AtendimentoSimplesResponse>> atendimentosPorMesaId = todosOsAtendimentos.stream()
             .map(AtendimentoSimplesResponse::new)
             .collect(Collectors.groupingBy(AtendimentoSimplesResponse::getMesaId));
             
-        Map<UUID, List<ReservaSimplesResponse>> reservasPorMesaId = todasAsReservas.stream()
-            .map(ReservaSimplesResponse::new)
-            .collect(Collectors.groupingBy(res -> res.getId())); // Nota: A query pode trazer duplicatas se a reserva tiver N mesas
-            
-        // (Agrupamento mais complexo para Reservas M-N)
-        // Precisamos mapear reservas para *todas* as mesas em que elas aparecem
+        // Mapeia reservas para todas as mesas em que elas aparecem
         Map<UUID, List<ReservaSimplesResponse>> reservasMapeadasPorMesaId = mesaIds.stream()
              .collect(Collectors.toMap(
-                 mesaId -> mesaId, // Chave é o ID da mesa
+                 mesaId -> mesaId, 
                  mesaId -> todasAsReservas.stream()
                              .filter(reserva -> reserva.getMesas().stream().anyMatch(m -> m.getId().equals(mesaId)))
                              .map(ReservaSimplesResponse::new)
@@ -97,18 +94,29 @@ public class AmbienteService {
 
         // 6. Monta a resposta final
         return ambientes.stream().map(ambiente -> {
-            // Pega as mesas deste ambiente (já filtradas)
             List<Mesa> mesasDoAmbiente = mesasPorAmbienteId.getOrDefault(ambiente.getId(), List.of());
             
             List<MesaDashboardResponse> mesasDashboard = mesasDoAmbiente.stream().map(mesa -> {
                 UUID mesaId = mesa.getId();
                 
-                // Converte a entidade Mesa para o DTO MesaResponse (que agora tem o status)
+                // Converte a entidade Mesa para o DTO (já pega o status ATUAL)
                 MesaResponse mesaDto = MesaResponse.fromEntity(mesa);
                 
-                // Pega os atendimentos e reservas dos mapas
                 List<AtendimentoSimplesResponse> atendimentos = atendimentosPorMesaId.getOrDefault(mesaId, List.of());
                 List<ReservaSimplesResponse> reservas = reservasMapeadasPorMesaId.getOrDefault(mesaId, List.of());
+                
+                // <<< LÓGICA DE STATUS (A Pedido) >>>
+                //
+                // Se a data for HOJE, o status "OCUPADA" (do AtendimentoAtivo) está correto.
+                // Se a data for FUTURA, e a mesa estiver LIVRE, mas tiver reservas, muda para RESERVADA.
+                if (!data.isEqual(LocalDate.now()) && 
+                    mesaDto.getStatus().equals("LIVRE") && 
+                    !reservas.isEmpty()) 
+                {
+                    mesaDto.setStatus("RESERVADA");
+                }
+                // (Se a data for passada, o status "LIVRE" é mantido, pois o atendimento já foi fechado)
+                // <<< FIM DA LÓGICA DE STATUS >>>
                 
                 return new MesaDashboardResponse(mesaDto, atendimentos, reservas);
             }).collect(Collectors.toList());

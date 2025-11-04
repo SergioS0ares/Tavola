@@ -25,7 +25,7 @@ public class DashboardController {
      *
      * Retorna a estrutura completa de Ambientes, Mesas (com status),
      * Atendimentos (todos) e Reservas (confirmadas) para o restaurante.
-     */
+     *
     @GetMapping("/ambientes")
     public ResponseEntity<?> getDashboardCompletoAmbientes(
             @PathVariable UUID idRestaurante
@@ -42,4 +42,5 @@ public class DashboardController {
             return ResponseEntity.status(500).body(Map.of("erro", "Erro ao montar o dashboard: " + e.getMessage()));
         }
     }
+    */
 }
