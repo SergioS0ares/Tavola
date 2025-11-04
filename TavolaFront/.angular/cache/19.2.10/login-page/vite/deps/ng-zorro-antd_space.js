@@ -7,20 +7,20 @@ import {
   NzSpaceComponent,
   NzSpaceItemDirective,
   NzSpaceModule
-} from "./chunk-XTKVMR6V.js";
-import "./chunk-IMEQGVRM.js";
-import "./chunk-STIWBXVZ.js";
-import "./chunk-4R27AFEI.js";
-import "./chunk-37JVYMH4.js";
-import "./chunk-UWI5G4WL.js";
-import "./chunk-EGOXQUGJ.js";
-import "./chunk-3IS5O4C4.js";
-import "./chunk-G35TK6A2.js";
-import "./chunk-V42TUGRX.js";
-import "./chunk-NOA3ODJI.js";
-import "./chunk-QCX4XGGK.js";
-import "./chunk-3LZ7TQJT.js";
-import "./chunk-3SRVZXQZ.js";
+} from "./chunk-MLL3QUI4.js";
+import "./chunk-6SXK6LIV.js";
+import "./chunk-GZSISZQB.js";
+import "./chunk-VND2APYQ.js";
+import "./chunk-R2VP7ZZU.js";
+import "./chunk-XCU3UC5F.js";
+import "./chunk-TNEQYUDY.js";
+import "./chunk-TWMCAD2S.js";
+import "./chunk-MW3E2F3V.js";
+import "./chunk-EBUSMSIV.js";
+import "./chunk-ILWPD5MP.js";
+import "./chunk-LY47WWX6.js";
+import "./chunk-W4JHFQG5.js";
+import "./chunk-T3FUWE6O.js";
 import "./chunk-TXDUYLVM.js";
 export {
   NZ_SPACE_COMPACT_ITEMS,

@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import TavolaSoftware.TavolaApp.REST.dto.requests.AvaliacaoRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.AvaliacaoResponse; // Adicione
 import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteAvaliacoesResponse; // Adicione
 import TavolaSoftware.TavolaApp.REST.model.Avaliacao;
@@ -20,8 +21,10 @@ import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.repository.AvaliacaoRepository;
+import TavolaSoftware.TavolaApp.REST.repository.ReservaRepository;
 import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
 import TavolaSoftware.TavolaApp.tools.Lexico;
+import TavolaSoftware.TavolaApp.tools.StatusReserva;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityNotFoundException; // Adicione
 
@@ -35,6 +38,7 @@ public class AvaliacaoService {
     @Autowired private AvaliacaoRepository avaliacaoRepository;
     @Autowired private JavaMailSender mailSender;
     @Autowired private Lexico lexico;
+    @Autowired private ReservaRepository reservaRepository; // <<< ADICIONAR INJEÇÃO
 
     
     @Value("${spring.mail.username}")
@@ -42,35 +46,38 @@ public class AvaliacaoService {
 
     
     @Transactional
-    public Avaliacao avaliarRestaurante(double score, String comentario, UUID restauranteId, String emailCliente) {
-        int scoreFinal = formatarScore(score);
+    // <<< ASSINATURA ATUALIZADA >>>
+    public Avaliacao avaliarRestaurante(AvaliacaoRequest request, UUID restauranteId, String emailCliente) {
+        
+        int scoreFinal = formatarScore(request.getScore());
+        String comentario = request.getComentario();
 
         Cliente cliente = servCliente.findByEmail(emailCliente)
                                         .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado para o email: " + emailCliente));
 
         Restaurante restaurante = repoRestaurante.findById(restauranteId)
                                                  .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado."));
+        
+        // --- LÓGICA ATUALIZADA (BUSCA AUTOMÁTICA) ---
+        // Não precisamos mais do 'reservaId' vindo do request.
+        
+        // 1. Encontra a última reserva CONCLUÍDA e NÃO AVALIADA
+        Reserva reservaParaAvaliar = reservaRepository.findFirstByClienteAndRestauranteAndStatusAndAvaliacaoIsNullOrderByDataReservaDescHoraReservaDesc(
+            cliente, 
+            restaurante, 
+            StatusReserva.CONCLUIDA
+        ).orElseThrow(() -> new IllegalStateException( // Erro 409 CONFLICT
+            "Nenhuma reserva concluída pendente de avaliação foi encontrada para este restaurante."
+        ));
+        
+        // 2. Cria a nova avaliação (não precisamos verificar se existe, pois a busca já fez isso)
+        Avaliacao avaliacao = new Avaliacao(restaurante, cliente, scoreFinal, comentario, reservaParaAvaliar);
+        
+        // --- FIM DA LÓGICA ATUALIZADA ---
 
-        Optional<Avaliacao> avaliacaoExistenteOpt = avaliacaoRepository.findByClienteAndRestaurante(cliente, restaurante);
-
-        Avaliacao avaliacao;
-        if (avaliacaoExistenteOpt.isPresent()) {
-            avaliacao = avaliacaoExistenteOpt.get();
-            avaliacao.setScore(scoreFinal);
-
-            if (comentario != null && !comentario.trim().isEmpty()) {
-                avaliacao.setComentario(comentario);
-            }
-        } else {
-            avaliacao = new Avaliacao(restaurante, cliente, scoreFinal, comentario);
-        }
-
-        // <<< LÓGICA ADICIONADA AQUI >>>
-        // 1. Analisa o sentimento do comentário atual da avaliação
+        // 3. Analisa o sentimento (lógica existente)
         String sentimentoAnalisado = lexico.analisarComentario(avaliacao.getComentario());
-        // 2. Salva o resultado na entidade
         avaliacao.setSentimento(sentimentoAnalisado);
-        // <<< FIM DA LÓGICA ADICIONADA >>>
 
         Avaliacao avaliacaoSalva = avaliacaoRepository.save(avaliacao);
         
@@ -134,14 +141,14 @@ public class AvaliacaoService {
     
     @Transactional(readOnly = true)
     public RestauranteAvaliacoesResponse getAvaliacoesDetalhadasPorRestaurante(UUID restauranteId) {
-
+        // ... (busca restaurante - sem alterações)
         Restaurante restaurante = restauranteService.findEntityById(restauranteId)
             .orElseThrow(() -> new EntityNotFoundException("Restaurante não encontrado com ID: " + restauranteId));
 
         List<Avaliacao> avaliacoes = avaliacaoRepository.findDetalhadaByRestauranteId(restauranteId);
 
         List<AvaliacaoResponse> avaliacoesDto = avaliacoes.stream()
-            .map(AvaliacaoResponse::new) // Usa o construtor do DTO
+            .map(AvaliacaoResponse::new) // O construtor do DTO fará o resto
             .collect(Collectors.toList());
 
         return new RestauranteAvaliacoesResponse(restaurante, avaliacoesDto);

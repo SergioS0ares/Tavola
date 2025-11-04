@@ -14,7 +14,7 @@ import { MatExpansionModule } from '@angular/material/expansion'
 // NG-Zorro imports
 import { NzModalModule } from "ng-zorro-antd/modal"
 import { NzImageModule } from "ng-zorro-antd/image"
-import { QRCodeModule } from 'angularx-qrcode'
+import { QRCodeComponent } from 'angularx-qrcode'
 import Swal from "sweetalert2"
 import { GlobalSpinnerComponent } from "../../spin/global-spinner/global-spinner.component"
 
@@ -42,7 +42,7 @@ import { environment } from "../../../environments/environment"
     // NG-Zorro imports
     NzModalModule,
     NzImageModule,
-    QRCodeModule,
+    QRCodeComponent,
     GlobalSpinnerComponent,
   ],
   templateUrl: "./meu-restaurante.component.html",

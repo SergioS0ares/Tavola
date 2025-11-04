@@ -13,6 +13,9 @@ public class MesaResponse {
     private int capacidade;
     private boolean vip;
     private UUID ambienteId;
+    
+    // <<< CAMPO ADICIONADO >>>
+    private String status; // Ex: "LIVRE", "OCUPADA", "RESERVADA"
 
     public static MesaResponse fromEntity(Mesa mesa) {
         if (mesa == null) {
@@ -25,8 +28,14 @@ public class MesaResponse {
         response.tipo = mesa.getTipo();
         response.capacidade = mesa.getCapacidade();
         response.vip = mesa.isVip();
+        
         if (mesa.getAmbiente() != null) {
             response.ambienteId = mesa.getAmbiente().getId();
+        }
+        
+        // <<< LÓGICA ADICIONADA >>>
+        if (mesa.getStatus() != null) {
+            response.status = mesa.getStatus().toString(); // Pega o nome do Enum
         }
         
         return response;
@@ -39,4 +48,8 @@ public class MesaResponse {
     public int getCapacidade() { return capacidade; }
     public boolean isVip() { return vip; }
     public UUID getAmbienteId() { return ambienteId; }
+    
+    // <<< GETTER E SETTER ADICIONADOS >>>
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

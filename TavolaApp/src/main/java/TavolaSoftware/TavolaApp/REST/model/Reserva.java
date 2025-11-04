@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import TavolaSoftware.TavolaApp.tools.StatusReserva;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -60,7 +62,13 @@ public class Reserva {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_reserva", nullable = false)
     private StatusReserva status;
+    
+ // <<< NOVO CAMPO >>>
+    // Mapeia a avaliação associada a esta reserva
+    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Avaliacao avaliacao;
 
+    
     public Reserva() {
         this.status = StatusReserva.ATIVA;
     }
@@ -88,4 +96,12 @@ public class Reserva {
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
     public StatusReserva getStatus() { return status; }
     public void setStatus(StatusReserva status) { this.status = status; }
+    
+ // <<< NOVOS GETTERS/SETTERS >>>
+    public Avaliacao getAvaliacao() {
+        return avaliacao;
+    }
+    public void setAvaliacao(Avaliacao avaliacao) {
+        this.avaliacao = avaliacao;
+    }
 }
