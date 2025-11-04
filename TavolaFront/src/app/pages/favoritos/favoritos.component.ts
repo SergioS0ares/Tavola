@@ -1,4 +1,4 @@
-import { Component, type OnInit, inject } from "@angular/core"
+import { Component, type OnInit, inject, HostListener } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router, RouterModule } from "@angular/router"
 
@@ -30,9 +30,20 @@ export class FavoritosComponent implements OnInit {
   private restauranteService = inject(RestauranteService)
 
   public favoritos: IFavorito[] = []
+  public isMobile = false
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: Event) {
+    this.checkMobile();
+  }
 
   ngOnInit(): void {
+    this.checkMobile();
     this.carregarFavoritos()
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
   }
 
   private carregarFavoritos(): void {

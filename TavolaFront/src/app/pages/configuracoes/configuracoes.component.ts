@@ -1,4 +1,4 @@
-import { Component, inject, type OnInit } from "@angular/core"
+import { Component, inject, type OnInit, HostListener } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormBuilder, type FormGroup, ReactiveFormsModule, Validators } from "@angular/forms"
 import { Router } from "@angular/router"
@@ -76,10 +76,17 @@ export class ConfiguracoesComponent implements OnInit {
 
   loading = false
   mensagemCepInvalido = ""
+  public isMobile = false
 
   userData!: IUserData
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: Event) {
+    this.checkMobile();
+  }
+
   ngOnInit() {
+    this.checkMobile();
     this.loading = true
     const userRole = this.auth.perfil?.tipo
 
@@ -357,5 +364,9 @@ export class ConfiguracoesComponent implements OnInit {
     if (!path) return ""
     if (path.startsWith("http") || path.startsWith("data:")) return path
     return `${environment.apiUrl}${path}`
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
   }
 }

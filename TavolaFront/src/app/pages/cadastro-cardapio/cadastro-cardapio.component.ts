@@ -1,9 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -67,9 +67,20 @@ export class CadastroCardapioComponent implements OnInit {
   tagFiltro: string[] = [];
   apenasDisponiveis = false;
   tagsDisponiveis: string[] = [];
+  public isMobile = false;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: Event) {
+    this.checkMobile();
+  }
 
   ngOnInit() {
     this.carregarItens();
+    this.checkMobile();
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
   }
 
   // ... dentro da classe CadastroCardapioComponent
@@ -305,5 +316,19 @@ export class CadastroCardapioComponent implements OnInit {
         });
       }
     });
+  }
+
+  /**
+   * Remove o foco do gatilho do menu quando o menu é fechado.
+   * Isso corrige um bug no mobile onde o menu não fecha ao clicar fora.
+   */
+  onMenuClosed(event: any): void {
+    // Usa setTimeout para garantir que o blur aconteça após o menu fechar
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+      }
+    }, 0);
   }
 }

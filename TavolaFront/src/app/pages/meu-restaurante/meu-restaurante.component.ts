@@ -1,4 +1,4 @@
-import { Component, inject, type OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core"
+import { Component, inject, type OnInit, OnDestroy, ChangeDetectorRef, HostListener } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormBuilder, type FormGroup, type FormArray, Validators, ReactiveFormsModule } from "@angular/forms"
 import { MatFormFieldModule } from "@angular/material/form-field"
@@ -55,6 +55,11 @@ export class MeuRestauranteComponent implements OnInit, OnDestroy {
   restauranteId: string | null = null
   urlCardapioPublico: string | null = null
   qrCodeWidth = 200
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: Event) {
+    this.ajustarLarguraQrCode();
+  }
 
   tiposCozinha = [
     "Italiana",

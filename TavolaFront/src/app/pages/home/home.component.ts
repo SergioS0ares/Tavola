@@ -81,7 +81,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Estados de busca
   fezBusca = false;
   buscando = false;
+  public isMobile = false;
 
+  @HostListener('window:resize', ['$event'])
+  onResizeHome(event?: Event) {
+    this.checkMobile();
+  }
 
   constructor(
     private stickyService: StickySearchService,
@@ -95,6 +100,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.checkMobile();
     this.filteredCitySuggestions = [];
     this.querySuggestions = [];
 
@@ -448,5 +454,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       notaMinima: 0,
       servicos: []
     };
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
   }
 }

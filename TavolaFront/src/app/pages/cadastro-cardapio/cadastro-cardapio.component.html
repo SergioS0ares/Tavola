@@ -16,6 +16,7 @@
         aria-label="Adicionar item"
         matTooltip="Adicionar novo item ao cardápio"
         matTooltipClass="tavola-tooltip"
+        [matTooltipDisabled]="isMobile"
         (click)="adicionar()">
         <mat-icon>add</mat-icon>
       </button>
@@ -46,17 +47,19 @@
         <button mat-icon-button 
                 class="filter-button" 
                 [matMenuTriggerFor]="filterMenu"
+                #filterMenuTrigger="matMenuTrigger"
                 matTooltip="Filtros avançados"
-                matTooltipClass="tavola-tooltip">
+                matTooltipClass="tavola-tooltip"
+                [matTooltipDisabled]="isMobile">
           <mat-icon>tune</mat-icon>
         </button>
         
         <!-- Menu de filtros -->
-        <mat-menu #filterMenu="matMenu" class="tavola-menu-bar">
+        <mat-menu #filterMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
           <div class="filter-menu-content">
             <div class="filter-header">
               <h4>Filtros</h4>
-              <button mat-icon-button (click)="limparFiltros()" matTooltip="Limpar filtros">
+              <button mat-icon-button (click)="limparFiltros()" matTooltip="Limpar filtros" [matTooltipDisabled]="isMobile">
                 <mat-icon>clear</mat-icon>
               </button>
             </div>
@@ -120,7 +123,9 @@
             </div>
 
             <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" 
-                    matTooltip="Mais opções" matTooltipClass="tavola-tooltip">
+                    #itemMenuTrigger="matMenuTrigger"
+                    matTooltip="Mais opções" matTooltipClass="tavola-tooltip"
+                    [matTooltipDisabled]="isMobile">
               <mat-icon>more_vert</mat-icon>
             </button>
           </div>
@@ -134,7 +139,8 @@
                 (change)="toggleDisponibilidade(item)"
                 color="primary"
                 [matTooltip]="item.disponivel ? 'Item disponível' : 'Item indisponível'"
-                matTooltipClass="tavola-tooltip">
+                matTooltipClass="tavola-tooltip"
+                [matTooltipDisabled]="isMobile">
               </mat-slide-toggle>
             </div>
             
@@ -148,7 +154,7 @@
             </div>
           </mat-card-content>
 
-          <mat-menu #menu="matMenu" class="tavola-menu-bar">
+          <mat-menu #menu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
             <button mat-menu-item (click)="editar(item)">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>

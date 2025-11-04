@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,6 +40,12 @@ export class GerenciarEquipeComponent implements OnInit {
   carregando = false;
   pesquisa = '';
   copiadoMembros: { [key: string]: boolean } = {};
+  public isMobile = false;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: Event) {
+    this.checkMobile();
+  }
 
   constructor(
     private equipeService: EquipeService,
@@ -49,8 +55,13 @@ export class GerenciarEquipeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.checkMobile();
     // this.spinner.show();
     this.carregarEquipe();
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
   }
 
   /**
@@ -252,12 +263,21 @@ export class GerenciarEquipeComponent implements OnInit {
         reader.onload = (e: any) => {
           const novaImagem = e.target.result;
           
-          // Usar o método PUT para atualizar a foto
-          this.equipeService.updateMembroFoto(
-            membro.id, 
-            novaImagem, 
-            membro.nome, 
-            'senha_temp' // Senha temporária, pois não temos a senha real
+          // Verificar se a imagem foi lida corretamente
+          if (!novaImagem || typeof novaImagem !== 'string') {
+            this.toastr.error('Erro ao processar a imagem.', 'Erro');
+            return;
+          }
+          
+          // Usar o método updateMembro que permite atualizar apenas a imagem
+          // Passando string vazia para senha para não alterá-la
+          this.equipeService.updateMembro(
+            membro.id,
+            {
+              nome: membro.nome,
+              senha: '', // String vazia para não alterar a senha
+              imagem: novaImagem
+            }
           ).subscribe({
             next: () => {
               // Recarregar a equipe para garantir consistência com o backend
@@ -277,5 +297,19 @@ export class GerenciarEquipeComponent implements OnInit {
     document.body.appendChild(input);
     input.click();
     document.body.removeChild(input);
+  }
+
+  /**
+   * Remove o foco do gatilho do menu quando o menu é fechado.
+   * Isso corrige um bug no mobile onde o menu não fecha ao clicar fora.
+   */
+  onMenuClosed(event: any): void {
+    // Usa setTimeout para garantir que o blur aconteça após o menu fechar
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+      }
+    }, 0);
   }
 }

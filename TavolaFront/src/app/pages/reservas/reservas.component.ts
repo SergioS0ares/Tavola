@@ -24,7 +24,7 @@ import { MatTooltipModule } from "@angular/material/tooltip"
 import { MatChipsModule } from "@angular/material/chips"
 import { MatSelectModule } from "@angular/material/select"
 import { MatCheckboxModule } from "@angular/material/checkbox"
-import { MatMenuModule } from "@angular/material/menu"
+import { MatMenuModule, MatMenuTrigger } from "@angular/material/menu"
 import { MatAutocompleteModule } from "@angular/material/autocomplete"
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
 
@@ -1537,5 +1537,19 @@ export class ReservasComponent implements OnInit, AfterViewInit {
           this.aplicarFiltrosEspera();
         }
       });
+  }
+
+  /**
+   * Remove o foco do gatilho do menu quando o menu é fechado.
+   * Isso corrige um bug no mobile onde o menu não fecha ao clicar fora.
+   */
+  onMenuClosed(event: any): void {
+    // Usa setTimeout para garantir que o blur aconteça após o menu fechar
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+      }
+    }, 0);
   }
 }

@@ -27,7 +27,8 @@
           </mat-form-field>
         </div>
 
-        <div class="form-field">
+        <!-- Campo de senha apenas no modo de criação -->
+        <div class="form-field" *ngIf="!data.editMode">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Senha Provisória</mat-label>
             <input 

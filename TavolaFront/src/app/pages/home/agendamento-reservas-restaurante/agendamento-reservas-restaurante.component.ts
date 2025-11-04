@@ -1,8 +1,8 @@
-import { Component, type OnInit, ViewChild, ElementRef, type AfterViewInit, HostListener, LOCALE_ID, OnDestroy, Inject,} from "@angular/core"
+import { Component, type OnInit, ViewChild, ElementRef, type AfterViewInit, HostListener, LOCALE_ID, OnDestroy, Inject, ChangeDetectorRef } from "@angular/core"
 import { ActivatedRoute, Router } from "@angular/router"
 import { RestauranteService } from "../../../core/services/restaurante.service"
 import { MapsService } from "../../../core/services/maps.service"
-import { CommonModule, registerLocaleData } from "@angular/common"
+import { CommonModule, registerLocaleData, CurrencyPipe } from "@angular/common"
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import { RouterLink } from "@angular/router"
 import { GoogleMapsModule } from "@angular/google-maps"
@@ -58,6 +58,7 @@ import { NzBadgeModule } from "ng-zorro-antd/badge"
 import { NzAvatarModule } from "ng-zorro-antd/avatar"
 import { NzCommentModule } from "ng-zorro-antd/comment"
 import { NzListModule } from "ng-zorro-antd/list"
+import { NzEmptyModule } from "ng-zorro-antd/empty"
 import { NzMessageService } from "ng-zorro-antd/message"
 import { NZ_I18N, pt_BR } from "ng-zorro-antd/i18n"
 import type { IconDefinition } from "@ant-design/icons-angular"
@@ -78,6 +79,7 @@ import {
   FireFill,
   CopyOutline,
   CheckOutline,
+  CloseOutline,
 } from "@ant-design/icons-angular/icons"
 
 const icons: IconDefinition[] = [
@@ -97,6 +99,7 @@ const icons: IconDefinition[] = [
   FireFill,
   CopyOutline,
   CheckOutline,
+  CloseOutline,
 ]
 
 @Component({
@@ -104,6 +107,7 @@ const icons: IconDefinition[] = [
   standalone: true,
   imports: [
     CommonModule,
+    CurrencyPipe,
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
@@ -143,6 +147,7 @@ const icons: IconDefinition[] = [
     NzAvatarModule,
     NzCommentModule,
     NzListModule,
+    NzEmptyModule,
 
     GoogleMap,
   ],
@@ -237,6 +242,12 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   carregandoAvaliacoes = false
 
   restauranteId!: string
+  public isMobile = false
+
+  // --- NOVAS PROPRIEDADES PARA O DRAWER MOBILE ---
+  isReservaDrawerVisible = false // Controla o drawer
+  proximosDiasDisponiveis: Date[] = [] // Array para os botões de data
+  // --- FIM DAS NOVAS PROPRIEDADES ---
 
   constructor(
     @Inject(ActivatedRoute) private route: ActivatedRoute,
@@ -249,6 +260,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     private cardapioService: CardapioService,
     private reservasService: ReservasService,
     private dialog: MatDialog,
+    private cdr: ChangeDetectorRef,
     private notificacoesService: NotificacoesService,
     private authService: AuthService,
     private avaliacaoService: AvaliacaoService
@@ -322,6 +334,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       }
     })
     
+    this.checkMobile();
     this.route.params.subscribe(params => {
       this.restauranteId = params['id']
       if (this.restauranteId) {
@@ -330,6 +343,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     })
     this.carregarItensMenu()
     this.generateAvailableSlots()
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
   }
 
   ngAfterViewInit() {
@@ -494,7 +511,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
         });
         // Centralizar mapa pelo endereço formatado
         this.atualizarLocalizacaoMapa();
-        this.generateAvailableSlots();
+        // --- CHAMA AS NOVAS FUNÇÕES ---
+        this.generateAvailableSlots(); // Gera slots para a data atual
+        this.calcularProximosDiasDisponiveis(); // Calcula os próximos 7 dias
+        // --- FIM DA CHAMADA ---
         this.isFavorite = restaurante.favorito ?? false;
         this.isLoading = false
         this.spinnerService.ocultar()
@@ -576,10 +596,6 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     if (index === 2) {
       this.carregarAvaliacoes();
     }
-  }
-
-  scrollToTop(): void {
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   copiarEndereco(): void {
@@ -719,8 +735,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   @HostListener("window:resize", ["$event"])
-  onResize(event: Event): void {
-    this.verificarSetas()
+  onResize(event?: Event): void {
+    this.checkMobile();
+    this.verificarSetas();
+    this.checkTabPosition();
   }
 
   prepareBookingData(): void {
@@ -750,6 +768,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     this.reservasService.postCriarReserva(reservaData).subscribe({
       next: () => {
         this.spinnerService.ocultar();
+        this.fecharDrawerReserva(); // Fecha o drawer após sucesso
         this.abrirDialogSucesso(reservaData);
         this.resetBooking(); // Limpa o formulário para uma nova reserva
       },
@@ -962,6 +981,77 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       year: 'numeric'
     });
   }
+
+  // --- NOVAS FUNÇÕES PARA O DRAWER MOBILE ---
+
+  /**
+   * Calcula os próximos 7 dias disponíveis para reserva.
+   */
+  private calcularProximosDiasDisponiveis(): void {
+    const dias: Date[] = [];
+    let hoje = new Date();
+    hoje.setHours(0, 0, 0, 0); // Zera a hora para comparação
+
+    // Itera pelos próximos 7 dias (ou mais, se quiser)
+    for (let i = 0; i < 7; i++) {
+      let proximoDia = new Date(); // Começa de 'hoje' (com hora atual)
+      proximoDia.setDate(proximoDia.getDate() + i);
+      proximoDia.setHours(0, 0, 0, 0); // Zera para o isDiaHabilitado
+      
+      // Usa a função isDiaHabilitado para verificar se o restaurante abre
+      if (this.isDiaHabilitado(proximoDia)) {
+        dias.push(proximoDia);
+      }
+    }
+    this.proximosDiasDisponiveis = dias;
+  }
+
+  /**
+   * Abre o drawer de reserva (mobile) começando na etapa de escolha de data.
+   */
+  abrirDrawerReservaEscolha(): void {
+    this.bookingStep = 1; // Começa na Etapa 1 (Data)
+    this.isReservaDrawerVisible = true; // Abre o drawer
+  }
+
+  /**
+   * Abre o drawer de reserva (mobile) e avança para a etapa de Horário.
+   * Mantido para compatibilidade caso seja chamado de outros lugares.
+   */
+  abrirDrawerReserva(data?: Date): void {
+    if (data) {
+      // Define a data clicada e zera a hora para consistência
+      this.selectedDate = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+      this.generateAvailableSlots();  // Gera os horários para essa data
+      this.bookingStep = 2;           // Pula direto para a Etapa 2 (Horário)
+    } else {
+      this.bookingStep = 1; // Se não há data, começa na Etapa 1
+    }
+    this.isReservaDrawerVisible = true; // Abre o drawer
+  }
+
+  /**
+   * Fecha o drawer de reserva (mobile).
+   */
+  fecharDrawerReserva(): void {
+    this.isReservaDrawerVisible = false;
+    // Opcional: resetar o step se fechar o drawer
+    // this.bookingStep = 1; 
+  }
+
+  /**
+   * Formata a data para os botões do footer (Ex: Ter. 05)
+   */
+  formatarDataBotao(data: Date): { diaSemana: string, dia: string } {
+    const dia = data.toLocaleDateString('pt-BR', { day: '2-digit' });
+    // Capitaliza a primeira letra da semana
+    let diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'short' });
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1).replace('.', '');
+    
+    return { diaSemana, dia };
+  }
+  
+  // --- FIM DAS NOVAS FUNÇÕES ---
 
   /**
    * Verifica se há notificação pendente para este restaurante e abre o dialog de avaliação

@@ -41,7 +41,7 @@
       <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
         <mat-icon>chevron_right</mat-icon>
       </button>
-      <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+      <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile()">
         <mat-icon>calendar_month</mat-icon>
       </button>
     </div>
@@ -101,6 +101,7 @@
                         }" 
                         [matTooltip]="getTooltipStatus(reserva.status)" 
                         matTooltipClass="tavola-tooltip"
+                        [matTooltipDisabled]="isMobile()"
                         aria-label="Status da reserva">
                         <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
                       </button>
@@ -115,7 +116,8 @@
             <div *ngIf="reservasAlmocoVisiveis.length === 0 && (periodoFiltro === 'todos' || periodoFiltro === 'Almoço') && (pesquisa.trim() === '' || (pesquisa.trim() !== '' && !temReservasParaPesquisaNoPeriodo('Almoço')))" class="sem-reservas">
               <nz-empty nzDescription="Sem reservas para o almoço nesta data com os filtros aplicados"
                         matTooltip="Sem reservas para o almoço nesta data com os filtros aplicados"
-                        matTooltipClass="tavola-tooltip"></nz-empty>
+                        matTooltipClass="tavola-tooltip"
+                        [matTooltipDisabled]="isMobile()"></nz-empty>
             </div>
 
             <div class="periodo-section" *ngIf="reservasJantarVisiveis.length > 0">
@@ -149,6 +151,7 @@
                         }" 
                         [matTooltip]="getTooltipStatus(reserva.status)" 
                         matTooltipClass="tavola-tooltip"
+                        [matTooltipDisabled]="isMobile()"
                         aria-label="Status da reserva">
                          <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
                       </button>
@@ -163,18 +166,21 @@
             <div *ngIf="reservasJantarVisiveis.length === 0 && (periodoFiltro === 'todos' || periodoFiltro === 'Jantar') && (pesquisa.trim() === '' || (pesquisa.trim() !== '' && !temReservasParaPesquisaNoPeriodo('Jantar')))" class="sem-reservas">
               <nz-empty nzDescription="Sem reservas para o jantar nesta data com os filtros aplicados"
                         matTooltip="Sem reservas para o jantar nesta data com os filtros aplicados"
-                        matTooltipClass="tavola-tooltip"></nz-empty>
+                        matTooltipClass="tavola-tooltip"
+                        [matTooltipDisabled]="isMobile()"></nz-empty>
             </div>
 
             <div *ngIf="reservasVisiveis.length === 0 && pesquisa.trim() !== ''" class="sem-reservas">
                 <nz-empty nzDescription="Nenhuma reserva encontrada para sua busca."
                           matTooltip="Nenhuma reserva encontrada para sua busca."
-                          matTooltipClass="tavola-tooltip"></nz-empty>
+                          matTooltipClass="tavola-tooltip"
+                          [matTooltipDisabled]="isMobile()"></nz-empty>
             </div>
              <div *ngIf="reservasAlmocoVisiveis.length === 0 && reservasJantarVisiveis.length === 0 && pesquisa.trim() === '' && !existemReservasParaDataAtual()" class="sem-reservas">
                  <nz-empty nzDescription="Nenhuma reserva para a data selecionada."
                            matTooltip="Nenhuma reserva para a data selecionada."
-                           matTooltipClass="tavola-tooltip"></nz-empty>
+                           matTooltipClass="tavola-tooltip"
+                           [matTooltipDisabled]="isMobile()"></nz-empty>
             </div>
           </div>
         </mat-tab>
@@ -194,7 +200,8 @@
           <div class="tab-content-placeholder" *ngIf="reservasEsperaVisiveis.length === 0">
             <nz-empty nzDescription="Lista de espera vazia"
                       matTooltip="Lista de espera vazia"
-                      matTooltipClass="tavola-tooltip"></nz-empty>
+                      matTooltipClass="tavola-tooltip"
+                      [matTooltipDisabled]="isMobile()"></nz-empty>
           </div>
           <div class="reservas-list" *ngIf="reservasEsperaVisiveis.length > 0">
             <div class="reserva-cards">
@@ -224,6 +231,7 @@
                       (click)="reatribuirReserva(reserva, $event)"
                       matTooltip="Reatribuir para data atual" 
                       matTooltipClass="tavola-tooltip"
+                      [matTooltipDisabled]="isMobile()"
                       aria-label="Reatribuir reserva">
                       <mat-icon>pending_actions</mat-icon>
                     </button>
@@ -253,7 +261,7 @@
             <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
               <mat-icon>chevron_right</mat-icon>
             </button>
-            <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+            <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile()">
               <mat-icon>calendar_month</mat-icon>
             </button>
           </div>
@@ -265,6 +273,7 @@
               aria-label="Gerenciar Mesas"
               matTooltip="Adicionar, Editar ou Remover Mesas"
               matTooltipClass="tavola-tooltip"
+              [matTooltipDisabled]="isMobile()"
               (click)="abrirModalGerenciarMesas('criar')">
               <mat-icon>add</mat-icon>
             </button>
@@ -276,7 +285,7 @@
         <!-- Detalhes agora em fullscreen no mobile -->
         <div class="reserva-detalhes-container" [class.mobile-fullscreen]="isMobile()">
           <div class="detalhes-header">
-            <button mat-icon-button (click)="fecharDetalhes()" class="back-button-details" matTooltip="Voltar para o mapa de mesas" matTooltipClass="tavola-tooltip" aria-label="Voltar para mapa de mesas">
+            <button mat-icon-button (click)="fecharDetalhes()" class="back-button-details" matTooltip="Voltar para o mapa de mesas" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile()" aria-label="Voltar para mapa de mesas">
                 <mat-icon>arrow_back</mat-icon>
             </button>
             <h2>Detalhes da Reserva #{{ reservaSelecionada.id.slice(-4) }}</h2>
@@ -389,7 +398,7 @@
                            <div class="mesa-chip" *ngFor="let mesaNome of reservaSelecionada.nomesMesas">
                                <span class="mesa-nome">{{ mesaNome }}</span>
                                <button mat-icon-button class="remove-mesa-btn" (click)="removerMesaDaReserva(reservaSelecionada!.id, getMesaIdPorNome(mesaNome)!)" 
-                                       matTooltip="Desassociar mesa" matTooltipClass="tavola-tooltip" aria-label="Desassociar mesa">
+                                       matTooltip="Desassociar mesa" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile()" aria-label="Desassociar mesa">
                                    <mat-icon>close</mat-icon>
                                </button>
                            </div>
@@ -443,11 +452,11 @@
                       <input matInput [(ngModel)]="valorEditado" (keydown.enter)="salvarEdicao(i)" (keydown.escape)="cancelarEdicao()" (blur)="salvarEdicao(i)" cdkFocusInitial>
                     </mat-form-field>
                     
-                    <button mat-icon-button class="more-options-btn" [matMenuTriggerFor]="areaMenu" (click)="$event.stopPropagation()">
+                    <button mat-icon-button class="more-options-btn" [matMenuTriggerFor]="areaMenu" #areaMenuTrigger="matMenuTrigger" (click)="$event.stopPropagation()">
                       <mat-icon>more_vert</mat-icon>
                     </button>
 
-                    <mat-menu #areaMenu="matMenu" class="tavola-menu-bar">
+                    <mat-menu #areaMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
                       <button mat-menu-item (click)="iniciarEdicao($event, i)">
                         <mat-icon>edit</mat-icon>
                         <span>Editar Nome</span>
@@ -493,13 +502,14 @@
                   [ngClass]="{ 'mesa-ocupada': mesa.ocupada, 'mesa-selecionada-reserva': isMesaAtribuidaAReservaAtual(mesa.id) }" 
                   (click)="toggleMesaParaReserva(mesa)"
                   [matTooltip]="getTooltipMesa(mesa)" 
-                  matTooltipClass="tavola-tooltip">
+                  matTooltipClass="tavola-tooltip"
+                  [matTooltipDisabled]="isMobile()">
                   
                   <div class="mesa-menu" (click) = "$event.stopPropagation()">
-                    <button mat-icon-button [matMenuTriggerFor]="mesaMenu">
+                    <button mat-icon-button [matMenuTriggerFor]="mesaMenu" #mesaMenuTrigger="matMenuTrigger">
                       <mat-icon>more_vert</mat-icon>
                     </button>
-                    <mat-menu #mesaMenu="matMenu" class="tavola-menu-bar">
+                    <mat-menu #mesaMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
                       <button mat-menu-item (click)="abrirModalGerenciarMesas('editar', mesa)">
                         <mat-icon>edit</mat-icon>
                         <span>Editar</span>
@@ -558,6 +568,7 @@
     (click)="abrirModalGerenciarMesas('criar')"
     matTooltip="Adicionar nova mesa"
     matTooltipClass="tavola-tooltip"
+    [matTooltipDisabled]="isMobile()"
     aria-label="Adicionar nova mesa">
     <mat-icon>add</mat-icon>
   </button>

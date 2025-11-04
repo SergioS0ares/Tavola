@@ -47,17 +47,23 @@ export class DialogEquipeComponent implements OnInit {
     private equipeService: EquipeService,
     private toastr: ToastrService
   ) {
-    this.form = this.fb.group({
-      nome: ['', [Validators.required, Validators.minLength(3)]],
-      senha: ['', [Validators.required, Validators.minLength(6)]]
-    });
+    // No modo de edição, não inclui senha no formulário
+    if (this.data.editMode) {
+      this.form = this.fb.group({
+        nome: ['', [Validators.required, Validators.minLength(3)]]
+      });
+    } else {
+      this.form = this.fb.group({
+        nome: ['', [Validators.required, Validators.minLength(3)]],
+        senha: ['', [Validators.required, Validators.minLength(6)]]
+      });
+    }
   }
 
   ngOnInit(): void {
     if (this.data.editMode && this.data.membro) {
       this.form.patchValue({
-        nome: this.data.membro.nome,
-        senha: this.data.membro.senha
+        nome: this.data.membro.nome
       });
     }
   }
@@ -68,16 +74,25 @@ export class DialogEquipeComponent implements OnInit {
   salvar(): void {
     if (this.form.valid) {
       this.carregando = true;
-      const dados: IDadosMembro = {
-        nome: this.form.value.nome,
-        senha: this.form.value.senha,
-        imagem: '' // Foto será enviada vazia inicialmente
-      };
-
+      
       if (this.data.editMode) {
-        // Modo de edição
+        // Modo de edição - preserva a imagem atual e não envia senha
+        // Preserva a imagem exatamente como está (pode ser string, null ou undefined)
+        // Se for null, mantém null; se for string, mantém a string; se for undefined, usa null
+        const imagemAtual = this.data.membro.imagem !== undefined 
+          ? this.data.membro.imagem 
+          : null;
+        
+        // Usa 'any' temporariamente para permitir null na imagem
+        const dados: any = {
+          nome: this.form.value.nome,
+          senha: '', // String vazia para não alterar a senha
+          imagem: imagemAtual // Preserva exatamente o valor da imagem (null, string ou undefined)
+        };
+        
         this.equipeService.updateMembro(this.data.membro.id, dados).subscribe({
           next: () => {
+            this.toastr.success('Membro atualizado com sucesso!', 'Sucesso');
             this.dialogRef.close({ success: true });
           },
           error: (error) => {
@@ -88,6 +103,12 @@ export class DialogEquipeComponent implements OnInit {
         });
       } else {
         // Modo de criação
+        const dados: IDadosMembro = {
+          nome: this.form.value.nome,
+          senha: this.form.value.senha,
+          imagem: '' // Foto será enviada vazia inicialmente
+        };
+        
         this.equipeService.addMembro(dados).subscribe({
           next: (resultado) => {
             this.dadosGerados = {

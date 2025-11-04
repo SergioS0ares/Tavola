@@ -200,6 +200,7 @@
           mat-icon-button 
           class="notification-btn" 
           [matMenuTriggerFor]="menuNotificacoes"
+          #notificationMenuTrigger="matMenuTrigger"
           type="button"
           aria-label="Ver notificações"
           [attr.aria-describedby]="temAvaliacoesPendentes ? 'notifications-badge' : null">
@@ -212,7 +213,7 @@
           </nz-badge>
         </button>
       
-        <mat-menu #menuNotificacoes="matMenu">
+        <mat-menu #menuNotificacoes="matMenu" (menuClosed)="onMenuClosed($event)">
           <div  (click)="$event.stopPropagation();">
             <div >
               <div class="header-icon">
@@ -310,7 +311,7 @@
       </div>
 
       <!-- Enhanced User menu -->
-      <div class="user-menu" [matMenuTriggerFor]="menu" role="button" tabindex="0" aria-label="Menu do usuário" *ngIf="!(isMobile$ | async)">
+      <div class="user-menu" [matMenuTriggerFor]="menu" #userMenuTrigger="matMenuTrigger" role="button" tabindex="0" aria-label="Menu do usuário" *ngIf="!(isMobile$ | async)">
         <div class="user-info">
           <div class="avatar">
             <img [src]="userAvatar" [alt]="'Avatar de ' + userName">
@@ -324,13 +325,13 @@
       </div>
 
       <!-- Mobile User Avatar - simplified without menu trigger -->
-      <div class="user-avatar-mobile" *ngIf="(isMobile$ | async)" [matMenuTriggerFor]="menu" role="button" tabindex="0" aria-label="Menu do usuário">
+      <div class="user-avatar-mobile" *ngIf="(isMobile$ | async)" [matMenuTriggerFor]="menu" #userMenuTriggerMobile="matMenuTrigger" role="button" tabindex="0" aria-label="Menu do usuário">
         <div class="avatar-mobile">
           <img [src]="userAvatar" [alt]="'Avatar de ' + userName">
         </div>
       </div>
 
-      <mat-menu #menu="matMenu" class="user-dropdown">
+      <mat-menu #menu="matMenu" class="user-dropdown" (menuClosed)="onMenuClosed($event)">
         <button mat-menu-item routerLink="/configuracoes" type="button" *ngIf="!isFuncionario">
           <mat-icon aria-hidden="true">settings</mat-icon>
           <span>Configurações</span>

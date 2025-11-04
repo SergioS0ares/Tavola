@@ -58,7 +58,7 @@
       <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
         <mat-icon>chevron_right</mat-icon>
       </button>
-      <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+      <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile">
         <mat-icon>calendar_month</mat-icon>
       </button>
     </div>
@@ -83,7 +83,7 @@
             <button mat-icon-button (click)="proximoDia()" aria-label="Próximo dia">
               <mat-icon>chevron_right</mat-icon>
             </button>
-            <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip">
+            <button mat-icon-button (click)="abrirCalendario()" class="calendario-btn" matTooltip="Ver calendário de reservas" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile">
               <mat-icon>calendar_month</mat-icon>
             </button>
           </div>
@@ -165,7 +165,8 @@
                     }" 
                     (click)="selecionarMesa(mesa)"
                     [matTooltip]="getTooltipMesa(mesa)" 
-                    matTooltipClass="tavola-tooltip">
+                    matTooltipClass="tavola-tooltip"
+                    [matTooltipDisabled]="isMobile">
                     
                     <div class="mesa-visual" [ngClass]="{'mesa-circular': mesa.tipo === 'circular'}">
                       <!-- Indicador de status no canto superior esquerdo -->
@@ -190,14 +191,16 @@
                         <div *ngFor="let garcom of getGarcomsAtendendoMesa(mesa.id) | slice:0:2" 
                              class="avatar-garcom" 
                              [matTooltip]="garcom.nome" 
-                             matTooltipClass="tavola-tooltip">
+                             matTooltipClass="tavola-tooltip"
+                             [matTooltipDisabled]="isMobile">
                           <img *ngIf="garcom.foto" [src]="garcom.foto" [alt]="garcom.nome"/>
                           <span *ngIf="!garcom.foto">{{ garcom.nome.substring(0,1) }}</span>
                         </div>
                         <div *ngIf="getGarcomsAtendendoMesa(mesa.id).length > 2" 
                              class="avatar-garcom mais-garcons" 
                              [matTooltip]="getNomesGarconsExtras(mesa.id)" 
-                             matTooltipClass="tavola-tooltip">
+                             matTooltipClass="tavola-tooltip"
+                             [matTooltipDisabled]="isMobile">
                           +{{ getGarcomsAtendendoMesa(mesa.id).length - 2 }}
                         </div>
                       </div>

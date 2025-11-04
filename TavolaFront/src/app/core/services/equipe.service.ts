@@ -59,12 +59,14 @@ export class EquipeService {
   /**
    * Atualiza um membro existente
    */
-  updateMembro(id: string, dados: IDadosMembro): Observable<any> {
+  updateMembro(id: string, dados: IDadosMembro | any): Observable<any> {
     const idRestaurante = this.getIdRestaurante();
-    const payload = {
+    const payload: any = {
       nome: dados.nome,
       senha: dados.senha,
-      imagem: dados.imagem || ''
+      // Preserva exatamente o valor da imagem (null, string ou undefined)
+      // Se for null, mantém null; se for string, mantém a string; se for undefined, usa null
+      imagem: dados.imagem !== undefined ? dados.imagem : null
     };
 
     return this.restauranteService.putGarcom(idRestaurante, id, payload);

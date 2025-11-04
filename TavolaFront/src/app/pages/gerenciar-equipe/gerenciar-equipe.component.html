@@ -48,9 +48,11 @@
         <button 
           mat-icon-button 
           [matMenuTriggerFor]="menu"
+          #memberMenuTriggerMobile="matMenuTrigger"
           class="actions-btn-mobile"
           matTooltip="Ações"
           matTooltipClass="tavola-tooltip"
+          [matTooltipDisabled]="isMobile"
           aria-label="Ações do membro">
           <mat-icon>more_vert</mat-icon>
         </button>
@@ -64,6 +66,7 @@
               (click)="trocarImagem(membro)"
               matTooltip="Alterar foto do membro"
               matTooltipClass="tavola-tooltip"
+              [matTooltipDisabled]="isMobile"
               aria-label="Alterar foto">
               <mat-icon>photo_camera</mat-icon>
             </button>
@@ -81,6 +84,7 @@
                   (click)="copiarCodigo(membro.codigo, membro.id)"
                   [matTooltip]="copiadoMembros[membro.id] ? 'Código copiado!' : 'Copiar código'"
                   matTooltipClass="tavola-tooltip"
+                  [matTooltipDisabled]="isMobile"
                   aria-label="Copiar código de acesso">
                   <mat-icon>{{ copiadoMembros[membro.id] ? 'check' : 'content_copy' }}</mat-icon>
                 </button>
@@ -94,13 +98,15 @@
           <button 
             mat-icon-button 
             [matMenuTriggerFor]="menu"
+            #memberMenuTriggerDesktop="matMenuTrigger"
             class="actions-btn actions-btn-desktop"
             matTooltip="Ações"
             matTooltipClass="tavola-tooltip"
+            [matTooltipDisabled]="isMobile"
             aria-label="Ações do membro">
             <mat-icon>more_vert</mat-icon>
           </button>
-          <mat-menu #menu="matMenu" class="tavola-menu-bar">
+          <mat-menu #menu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
             <button mat-menu-item (click)="abrirDialogEdicao(membro)">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>
@@ -150,6 +156,7 @@
     (click)="abrirDialogAdicao()"
     matTooltip="Adicionar novo membro"
     matTooltipClass="tavola-tooltip"
+    [matTooltipDisabled]="isMobile"
     aria-label="Adicionar novo membro">
     <mat-icon>add</mat-icon>
   </button>

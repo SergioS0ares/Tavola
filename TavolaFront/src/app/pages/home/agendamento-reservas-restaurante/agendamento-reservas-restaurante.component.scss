@@ -337,7 +337,7 @@ $tavola-cinza: #F8F9FA;
 // Área de Conteúdo
 .content-area {
   display: flex;
-  gap: 24px;
+  gap: 16px; // <-- "VÃO" REDUZIDO (era 24px)
   
   .content-column {
     flex: 1; // Reduzido de 1.5 para 1
@@ -1000,59 +1000,69 @@ $tavola-cinza: #F8F9FA;
   .content-area {
     flex-direction: column;
     
+    // ESCONDE A COLUNA LATERAL DE RESERVA
     .coluna-reserva {
-      flex: none;
-      min-width: auto;
-      max-width: none;
-      
-      .card-reserva-fixo {
-        position: static;
-        
-        .card-reserva-tavola {
-          height: auto;
-        }
-      }
+      display: none; // <-- ALTERADO DE 'flex: none' PARA 'display: none'
     }
   }
 }
 
 @media (max-width: 768px) {
-  // 1. CORRIGE O CONTAINER "TORTO"
+  // 1. CORRIGE O CONTAINER "TORTO" - OCUPA TODA A LARGURA DA TELA
+  // Compensa o padding do router-container (24px 20px) para ocupar toda a largura
   .container-rounded {
-    margin: 12px;
-    padding: 16px;
-    max-width: calc(100% - 24px);
-    border-radius: $border-radius;
+    margin: 0 -20px; // Margem negativa horizontal para compensar o padding do router-container
+    padding: 16px 20px 80px 20px; // Adiciona padding (80px embaixo para o footer fixo)
+    max-width: calc(100vw); // Garante que não estoure
+    width: calc(100vw); // Ocupa toda a largura da viewport
+    border-radius: 0; // Remove bordas no mobile
+    box-shadow: none; // Remove sombra no mobile
+    background: $white; // Garante fundo branco
+    position: relative; // Para garantir posicionamento correto
+  }
+
+  // Ajusta Breadcrumb no mobile
+  .breadcrumb {
+    margin-bottom: 16px; // Menos espaço
+    padding: 0; // Remove padding extra
   }
   
   .restaurant-header {
+    // 2. FAVORITO AO LADO DO NOME
     .title-row {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row; // <-- ALTERADO DE 'column' PARA 'row'
+      align-items: center; // Alinha verticalmente
       gap: 12px;
       
       .restaurant-title {
-        font-size: 26px;
+        font-size: 24px; // Título menor
+        flex: 1; // Deixa o título ocupar o espaço
+        line-height: 1.2;
+      }
+      .favorite-button {
+        flex-shrink: 0; // Impede o botão de encolher
       }
     }
   }
   
-  // 2. IMPLEMENTA A GALERIA MOBILE
+  // 3. IMPLEMENTA A GALERIA MOBILE
   .photo-gallery {
+    margin: 24px -20px; // Compensa o padding do container para "sangrar" até as bordas
+    padding-bottom: 0; // Remove padding inferior
+
     // Esconde o grid do desktop
     .gallery-grid.desktop-gallery {
       display: none;
     }
-    
-    // Mostra e estiliza o slider do mobile (estilo TheFork/meu-restaurante)
+
+    // Mostra e estiliza o slider do telemóvel (estilo TheFork/meu-restaurante)
     .gallery-grid-irregular.mobile-gallery {
-      display: flex;
+      display: flex; // <-- ATIVA O FLEX
       overflow-x: auto;
       overflow-y: hidden;
       height: auto;
       gap: 12px;
-      padding: 0 16px;
-      margin: 0 -16px;
+      padding: 0 16px; // Padding lateral para "espreitar"
       scroll-behavior: smooth;
       scroll-snap-type: x mandatory;
       
@@ -1061,11 +1071,11 @@ $tavola-cinza: #F8F9FA;
       &::-webkit-scrollbar {
         display: none;
       }
-      
+
       .mobile-gallery-item {
         scroll-snap-align: start;
         flex-shrink: 0;
-        width: 85%;
+        width: 85%; // <-- A CHAVE: Ocupa 85%
         height: auto;
         aspect-ratio: 4 / 3;
         border-radius: 12px;
@@ -1100,9 +1110,9 @@ $tavola-cinza: #F8F9FA;
     
     // Mostra o indicador de scroll
     .scroll-indicator.mobile-gallery {
-      display: block;
+      display: block; // <-- ATIVA O DISPLAY
       text-align: center;
-      padding: 12px 0 8px 0;
+      padding: 12px 0 0 0; // Ajusta padding
       color: rgba(59, 34, 27, 0.5);
       font-size: 11px;
       font-weight: 500;
@@ -1115,6 +1125,17 @@ $tavola-cinza: #F8F9FA;
         opacity: 0.7;
       }
     }
+  }
+  
+  // Esconde a coluna de reserva (já feito no @media 992px)
+  .coluna-reserva {
+    display: none !important;
+  }
+
+  // 4. CORRIGE CONTEÚDO CORTADO (ex: "Aceita cartões")
+  .recursos-section .recursos-lista {
+    // Garante que o grid quebre colunas corretamente
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
   
   .localizacao-section {
@@ -1173,11 +1194,14 @@ $tavola-cinza: #F8F9FA;
 
 @media (max-width: 480px) {
   .container-rounded {
-    margin: 8px;
-    padding: 12px;
-    max-width: calc(100% - 16px);
+    margin: 0 -20px; // Mantém margem negativa para compensar router-container
+    padding: 12px 20px 80px 20px; // Padding menor, mantém 80px no fundo
   }
   
+  .photo-gallery {
+    margin: 16px -20px; // Ajusta a margem negativa para compensar o padding do container
+  }
+
   .full-gallery {
     .gallery-grid-modal {
       grid-template-columns: 1fr;
@@ -1741,6 +1765,146 @@ $tavola-cinza: #F8F9FA;
         color: $dark-gray;
         margin: 0;
       }
+    }
+  }
+}
+
+// ===================================
+// === NOVOS ESTILOS: FOOTER E DRAWER ===
+// ===================================
+
+// Footer Fixo para Reserva (Mobile)
+.sticky-booking-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $white;
+  padding: 16px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  border-top: 1px solid $medium-gray;
+
+  .botao-escolha-reserva {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: linear-gradient(135deg, $tavola-amarelo, #f4a261);
+    color: $text-color;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    span {
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(246, 189, 56, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// Estilos para o Drawer de Reserva (Mobile) - IGUAL AO DESKTOP
+::ng-deep .reserva-drawer-mobile {
+  // O container do drawer
+  .ant-drawer-content {
+    border-radius: 24px 24px 0 0;
+  }
+  
+  // O corpo (onde o conteúdo é injetado)
+  .ant-drawer-body {
+    padding: 0;
+    overflow: hidden; // O scroll será interno
+  }
+  
+  .card-reserva-tavola.card-reserva-drawer {
+    height: 85vh; // Ocupa 85% da altura da tela
+    box-shadow: none;
+    border-radius: 24px 24px 0 0;
+    display: flex;
+    flex-direction: column;
+    background: $white;
+    overflow: hidden;
+
+    // Cabeçalho estilo Tavola (igual ao desktop)
+    .cabecalho-reserva {
+      background: $tavola-amarelo;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      
+      .cabecalho-titulo-wrapper {
+        flex: 1;
+        text-align: center;
+        
+        .titulo-reserva {
+          font-size: 20px;
+          font-weight: 700;
+          margin: 0 0 6px;
+          color: $accent-color;
+        }
+        
+        .texto-gratis {
+          font-size: 15px;
+          color: $tavola-vermelho;
+          font-weight: 600;
+          margin: 0;
+        }
+      }
+      
+      .fechar-drawer-btn {
+        color: $text-color;
+        background: rgba(255, 255, 255, 0.2);
+        flex-shrink: 0;
+        margin-left: 12px;
+        
+        &:hover { 
+          background: rgba(255, 255, 255, 0.3); 
+        }
+      }
+    }
+    
+    // Navegação (mantém)
+    .navegacao-reserva {
+       flex-shrink: 0; // Não encolhe
+    }
+    
+    // Ajusta o container do conteúdo para ter scroll
+    .conteudo-reserva {
+      flex: 1; // Ocupa o espaço restante
+      overflow-y: auto; // <-- HABILITA SCROLL
+      padding: 20px 24px; // Padding interno (igual ao desktop)
+    }
+
+    // Ajusta o tamanho da fonte dos steps
+    .navegacao-reserva .etapa-nav .conteudo-etapa span {
+      font-size: 10px;
+      max-width: 60px; // Limita largura
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

@@ -4,7 +4,7 @@ import { Router, RouterModule, NavigationEnd } from "@angular/router"
 import { RouterOutlet } from "@angular/router"
 import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
-import { MatMenuModule } from "@angular/material/menu"
+import { MatMenuModule, MatMenuTrigger } from "@angular/material/menu"
 import { AuthService } from "../../core/services/auth.service"
 import { AcessService } from "../../core/services/access.service"
 import { CommonModule } from "@angular/common"
@@ -485,5 +485,19 @@ export class LayoutPrincipalComponent implements OnInit {
 
   openCitySelector(): void {
     this.showCityDropdown = !this.showCityDropdown
+  }
+
+  /**
+   * Remove o foco do gatilho do menu quando o menu é fechado.
+   * Isso corrige um bug no mobile onde o menu não fecha ao clicar fora.
+   */
+  onMenuClosed(event: any): void {
+    // Usa setTimeout para garantir que o blur aconteça após o menu fechar
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.blur) {
+        activeElement.blur();
+      }
+    }, 0);
   }
 }
