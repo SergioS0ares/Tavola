@@ -24,5 +24,17 @@ public class WebConfig implements WebMvcConfigurer {
      // Mapeia /upl/garcons/** para a pasta física upl/garcons/
      registry.addResourceHandler("/upl/garcons/**")
              .addResourceLocations("file:./upl/garcons/");
- }
+	     
+	 registry.addResourceHandler("/upl/mock/usuarios/**")
+	         .addResourceLocations("file:./upl/mock/usuarios/");
+	     
+	 registry.addResourceHandler("/upl/mock/restaurantes/**")
+	 		 .addResourceLocations("file:./upl/mock/restaurantes/");
+	     
+	 registry.addResourceHandler("/upl/mock/cardapios/**")
+	 		 .addResourceLocations("file:./upl/mock/cardapios/");
+	     
+	 registry.addResourceHandler("/upl/mock/garcons/**")
+	 		 .addResourceLocations("file:./upl/mock/garcons/");
+	 }
 }

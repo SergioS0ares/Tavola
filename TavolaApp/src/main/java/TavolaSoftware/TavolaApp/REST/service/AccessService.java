@@ -51,43 +51,44 @@ public class AccessService {
      * @return um LoginResponse com o token JWT.
      */
     @Transactional(readOnly = true)
-    public LoginResponse loginGarcom(GarcomLoginRequest request) {
-        // 1. Encontra o restaurante pelo e-mail
-        Restaurante restaurante = repoRestaurante.findByUsuarioEmail(request.getEmailRestaurante());
+    public LoginResponse loginGarcom(GarcomLoginRequest request) { //
+        // 1. Encontra o restaurante
+        Restaurante restaurante = repoRestaurante.findByUsuarioEmail(request.getEmailRestaurante()); //
         if (restaurante == null) {
-            throw new RuntimeException("Credenciais inválidas."); // Mensagem genérica por segurança
+            throw new RuntimeException("Credenciais inválidas."); //
         }
 
-        // 2. Busca o garçom pelo código DENTRO do restaurante encontrado
-        Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade())
-                .orElseThrow(() -> new RuntimeException("Credenciais inválidas."));
+        // 2. Busca o garçom
+        Garcom garcom = repoGarcom.findByRestauranteIdAndCodigoIdentidade(restaurante.getId(), request.getCodigoIdentidade()) //
+                .orElseThrow(() -> new RuntimeException("Credenciais inválidas.")); //
 
-        // 4. Valida a senha do garçom
-        if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) {
-            throw new RuntimeException("Credenciais inválidas.");
+        // 4. Valida a senha (sim, o 3 sumiu, mas mantive sua numeração)
+        if (!passwordEncoder.matches(request.getSenha(), garcom.getSenha())) { //
+            throw new RuntimeException("Credenciais inválidas."); //
         }
 
-        // 5. Gera o token JWT
-        // A lógica de geração do token deve ser adaptada para incluir as informações do funcionário.
-        // O "subject" do token será o e-mail do restaurante, como você sugeriu.
-        String accessToken = jwt.generateFuncionarioToken(
-                restaurante.getEmail(), // Subject
+        // 5. Gera o token
+        String accessToken = jwt.generateFuncionarioToken( //
+                restaurante.getEmail(), 
                 garcom.getId(),
                 restaurante.getId()
         );
         
-        String urlImagemGarcom = uplUtil.construirUrlRelativa("garcons", garcom.getImagem());
+        String urlImagemGarcom = uplUtil.construirUrlRelativa("garcons", garcom.getImagem()); //
 
-        // Retorna o token, nome do garçom e tipo FUNCIONARIO
+        // <<< CORREÇÃO AQUI >>>
+        // Adicionamos o 'restaurante.getId()' no final da chamada
         return new LoginResponse(
             accessToken,
             garcom.getNome(),
             TipoUsuario.FUNCIONARIO.toString(),
-            garcom.getId(),
-            restaurante.getEmail(), // E-mail de referência é o do restaurante
+            garcom.getId(), // Este é o ID do Garçom
+            restaurante.getEmail(),
             urlImagemGarcom,
-            null // Background
+            null, // Background (Garçom não tem)
+            restaurante.getId() // <<< ID DO RESTAURANTE ADICIONADO
         );
+        // --- FIM DA CORREÇÃO ---
     }
 
     @Transactional

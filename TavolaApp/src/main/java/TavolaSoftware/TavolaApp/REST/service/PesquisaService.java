@@ -1,31 +1,17 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
-import TavolaSoftware.TavolaApp.REST.dto.requests.PesquisaRequest;
-import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
-import TavolaSoftware.TavolaApp.REST.model.Restaurante;
-import TavolaSoftware.TavolaApp.REST.model.Usuario;
-import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
-import TavolaSoftware.TavolaApp.REST.repository.specification.*;
-import TavolaSoftware.TavolaApp.REST.repository.UsuarioRepository;
-import TavolaSoftware.TavolaApp.tools.Endereco;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import TavolaSoftware.TavolaApp.REST.dto.requests.PesquisaRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ClienteHomeResponse;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
+import TavolaSoftware.TavolaApp.REST.repository.RestauranteRepository;
+import TavolaSoftware.TavolaApp.REST.repository.specification.RestauranteSpecification;
 
 @Service
 public class PesquisaService {
@@ -52,7 +38,18 @@ public List<ClienteHomeResponse> pesquisar(PesquisaRequest request) {
         // Adicionamos os outros filtros...
         spec = spec.and(RestauranteSpecification.comNotaMinima(request.getNotaMinima()));
         spec = spec.and(RestauranteSpecification.comServicos(request.getServicos()));
-        spec = spec.and(RestauranteSpecification.comDiaSemanaDisponivel(request.getDiaSemana()));
+        
+        // --- CORREÇÃO AQUI ---
+        // Se o 'diaSemana' (que é um Enum) não for nulo, converte-o para String.
+        String diaSemanaString = null;
+        if (request.getDiaSemana() != null) {
+            diaSemanaString = request.getDiaSemana().toString(); // Converte (ex: DiaDaSemana.SEGUNDA -> "SEGUNDA")
+        }
+        
+        // ANTES: spec = spec.and(RestauranteSpecification.comDiaSemanaDisponivel(request.getDiaSemana()));
+        // DEPOIS: Passa a String (que pode ser nula ou "SEGUNDA")
+        spec = spec.and(RestauranteSpecification.comDiaSemanaDisponivel(diaSemanaString));
+        // --- FIM DA CORREÇÃO ---
 
         // --- EXECUÇÃO DA CONSULTA ÚNICA ---
         List<Restaurante> restaurantesFiltrados = restauranteRepository.findAll(spec);

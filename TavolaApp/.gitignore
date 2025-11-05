@@ -1,10 +1,21 @@
+# Ignora ficheiros de log e IDE
 HELP.md
-target/
-!.mvn/wrapper/maven-wrapper.jar
-#!**/src/main/**/target/
-#!**/src/test/**/target/
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.DS_Store
 
-### STS ###
+# --- REGRAS DO BACKEND (TavolaApp) ---
+# (Assumindo que TavolaApp é um módulo ou está na raiz)
+
+# Pastas de Build do Java/Maven
+target/
+/bin/
+build/
+
+# Ficheiros do STS/Eclipse
 .apt_generated
 .classpath
 .factorypath
@@ -13,22 +24,12 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+# --- REGRAS DO FRONTEND (TavolaFront) ---
+# (O Git vai procurar por estas pastas dentro do subdiretório TavolaFront)
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+TavolaFront/node_modules/
+TavolaFront/dist/
+TavolaFront/.angular/cache/
 
-### VS Code ###
-.vscode/
-/bin/
+# Ficheiros de cache do TypeScript
+*.tsbuildinfo
