@@ -1010,9 +1010,10 @@ $tavola-cinza: #F8F9FA;
 @media (max-width: 768px) {
   // 1. CORRIGE O CONTAINER "TORTO" - OCUPA TODA A LARGURA DA TELA
   // Compensa o padding do router-container (24px 20px) para ocupar toda a largura
+  // 72px (altura da toolbar) + 16px (padding que já tinhas) = 88px
   .container-rounded {
     margin: 0 -20px; // Margem negativa horizontal para compensar o padding do router-container
-    padding: 16px 20px 80px 20px; // Adiciona padding (80px embaixo para o footer fixo)
+    padding: 88px 20px 80px 20px; // <-- Altera o padding-top de 16px para 88px
     max-width: calc(100vw); // Garante que não estoure
     width: calc(100vw); // Ocupa toda a largura da viewport
     border-radius: 0; // Remove bordas no mobile
@@ -1021,10 +1022,10 @@ $tavola-cinza: #F8F9FA;
     position: relative; // Para garantir posicionamento correto
   }
 
-  // Ajusta Breadcrumb no mobile
+  // Ajusta Breadcrumb no mobile (agora visível)
   .breadcrumb {
     margin-bottom: 16px; // Menos espaço
-    padding: 0; // Remove padding extra
+    padding: 0; // Garante que não tem padding extra
   }
   
   .restaurant-header {
@@ -1838,7 +1839,9 @@ $tavola-cinza: #F8F9FA;
   }
   
   .card-reserva-tavola.card-reserva-drawer {
-    height: 85vh; // Ocupa 85% da altura da tela
+    // AJUSTADO: Altura máxima, não fixa
+    max-height: 85vh; // Ocupa no MÁXIMO 85% da altura
+    height: auto; // Altura automática baseada no conteúdo
     box-shadow: none;
     border-radius: 24px 24px 0 0;
     display: flex;
@@ -1846,39 +1849,36 @@ $tavola-cinza: #F8F9FA;
     background: $white;
     overflow: hidden;
 
-    // Cabeçalho estilo Tavola (igual ao desktop)
-    .cabecalho-reserva {
+    // Cabeçalho estilo Tavola (com título dinâmico)
+    .cabecalho-reserva.cabecalho-drawer {
       background: $tavola-amarelo;
-      padding: 20px 24px;
+      padding: 16px 20px; // Padding menor
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
+      position: relative; // Para posicionar o botão de fechar
       
-      .cabecalho-titulo-wrapper {
-        flex: 1;
-        text-align: center;
-        
-        .titulo-reserva {
-          font-size: 20px;
-          font-weight: 700;
-          margin: 0 0 6px;
-          color: $accent-color;
-        }
-        
-        .texto-gratis {
-          font-size: 15px;
-          color: $tavola-vermelho;
-          font-weight: 600;
-          margin: 0;
-        }
+      .titulo-reserva {
+        flex: 1; // Título ocupa espaço
+        text-align: center; // Centraliza título
+        font-size: 18px; // Fonte menor
+        font-weight: 700;
+        margin: 0;
+        color: $accent-color;
+        padding-left: 36px; // Compensa o botão de fechar
+        padding-right: 36px; // Compensa o botão de fechar
       }
       
       .fechar-drawer-btn {
         color: $text-color;
         background: rgba(255, 255, 255, 0.2);
         flex-shrink: 0;
-        margin-left: 12px;
+        // Posição absoluta para ficar no canto
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
         
         &:hover { 
           background: rgba(255, 255, 255, 0.3); 
@@ -1895,7 +1895,7 @@ $tavola-cinza: #F8F9FA;
     .conteudo-reserva {
       flex: 1; // Ocupa o espaço restante
       overflow-y: auto; // <-- HABILITA SCROLL
-      padding: 20px 24px; // Padding interno (igual ao desktop)
+      padding: 20px 24px; // Padding interno
     }
 
     // Ajusta o tamanho da fonte dos steps
@@ -1905,6 +1905,80 @@ $tavola-cinza: #F8F9FA;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    // NOVO: Estilos para o nz-date-picker inline (Calendário Mobile)
+    .etapa-calendario-mobile {
+      nz-date-picker[nzInline] {
+        width: 100%; // Ocupa 100% do container
+        
+        // Remove borda e sombra
+        ::ng-deep .ant-picker-panel {
+          border: none;
+          box-shadow: none;
+          background: transparent;
+        }
+        
+        // Estiliza o cabeçalho (Mês, Ano, Setas)
+        ::ng-deep .ant-picker-calendar-header {
+          padding: 10px 0;
+          border-bottom: 1px solid $medium-gray;
+          
+          .ant-picker-calendar-year-select,
+          .ant-picker-calendar-month-select {
+            font-size: 16px;
+            font-weight: 600;
+            color: $text-color;
+          }
+          .ant-picker-calendar-mode-switch {
+            display: none; // Esconde "Mês/Ano"
+          }
+        }
+        
+        // Estiliza os dias
+        ::ng-deep .ant-picker-cell-inner {
+          height: 36px; // Tamanho do dia
+          width: 36px;
+          line-height: 36px;
+          font-size: 14px;
+          border-radius: 50%; // Dias redondos
+          
+          &.ant-picker-cell-selected { // Dia selecionado
+            background: $tavola-amarelo;
+            color: $text-color;
+            font-weight: 700;
+          }
+          &.ant-picker-cell-today { // Dia de hoje
+            border-color: $tavola-amarelo;
+          }
+        }
+        
+        ::ng-deep .ant-picker-cell-disabled .ant-picker-cell-inner {
+          background: $tavola-cinza; // Fundo cinza para desabilitado
+          color: $medium-gray;
+          opacity: 0.7;
+        }
+      }
+    }
+    
+    // Ajustes para as etapas 2, 3, 4 (slots, pessoas, confirmação)
+    .etapa-reserva {
+      // Garante que o botão de confirmar não fique perdido no fundo
+      .confirmacao-section {
+        padding-bottom: 24px; // Adiciona espaço no final do scroll
+        
+        .botao-confirmar {
+          width: 100%; // Botão ocupa 100%
+        }
+      }
+      
+      // Garante que o grid de pessoas e slots funcionem bem
+      .slots-horario {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); // Mais colunas
+      }
+      .grid-pessoas {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); // Mais colunas
+      }
     }
   }
 }

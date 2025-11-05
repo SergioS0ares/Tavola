@@ -599,8 +599,7 @@
     [nzFooter]="null"
     (nzOnCancel)="closeGallery()"
     nzWidth="80%"
-    nzCentered
-  >
+    nzCentered>
     <ng-container *nzModalContent>
       <div class="full-gallery">
         <nz-image-group>
@@ -666,12 +665,14 @@
     
     <ng-container *nzDrawerContent>
       <div class="card-reserva-tavola card-reserva-drawer">
-        <!-- Cabeçalho estilo Tavola (igual ao desktop) -->
-        <div class="cabecalho-reserva">
-          <div class="cabecalho-titulo-wrapper">
-            <h2 class="titulo-reserva">Reserve uma mesa</h2>
-            <p class="texto-gratis">Grátis</p>
-          </div>
+        <!-- Cabeçalho estilo Tavola (com título dinâmico) -->
+        <div class="cabecalho-reserva cabecalho-drawer">
+          <h2 class="titulo-reserva">
+            <span *ngIf="bookingStep === 1">Escolha uma data</span>
+            <span *ngIf="bookingStep === 2">Escolha um horário</span>
+            <span *ngIf="bookingStep === 3">Quantas pessoas?</span>
+            <span *ngIf="bookingStep === 4">Confirme sua reserva</span>
+          </h2>
           <button nz-button nzType="text" nzShape="circle" (click)="fecharDrawerReserva()" class="fechar-drawer-btn">
             <i nz-icon nzType="close" nzTheme="outline"></i>
           </button>
@@ -693,7 +694,7 @@
           <button class="etapa-nav" [class.active]="bookingStep === 3" [class.completed]="bookingStep > 3" [disabled]="bookingStep < 3" (click)="setBookingStep(3)">
             <div class="conteudo-etapa">
               <i nz-icon nzType="team" nzTheme="outline"></i>
-              <span>{{ bookingStep > 3 ? selectedGuests + ' pessoas' : 'Pessoas' }}</span>
+              <span>{{ bookingStep > 3 ? selectedGuests + ' p.' : 'Pessoas' }}</span>
             </div>
           </button>
           <button class="etapa-nav" [class.active]="bookingStep === 4" [class.completed]="bookingStep > 4" [disabled]="bookingStep < 4" (click)="setBookingStep(4)">
@@ -705,24 +706,18 @@
         </div>
 
         <div class="conteudo-reserva">
-          <div *ngIf="bookingStep === 1" class="etapa-reserva">
+          <div *ngIf="bookingStep === 1" class="etapa-reserva etapa-calendario-mobile">
             <nz-calendar 
               *ngIf="!isLoading"
               [(ngModel)]="selectedDate" 
               [nzDisabledDate]="disabledDate"
               (nzSelectChange)="onDateSelect($event)"
               nzMode="month"
-              class="calendario-tavola">
+              class="calendario-tavola calendario-tavola-mobile">
             </nz-calendar>
           </div>
 
           <div *ngIf="bookingStep === 2" class="etapa-reserva">
-            <div class="cabecalho-etapa">
-              <button nz-button nzType="text" (click)="goBackStep()" class="botao-voltar">
-                <i nz-icon nzType="left" nzTheme="outline"></i>
-              </button>
-              <h3>Escolha seu horário</h3>
-            </div>
             <div *ngFor="let period of availableSlots" class="periodo-horario">
               <h4>{{ period.period }}</h4>
               <div class="slots-horario">
@@ -742,12 +737,6 @@
           </div>
 
           <div *ngIf="bookingStep === 3" class="etapa-reserva">
-            <div class="cabecalho-etapa">
-              <button nz-button nzType="text" (click)="goBackStep()" class="botao-voltar">
-                <i nz-icon nzType="left" nzTheme="outline"></i>
-              </button>
-              <h3>Número de pessoas</h3>
-            </div>
             <div class="grid-pessoas">
               <button 
                 *ngFor="let num of [1,2,3,4,5,6,7,8,9,10,11,12]" 
@@ -814,7 +803,7 @@
               <button
                 mat-raised-button
                 color="primary"
-                class="botao-confirmar mat-rounded-button"
+                class="botao-confirmar"
                 (click)="finalizarReserva()">
                 <mat-icon>check</mat-icon>
                 Confirmar Reserva
