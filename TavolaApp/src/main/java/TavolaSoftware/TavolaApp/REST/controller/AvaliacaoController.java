@@ -1,11 +1,9 @@
 package TavolaSoftware.TavolaApp.REST.controller;
 
-import TavolaSoftware.TavolaApp.REST.dto.requests.AvaliacaoRequest;
-import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteAvaliacoesResponse;
-import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
-import TavolaSoftware.TavolaApp.REST.service.AvaliacaoService;
-import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
-import jakarta.persistence.EntityNotFoundException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import TavolaSoftware.TavolaApp.REST.dto.requests.AvaliacaoRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteAvaliacoesResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.RestauranteResponse;
+import TavolaSoftware.TavolaApp.REST.service.AvaliacaoService;
+import TavolaSoftware.TavolaApp.REST.service.RestauranteService;
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 // Rota base mais específica para avaliações
@@ -54,12 +55,16 @@ public class AvaliacaoController {
      * Endpoint para o cliente avaliar um restaurante
      * */
     @PostMapping("/avaliar/{restauranteId}")
-    public ResponseEntity<?> avaliar(@PathVariable UUID restauranteId, @RequestBody AvaliacaoRequest avaliacaoRequest) { /* ... seu código ... */
+    public ResponseEntity<?> avaliar(@PathVariable UUID restauranteId, @RequestBody AvaliacaoRequest avaliacaoRequest) { //
         try {
             String emailCliente = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            serv.avaliarRestaurante(
-                avaliacaoRequest.getScore(), avaliacaoRequest.getComentario(), restauranteId, emailCliente
-            );
+            
+            // <<< MUDANÇA AQUI >>>
+            // Passa o DTO 'avaliacaoRequest' inteiro em vez de parâmetros soltos
+            // ANTES: serv.avaliarRestaurante(avaliacaoRequest.getScore(), avaliacaoRequest.getComentario(), restauranteId, emailCliente);
+            serv.avaliarRestaurante(avaliacaoRequest, restauranteId, emailCliente); // DEPOIS
+            
+            // ... (Restante do método sem alterações)
             Optional<RestauranteResponse> restauranteResponseOpt = servRestaurante.findById(restauranteId);
             if (restauranteResponseOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.OK).body(restauranteResponseOpt.get());

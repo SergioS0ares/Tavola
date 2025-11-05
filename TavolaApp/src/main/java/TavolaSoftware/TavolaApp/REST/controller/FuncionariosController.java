@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import TavolaSoftware.TavolaApp.REST.dto.responses.AmbienteDashboardResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.MesaComReservasResponse;
+import TavolaSoftware.TavolaApp.REST.service.AmbienteService;
 import TavolaSoftware.TavolaApp.REST.service.MesaService;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -24,6 +26,9 @@ public class FuncionariosController {
 	
 	@Autowired
     private MesaService mesaService; // Injete o MesaService
+	
+	@Autowired
+    private AmbienteService ambienteService;
 
 	@GetMapping ("/ambientes/{idAmbiente}/mesas") // Rota mais clara
 	public ResponseEntity<?> getMesasComReservas(
@@ -48,4 +53,27 @@ public class FuncionariosController {
         }
 	}
 	
+	// <<< NOVO ENDPOINT "GULOSO" (Dashboard) >>>
+    /**
+     * GET /auth/api/restaurantes/{idRestaurante}/dashboard/ambientes
+     *
+     * Retorna a estrutura completa de TODOS os Ambientes e o estado das Mesas
+     * (status, atendimentos, reservas) filtrados por uma data específica.
+     */
+    @GetMapping("/dashboard/ambientes")
+    public ResponseEntity<?> getDashboardCompletoAmbientes(
+            @PathVariable UUID idRestaurante,
+            @RequestParam("data") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data
+    ) {
+        // (Validação de segurança do idRestaurante vs Token é feita nos serviços)
+        
+        try {
+            // Chama o novo método de serviço passando a data
+            List<AmbienteDashboardResponse> dashboard = ambienteService.getAmbienteDashboard(idRestaurante, data);
+            return ResponseEntity.ok(dashboard);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("erro", "Erro ao montar o dashboard: " + e.getMessage()));
+        }
+    }
 }

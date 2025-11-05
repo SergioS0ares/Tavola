@@ -2,6 +2,7 @@ package TavolaSoftware.TavolaApp.REST.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -10,13 +11,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import TavolaSoftware.TavolaApp.REST.model.Cliente;
 import TavolaSoftware.TavolaApp.REST.model.Reserva;
+import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.tools.StatusReserva;
 
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
 	
 	List<Reserva> findByRestauranteIdAndDataReserva(UUID restauranteId, LocalDate data);
+	
+	/**
+     * Busca reservas ATIVAS ou CONFIRMADAS associadas a uma lista de IDs de mesa.
+     * Não retorna LISTA_ESPERA, CANCELADA, etc.
+     */
+    @Query("SELECT r FROM Reserva r JOIN r.mesas m WHERE m.id IN :mesaIds " +
+           "AND r.status IN (TavolaSoftware.TavolaApp.tools.StatusReserva.ATIVA, " +
+           "TavolaSoftware.TavolaApp.tools.StatusReserva.CONFIRMADA)")
+    List<Reserva> findReservasConfirmadasByMesaIds(@Param("mesaIds") List<UUID> mesaIds);
+    
 
     /**
      * Busca todas as reservas de um cliente específico com ordenação dinâmica.
@@ -59,6 +72,19 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
             @Param("status") String status
     );
     
+    /**
+     * Busca reservas ATIVAS ou CONFIRMADAS associadas a uma lista de IDs de mesa
+     * PARA UMA DATA ESPECÍFICA.
+     */
+    @Query("SELECT r FROM Reserva r JOIN r.mesas m WHERE m.id IN :mesaIds " +
+           "AND r.dataReserva = :data " + // <<< FILTRO DE DATA ADICIONADO
+           "AND r.status IN (TavolaSoftware.TavolaApp.tools.StatusReserva.ATIVA, " +
+           "TavolaSoftware.TavolaApp.tools.StatusReserva.CONFIRMADA)")
+    List<Reserva> findReservasConfirmadasByMesaIdsAndData(
+            @Param("mesaIds") List<UUID> mesaIds, 
+            @Param("data") LocalDate data
+    );
+    
     @Query("SELECT COUNT(r) FROM Reserva r WHERE r.restaurante.id = :restauranteId AND r.dataReserva = :data")
     long countByRestauranteIdAndData(@Param("restauranteId") UUID restauranteId, @Param("data") LocalDate data);
 
@@ -82,6 +108,16 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
      * @return Uma lista de reservas dentro do período especificado.
      */
     List<Reserva> findByRestauranteIdAndDataReservaBetween(UUID restauranteId, LocalDate dataInicio, LocalDate dataFim);
+    
+    /**
+     * Encontra a reserva MAIS RECENTE de um cliente em um restaurante,
+     * que esteja CONCLUÍDA e que AINDA NÃO TENHA UMA AVALIAÇÃO (avaliacao IS NULL).
+     */
+    Optional<Reserva> findFirstByClienteAndRestauranteAndStatusAndAvaliacaoIsNullOrderByDataReservaDescHoraReservaDesc(
+        Cliente cliente, 
+        Restaurante restaurante, 
+        StatusReserva status
+    );
 
     
     List<Reserva> findByClienteIdOrderByDataReservaDescHoraReservaDesc(UUID clienteId);

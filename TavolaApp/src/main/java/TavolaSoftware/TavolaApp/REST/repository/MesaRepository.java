@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface MesaRepository extends JpaRepository<Mesa, UUID> {
     // Encontra todas as mesas de um ambiente específico
     List<Mesa> findByAmbienteId(UUID ambienteId);
+    
+    List<Mesa> findByAmbienteIdIn(List<UUID> ambienteIds);
 }
