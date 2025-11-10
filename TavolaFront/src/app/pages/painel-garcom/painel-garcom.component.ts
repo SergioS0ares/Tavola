@@ -96,7 +96,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   mostrarCardapio = false;
 
   // Navegação de data
-  dataAtual = new Date();
+  dataAtual = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()); // Inicializa com a data atual (sem hora)
   
   // Calendário
   reservasParaCalendario: IReserva[] = [];
@@ -146,38 +146,72 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     this.ambientes$ = this.painelGarcomService.ambientes$;
     this.pedidosAtivos$ = this.painelGarcomService.pedidosAtivos$;
     
-    // Subscrever aos ambientes para definir o ambiente ativo
-    this.ambientes$.pipe(takeUntil(this.destroy$)).subscribe(ambientes => {
-      if (ambientes.length > 0 && !this.ambienteAtivo) {
-        this.ambienteAtivo = ambientes[0];
-        this.verificarVisibilidadeSetas();
-      }
-    });
-    
-    // Carrega os dados iniciais do "backend"
-    this.painelGarcomService.carregarDadosIniciaisMock();
+    // Carrega os dados reais da API
+    this.isLoading.ambientes = true;
+    this.painelGarcomService.carregarAmbientes(this.dataAtual)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (ambientes) => {
+          this.isLoading.ambientes = false;
+          // Define o ambiente ativo se não houver um selecionado
+          if (ambientes.length > 0 && !this.ambienteAtivo) {
+            this.ambienteAtivo = ambientes[0];
+            this.verificarVisibilidadeSetas();
+          } else if (this.ambienteAtivo) {
+            // Atualiza o ambiente ativo se já houver um selecionado
+            const ambienteEncontrado = ambientes.find(a => a.id === this.ambienteAtivo?.id);
+            if (ambienteEncontrado) {
+              this.ambienteAtivo = ambienteEncontrado;
+            } else if (ambientes.length > 0) {
+              this.ambienteAtivo = ambientes[0];
+            }
+          }
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('[PainelGarcom] Erro ao carregar ambientes:', error);
+          this.isLoading.ambientes = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   private carregarDadosGarcom(): void {
     const perfil = this.authService.perfil;
     if (perfil) {
+      this.garcomInfo.id = perfil.id || '1';
       this.garcomInfo.nome = perfil.nome;
-      this.garcomInfo.foto = perfil.imagem || 'assets/png/avatar-padrao-garcom-tavola.png';
       
-      // Se for FUNCIONARIO, usar avatar específico do garçom
-      if (perfil.tipo === 'FUNCIONARIO') {
-        this.garcomInfo.foto = perfil.imagem || 'assets/png/avatar-padrao-garcom-tavola.png';
+      // Usa a mesma lógica do layout-principal para obter a imagem
+      if (perfil.imagem) {
+        this.garcomInfo.foto = this.authService.getAbsoluteImageUrl(perfil.imagem);
+      } else {
+        // Se não tem imagem, usa o avatar padrão do garçom
+        this.garcomInfo.foto = 'assets/png/avatar-padrao-garcom-tavola.png';
       }
+      
+      // Determina o turno baseado na hora atual
+      const hora = new Date().getHours();
+      if (hora >= 6 && hora < 12) {
+        this.garcomInfo.turno = 'Manhã';
+      } else if (hora >= 12 && hora < 18) {
+        this.garcomInfo.turno = 'Tarde';
+      } else {
+        this.garcomInfo.turno = 'Noite';
+      }
+      
+      this.garcomInfo.inicioTurno = new Date();
     }
   }
 
   private iniciarAtualizacaoTempo(): void {
-    this.timerSubscription = interval(300000) // Atualiza a cada 5 minutos
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        
-        this.atualizarTempoOcupacaoMesas();
-      });
+    // Timer removido conforme solicitado - deixar por enquanto
+    // Pode ser reativado depois se necessário
+    // this.timerSubscription = interval(300000) // Atualiza a cada 5 minutos
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe(() => {
+    //     this.atualizarTempoOcupacaoMesas();
+    //   });
   }
 
   
@@ -214,8 +248,12 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   // Navegação de ambientes
   selecionarAmbiente(ambiente: Ambiente): void {
-    this.ambienteAtivo = ambiente;
+    // Busca o ambiente atualizado dos observables para garantir que está sincronizado
+    const ambientesAtuais = this.painelGarcomService.getAmbientesAtuais();
+    const ambienteAtualizado = ambientesAtuais.find(a => a.id === ambiente.id);
+    this.ambienteAtivo = ambienteAtualizado || ambiente;
     this.verificarVisibilidadeSetas();
+    this.cdr.detectChanges();
   }
 
   scrollAmbientes(direcao: 'left' | 'right'): void {
@@ -516,14 +554,16 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   diaAnterior(): void {
     const dataAnterior = new Date(this.dataAtual);
     dataAnterior.setDate(dataAnterior.getDate() - 1);
-    this.dataAtual = dataAnterior;
+    // Cria um novo objeto Date para garantir que a data seja o início do dia
+    this.dataAtual = new Date(dataAnterior.getFullYear(), dataAnterior.getMonth(), dataAnterior.getDate());
     this.carregarDadosIniciais();
   }
 
   proximoDia(): void {
     const proximaData = new Date(this.dataAtual);
     proximaData.setDate(proximaData.getDate() + 1);
-    this.dataAtual = proximaData;
+    // Cria um novo objeto Date para garantir que a data seja o início do dia
+    this.dataAtual = new Date(proximaData.getFullYear(), proximaData.getMonth(), proximaData.getDate());
     this.carregarDadosIniciais();
   }
 
@@ -577,11 +617,6 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     console.log('[PainelGarcom] Reservas para calendário (mock):', this.reservasParaCalendario);
     this.isLoadingCalendario = false;
     callback(); 
-  }
-
-  selecionarDataDoCalendario(data: Date): void {
-    this.dataAtual = data;
-    this.carregarDadosIniciais();
   }
 
   getReservasParaCalendario(): any[] {

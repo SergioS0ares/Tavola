@@ -150,11 +150,9 @@
 
         <!-- Grid de mesas -->
         <div class="mesas-grid-container" *ngIf="ambienteAtivo">
-          <ng-container *ngFor="let amb of ambientes">
-            <div *ngIf="amb.id === ambienteAtivo.id">
-              <div class="mesas-grid-css">
-                <ng-container *ngFor="let mesa of amb.mesas">
-                  <div *ngIf="deveExibirMesa(mesa)" class="mesa-wrapper-css">
+          <div class="mesas-grid-css">
+            <ng-container *ngFor="let mesa of ambienteAtivo.mesas">
+              <div *ngIf="deveExibirMesa(mesa)" class="mesa-wrapper-css">
                   <div 
                     class="mesa" 
                     [ngClass]="{ 
@@ -212,13 +210,11 @@
                     </div>
                   </div>
                 </div>
-                </ng-container>
-              </div>
-            </div>
-          </ng-container>
+              </ng-container>
+          </div>
         </div>
         
-        <div *ngIf="!ambienteAtivo && !isLoading.ambientes && ambientes.length === 0" class="empty-state">
+        <div *ngIf="!ambienteAtivo && !isLoading.ambientes && (ambientes$ | async)?.length === 0" class="empty-state">
           <nz-empty nzNotFoundContent="Nenhum ambiente encontrado."></nz-empty>
         </div>
 

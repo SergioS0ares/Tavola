@@ -96,4 +96,22 @@ export class RestauranteService {
   deleteGarcom(idRestaurante: string, idGarcom: string): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl.replace('/auth/restaurantes', '/auth/api/restaurantes')}/${idRestaurante}/garcons/${idGarcom}`);
   }
+
+  // Método para buscar ambientes do dashboard
+  getAmbientes(idRestaurante: string, data: string | Date): Observable<any[]> {
+    // Formata a data para YYYY-MM-DD
+    let dataFormatada: string;
+    if (data instanceof Date) {
+      const year = data.getFullYear();
+      const month = String(data.getMonth() + 1).padStart(2, '0');
+      const day = String(data.getDate()).padStart(2, '0');
+      dataFormatada = `${year}-${month}-${day}`;
+    } else {
+      dataFormatada = data.split('T')[0]; // Garante formato YYYY-MM-DD
+    }
+    
+    return this.http.get<any[]>(
+      `${this.apiUrl.replace('/auth/restaurantes', '/auth/api/restaurantes')}/${idRestaurante}/dashboard/ambientes?data=${dataFormatada}`
+    );
+  }
 }

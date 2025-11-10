@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, interval } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
+import { RestauranteService } from './restaurante.service';
+import { AuthService } from './auth.service';
+import { IAmbienteDashboard, IMesaDashboard } from '../../Interfaces/IDashboardAmbiente.interface';
 
 // Interfaces
 export interface GarcomInfo {
@@ -72,6 +75,8 @@ export interface Pedido {
   providedIn: 'root'
 })
 export class PainelGarcomService {
+  private restauranteService = inject(RestauranteService);
+  private authService = inject(AuthService);
 
   // 1. OS "ESTADOS" SIMULADOS DO WEBSOCKET
   // Estes são os "corações" do nosso WebSocket simulado.
@@ -94,18 +99,92 @@ export class PainelGarcomService {
   public readonly pedidosAtivos$: Observable<Pedido[]> = this._pedidosAtivos.asObservable();
 
   constructor() {
-    // 3. INICIAR OS MOCKS
-    // Isto simula o "GET" inicial ao carregar a página.
-    this.carregarDadosIniciaisMock();
-    
-    // 4. SIMULAR ATUALIZAÇÕES DO WEBSOCKET
-    // A cada 30 segundos, vamos simular uma mesa a ser ocupada.
-    interval(30000).subscribe(() => this.simularMudancaStatusMesa());
+    // Timer removido - será controlado pelo componente
   }
 
-  // --- MÉTODOS PÚBLICOS (Simulando API) ---
+  /**
+   * Obtém o ID do restaurante do usuário logado
+   */
+  private getIdRestaurante(): string {
+    const perfil = this.authService.perfil;
+    return perfil?.id || '';
+  }
 
-  // Simula o GET /ambientes
+  // --- MÉTODOS PÚBLICOS (API Real) ---
+
+  /**
+   * Carrega os ambientes e mesas da API para uma data específica
+   */
+  public carregarAmbientes(data: Date): Observable<Ambiente[]> {
+    const idRestaurante = '873880ed-f72a-4010-810f-aaf3f12b236e';
+    if (!idRestaurante) {
+      console.error('[PainelGarcomService] ID do restaurante não encontrado');
+      return this._ambientes.asObservable();
+    }
+    
+    return this.restauranteService.getAmbientes(idRestaurante, data).pipe(
+      map((ambientesApi: IAmbienteDashboard[]) => {
+        // Mapeia os dados da API para o formato esperado pelo componente
+        const ambientesMapeados: Ambiente[] = ambientesApi.map(ambienteApi => ({
+          id: ambienteApi.id,
+          nome: ambienteApi.nome,
+          mesas: ambienteApi.mesas.map(mesaApi => this.mapearMesaApiParaMesa(mesaApi))
+        }));
+        
+        // Atualiza o BehaviorSubject
+        this._ambientes.next(ambientesMapeados);
+        return ambientesMapeados;
+      }),
+      catchError(error => {
+        console.error('[PainelGarcomService] Erro ao carregar ambientes:', error);
+        // Em caso de erro, retorna os dados mock
+        const dadosMock = this.gerarAmbientesMock();
+        this._ambientes.next(dadosMock);
+        return this._ambientes.asObservable();
+      })
+    );
+  }
+
+  /**
+   * Mapeia uma mesa da API para o formato usado no componente
+   */
+  private mapearMesaApiParaMesa(mesaApi: IMesaDashboard): Mesa {
+    const mesa = mesaApi.mesa;
+    const reservas = mesaApi.reservas || [];
+    const atendimentos = mesaApi.atendimentos || [];
+
+    // Pega a primeira reserva ativa (se houver)
+    const reservaAtiva = reservas.find(r => r.status === 'ATIVA');
+    
+    // Mapeia os IDs dos garçons dos atendimentos
+    const garcomsAtendendo = atendimentos
+      .filter(a => a.garcomId)
+      .map(a => a.garcomId!)
+      .filter((id): id is string => !!id);
+
+    return {
+      id: mesa.id,
+      nome: mesa.nome,
+      capacidade: mesa.capacidade,
+      tipo: mesa.tipo,
+      vip: mesa.vip,
+      status: mesa.status,
+      inicioOcupacao: atendimentos[0]?.inicioAtendimento 
+        ? new Date(atendimentos[0].inicioAtendimento!) 
+        : undefined,
+      tempoOcupacaoDisplay: undefined, // Será calculado pelo componente
+      reserva: reservaAtiva ? {
+        id: reservaAtiva.id,
+        cliente: reservaAtiva.clienteId, // Usa o ID como nome temporariamente (pode ser melhorado depois)
+        horario: reservaAtiva.horaReserva.split(':').slice(0, 2).join(':'), // Formata HH:MM
+        pessoas: reservaAtiva.quantidadePessoas,
+        telefone: undefined // Não vem na API
+      } : undefined,
+      garcomsAtendendo: garcomsAtendendo.length > 0 ? garcomsAtendendo : []
+    };
+  }
+
+  // Método mantido para compatibilidade (usado em alguns lugares)
   public carregarDadosIniciaisMock(): void {
     const dadosAmbientes = this.gerarAmbientesMock();
     const dadosPedidos = this.gerarPedidosMock();
