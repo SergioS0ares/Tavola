@@ -118,15 +118,26 @@ public class AccessController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        
-        Optional<Usuario> usuarioOpt = repo.findByEmail(loginRequest.getEmail());
+    public ResponseEntity<?> iniciarLogin(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse httpResponse) { // <<< Adicionado httpResponse        
+    	Optional<Usuario> usuarioOpt = repo.findByEmail(loginRequest.getEmail());
 
         if (usuarioOpt.isEmpty() || !BCrypt.checkpw(loginRequest.getSenha(), usuarioOpt.get().getSenha())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Credenciais inválidas."));
         }
 
         Usuario usuario = usuarioOpt.get();
+        
+        if (usuario.getEmail().endsWith("@tavola.com")) {
+            System.out.println("[Login] Usuário MOCK detectado (" + usuario.getEmail() + "). Pulando 2FA.");
+            
+            String novoTrustToken = null;
+            if (loginRequest.isMantenhaMeConectado()) {
+                novoTrustToken = rememberMeService.generateNewToken();
+                rememberMeService.storeToken(novoTrustToken, usuario);
+            }
+            // Chama o gerador de resposta diretamente, passando o httpResponse
+            return gerarRespostaComTokens(usuario, novoTrustToken, request, httpResponse);
+        }
 
         // Verificação de Confiança com o cookie composto
         String userSpecificToken = getTokenFromTrustCookie(request, usuario.getId());
@@ -284,10 +295,11 @@ public class AccessController {
     }
     
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) { 
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) { //
         try {
-            String refreshToken = null;
-            if (request.getCookies() != null) {
+            // ... (lógica para pegar o refreshToken do cookie) ...
+            String refreshToken = null; //
+            if (request.getCookies() != null) { //
                 for (Cookie cookie : request.getCookies()) {
                     if (cookie.getName().equals("refreshToken")) {
                         refreshToken = cookie.getValue();
@@ -295,27 +307,42 @@ public class AccessController {
                     }
                 }
             }
-            if (refreshToken == null) {
-            	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token não encontrado no cookie.");
+            if (refreshToken == null) { //
+            	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token não encontrado no cookie."); //
             }
-            if (!jwt.isTokenValid(refreshToken)) { 
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido ou expirado.");
+            if (!jwt.isTokenValid(refreshToken)) {  //
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token inválido ou expirado."); //
             }
-            Usuario usuario = repo.findById(jwt.parseToken(refreshToken).get("id", UUID.class))
-                .orElseThrow(() -> new RuntimeException("Usuário do token não encontrado."));
+            
+            Usuario usuario = repo.findById(jwt.parseToken(refreshToken).get("id", UUID.class)) //
+                .orElseThrow(() -> new RuntimeException("Usuário do token não encontrado.")); //
 
-            String novoAccessToken = jwt.generateAccessToken(usuario.getEmail());
+            String novoAccessToken = jwt.generateAccessToken(usuario.getEmail()); //
+
+            // <<< CORREÇÃO AQUI (EFEITO COLATERAL) >>>
+            // Precisamos determinar o restauranteId e construir as URLs
+            UUID restauranteId = null;
+            if (usuario.getTipo() == TipoUsuario.RESTAURANTE) {
+                restauranteId = usuario.getId();
+            }
+            String urlImagemPerfil = uplUtil.construirUrlRelativa("usuarios", usuario.getImagem());
+            String urlImagemPrincipal = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
+
+            // Passamos os 8 argumentos para o construtor atualizado
             return ResponseEntity.ok(new LoginResponse(
                     novoAccessToken, 
                     usuario.getNome(), 
                     usuario.getTipo().toString(), 
                     usuario.getId(), 
                     usuario.getEmail(),
-                    usuario.getImagem(),
-                    usuario.getImagemPrincipal()
+                    urlImagemPerfil, // ANTES: usuario.getImagem()
+                    urlImagemPrincipal, // ANTES: usuario.getImagemPrincipal()
+                    restauranteId // <<< ID DO RESTAURANTE ADICIONADO
             ));
+            // --- FIM DA CORREÇÃO ---
+
         } catch (Exception e) { 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erro ao processar refresh token: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erro ao processar refresh token: " + e.getMessage()); //
         }
     }
     
@@ -338,12 +365,11 @@ public class AccessController {
         }
     }
 
-    // --- MÉTODOS AUXILIARES PARA GERENCIAMENTO DE TOKENS E COOKIES ---
+    private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, String novoTrustToken, HttpServletRequest request, HttpServletResponse response) { //
+        String accessToken = jwt.generateAccessToken(usuario.getEmail()); //
+        String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail()); //
 
-    private ResponseEntity<LoginResponse> gerarRespostaComTokens(Usuario usuario, String novoTrustToken, HttpServletRequest request, HttpServletResponse response) {
-        String accessToken = jwt.generateAccessToken(usuario.getEmail());
-        String refreshTokenString = jwt.generateRefreshToken(usuario.getId(), usuario.getEmail());
-
+        // ... (lógica do cookie refreshToken) ...
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshTokenString)
             .httpOnly(true)
             .secure(false)
@@ -352,29 +378,37 @@ public class AccessController {
             .sameSite("Lax")
             .build();
         
-        String urlImagemPerfil = uplUtil.construirUrlRelativa("usuarios", usuario.getImagem());
-        String urlImagemPrincipal = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemPrincipal());
+        String urlImagemPerfil = uplUtil.construirUrlRelativa("usuarios", usuario.getImagem()); //
+        String urlImagemPrincipal = uplUtil.construirUrlRelativa("usuarios", usuario.getImagemPrincipal()); //
 
+        // <<< CORREÇÃO AQUI (EFEITO COLATERAL) >>>
+        // Determina o restauranteId
+        UUID restauranteId = null;
+        if (usuario.getTipo() == TipoUsuario.RESTAURANTE) {
+            restauranteId = usuario.getId();
+        }
+
+        // Passamos os 8 argumentos para o construtor atualizado
         LoginResponse loginResponse = new LoginResponse(
             accessToken,
             usuario.getNome(),
             usuario.getTipo().toString(),
             usuario.getId(),
             usuario.getEmail(),
-            // ANTES: usuario.getImagem()
-            urlImagemPerfil, // DEPOIS
-            // ANTES: usuario.getImagemPrincipal()
-            urlImagemPrincipal // DEPOIS
+            urlImagemPerfil, 
+            urlImagemPrincipal,
+            restauranteId // <<< ID DO RESTAURANTE ADICIONADO
         );
+        // --- FIM DA CORREÇÃO ---
 
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok() //
+            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()); //
 
-        if (novoTrustToken != null && response != null) {
-            addTokenToTrustCookie(request, response, usuario.getId(), novoTrustToken);
+        if (novoTrustToken != null && response != null) { //
+            addTokenToTrustCookie(request, response, usuario.getId(), novoTrustToken); //
         }
 
-        return responseBuilder.body(loginResponse);
+        return responseBuilder.body(loginResponse); //
     }
     
     private Map<String, String> getTrustsMapFromCookie(HttpServletRequest request) {

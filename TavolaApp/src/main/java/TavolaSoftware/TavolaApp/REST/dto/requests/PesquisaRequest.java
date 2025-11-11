@@ -1,6 +1,5 @@
 package TavolaSoftware.TavolaApp.REST.dto.requests;
 
-import TavolaSoftware.TavolaApp.tools.DiaDaSemana;
 import java.util.List;
 
 public class PesquisaRequest {
@@ -9,8 +8,9 @@ public class PesquisaRequest {
     private String cidade; // <-- NOVO CAMPO para a cidade
     private Double notaMinima;
     private List<String> servicos;
-    private DiaDaSemana diaSemana; // <-- NOVO CAMPO para o dia da semana TEM QUE SER EM CAIXA ALTA
-
+    private String diaSemana; // DEPOIS: Agora aceita qualquer string
+    
+    
     // Getters e Setters para os campos novos e existentes
     public String getTermo() { return termo; }
     public void setTermo(String termo) { this.termo = termo; }
@@ -24,6 +24,10 @@ public class PesquisaRequest {
     public List<String> getServicos() { return servicos; }
     public void setServicos(List<String> servicos) { this.servicos = servicos; }
 
-    public DiaDaSemana getDiaSemana() { return diaSemana; }
-    public void setDiaSemana(DiaDaSemana diaSemana) { this.diaSemana = diaSemana; }
+    public String getDiaSemana() {
+        return diaSemana;
+    }
+    public void setDiaSemana(String diaSemana) {
+        this.diaSemana = diaSemana;
+    }
 }

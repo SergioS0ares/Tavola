@@ -11,5 +11,4 @@ public class TavolaAppApplication { // <-- O nome da sua classe principal
         SpringApplication.run(TavolaAppApplication.class, args);
         
     }
-
 }

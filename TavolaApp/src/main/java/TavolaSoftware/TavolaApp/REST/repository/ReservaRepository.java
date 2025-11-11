@@ -3,6 +3,7 @@ package TavolaSoftware.TavolaApp.REST.repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set; // <<< ADICIONAR IMPORT
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -118,7 +119,16 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
         Restaurante restaurante, 
         StatusReserva status
     );
-
+    
+    /**
+     * Busca todas as reservas que estão associadas a uma lista de IDs de mesa
+     * e que tenham um dos status "vivos" (ex: ATIVA, CONFIRMADA).
+     */
+    @Query("SELECT r FROM Reserva r JOIN r.mesas m WHERE m.id IN :mesaIds AND r.status IN :statusList")
+    List<Reserva> findReservasByMesaIdsAndStatus(
+            @Param("mesaIds") List<UUID> mesaIds, 
+            @Param("statusList") Set<StatusReserva> statusList
+    );
     
     List<Reserva> findByClienteIdOrderByDataReservaDescHoraReservaDesc(UUID clienteId);
 
