@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map; // <<< NOVO IMPORT
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +19,9 @@ import TavolaSoftware.TavolaApp.REST.dto.responses.AmbienteResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.AtendimentoSimplesResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.MesaDashboardResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.MesaResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ReservaSimplesResponse;
+import TavolaSoftware.TavolaApp.REST.dto.responses.WebSocketMessage;
 import TavolaSoftware.TavolaApp.REST.model.Ambiente;
 import TavolaSoftware.TavolaApp.REST.model.AtendimentoMesa;
 import TavolaSoftware.TavolaApp.REST.model.Mesa;
@@ -27,6 +31,8 @@ import TavolaSoftware.TavolaApp.REST.repository.AmbienteRepository;
 import TavolaSoftware.TavolaApp.REST.repository.AtendimentoMesaRepository;
 import TavolaSoftware.TavolaApp.REST.repository.MesaRepository;
 import TavolaSoftware.TavolaApp.REST.repository.ReservaRepository;
+import TavolaSoftware.TavolaApp.tools.EventLabel;
+import TavolaSoftware.TavolaApp.tools.StatusReserva;
 
 @Service
 public class AmbienteService {
@@ -42,6 +48,11 @@ public class AmbienteService {
 
     @Autowired
     private ReservaRepository reservaRepository;
+    
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate; // Para notificar o front da mudança
+    
+    
     
     /**
      * Busca a estrutura completa do dashboard... filtrada por DATA.
@@ -127,6 +138,7 @@ public class AmbienteService {
     
     /**
      * Lista todos os ambientes de um restaurante específico.
+     * (Método sem alterações)
      */
     @Transactional(readOnly = true)
     public List<AmbienteResponse> findAllByRestaurante(UUID restauranteId) {
@@ -179,16 +191,60 @@ public class AmbienteService {
     }
 
     /**
-     * Deleta um ambiente.
+     * Deleta um ambiente e suas mesas (Cascade).
+     * Reservas "vivas" associadas às mesas são desassociadas e movidas para a LISTA_ESPERA.
      */
     @Transactional
     public boolean delete(UUID ambienteId, UUID restauranteId) {
+        // 1. Achar o ambiente e validar o dono
         Optional<Ambiente> ambienteOpt = ambienteRepository.findById(ambienteId);
 
-        if (ambienteOpt.isPresent() && ambienteOpt.get().getRestaurante().getId().equals(restauranteId)) {
-            ambienteRepository.deleteById(ambienteId);
-            return true; // Sucesso
+        if (ambienteOpt.isEmpty() || !ambienteOpt.get().getRestaurante().getId().equals(restauranteId)) {
+            // Se não achou ou não é o dono, falha
+            return false;
         }
-        return false; // Falha (não encontrado ou sem permissão)
+        
+        Ambiente ambiente = ambienteOpt.get();
+
+        // 2. Achar as mesas que serão excluídas (filhas do ambiente)
+        List<Mesa> mesasParaDeletar = mesaRepository.findByAmbienteId(ambienteId);
+        
+        if (!mesasParaDeletar.isEmpty()) {
+            List<UUID> mesaIds = mesasParaDeletar.stream().map(Mesa::getId).collect(Collectors.toList());
+            
+            // 3. Definir quais status de reserva devem ser "salvos"
+            // (Não queremos salvar reservas CONCLUIDA ou CANCELADA)
+            Set<StatusReserva> statusVivos = Set.of(
+                StatusReserva.ATIVA, 
+                StatusReserva.CONFIRMADA, 
+                StatusReserva.PENDENTE,
+                StatusReserva.LISTA_ESPERA // Mesmo que já esteja, processa para remover a mesa
+            );
+            
+            // 4. Achar todas as reservas vivas afetadas (usando o novo método do repo)
+            List<Reserva> reservasAfetadas = reservaRepository.findReservasByMesaIdsAndStatus(mesaIds, statusVivos);
+            
+            // 5. Processar as reservas (o resgate)
+            for (Reserva reserva : reservasAfetadas) {
+                // Remove a(s) mesa(s) que vão ser apagadas da lista da reserva
+                reserva.getMesas().removeAll(mesasParaDeletar);
+                
+                // Joga a reserva na fila de espera
+                //
+                reserva.setStatus(StatusReserva.LISTA_ESPERA);
+                
+                Reserva reservaAtualizada = reservaRepository.save(reserva);
+                
+                // Notifica o front (dashboard do restaurante) que a reserva mudou
+                String topic = "/topic/restaurante/" + restauranteId + "/reservas";
+                messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.RESERVA_UPDATE_STATUS, new ReservaResponse(reservaAtualizada)));
+            }
+        }
+        
+        // 6. Deletar o ambiente
+        // (O CascadeType.ALL e orphanRemoval=true na entidade Ambiente [contexto anterior]
+        // cuidará de apagar as Mesas automaticamente)
+        ambienteRepository.deleteById(ambienteId);
+        return true; // Sucesso
     }
 }
