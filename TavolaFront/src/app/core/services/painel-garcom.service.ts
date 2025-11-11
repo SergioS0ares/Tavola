@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, interval } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { RestauranteService } from './restaurante.service';
 import { AuthService } from './auth.service';
-import { IAmbienteDashboard, IMesaDashboard } from '../../Interfaces/IDashboardAmbiente.interface';
+import { IAmbienteDashboard, IMesaDashboard, IAtendimentoDashboard } from '../../Interfaces/IDashboardAmbiente.interface';
 import { IGarcomInfo } from '../../Interfaces/IGarcomInfo.interface';
 import { IReservaPainel } from '../../Interfaces/IReservaPainel.interface';
 import { IReserva } from '../../Interfaces/IReserva.interface';
@@ -75,10 +75,10 @@ export class PainelGarcomService {
     return this.restauranteService.getAmbientes(idRestaurante, data).pipe(
       map((ambientesApi: IAmbienteDashboard[]) => {
         // Mapeia os dados da API para o formato esperado pelo componente
-        const ambientesMapeados: IAmbientePainel[] = ambientesApi.map(ambienteApi => ({
+        const ambientesMapeados: IAmbientePainel[] = ambientesApi.map((ambienteApi: IAmbienteDashboard) => ({
           id: ambienteApi.id,
           nome: ambienteApi.nome,
-          mesas: ambienteApi.mesas.map(mesaApi => this.mapearMesaApiParaMesa(mesaApi))
+          mesas: ambienteApi.mesas.map((mesaApi: IMesaDashboard) => this.mapearMesaApiParaMesa(mesaApi))
         }));
         
         // Atualiza o BehaviorSubject
@@ -104,13 +104,13 @@ export class PainelGarcomService {
     const atendimentos = mesaApi.atendimentos || [];
 
     // Pega a primeira reserva ativa (se houver)
-    const reservaAtiva = reservas.find(r => r.status === 'ATIVA');
+    const reservaAtiva = reservas.find((r: IReserva) => r.status === 'ATIVA');
     
     // Mapeia os IDs dos garçons dos atendimentos
     const garcomsAtendendo = atendimentos
-      .filter(a => a.garcomId)
-      .map(a => a.garcomId!)
-      .filter((id): id is string => !!id);
+      .filter((a: IAtendimentoDashboard) => a.garcomId)
+      .map((a: IAtendimentoDashboard) => a.garcomId!)
+      .filter((id: string | undefined): id is string => !!id);
 
     return {
       id: mesa.id,
