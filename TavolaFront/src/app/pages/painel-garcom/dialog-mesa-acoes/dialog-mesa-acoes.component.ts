@@ -5,8 +5,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 import { Mesa, GarcomInfo } from '../../../core/services/painel-garcom.service';
+import { MesaService } from '../../../core/services/mesa.service';
+import { AtendimentoService } from '../../../core/services/atendimento.service';
+import Swal from 'sweetalert2';
 
 export interface DialogMesaData {
   mesa: Mesa;
@@ -24,7 +31,11 @@ export interface DialogMesaData {
     MatIconModule, 
     MatFormFieldModule,
     MatSelectModule,
-    NzAvatarModule
+    MatInputModule,
+    MatCheckboxModule,
+    FormsModule,
+    NzAvatarModule,
+    NzButtonModule
   ],
   templateUrl: './dialog-mesa-acoes.component.html',
   styleUrls: ['./dialog-mesa-acoes.component.scss']
@@ -32,10 +43,19 @@ export interface DialogMesaData {
 export class DialogMesaAcoesComponent {
   
   garconsParaAdicionar: GarcomInfo[] = [];
+  nomeCliente: string = '';
+  mostrandoInputCliente: boolean = false;
+  
+  // Sugestões rápidas de nomes de clientes
+  sugestoesNomesClientes: string[] = [
+    'Cliente'
+  ];
 
   constructor(
     public dialogRef: MatDialogRef<DialogMesaAcoesComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogMesaData
+    @Inject(MAT_DIALOG_DATA) public data: DialogMesaData,
+    private mesaService: MesaService,
+    private atendimentoService: AtendimentoService
   ) {
     console.log('DialogMesaAcoes - Dados recebidos:', this.data);
     this.filtrarGarconsParaAdicionar();
@@ -43,11 +63,89 @@ export class DialogMesaAcoesComponent {
 
   // Ações principais
   ocuparMesa(): void {
-    this.dialogRef.close({ acao: 'ocupar_mesa' });
+    if (!this.mostrandoInputCliente) {
+      // Mostra o input para o nome do cliente
+      this.mostrandoInputCliente = true;
+      return;
+    }
+
+    // Valida se o nome foi preenchido
+    if (!this.nomeCliente || this.nomeCliente.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Nome obrigatório',
+        text: 'Por favor, informe o nome do cliente para ocupar a mesa.',
+        confirmButtonColor: '#F6BD38'
+      });
+      return;
+    }
+
+    // Chama a API para atualizar o status
+    this.mesaService.putAtualizarStatusMesa(this.data.mesa.id, {
+      novoStatus: 'OCUPADA',
+      nomeCliente: this.nomeCliente.trim()
+    }).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Mesa ocupada!',
+          text: `A mesa ${this.data.mesa.nome} foi ocupada com sucesso.`,
+          timer: 2000,
+          showConfirmButton: false,
+          confirmButtonColor: '#F6BD38'
+        });
+        this.dialogRef.close({ acao: 'ocupar_mesa', nomeCliente: this.nomeCliente.trim() });
+      },
+      error: (error) => {
+        console.error('Erro ao ocupar mesa:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao ocupar mesa',
+          text: 'Não foi possível ocupar a mesa. Tente novamente.',
+          confirmButtonColor: '#F6BD38'
+        });
+      }
+    });
+  }
+
+  cancelarOcupacao(): void {
+    this.mostrandoInputCliente = false;
+    this.nomeCliente = '';
   }
 
   executarAcaoPrincipal(): void {
-    this.dialogRef.close({ acao: 'iniciar_atendimento' });
+    // Chama a API para iniciar atendimento sem pedir nome do cliente
+    this.atendimentoService.putIniciarAtendimento(this.data.mesa.id, {}).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Atendimento iniciado!',
+          text: `O atendimento da mesa ${this.data.mesa.nome} foi iniciado com sucesso.`,
+          timer: 2000,
+          showConfirmButton: false,
+          confirmButtonColor: '#F6BD38'
+        });
+        this.dialogRef.close({ acao: 'iniciar_atendimento' });
+      },
+      error: (error) => {
+        console.error('Erro ao iniciar atendimento:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Erro ao iniciar atendimento',
+          text: 'Não foi possível iniciar o atendimento. Tente novamente.',
+          confirmButtonColor: '#F6BD38'
+        });
+      }
+    });
+  }
+
+  // Adiciona sugestão ao campo de nome do cliente
+  adicionarSugestao(sugestao: string): void {
+    if (this.nomeCliente && this.nomeCliente.trim() !== '') {
+      this.nomeCliente = this.nomeCliente + ', ' + sugestao;
+    } else {
+      this.nomeCliente = sugestao;
+    }
   }
 
   // Ações secundárias

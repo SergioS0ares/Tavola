@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { IMesa } from '../../Interfaces/IMesa.interface';
+import { IAtualizarStatusMesaPayload } from '../../Interfaces/IAtualizarStatusMesaPayload.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -36,5 +37,9 @@ export class MesaService {
 
   deleteRemoverMesa(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  putAtualizarStatusMesa(idMesa: string, payload: IAtualizarStatusMesaPayload): Observable<IMesa> {
+    return this.http.put<IMesa>(`${this.apiUrl}/${idMesa}/status`, payload);
   }
 }

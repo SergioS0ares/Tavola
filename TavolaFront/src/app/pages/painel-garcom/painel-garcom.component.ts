@@ -304,10 +304,12 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
       switch (resultado.acao) {
         case 'ocupar_mesa':
-          this.painelGarcomService.ocuparMesa(mesaId);
+          // Recarrega os dados da API após ocupar a mesa
+          this.carregarDadosIniciais();
           break;
         case 'iniciar_atendimento':
-          this.painelGarcomService.iniciarAtendimento(mesaId, garcomId);
+          // Recarrega os dados da API após iniciar atendimento
+          this.carregarDadosIniciais();
           this.mesasAtendidas++;
           break;
         case 'liberar_mesa':

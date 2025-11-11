@@ -46,6 +46,15 @@
             </span>
           </div>
         </div>
+        
+        <!-- Nome do cliente quando a mesa foi ocupada ou está em atendimento -->
+        <div class="info-item" *ngIf="data.mesa.clienteNome && (data.mesa.status === 'OCUPADA' || data.mesa.status === 'EM_ATENDIMENTO')">
+          <mat-icon>person</mat-icon>
+          <div class="info-text">
+            <span class="label">Cliente</span>
+            <span class="value">{{ data.mesa.clienteNome }}</span>
+          </div>
+        </div>
       </div>
       
       <div class="garcoms-atendendo" *ngIf="data.mesa.garcomsAtendendo && data.mesa.garcomsAtendendo.length > 0">
@@ -83,10 +92,47 @@
       
           <div class="mesa-actions">
             
+            <!-- Input para nome do cliente (aparece quando clica em ocupar mesa) -->
+            <div class="input-cliente-section" *ngIf="mostrandoInputCliente && data.mesa.status === 'LIVRE'">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nome do Cliente</mat-label>
+                <input matInput [(ngModel)]="nomeCliente" placeholder="Digite o nome do cliente" (keyup.enter)="ocuparMesa()" maxlength="100">
+                <mat-hint align="end">{{ nomeCliente.length }}/100</mat-hint>
+              </mat-form-field>
+              
+              <!-- Sugestões rápidas -->
+              <div class="sugestoes-rapidas">
+                <span class="sugestoes-label">Sugestões rápidas:</span>
+                <div class="sugestoes-chips">
+                  <button 
+                    *ngFor="let sugestao of sugestoesNomesClientes"
+                    nz-button 
+                    nzType="dashed" 
+                    nzSize="small"
+                    class="sugestao-chip"
+                    (click)="adicionarSugestao(sugestao)">
+                    {{ sugestao }}
+                  </button>
+                </div>
+              </div>
+              
+              <div class="input-actions">
+                <button mat-stroked-button (click)="cancelarOcupacao()" class="cancel-btn">
+                  <mat-icon>close</mat-icon>
+                  Cancelar
+                </button>
+                <button mat-raised-button (click)="ocuparMesa()" class="confirm-btn">
+                  <mat-icon>check</mat-icon>
+                  Confirmar
+                </button>
+              </div>
+            </div>
+
             <!-- Botão para ocupar mesa livre -->
             <button mat-raised-button 
                     (click)="ocuparMesa()" 
-                    *ngIf="data.mesa.status === 'LIVRE'">
+                    *ngIf="data.mesa.status === 'LIVRE' && !mostrandoInputCliente"
+                    class="ocupar-mesa-btn">
               <mat-icon>person_add</mat-icon>
               Ocupar Mesa
             </button>
@@ -94,7 +140,8 @@
             <!-- Botão para iniciar atendimento -->
             <button mat-raised-button 
                     (click)="executarAcaoPrincipal()" 
-                    *ngIf="data.mesa.status === 'OCUPADA' || data.mesa.status === 'RESERVADA'">
+                    *ngIf="data.mesa.status === 'OCUPADA' || data.mesa.status === 'RESERVADA'"
+                    class="iniciar-atendimento-btn">
               <mat-icon>restaurant</mat-icon>
               Iniciar Atendimento
             </button>

@@ -4,72 +4,22 @@ import { map, catchError } from 'rxjs/operators';
 import { RestauranteService } from './restaurante.service';
 import { AuthService } from './auth.service';
 import { IAmbienteDashboard, IMesaDashboard } from '../../Interfaces/IDashboardAmbiente.interface';
+import { IGarcomInfo } from '../../Interfaces/IGarcomInfo.interface';
+import { IReservaPainel } from '../../Interfaces/IReservaPainel.interface';
+import { IReserva } from '../../Interfaces/IReserva.interface';
+import { IMesaPainel } from '../../Interfaces/IMesaPainel.interface';
+import { IAmbientePainel } from '../../Interfaces/IAmbientePainel.interface';
+import { IPedidoItem } from '../../Interfaces/IPedidoItem.interface';
+import { IPedido } from '../../Interfaces/IPedido.interface';
 
-// Interfaces
-export interface GarcomInfo {
-  id: string;
-  nome: string;
-  foto?: string;
-  turno: string;
-  inicioTurno: Date;
-}
-
-export interface Reserva {
-  id: string;
-  cliente: string;
-  horario: string;
-  pessoas: number;
-  telefone?: string;
-}
-
-export interface IReserva {
-  id: string;
-  cliente: string;
-  data: Date;
-  horario: string;
-  pessoas: number;
-  status: string;
-  telefone?: string;
-}
-
-export interface Mesa {
-  id: string;
-  nome: string;
-  capacidade: number;
-  tipo: 'retangular' | 'circular';
-  vip: boolean;
-  status: 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO';
-  inicioOcupacao?: Date;         // Para cálculo do timer
-  tempoOcupacaoDisplay?: string; // Para exibição na UI
-  reserva?: Reserva;
-  garcomsAtendendo?: string[]; // IDs dos garçons
-}
-
-export interface Ambiente {
-  id: string;
-  nome: string;
-  mesas: Mesa[];
-}
-
-export interface PedidoItem {
-  id: string;
-  nome: string;
-  quantidade: number;
-  preco: number;
-  observacoes?: string;
-  status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO' | 'ENTREGUE';
-}
-
-export interface Pedido {
-  id: string;
-  mesaId: string;
-  mesaNome: string;
-  status: 'ATIVO' | 'PREPARANDO' | 'PRONTO' | 'ENTREGUE';
-  itens: PedidoItem[];
-  total: number;
-  dataCriacao: Date;
-  garcomId: string;
-}
+// Re-exportar interfaces para compatibilidade com componentes existentes
+export type GarcomInfo = IGarcomInfo;
+export type Reserva = IReservaPainel;
+export type Mesa = IMesaPainel;
+export type Ambiente = IAmbientePainel;
+export type PedidoItem = IPedidoItem;
+export type Pedido = IPedido;
+export type { IReserva };
 
 @Injectable({
   providedIn: 'root'
@@ -83,11 +33,11 @@ export class PainelGarcomService {
   // Qualquer atualização aqui será emitida para todos os subscritores.
   
   // Usamos BehaviorSubject para que novos subscritores recebam o valor mais recente.
-  private readonly _ambientes = new BehaviorSubject<Ambiente[]>([]);
-  private readonly _pedidosAtivos = new BehaviorSubject<Pedido[]>([]);
+  private readonly _ambientes = new BehaviorSubject<IAmbientePainel[]>([]);
+  private readonly _pedidosAtivos = new BehaviorSubject<IPedido[]>([]);
 
   // Lista mock de garçons disponíveis
-  private mockGarcons: GarcomInfo[] = [
+  private mockGarcons: IGarcomInfo[] = [
     { id: '1', nome: 'sergiosoares0226@gmail.com', foto: 'assets/png/avatar-padrao-garcom-tavola.png', turno: 'Manhã', inicioTurno: new Date() },
     { id: 'garcom-2', nome: 'Maria Silva', foto: undefined, turno: 'Manhã', inicioTurno: new Date() },
     { id: 'garcom-3', nome: 'Carlos Pereira', foto: 'assets/png/avatar-padrao-garcom-tavola.png', turno: 'Tarde', inicioTurno: new Date() },
@@ -95,8 +45,8 @@ export class PainelGarcomService {
 
   // 2. OS OBSERVABLES PÚBLICOS
   // O teu componente (painel-garcom.component.ts) vai subscrever a estes.
-  public readonly ambientes$: Observable<Ambiente[]> = this._ambientes.asObservable();
-  public readonly pedidosAtivos$: Observable<Pedido[]> = this._pedidosAtivos.asObservable();
+  public readonly ambientes$: Observable<IAmbientePainel[]> = this._ambientes.asObservable();
+  public readonly pedidosAtivos$: Observable<IPedido[]> = this._pedidosAtivos.asObservable();
 
   constructor() {
     // Timer removido - será controlado pelo componente
@@ -115,7 +65,7 @@ export class PainelGarcomService {
   /**
    * Carrega os ambientes e mesas da API para uma data específica
    */
-  public carregarAmbientes(data: Date): Observable<Ambiente[]> {
+  public carregarAmbientes(data: Date): Observable<IAmbientePainel[]> {
     const idRestaurante = '873880ed-f72a-4010-810f-aaf3f12b236e';
     if (!idRestaurante) {
       console.error('[PainelGarcomService] ID do restaurante não encontrado');
@@ -125,7 +75,7 @@ export class PainelGarcomService {
     return this.restauranteService.getAmbientes(idRestaurante, data).pipe(
       map((ambientesApi: IAmbienteDashboard[]) => {
         // Mapeia os dados da API para o formato esperado pelo componente
-        const ambientesMapeados: Ambiente[] = ambientesApi.map(ambienteApi => ({
+        const ambientesMapeados: IAmbientePainel[] = ambientesApi.map(ambienteApi => ({
           id: ambienteApi.id,
           nome: ambienteApi.nome,
           mesas: ambienteApi.mesas.map(mesaApi => this.mapearMesaApiParaMesa(mesaApi))
@@ -148,7 +98,7 @@ export class PainelGarcomService {
   /**
    * Mapeia uma mesa da API para o formato usado no componente
    */
-  private mapearMesaApiParaMesa(mesaApi: IMesaDashboard): Mesa {
+  private mapearMesaApiParaMesa(mesaApi: IMesaDashboard): IMesaPainel {
     const mesa = mesaApi.mesa;
     const reservas = mesaApi.reservas || [];
     const atendimentos = mesaApi.atendimentos || [];
@@ -166,21 +116,22 @@ export class PainelGarcomService {
       id: mesa.id,
       nome: mesa.nome,
       capacidade: mesa.capacidade,
-      tipo: mesa.tipo,
+      tipo: mesa.tipo as 'retangular' | 'circular',
       vip: mesa.vip,
-      status: mesa.status,
+      status: (mesa.status || 'LIVRE') as 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO',
       inicioOcupacao: atendimentos[0]?.inicioAtendimento 
-        ? new Date(atendimentos[0].inicioAtendimento!) 
+        ? new Date(atendimentos[0].inicioAtendimento as string) 
         : undefined,
       tempoOcupacaoDisplay: undefined, // Será calculado pelo componente
       reserva: reservaAtiva ? {
         id: reservaAtiva.id,
-        cliente: reservaAtiva.clienteId, // Usa o ID como nome temporariamente (pode ser melhorado depois)
-        horario: reservaAtiva.horaReserva.split(':').slice(0, 2).join(':'), // Formata HH:MM
-        pessoas: reservaAtiva.quantidadePessoas,
-        telefone: undefined // Não vem na API
+        cliente: reservaAtiva.cliente || reservaAtiva.clienteId, // Usa o nome do cliente ou ID como fallback
+        horario: reservaAtiva.horario.split(':').slice(0, 2).join(':'), // Formata HH:MM
+        pessoas: reservaAtiva.pessoas,
+        telefone: reservaAtiva.telefoneCliente // Usa telefoneCliente se disponível
       } : undefined,
-      garcomsAtendendo: garcomsAtendendo.length > 0 ? garcomsAtendendo : []
+      garcomsAtendendo: garcomsAtendendo.length > 0 ? garcomsAtendendo : [],
+      clienteNome: mesa.clienteNome // Nome do cliente quando a mesa foi ocupada
     };
   }
 
@@ -197,12 +148,12 @@ export class PainelGarcomService {
   public iniciarAtendimento(mesaId: string, garcomId: string): void {
     const ambientesAtuais = this._ambientes.getValue();
     
-    const novosAmbientes: Ambiente[] = ambientesAtuais.map(amb => ({
+    const novosAmbientes: IAmbientePainel[] = ambientesAtuais.map(amb => ({
       ...amb,
       mesas: amb.mesas.map(mesa => {
         if (mesa.id === mesaId && (mesa.status === 'LIVRE' || mesa.status === 'RESERVADA' || mesa.status === 'OCUPADA')) {
           console.log(`[SERVIÇO MOCK] Iniciando atendimento na mesa ${mesaId} por ${garcomId}`);
-          const mesaAtualizada: Mesa = {
+          const mesaAtualizada: IMesaPainel = {
             ...mesa,
             status: 'EM_ATENDIMENTO',
             inicioOcupacao: new Date(), // INICIA O TIMER!
@@ -222,12 +173,12 @@ export class PainelGarcomService {
   public liberarMesa(mesaId: string): void {
     const ambientesAtuais = this._ambientes.getValue();
     
-    const novosAmbientes: Ambiente[] = ambientesAtuais.map(amb => ({
+    const novosAmbientes: IAmbientePainel[] = ambientesAtuais.map(amb => ({
       ...amb,
       mesas: amb.mesas.map(mesa => {
         if (mesa.id === mesaId) {
           console.log(`[SERVIÇO MOCK] Liberando mesa ${mesaId}`);
-          const mesaAtualizada: Mesa = {
+          const mesaAtualizada: IMesaPainel = {
             ...mesa,
             status: 'LIVRE',
             inicioOcupacao: undefined,
@@ -245,11 +196,11 @@ export class PainelGarcomService {
   }
   
   // Simula um POST /pedidos
-  public criarNovoPedido(mesaId: string, itens: PedidoItem[], garcomId: string): void {
+  public criarNovoPedido(mesaId: string, itens: IPedidoItem[], garcomId: string): void {
     const ambientes = this._ambientes.getValue();
     const mesa = ambientes.flatMap(a => a.mesas).find(m => m.id === mesaId);
     
-    const novoPedido: Pedido = {
+    const novoPedido: IPedido = {
       id: `p-${Math.floor(Math.random() * 1000)}`,
       mesaId: mesaId,
       mesaNome: mesa?.nome || 'Desconhecida',
@@ -265,7 +216,7 @@ export class PainelGarcomService {
   }
   
   // Simula um PUT /pedidos/{id}/adicionar-item
-  public adicionarItemPedido(pedidoId: string, item: PedidoItem): void {
+  public adicionarItemPedido(pedidoId: string, item: IPedidoItem): void {
     const pedidosAtuais = this._pedidosAtivos.getValue();
     
     const novosPedidos = pedidosAtuais.map(pedido => {
@@ -298,13 +249,13 @@ export class PainelGarcomService {
     this._pedidosAtivos.next(pedidosFiltrados);
   }
 
-  public getPedidosAtuais(): Pedido[] {
+  public getPedidosAtuais(): IPedido[] {
     return this._pedidosAtivos.getValue();
   }
 
   public ocuparMesa(mesaId: string): void {
     const ambientesAtuais = this._ambientes.getValue();
-    const novosAmbientes: Ambiente[] = ambientesAtuais.map(amb => ({
+    const novosAmbientes: IAmbientePainel[] = ambientesAtuais.map(amb => ({
       ...amb,
       mesas: amb.mesas.map(mesa => {
         if (mesa.id === mesaId && mesa.status === 'LIVRE') {
@@ -323,7 +274,7 @@ export class PainelGarcomService {
 
   public adicionarGarcomAMesa(mesaId: string, garcomId: string): void {
     const ambientesAtuais = this._ambientes.getValue();
-    const novosAmbientes: Ambiente[] = ambientesAtuais.map(amb => ({
+    const novosAmbientes: IAmbientePainel[] = ambientesAtuais.map(amb => ({
       ...amb,
       mesas: amb.mesas.map(mesa => {
         if (mesa.id === mesaId && mesa.status === 'EM_ATENDIMENTO') {
@@ -345,7 +296,7 @@ export class PainelGarcomService {
 
   public removerGarcomDaMesa(mesaId: string, garcomId: string): void {
     const ambientesAtuais = this._ambientes.getValue();
-    const novosAmbientes: Ambiente[] = ambientesAtuais.map(amb => ({
+    const novosAmbientes: IAmbientePainel[] = ambientesAtuais.map(amb => ({
       ...amb,
       mesas: amb.mesas.map(mesa => {
         if (mesa.id === mesaId && mesa.status === 'EM_ATENDIMENTO') {
@@ -357,7 +308,7 @@ export class PainelGarcomService {
           }
           
           // Se não há mais garçons atendendo, volta para OCUPADA
-          let statusAtualizado: Mesa['status'] = mesa.status;
+          let statusAtualizado: IMesaPainel['status'] = mesa.status;
           if (garcomsAtendendo.length === 0) {
             statusAtualizado = 'OCUPADA';
           }
@@ -374,15 +325,15 @@ export class PainelGarcomService {
     this._ambientes.next(novosAmbientes);
   }
 
-  public getAmbientesAtuais(): Ambiente[] {
+  public getAmbientesAtuais(): IAmbientePainel[] {
     return this._ambientes.getValue();
   }
 
-  public atualizarAmbientes(ambientes: Ambiente[]): void {
+  public atualizarAmbientes(ambientes: IAmbientePainel[]): void {
     this._ambientes.next(ambientes);
   }
 
-  public getGarconsDisponiveis(): GarcomInfo[] {
+  public getGarconsDisponiveis(): IGarcomInfo[] {
     return this.mockGarcons;
   }
 
@@ -394,7 +345,7 @@ export class PainelGarcomService {
     if (ambientesAtuais.length === 0) return;
 
     // Tenta encontrar uma mesa livre para ocupar
-    let mesaLivre: Mesa | undefined;
+    let mesaLivre: IMesaPainel | undefined;
     let ambIndex = -1;
     let mesaIndex = -1;
     
@@ -417,7 +368,7 @@ export class PainelGarcomService {
         mesas: [...novosAmbientes[ambIndex].mesas]
       };
       
-      const mesaAtualizada: Mesa = {
+      const mesaAtualizada: IMesaPainel = {
         ...mesaLivre,
         status: 'OCUPADA', // Cliente avulso
         inicioOcupacao: new Date() // Inicia o timer
@@ -429,7 +380,7 @@ export class PainelGarcomService {
   }
 
   // Teu gerador de Mocks (movido para o serviço)
-  private gerarAmbientesMock(): Ambiente[] {
+  private gerarAmbientesMock(): IAmbientePainel[] {
     // Lógica para carregar reservas do dia (baseado na dataAtual)
     // Por agora, vamos mockar algumas
     const reservaMesa5 = {
@@ -476,7 +427,7 @@ export class PainelGarcomService {
     ];
   }
   
-  private gerarPedidosMock(): Pedido[] {
+  private gerarPedidosMock(): IPedido[] {
      return [
         {
           id: 'p-001',
@@ -513,30 +464,54 @@ export class PainelGarcomService {
     const reservas: IReserva[] = [
       {
         id: '1',
+        clienteId: 'cliente-1',
         cliente: 'João Silva',
+        mesaIds: [],
         data: new Date(data.getFullYear(), data.getMonth(), data.getDate()),
         horario: '19:30',
+        periodo: 'Jantar',
         pessoas: 4,
         status: 'CONFIRMADA',
-        telefone: '(11) 99999-9999'
+        preferencias: '',
+        restaurante: '',
+        emailCliente: 'joao@email.com',
+        telefoneCliente: '(11) 99999-9999',
+        imagemPerfilCliente: null,
+        nomesMesas: null
       },
       {
         id: '2',
+        clienteId: 'cliente-2',
         cliente: 'Maria Santos',
+        mesaIds: [],
         data: new Date(data.getFullYear(), data.getMonth(), data.getDate() + 1),
         horario: '20:00',
+        periodo: 'Jantar',
         pessoas: 2,
         status: 'PENDENTE',
-        telefone: '(11) 88888-8888'
+        preferencias: '',
+        restaurante: '',
+        emailCliente: 'maria@email.com',
+        telefoneCliente: '(11) 88888-8888',
+        imagemPerfilCliente: null,
+        nomesMesas: null
       },
       {
         id: '3',
+        clienteId: 'cliente-3',
         cliente: 'Pedro Costa',
+        mesaIds: [],
         data: new Date(data.getFullYear(), data.getMonth(), data.getDate() - 1),
         horario: '18:30',
+        periodo: 'Jantar',
         pessoas: 6,
         status: 'CONFIRMADA',
-        telefone: '(11) 77777-7777'
+        preferencias: '',
+        restaurante: '',
+        emailCliente: 'pedro@email.com',
+        telefoneCliente: '(11) 77777-7777',
+        imagemPerfilCliente: null,
+        nomesMesas: null
       }
     ];
 
