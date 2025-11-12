@@ -91,19 +91,38 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
   /**
    * Login específico para garçons/funcionários
    */
-  loginGarcom(emailRestaurante: string, codigoIdentidade: string, senha: string): Observable<LoginResponse> {
-    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login/garcom`, {
+  loginGarcom(emailRestaurante: string, codigoIdentidade: string, senha: string): Observable<any> {
+    return this.httpClient.post<any>(`${this.apiUrl}/login/garcom`, {
       emailRestaurante,
       codigoIdentidade,
       senha
     }, { withCredentials: true }).pipe(
       tap((value) => {
+        console.log('[AcessService] loginGarcom - Response completo:', value);
         this.auth.setToken(value.token);
+        // Para funcionários, o restauranteId vem no response como 'restauranteId'
+        const restauranteId = value.restauranteId;
+        console.log('[AcessService] loginGarcom - restauranteId extraído:', restauranteId);
+        console.log('[AcessService] loginGarcom - Dados do perfil a serem salvos:', {
+          tipo: value.tipoUsuario,
+          nome: value.nome,
+          id: value.id,
+          imagem: value.imagem,
+          restauranteId: value.restauranteId
+        });
         this.auth.setPerfil({ 
           tipo: value.tipoUsuario, 
           nome: value.nome, 
           id: value.id,
-          imagem: value.imagem 
+          imagem: value.imagem,
+          restauranteId: value.restauranteId
+        });
+        console.log('[AcessService] loginGarcom - Perfil salvo. Verificando localStorage...');
+        console.log('[AcessService] loginGarcom - localStorage após salvar:', {
+          tipoUsuario: localStorage.getItem('tipoUsuario'),
+          restauranteIdFuncionario: localStorage.getItem('restauranteIdFuncionario'),
+          nome: localStorage.getItem('nome'),
+          token: localStorage.getItem('token') ? 'presente' : 'ausente'
         });
       })
     );

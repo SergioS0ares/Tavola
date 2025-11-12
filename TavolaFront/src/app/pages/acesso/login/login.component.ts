@@ -159,6 +159,8 @@ export class LoginComponent {
 
   /**
    * Realiza login do garçom
+   * O AcessService já salva o token e o perfil corretamente no operador tap(),
+   * então não precisamos chamar setAuthData novamente aqui.
    */
   realizarLoginGarcom() {
     if (this.garcomForm.invalid) {
@@ -171,13 +173,17 @@ export class LoginComponent {
     const senha = this.garcomForm.get('senha')?.value;
 
     if (emailRestaurante && codigoIdentidade && senha) {
+      // O AcessService já salva o token e o perfil (incluindo restauranteId)
+      // no operador tap() dentro do loginGarcom()
       this.loginService.loginGarcom(emailRestaurante, codigoIdentidade, senha).subscribe({
         next: (res) => {
           this.showLoginError = false;
           this.toastService.success("Login realizado com sucesso!");
-          this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'FUNCIONARIO', res.id, res.imagem);
           
-          // Redireciona para o painel do garçom
+          // NÃO PRECISA CHAMAR setAuthData() AQUI.
+          // O SERVIÇO JÁ FEZ ISSO CORRETAMENTE COM O restauranteId.
+          
+          // Apenas redireciona para o painel do garçom
           this.router.navigate(['painel-garcom']);
         },
         error: (err) => {

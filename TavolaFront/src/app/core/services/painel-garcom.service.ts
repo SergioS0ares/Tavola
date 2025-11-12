@@ -54,10 +54,35 @@ export class PainelGarcomService {
 
   /**
    * Obtém o ID do restaurante do usuário logado
+   * Confia 100% no AuthService para obter o perfil.
+   * O getter do authService (this.authService.perfil) já tem a lógica
+   * de carregar do localStorage se o perfil em memória (_perfil) for nulo.
    */
-  private getIdRestaurante(): string {
+  private getrestauranteId(): string {
+    console.log('[PainelGarcomService] Chamando getrestauranteId...');
+    
+    // Confia 100% no AuthService para obter o perfil
+    // O getter do authService (this.authService.perfil) já tem a lógica
+    // de carregar do localStorage se o perfil em memória (_perfil) for nulo.
     const perfil = this.authService.perfil;
-    return perfil?.id || '';
+
+    if (perfil) {
+      // Se for funcionário, usa o 'restauranteId' do perfil
+      if (perfil.tipo === 'FUNCIONARIO' && perfil.restauranteId) {
+        console.log('[PainelGarcomService] ID encontrado (Funcionário):', perfil.restauranteId);
+        return perfil.restauranteId;
+      }
+      // Se for o dono do restaurante, o ID dele é o ID do restaurante
+      if (perfil.tipo === 'RESTAURANTE' && perfil.id) {
+        console.log('[PainelGarcomService] ID encontrado (Restaurante):', perfil.id);
+        return perfil.id;
+      }
+    }
+
+    // Se chegou até aqui, algo está errado (usuário não logado ou sem ID)
+    console.error('[PainelGarcomService] ID do restaurante não encontrado. Perfil:', perfil);
+    console.error('[PainelGarcomService] Verifique se o usuário está logado e se o perfil no localStorage está correto.');
+    return '';
   }
 
   // --- MÉTODOS PÚBLICOS (API Real) ---
@@ -66,13 +91,13 @@ export class PainelGarcomService {
    * Carrega os ambientes e mesas da API para uma data específica
    */
   public carregarAmbientes(data: Date): Observable<IAmbientePainel[]> {
-    const idRestaurante = '873880ed-f72a-4010-810f-aaf3f12b236e';
-    if (!idRestaurante) {
+    const restauranteId = this.getrestauranteId();
+    if (!restauranteId) {
       console.error('[PainelGarcomService] ID do restaurante não encontrado');
       return this._ambientes.asObservable();
     }
     
-    return this.restauranteService.getAmbientes(idRestaurante, data).pipe(
+    return this.restauranteService.getAmbientes(restauranteId, data).pipe(
       map((ambientesApi: IAmbienteDashboard[]) => {
         // Mapeia os dados da API para o formato esperado pelo componente
         const ambientesMapeados: IAmbientePainel[] = ambientesApi.map((ambienteApi: IAmbienteDashboard) => ({
@@ -87,9 +112,8 @@ export class PainelGarcomService {
       }),
       catchError(error => {
         console.error('[PainelGarcomService] Erro ao carregar ambientes:', error);
-        // Em caso de erro, retorna os dados mock
-        const dadosMock = this.gerarAmbientesMock();
-        this._ambientes.next(dadosMock);
+        // Em caso de erro, retorna array vazio ao invés de dados mock
+        this._ambientes.next([]);
         return this._ambientes.asObservable();
       })
     );
@@ -104,13 +128,21 @@ export class PainelGarcomService {
     const atendimentos = mesaApi.atendimentos || [];
 
     // Pega a primeira reserva ativa (se houver)
-    const reservaAtiva = reservas.find((r: IReserva) => r.status === 'ATIVA');
+    // A API retorna reservas com estrutura diferente: { id, clienteId, dataReserva, horaReserva, quantidadePessoas, status }
+    // Usamos 'any' porque a estrutura da API é diferente da interface IReserva
+    const reservaAtiva = reservas.find((r: any) => r.status === 'ATIVA') as any;
     
     // Mapeia os IDs dos garçons dos atendimentos
     const garcomsAtendendo = atendimentos
       .filter((a: IAtendimentoDashboard) => a.garcomId)
       .map((a: IAtendimentoDashboard) => a.garcomId!)
       .filter((id: string | undefined): id is string => !!id);
+
+    // Formata o horário da reserva (a API retorna "12:15:00", precisamos "12:15")
+    let horarioFormatado: string | undefined;
+    if (reservaAtiva?.horaReserva) {
+      horarioFormatado = String(reservaAtiva.horaReserva).split(':').slice(0, 2).join(':');
+    }
 
     return {
       id: mesa.id,
@@ -125,9 +157,9 @@ export class PainelGarcomService {
       tempoOcupacaoDisplay: undefined, // Será calculado pelo componente
       reserva: reservaAtiva ? {
         id: reservaAtiva.id,
-        cliente: reservaAtiva.cliente || reservaAtiva.clienteId, // Usa o nome do cliente ou ID como fallback
-        horario: reservaAtiva.horario.split(':').slice(0, 2).join(':'), // Formata HH:MM
-        pessoas: reservaAtiva.pessoas,
+        cliente: reservaAtiva.cliente || reservaAtiva.clienteId || 'Cliente', // Usa cliente se disponível, senão clienteId, senão 'Cliente'
+        horario: horarioFormatado || '00:00',
+        pessoas: (reservaAtiva.quantidadePessoas ?? reservaAtiva.pessoas) || 1, // Usa quantidadePessoas da API ou pessoas como fallback
         telefone: reservaAtiva.telefoneCliente // Usa telefoneCliente se disponível
       } : undefined,
       garcomsAtendendo: garcomsAtendendo.length > 0 ? garcomsAtendendo : [],

@@ -7,3 +7,4 @@ export interface IPedidoItem {
   status: 'PENDENTE' | 'PREPARANDO' | 'PRONTO' | 'ENTREGUE';
 }
 
+

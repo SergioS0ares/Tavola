@@ -6,3 +6,4 @@ export interface IAmbientePainel {
   mesas: IMesaPainel[];
 }
 
+

@@ -12,3 +12,4 @@ export interface IIniciarAtendimentoPayload {
   clienteNome?: string;
 }
 
+

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -109,16 +109,21 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   private timerSubscription?: Subscription;
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private router: Router, 
-    private authService: AuthService,
-    private dialog: MatDialog,
-    private painelGarcomService: PainelGarcomService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private router = inject(Router);
+  private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private painelGarcomService = inject(PainelGarcomService);
+  private cdr = inject(ChangeDetectorRef);
+
+  constructor() {}
 
   ngOnInit(): void {
     this.checkMobile();
+    
+    // Log para verificar o estado do AuthService antes de qualquer chamada
+    console.log('[PainelGarcomComponent] ngOnInit - Perfil no AuthService NESTE MOMENTO:', this.authService.perfil);
+    console.log('[PainelGarcomComponent] ngOnInit - Token presente:', this.authService.getToken() ? 'SIM' : 'NÃO');
+    
     this.carregarDadosIniciais();
     this.iniciarAtualizacaoTempo();
     this.carregarDadosGarcom();
@@ -359,8 +364,9 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
       tooltip += ' (VIP)';
     }
     
+    // Mostra a reserva apenas se houver, mas sem mostrar o ID do cliente
     if (mesa.reserva) {
-      tooltip += `\nReserva: ${mesa.reserva.cliente} às ${mesa.reserva.horario}`;
+      tooltip += `\nReserva: ${mesa.reserva.horario} (${mesa.reserva.pessoas} pessoas)`;
     }
     
     if (mesa.tempoOcupacaoDisplay) {
@@ -584,10 +590,11 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     this.carregarReservasParaCalendario(this.dataAtual, () => {
       // 2. ABRE o dialog APÓS os dados serem carregados (dentro do callback)
       const dialogRef = this.dialog.open(CalendarioReservasComponent, {
-        width: '80vw',
-        maxWidth: '900px',
-        maxHeight: '90vh',
-        panelClass: 'tavola-dialog-wrapper', // Tua classe global
+        width: '95vw',
+        maxWidth: '1200px',
+        maxHeight: '95vh',
+        height: '90vh',
+        panelClass: ['tavola-dialog-wrapper', 'calendario-dialog'], // Array de classes (sem espaços)
         data: { 
           // Passa a data inicial e as reservas carregadas
           initialDate: this.dataAtual, 
@@ -595,11 +602,13 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
         }
       });
 
-      // 3. Lida com o resultado (data selecionada)
+      // Lida com o resultado quando o dialog é fechado
       dialogRef.afterClosed().subscribe(dataSelecionada => {
         if (dataSelecionada instanceof Date) {
+          // Atualiza a data atual
+          this.dataAtual = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate());
           // Chama a MESMA função que o nzDatePicker usa para atualizar
-          this.nzDatePickerChange(dataSelecionada); 
+          this.nzDatePickerChange(this.dataAtual); 
         } else {
           console.log('Calendário fechado sem selecionar data.');
         }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, type OnChanges, Output, type SimpleChanges } from "@angular/core"
+import { Component, EventEmitter, Input, type OnChanges, Output, type SimpleChanges, Optional, Inject } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { NzBadgeModule } from "ng-zorro-antd/badge"
 import { NzCalendarModule } from "ng-zorro-antd/calendar"
@@ -8,6 +8,7 @@ import { FormsModule } from "@angular/forms"
 import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
 import { MatTooltipModule } from "@angular/material/tooltip"
+import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog"
 import { IReserva } from "../../../Interfaces/IReserva.interface"
 
 @Component({
@@ -67,14 +68,33 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 24px;
-  max-width: 1000px;
+  max-width: 100%;
   width: 100%;
-  height: auto;
-  max-height: 900px;
+  min-height: 600px;
+  max-height: 90vh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #F6BD38;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #e6a82e;
+    }
+  }
 }
 
 .calendario-header {
@@ -246,22 +266,39 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   background: #FFFFFF;
   border-radius: 8px;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
+  min-height: 500px;
   
   .ant-picker-calendar-header {
     padding: 20px;
     border-bottom: 1px solid #e8e8e8;
+    flex-shrink: 0;
   }
   
   .ant-picker-content {
     height: auto;
     overflow: visible;
+    flex: 1;
   }
   
   .ant-picker-calendar-date-content {
     height: 110px !important;
     padding: 6px !important;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #F6BD38;
+      border-radius: 2px;
+    }
   }
   
   .ant-picker-cell {
@@ -272,7 +309,7 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   
   .ant-picker-calendar-date {
     height: 110px;
-    overflow: hidden;
+    overflow: visible;
   }
 }
 
@@ -322,17 +359,34 @@ export class CalendarioReservasComponent implements OnChanges {
   @Output() fechar = new EventEmitter<void>()
 
   reservasPorData: { [key: string]: IReserva[] } = {}
+  reservasInternas: IReserva[] = []
+
+  constructor(
+    @Optional() public dialogRef?: MatDialogRef<CalendarioReservasComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data?: { reservas?: IReserva[], initialDate?: Date }
+  ) {
+    // Se estiver dentro de um dialog, usa os dados do dialog
+    if (this.dialogRef && this.data) {
+      this.reservasInternas = this.data.reservas || []
+      this.organizarReservasPorData()
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["reservas"]) {
+      // Se não estiver em dialog, usa os @Input
+      if (!this.dialogRef) {
+        this.reservasInternas = this.reservas
+      }
       this.organizarReservasPorData()
     }
   }
 
   organizarReservasPorData(): void {
     this.reservasPorData = {}
+    const reservasParaUsar = this.dialogRef ? this.reservasInternas : this.reservas
 
-    this.reservas.forEach((reserva) => {
+    reservasParaUsar.forEach((reserva) => {
       const dataKey = this.formatarDataKey(reserva.data)
 
       if (!this.reservasPorData[dataKey]) {
@@ -373,11 +427,23 @@ export class CalendarioReservasComponent implements OnChanges {
   }
 
   selecionarData(data: Date): void {
-    this.dataSeleccionada.emit(data)
+    // Se estiver em dialog, fecha o dialog e retorna a data
+    if (this.dialogRef) {
+      this.dialogRef.close(data)
+    } else {
+      // Se não estiver em dialog, emite o evento
+      this.dataSeleccionada.emit(data)
+    }
   }
 
   fecharCalendario(): void {
-    this.fechar.emit()
+    // Se estiver em dialog, fecha sem retornar dados
+    if (this.dialogRef) {
+      this.dialogRef.close()
+    } else {
+      // Se não estiver em dialog, emite o evento
+      this.fechar.emit()
+    }
   }
 
   getTooltipStatus(status: string): string {

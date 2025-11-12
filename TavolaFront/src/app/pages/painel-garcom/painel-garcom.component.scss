@@ -186,6 +186,66 @@
   }
 }
 
+// Estilos globais para o dialog do calendário
+::ng-deep .calendario-dialog {
+  .cdk-overlay-pane {
+    max-width: 95vw !important;
+    max-height: 95vh !important;
+  }
+  
+  .mat-mdc-dialog-container {
+    overflow: visible !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    max-width: 1200px !important;
+    width: 95vw !important;
+    max-height: 95vh !important;
+  }
+  
+  .mdc-dialog__surface {
+    overflow: visible !important;
+    max-height: 95vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background-color: transparent !important;
+  }
+  
+  app-calendario-reservas {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  .calendario-container {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: 95vh !important;
+    height: auto !important;
+    min-height: 600px !important;
+    background-color: white !important;
+    display: flex !important;
+    flex-direction: column !important;
+    
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #F6BD38;
+      border-radius: 4px;
+      
+      &:hover {
+        background: #e6a82e;
+      }
+    }
+  }
+}
+
 // Layout de colunas
 .painel-content-columns {
   display: flex;
