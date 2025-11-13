@@ -107,10 +107,20 @@ export class LoginComponent {
           } else {
             // CENÁRIO A: Login normal e bem-sucedido
             this.toastService.success("Login feito com sucesso!");
-            this.authService.setAuthData(res.token, res.nome, res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE', res.id, res.imagem);
+            // O AcessService já salvou o perfil no tap(), mas atualizamos aqui também para garantir
+            this.authService.setAuthData(
+              res.token, 
+              res.nome, 
+              res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO', 
+              res.id, 
+              res.imagem,
+              res.restauranteId
+            );
             
             if (res.tipoUsuario === 'RESTAURANTE') {
               this.router.navigate(['reserva']);
+            } else if (res.tipoUsuario === 'FUNCIONARIO') {
+              this.router.navigate(['painel-garcom']);
             } else {
               this.router.navigate(['home']);
             }

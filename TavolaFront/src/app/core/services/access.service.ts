@@ -17,7 +17,13 @@ export class AcessService {
     return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, senha }, { withCredentials: true }).pipe(
       tap((value) => {
         this.auth.setToken(value.token);
-        this.auth.setPerfil({ tipo: value.tipoUsuario, nome: value.nome, imagem: value.imagem });
+        this.auth.setPerfil({ 
+          tipo: value.tipoUsuario as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO', 
+          nome: value.nome, 
+          id: value.id,
+          imagem: value.imagem,
+          restauranteId: value.restauranteId
+        });
       })
     );
   }
@@ -36,7 +42,13 @@ export class AcessService {
           // atualiza token na AuthService
           this.auth.setToken(res.token);
           // se precisar atualizar perfil:
-          this.auth.setPerfil({ tipo: res.tipoUsuario, nome: res.nome, imagem: res.imagem, id: res.id});
+          this.auth.setPerfil({ 
+            tipo: res.tipoUsuario as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO', 
+            nome: res.nome, 
+            imagem: res.imagem, 
+            id: res.id,
+            restauranteId: res.restauranteId
+          });
         })
       );
   }
@@ -56,15 +68,16 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
     codigo,
     mantenhaMeConectado
   }, { withCredentials: true }).pipe( // <<< CORREÇÃO APLICADA AQUI
-    tap((value: any) => { 
-      // Esta parte do seu código já está correta
-      if (value.token && !value.erro) { 
+    tap((value) => { 
+      // Salva o token e perfil se o token estiver presente
+      if (value.token) { 
         this.auth.setToken(value.token);
         this.auth.setPerfil({ 
-          tipo: value.tipoUsuario, 
+          tipo: value.tipoUsuario as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO', 
           nome: value.nome, 
           id: value.id,
-          imagem: value.imagem 
+          imagem: value.imagem,
+          restauranteId: value.restauranteId
         });
       }
     })
@@ -91,8 +104,8 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
   /**
    * Login específico para garçons/funcionários
    */
-  loginGarcom(emailRestaurante: string, codigoIdentidade: string, senha: string): Observable<any> {
-    return this.httpClient.post<any>(`${this.apiUrl}/login/garcom`, {
+  loginGarcom(emailRestaurante: string, codigoIdentidade: string, senha: string): Observable<LoginResponse> {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login/garcom`, {
       emailRestaurante,
       codigoIdentidade,
       senha
@@ -111,7 +124,7 @@ verificarCodigo(idVerificacao: string, codigo: string, mantenhaMeConectado: bool
           restauranteId: value.restauranteId
         });
         this.auth.setPerfil({ 
-          tipo: value.tipoUsuario, 
+          tipo: value.tipoUsuario as 'CLIENTE' | 'RESTAURANTE' | 'FUNCIONARIO', 
           nome: value.nome, 
           id: value.id,
           imagem: value.imagem,

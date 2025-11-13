@@ -18,7 +18,7 @@ export class AtendimentoService {
    */
   private getIdRestaurante(): string {
     const perfil = this.authService.perfil;
-    return perfil?.id || '';
+    return perfil?.restauranteId || '';
   }
 
   /**
