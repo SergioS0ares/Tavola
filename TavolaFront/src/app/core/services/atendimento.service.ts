@@ -16,7 +16,7 @@ export class AtendimentoService {
   /**
    * Obtém o ID do restaurante do usuário logado
    */
-  private getIdRestaurante(): string {
+  private getIdRestaurante(): string {  
     const perfil = this.authService.perfil;
     return perfil?.restauranteId || '';
   }
