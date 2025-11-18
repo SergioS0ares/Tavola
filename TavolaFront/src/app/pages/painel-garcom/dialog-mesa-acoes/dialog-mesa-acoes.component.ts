@@ -10,9 +10,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { Mesa, GarcomInfo } from '../../../core/services/painel-garcom.service';
+import { Mesa, GarcomInfo, PainelGarcomService } from '../../../core/services/painel-garcom.service';
 import { MesaService } from '../../../core/services/mesa.service';
 import { AtendimentoService } from '../../../core/services/atendimento.service';
+import { inject } from '@angular/core';
 import Swal from 'sweetalert2';
 
 export interface DialogMesaData {
@@ -50,6 +51,8 @@ export class DialogMesaAcoesComponent {
   sugestoesNomesClientes: string[] = [
     'Cliente'
   ];
+
+  private painelGarcomService = inject(PainelGarcomService);
 
   constructor(
     public dialogRef: MatDialogRef<DialogMesaAcoesComponent>,
@@ -206,10 +209,25 @@ export class DialogMesaAcoesComponent {
 
   // Função para buscar dados do garçom
   getGarcomInfo(id: string): GarcomInfo | undefined {
-    // Se não passou a lista, retorna um mock simples
-    if (!this.data.garconsDisponiveis) {
-      return id === this.data.garcom.id ? this.data.garcom : undefined; 
+    // Primeiro tenta pegar do serviço (que tem informações completas dos garçons do atendimento)
+    const garcomAtendimento = this.painelGarcomService.getGarcomInfoAtendimento(id);
+    if (garcomAtendimento) {
+      return garcomAtendimento;
     }
-    return this.data.garconsDisponiveis.find(g => g.id === id);
+    
+    // Se não encontrar, tenta pegar da lista de garçons disponíveis passada
+    if (this.data.garconsDisponiveis) {
+      const garcomDisponivel = this.data.garconsDisponiveis.find(g => g.id === id);
+      if (garcomDisponivel) {
+        return garcomDisponivel;
+      }
+    }
+    
+    // Se não encontrar, retorna o garçom atual se for o mesmo ID
+    if (id === this.data.garcom.id) {
+      return this.data.garcom;
+    }
+    
+    return undefined;
   }
 }

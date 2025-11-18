@@ -1,13 +1,19 @@
-import { Component, Inject, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialogContent } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { HttpClient } from '@angular/common/http';
 import { PainelGarcomService, PedidoItem } from '../../../core/services/painel-garcom.service';
+import { CardapioService } from '../../../core/services/cardapio.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { IItemCardapio } from '../../../Interfaces/IItem-cardapio';
+import { environment } from '../../../../environments/environment';
 
 export interface DialogCardapioData {
   mesaId: string;
@@ -17,12 +23,13 @@ export interface DialogCardapioData {
 interface CardapioItem {
   id: string;
   nome: string;
-  descricao: string;
+  descricao?: string;
   preco: number;
   categoria: string;
   imagem?: string;
   tags?: string[];
   quantidade?: number; // Para o carrinho
+  observacao?: string; // Para observações do item no pedido
 }
 
 interface CardapioCategoria {
@@ -40,6 +47,7 @@ interface CardapioCategoria {
     MatIconModule,
     MatTooltipModule,
     MatCardModule,
+    MatProgressSpinnerModule,
     NzImageModule,
     NzIconModule
   ],
@@ -55,6 +63,7 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
 
   categorias: CardapioCategoria[] = [];
   carrinho: CardapioItem[] = [];
+  isLoading = false;
   
   // Estado da navegação
   categoriaAtiva: string = ''; // Inicia vazio ou com a primeira categoria
@@ -62,6 +71,10 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
   mostrarSetaEsquerda = false;
   mostrarSetaDireita = false;
   scrollAmount = 200; // Pixels para rolar as categorias
+  
+  private cardapioService = inject(CardapioService);
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
   
   constructor(
     public dialogRef: MatDialogRef<DialogCardapioGarcomComponent>,
@@ -75,82 +88,55 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
       this.carregarItensExistentes();
     }
 
-    // Mock do cardápio
-    this.categorias = [
-      {
-        nome: 'Entradas',
-        itens: [
-          { 
-            id: 'item-1', 
-            nome: 'Hambúrguer Artesanal', 
-            descricao: 'Pão brioche, carne 180g, queijo cheddar, alface, tomate e molho especial', 
-            preco: 25.90, 
-            categoria: 'Entradas',
-            imagem: 'assets/jpg/Comida.jpg',
-            tags: ['Popular', 'Carnes']
-          },
-          { 
-            id: 'item-2', 
-            nome: 'Salada Caesar', 
-            descricao: 'Alface romana, croutons, queijo parmesão e molho caesar', 
-            preco: 18.90, 
-            categoria: 'Entradas',
-            imagem: 'assets/jpg/Comida.jpg',
-            tags: ['Vegetariano', 'Leve']
+    // Carrega o cardápio da API
+    this.carregarCardapio();
+  }
+
+  private carregarCardapio(): void {
+    this.isLoading = true;
+    this.cardapioService.listarItens().subscribe({
+      next: (itens: IItemCardapio[]) => {
+        // Agrupa os itens por categoria
+        const categoriasMap = new Map<string, CardapioItem[]>();
+        
+        itens.forEach(item => {
+          const categoriaNome = item.categoria?.nome || 'Outros';
+          const cardapioItem: CardapioItem = {
+            id: item.id || '',
+            nome: item.nome,
+            descricao: item.descricao,
+            preco: item.preco,
+            categoria: categoriaNome,
+            imagem: item.imagem,
+            tags: item.tags?.map(t => t.tag) || []
+          };
+          
+          if (!categoriasMap.has(categoriaNome)) {
+            categoriasMap.set(categoriaNome, []);
           }
-        ]
+          categoriasMap.get(categoriaNome)!.push(cardapioItem);
+        });
+        
+        // Converte o Map para array de categorias
+        this.categorias = Array.from(categoriasMap.entries()).map(([nome, itens]) => ({
+          nome,
+          itens
+        }));
+        
+        // Define a primeira categoria como ativa inicialmente
+        if (this.categorias.length > 0) {
+          this.categoriaAtiva = this.categorias[0].nome;
+        }
+        
+        this.isLoading = false;
       },
-      {
-        nome: 'Pratos Principais',
-        itens: [
-          { 
-            id: 'item-3', 
-            nome: 'Pizza Margherita', 
-            descricao: 'Molho de tomate, mussarela, manjericão e azeite', 
-            preco: 45.90, 
-            categoria: 'Pratos Principais',
-            imagem: 'assets/jpg/Comida.jpg',
-            tags: ['Vegetariano', 'Clássico']
-          },
-          { 
-            id: 'item-4', 
-            nome: 'Salmão Grelhado', 
-            descricao: 'Salmão grelhado com arroz de açafrão e legumes', 
-            preco: 52.90, 
-            categoria: 'Pratos Principais',
-            imagem: 'assets/jpg/Comida.jpg',
-            tags: ['Peixes', 'Saudável']
-          }
-        ]
-      },
-      {
-        nome: 'Bebidas',
-        itens: [
-          { 
-            id: 'item-5', 
-            nome: 'Coca-Cola 350ml', 
-            descricao: 'Refrigerante gelado', 
-            preco: 8.50, 
-            categoria: 'Bebidas',
-            imagem: 'assets/jpg/Comida.jpg',
-            tags: ['Refrigerante']
-          },
-          { 
-            id: 'item-6', 
-            nome: 'Suco de Laranja', 
-            descricao: 'Suco natural de laranja', 
-            preco: 12.90, 
-            categoria: 'Bebidas',
-            imagem: 'assets/jpg/Comida.jpg',
-            tags: ['Natural', 'Saudável']
-          }
-        ]
+      error: (error) => {
+        console.error('Erro ao carregar cardápio:', error);
+        this.isLoading = false;
+        // Em caso de erro, mantém categorias vazias
+        this.categorias = [];
       }
-    ];
-    // Define a primeira categoria como ativa inicialmente
-    if (this.categorias.length > 0) {
-      this.categoriaAtiva = this.categorias[0].nome;
-    }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -201,25 +187,50 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
       return;
     }
     
-    // Converter para PedidoItem[]
-    const itensPedido: PedidoItem[] = this.carrinho.map(item => ({
-      id: item.id,
-      nome: item.nome,
-      quantidade: item.quantidade || 1,
-      preco: item.preco,
-      status: 'PENDENTE'
-    }));
+    // Obtém o restauranteId do perfil
+    const perfil = this.authService.perfil;
+    let restauranteId = '';
     
-    if (this.data.pedidoId) {
-      // Atualizar pedido existente - primeiro remove o pedido antigo e cria um novo
-      this.painelGarcomService.removerPedido(this.data.pedidoId);
-      this.painelGarcomService.criarNovoPedido(this.data.mesaId, itensPedido, 'garcom-1');
-    } else {
-      // Criar um novo pedido
-      this.painelGarcomService.criarNovoPedido(this.data.mesaId, itensPedido, 'garcom-1');
+    if (perfil) {
+      if (perfil.tipo === 'FUNCIONARIO' && perfil.restauranteId) {
+        restauranteId = perfil.restauranteId;
+      } else if (perfil.tipo === 'RESTAURANTE' && perfil.id) {
+        restauranteId = perfil.id;
+      }
     }
     
-    this.dialogRef.close(true); // Fecha o dialog
+    if (!restauranteId) {
+      console.error('RestauranteId não encontrado');
+      return;
+    }
+    
+    // Prepara o payload do pedido
+    const payload = {
+      clienteId: '', // Pode ser vazio se não houver cliente específico
+      itens: this.carrinho.map(item => ({
+        cardapioItemId: item.id,
+        quantidade: item.quantidade || 1,
+        observacao: item.observacao || ''
+      }))
+    };
+    
+    // Faz o POST do pedido
+    const url = `${environment.apiUrl}/auth/api/restaurantes/${restauranteId}/pedidos/${this.data.mesaId}/salvar`;
+    
+    this.isLoading = true;
+    this.http.post(url, payload).subscribe({
+      next: (response) => {
+        console.log('Pedido criado com sucesso:', response);
+        this.isLoading = false;
+        this.dialogRef.close({ sucesso: true, pedido: response });
+      },
+      error: (error) => {
+        console.error('Erro ao criar pedido:', error);
+        this.isLoading = false;
+        // Ainda fecha o dialog, mas pode mostrar uma mensagem de erro se necessário
+        this.dialogRef.close({ sucesso: false, erro: error });
+      }
+    });
   }
   
   fechar(): void {

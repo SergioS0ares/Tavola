@@ -191,7 +191,7 @@
                              [matTooltip]="garcom.nome" 
                              matTooltipClass="tavola-tooltip"
                              [matTooltipDisabled]="isMobile">
-                          <img *ngIf="garcom.foto" [src]="garcom.foto" [alt]="garcom.nome"/>
+                          <img *ngIf="garcom.foto" [src]="garcom.foto" [alt]="garcom.nome" (error)="onImageError($event)"/>
                           <span *ngIf="!garcom.foto">{{ garcom.nome.substring(0,1) }}</span>
                         </div>
                         <div *ngIf="getGarcomsAtendendoMesa(mesa.id).length > 2" 

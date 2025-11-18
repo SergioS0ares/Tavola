@@ -9,7 +9,14 @@
     </div>
 
     <mat-dialog-content class="dialog-content" (scroll)="onDialogScroll($event)">
+      <!-- Loading indicator -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-progress-spinner diameter="50"></mat-progress-spinner>
+        <p>Carregando cardápio...</p>
+      </div>
+      
       <!-- Navegação de categorias -->
+      <div *ngIf="!isLoading">
       <div #categoriasNavContainer class="categorias-nav-container">
         <div class="categorias-nav" [class.fixed]="categoriasFixas">
           <div class="categorias-wrapper">
@@ -104,6 +111,7 @@
           <strong>Total: {{ getTotalCarrinho() | currency:'BRL' }}</strong>
         </div>
       </div>
+      </div>
     </mat-dialog-content>
 
     <mat-dialog-actions class="dialog-actions">
@@ -111,7 +119,7 @@
         <mat-icon>close</mat-icon>
         Cancelar
       </button>
-      <button mat-raised-button color="primary" [disabled]="carrinho.length === 0" (click)="finalizarPedido()" class="submit-btn">
+      <button mat-raised-button color="primary" [disabled]="carrinho.length === 0 || isLoading" (click)="finalizarPedido()" class="submit-btn">
         <mat-icon>shopping_cart</mat-icon>
         {{ data.pedidoId ? 'Adicionar ao Pedido' : 'Criar Pedido' }} ({{ getTotalItensCarrinho() }} itens)
       </button>

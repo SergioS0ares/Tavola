@@ -459,12 +459,10 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     const mesa = ambienteDaMesa?.mesas.find((m: Mesa) => m.id === mesaId);
 
     if (mesa?.garcomsAtendendo?.length) {
-      // 2. Pega a lista COMPLETA de garçons disponíveis
-      const todosGarcons = this.painelGarcomService.getGarconsDisponiveis();
-
-      // 3. Mapeia os IDs para os OBJETOS GarcomInfo
+      // 2. Mapeia os IDs para os OBJETOS GarcomInfo usando o método do serviço
+      // que retorna informações completas dos garçons (incluindo imagens do atendimento)
       return mesa.garcomsAtendendo
-        .map(id => todosGarcons.find(g => g.id === id)) // Encontra o objeto GarcomInfo
+        .map(id => this.painelGarcomService.getGarcomInfoAtendimento(id))
         .filter((g): g is GarcomInfo => !!g); // Filtra caso algum ID não seja encontrado
     }
 
@@ -696,5 +694,13 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   // Método para limpar o filtro (mostrar todas as mesas)
   limparFiltroStatus(): void {
     this.statusFiltroAtivo = null;
+  }
+
+  // Método para tratar erro de carregamento de imagem
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.src = 'assets/png/avatar-padrao-garcom-tavola.png';
+    }
   }
 }

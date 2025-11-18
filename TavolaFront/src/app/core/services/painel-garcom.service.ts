@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, interval } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { RestauranteService } from './restaurante.service';
 import { AuthService } from './auth.service';
-import { IAmbienteDashboard, IMesaDashboard, IAtendimentoDashboard } from '../../Interfaces/IDashboardAmbiente.interface';
+import { IAmbienteDashboard, IMesaDashboard, IAtendimentoDashboard, IGarcomAtendimento } from '../../Interfaces/IDashboardAmbiente.interface';
 import { IGarcomInfo } from '../../Interfaces/IGarcomInfo.interface';
 import { IReservaPainel } from '../../Interfaces/IReservaPainel.interface';
 import { IReserva } from '../../Interfaces/IReserva.interface';
@@ -35,6 +35,10 @@ export class PainelGarcomService {
   // Usamos BehaviorSubject para que novos subscritores recebam o valor mais recente.
   private readonly _ambientes = new BehaviorSubject<IAmbientePainel[]>([]);
   private readonly _pedidosAtivos = new BehaviorSubject<IPedido[]>([]);
+  
+  // Mapa para armazenar informações completas dos garçons dos atendimentos
+  // Key: garcomId, Value: IGarcomInfo com dados completos
+  private garconsAtendimentoMap = new Map<string, IGarcomInfo>();
 
   // Lista mock de garçons disponíveis
   private mockGarcons: IGarcomInfo[] = [
@@ -52,18 +56,9 @@ export class PainelGarcomService {
     // Timer removido - será controlado pelo componente
   }
 
-  /**
-   * Obtém o ID do restaurante do usuário logado
-   * Confia 100% no AuthService para obter o perfil.
-   * O getter do authService (this.authService.perfil) já tem a lógica
-   * de carregar do localStorage se o perfil em memória (_perfil) for nulo.
-   */
   private getrestauranteId(): string {
     console.log('[PainelGarcomService] Chamando getrestauranteId...');
     
-    // Confia 100% no AuthService para obter o perfil
-    // O getter do authService (this.authService.perfil) já tem a lógica
-    // de carregar do localStorage se o perfil em memória (_perfil) for nulo.
     const perfil = this.authService.perfil;
 
     if (perfil) {
@@ -132,17 +127,62 @@ export class PainelGarcomService {
     // Usamos 'any' porque a estrutura da API é diferente da interface IReserva
     const reservaAtiva = reservas.find((r: any) => r.status === 'ATIVA') as any;
     
-    // Mapeia os IDs dos garçons dos atendimentos
-    const garcomsAtendendo = atendimentos
-      .filter((a: IAtendimentoDashboard) => a.garcomId)
-      .map((a: IAtendimentoDashboard) => a.garcomId!)
-      .filter((id: string | undefined): id is string => !!id);
+    // Extrai os IDs dos garçons dos atendimentos e armazena suas informações
+    // Primeiro tenta pegar do array garcons dentro de cada atendimento
+    const garcomsAtendendo: string[] = [];
+    atendimentos.forEach((atendimento: IAtendimentoDashboard) => {
+      if (atendimento.garcons && atendimento.garcons.length > 0) {
+        // Se tiver array de garçons, pega os IDs deles e armazena as informações
+        atendimento.garcons.forEach((garcom: IGarcomAtendimento) => {
+          if (garcom.id && !garcomsAtendendo.includes(garcom.id)) {
+            garcomsAtendendo.push(garcom.id);
+            
+            // Armazena as informações completas do garçom
+            this.garconsAtendimentoMap.set(garcom.id, {
+              id: garcom.id,
+              nome: garcom.nome,
+              foto: garcom.imagem || 'assets/png/avatar-padrao-garcom-tavola.png',
+              turno: '', // Não temos essa informação do atendimento
+              inicioTurno: new Date()
+            });
+          }
+        });
+      } else if (atendimento.garcomId && !garcomsAtendendo.includes(atendimento.garcomId)) {
+        // Fallback para garcomId se não tiver array de garçons
+        garcomsAtendendo.push(atendimento.garcomId);
+        
+        // Se não tiver informações completas, usa o mock ou busca do getGarconsDisponiveis
+        if (!this.garconsAtendimentoMap.has(atendimento.garcomId)) {
+          const garcomMock = this.mockGarcons.find(g => g.id === atendimento.garcomId);
+          if (garcomMock) {
+            this.garconsAtendimentoMap.set(atendimento.garcomId, garcomMock);
+          } else {
+            // Cria um garçom básico se não encontrar
+            this.garconsAtendimentoMap.set(atendimento.garcomId, {
+              id: atendimento.garcomId,
+              nome: `Garçom ${atendimento.garcomId}`,
+              foto: 'assets/png/avatar-padrao-garcom-tavola.png',
+              turno: '',
+              inicioTurno: new Date()
+            });
+          }
+        }
+      }
+    });
 
     // Formata o horário da reserva (a API retorna "12:15:00", precisamos "12:15")
     let horarioFormatado: string | undefined;
     if (reservaAtiva?.horaReserva) {
       horarioFormatado = String(reservaAtiva.horaReserva).split(':').slice(0, 2).join(':');
     }
+
+    // Pega o primeiro atendimento ativo para o início da ocupação
+    const atendimentoAtivo = atendimentos.find((a: IAtendimentoDashboard) => a.ativo !== false);
+    const inicioOcupacao = atendimentoAtivo?.horaInicio 
+      ? new Date(atendimentoAtivo.horaInicio) 
+      : atendimentoAtivo?.inicioAtendimento 
+        ? new Date(atendimentoAtivo.inicioAtendimento as string) 
+        : undefined;
 
     return {
       id: mesa.id,
@@ -151,9 +191,7 @@ export class PainelGarcomService {
       tipo: mesa.tipo as 'retangular' | 'circular',
       vip: mesa.vip,
       status: (mesa.status || 'LIVRE') as 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO',
-      inicioOcupacao: atendimentos[0]?.inicioAtendimento 
-        ? new Date(atendimentos[0].inicioAtendimento as string) 
-        : undefined,
+      inicioOcupacao: inicioOcupacao,
       tempoOcupacaoDisplay: undefined, // Será calculado pelo componente
       reserva: reservaAtiva ? {
         id: reservaAtiva.id,
@@ -162,8 +200,8 @@ export class PainelGarcomService {
         pessoas: (reservaAtiva.quantidadePessoas ?? reservaAtiva.pessoas) || 1, // Usa quantidadePessoas da API ou pessoas como fallback
         telefone: reservaAtiva.telefoneCliente // Usa telefoneCliente se disponível
       } : undefined,
-      garcomsAtendendo: garcomsAtendendo.length > 0 ? garcomsAtendendo : [],
-      clienteNome: mesa.clienteNome // Nome do cliente quando a mesa foi ocupada
+      garcomsAtendendo: garcomsAtendendo,
+      clienteNome: atendimentoAtivo?.nomeCliente || mesa.clienteNome // Nome do cliente quando a mesa foi ocupada
     };
   }
 
@@ -367,6 +405,32 @@ export class PainelGarcomService {
 
   public getGarconsDisponiveis(): IGarcomInfo[] {
     return this.mockGarcons;
+  }
+
+  /**
+   * Obtém informações completas de um garçom (incluindo imagem) do atendimento
+   */
+  public getGarcomInfoAtendimento(garcomId: string): IGarcomInfo | null {
+    // Primeiro tenta pegar do mapa de garçons dos atendimentos
+    const garcomAtendimento = this.garconsAtendimentoMap.get(garcomId);
+    if (garcomAtendimento) {
+      return garcomAtendimento;
+    }
+    
+    // Se não encontrar, tenta pegar dos garçons disponíveis (mock)
+    const garcomDisponivel = this.mockGarcons.find(g => g.id === garcomId);
+    if (garcomDisponivel) {
+      return garcomDisponivel;
+    }
+    
+    // Se não encontrar, retorna um garçom padrão
+    return {
+      id: garcomId,
+      nome: `Garçom ${garcomId}`,
+      foto: 'assets/png/avatar-padrao-garcom-tavola.png',
+      turno: '',
+      inicioTurno: new Date()
+    };
   }
 
   // --- MÉTODOS PRIVADOS DE SIMULAÇÃO ---
