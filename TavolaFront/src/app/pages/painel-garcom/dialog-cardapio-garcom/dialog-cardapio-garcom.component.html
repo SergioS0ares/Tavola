@@ -5,7 +5,7 @@
         <mat-icon>restaurant_menu</mat-icon>
       </div>
       <h1 mat-dialog-title>{{ data.pedidoId ? 'Editar Pedido' : 'Cardápio' }}</h1>
-      <p class="subtitle">{{ data.pedidoId ? 'Editar itens do pedido da Mesa ' + data.mesaId : 'Adicionar itens ao pedido da Mesa ' + data.mesaId }}</p>
+      <p class="subtitle">{{ data.pedidoId ? 'Editar itens do pedido da Mesa ' + (data.mesaNome || data.mesaId) : 'Adicionar itens ao pedido da Mesa ' + (data.mesaNome || data.mesaId) }}</p>
     </div>
 
     <mat-dialog-content class="dialog-content" (scroll)="onDialogScroll($event)">
@@ -56,7 +56,7 @@
             <div *ngFor="let item of categoria.itens" class="item-card">
               <div class="item-content">
                 <div class="item-image" *ngIf="item.imagem">
-                  <img nz-image [nzSrc]="item.imagem" [alt]="item.nome">
+                  <img [src]="item.imagem" [alt]="item.nome" (error)="onImageError($event)">
                 </div>
                 <div class="item-info">
                   <h4 class="item-nome">{{ item.nome }}</h4>
@@ -73,7 +73,9 @@
                     {{ item.preco | currency:'BRL' }}
                   </div>
                   <button mat-icon-button class="add-item-btn" (click)="adicionarItem(item)"
-                          matTooltip="Adicionar ao carrinho" matTooltipClass="tavola-tooltip">
+                          [matTooltip]="!isMobile ? 'Adicionar ao carrinho' : null" 
+                          [matTooltipDisabled]="isMobile"
+                          matTooltipClass="tavola-tooltip">
                     <mat-icon>add_circle</mat-icon>
                     <span class="btn-text">Adicionar</span>
                   </button>

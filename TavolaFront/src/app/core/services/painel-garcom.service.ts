@@ -27,6 +27,19 @@ export type { IReserva };
 export class PainelGarcomService {
   private restauranteService = inject(RestauranteService);
   private authService = inject(AuthService);
+  
+  // Método helper para converter URL relativa em absoluta
+  private getAbsoluteImageUrl(relativePath: string | undefined): string {
+    if (!relativePath) {
+      return 'assets/png/avatar-padrao-garcom-tavola.png';
+    }
+    // Se já é uma URL completa ou começa com assets, retorna direto
+    if (relativePath.startsWith('http') || relativePath.startsWith('assets/')) {
+      return relativePath;
+    }
+    // Se é uma URL relativa, adiciona o base URL
+    return this.authService.getAbsoluteImageUrl(relativePath);
+  }
 
   // 1. OS "ESTADOS" SIMULADOS DO WEBSOCKET
   // Estes são os "corações" do nosso WebSocket simulado.
@@ -138,10 +151,12 @@ export class PainelGarcomService {
             garcomsAtendendo.push(garcom.id);
             
             // Armazena as informações completas do garçom
+            // Converte a imagem para URL absoluta se necessário
+            const fotoUrl = this.getAbsoluteImageUrl(garcom.imagem);
             this.garconsAtendimentoMap.set(garcom.id, {
               id: garcom.id,
               nome: garcom.nome,
-              foto: garcom.imagem || 'assets/png/avatar-padrao-garcom-tavola.png',
+              foto: fotoUrl,
               turno: '', // Não temos essa informação do atendimento
               inicioTurno: new Date()
             });
@@ -184,13 +199,20 @@ export class PainelGarcomService {
         ? new Date(atendimentoAtivo.inicioAtendimento as string) 
         : undefined;
 
+    // Determina o status da mesa
+    // Se há atendimento ativo com garçons, o status deve ser EM_ATENDIMENTO
+    let statusMesa: 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO' = (mesa.status || 'LIVRE') as 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO';
+    if (atendimentoAtivo && atendimentoAtivo.ativo && garcomsAtendendo.length > 0) {
+      statusMesa = 'EM_ATENDIMENTO';
+    }
+
     return {
       id: mesa.id,
       nome: mesa.nome,
       capacidade: mesa.capacidade,
       tipo: mesa.tipo as 'retangular' | 'circular',
       vip: mesa.vip,
-      status: (mesa.status || 'LIVRE') as 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'EM_ATENDIMENTO',
+      status: statusMesa,
       inicioOcupacao: inicioOcupacao,
       tempoOcupacaoDisplay: undefined, // Será calculado pelo componente
       reserva: reservaAtiva ? {

@@ -5,10 +5,10 @@ export interface IItemCardapio {
   preco: number;             // ex: 45.90
   imagem?: string;           // URL da imagem
   disponivel: boolean;       // true = disponível
-  categoria: {
+  categoria: string | {      // Pode ser string ou objeto
     nome: string;
   };
-  tags: {
+  tags: string[] | {         // Pode ser array de strings ou objetos
     tag: string;
   }[];
 } 

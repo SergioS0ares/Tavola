@@ -72,13 +72,21 @@ export class DialogItemCardapioComponent {
     ordem:         [0]
   });
 
+  // Helper para obter o nome da categoria de forma segura
+  private getCategoriaNome(categoria: string | { nome: string } | undefined): string {
+    if (!categoria) return '';
+    if (typeof categoria === 'string') return categoria;
+    return categoria.nome || '';
+  }
+
   constructor() {
     if (this.data.modo === 'editar' && this.data.item) {
-      const categoria = this.categorias.find(c => c.nome === this.data.item?.categoria.nome);
+      const categoriaNome = this.getCategoriaNome(this.data.item.categoria);
+      const categoria = this.categorias.find(c => c.nome === categoriaNome);
       this.form.patchValue({
         ...this.data.item,
         categoriaInput: categoria,
-        tags: this.data.item.tags.map(t => t.tag),
+        tags: this.data.item.tags.map(t => typeof t === 'string' ? t : t.tag),
         imagemBase64: this.data.item.imagem
       });
       this.preview = this.data.item.imagem;

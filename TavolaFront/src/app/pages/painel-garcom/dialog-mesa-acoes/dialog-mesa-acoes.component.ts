@@ -230,4 +230,12 @@ export class DialogMesaAcoesComponent {
     
     return undefined;
   }
+
+  // Método para tratar erro de carregamento de imagem
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.src = 'assets/png/avatar-padrao-garcom-tavola.png';
+    }
+  }
 }

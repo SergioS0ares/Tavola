@@ -17,6 +17,7 @@ import { environment } from '../../../../environments/environment';
 
 export interface DialogCardapioData {
   mesaId: string;
+  mesaNome?: string; // Nome da mesa para exibição
   pedidoId?: string; // Se for para adicionar a um pedido existente
 }
 
@@ -64,6 +65,7 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
   categorias: CardapioCategoria[] = [];
   carrinho: CardapioItem[] = [];
   isLoading = false;
+  isMobile = false; // Detecta se está em mobile
   
   // Estado da navegação
   categoriaAtiva: string = ''; // Inicia vazio ou com a primeira categoria
@@ -83,6 +85,9 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
   ) {}
   
   ngOnInit(): void {
+    // Detecta se está em mobile
+    this.isMobile = window.innerWidth <= 768;
+    
     // Carrega itens existentes se estiver editando um pedido
     if (this.data.pedidoId) {
       this.carregarItensExistentes();
@@ -100,15 +105,30 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
         const categoriasMap = new Map<string, CardapioItem[]>();
         
         itens.forEach(item => {
-          const categoriaNome = item.categoria?.nome || 'Outros';
+          // A categoria pode vir como string ou objeto { nome: string }
+          let categoriaNome: string;
+          if (typeof item.categoria === 'string') {
+            categoriaNome = item.categoria || 'Outros';
+          } else if (item.categoria?.nome) {
+            categoriaNome = item.categoria.nome;
+          } else {
+            categoriaNome = 'Outros';
+          }
+          
+          // Converte a imagem para URL absoluta se necessário
+          let imagemUrl = item.imagem;
+          if (imagemUrl && !imagemUrl.startsWith('http') && !imagemUrl.startsWith('assets/') && !imagemUrl.startsWith('data:')) {
+            imagemUrl = this.authService.getAbsoluteImageUrl(imagemUrl);
+          }
+          
           const cardapioItem: CardapioItem = {
             id: item.id || '',
             nome: item.nome,
             descricao: item.descricao,
             preco: item.preco,
             categoria: categoriaNome,
-            imagem: item.imagem,
-            tags: item.tags?.map(t => t.tag) || []
+            imagem: imagemUrl,
+            tags: item.tags?.map(t => typeof t === 'string' ? t : t.tag) || []
           };
           
           if (!categoriasMap.has(categoriaNome)) {
@@ -117,11 +137,19 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
           categoriasMap.get(categoriaNome)!.push(cardapioItem);
         });
         
-        // Converte o Map para array de categorias
-        this.categorias = Array.from(categoriasMap.entries()).map(([nome, itens]) => ({
-          nome,
-          itens
-        }));
+        // Converte o Map para array de categorias e ordena
+        this.categorias = Array.from(categoriasMap.entries())
+          .map(([nome, itens]) => ({
+            nome,
+            itens
+          }))
+          .sort((a, b) => {
+            // "Outros" sempre vai para o final
+            if (a.nome === 'Outros') return 1;
+            if (b.nome === 'Outros') return -1;
+            // Demais categorias em ordem alfabética
+            return a.nome.localeCompare(b.nome);
+          });
         
         // Define a primeira categoria como ativa inicialmente
         if (this.categorias.length > 0) {
@@ -385,6 +413,15 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
   // Listener para resize da janela (útil para as setas)
   @HostListener("window:resize")
   onResize(): void {
+    this.isMobile = window.innerWidth <= 768;
     this.verificarSetas();
+  }
+
+  // Método para tratar erro de carregamento de imagem
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.src = 'assets/jpg/placeholder-comida.jpg';
+    }
   }
 }

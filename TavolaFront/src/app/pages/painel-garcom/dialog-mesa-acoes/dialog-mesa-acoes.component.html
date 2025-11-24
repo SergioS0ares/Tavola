@@ -61,7 +61,12 @@
         <h4>Garçons Atendendo</h4>
         <div class="garcoms-list">
           <div *ngFor="let garcomId of data.mesa.garcomsAtendendo" class="garcom-item">
-            <nz-avatar [nzSize]="32" [nzSrc]="getGarcomInfo(garcomId)?.foto || 'assets/png/avatar-padrao-garcom-tavola.png'" nzIcon="person"></nz-avatar>
+            <nz-avatar 
+              [nzSize]="32" 
+              [nzSrc]="getGarcomInfo(garcomId)?.foto || 'assets/png/avatar-padrao-garcom-tavola.png'" 
+              nzIcon="person"
+              (error)="onImageError($event)">
+            </nz-avatar>
             <span>{{ getGarcomInfo(garcomId)?.nome || 'Garçom ' + garcomId }}</span> 
             <button mat-icon-button 
                     color="warn" 
@@ -75,19 +80,27 @@
       </div>
 
       <!-- Dropdown para adicionar garçons específicos -->
-      <div class="adicionar-garcom-section" *ngIf="data.mesa.status === 'EM_ATENDIMENTO' && garconsParaAdicionar.length > 0">
+      <div class="adicionar-garcom-section" *ngIf="data.mesa.status === 'EM_ATENDIMENTO'">
         <h4>Adicionar Garçom</h4>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Selecionar garçom</mat-label>
           <mat-select (selectionChange)="adicionarGarcomSelecionado($event.value)">
             <mat-option *ngFor="let garcom of garconsParaAdicionar" [value]="garcom.id">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <nz-avatar [nzSize]="24" [nzSrc]="garcom.foto || 'assets/png/avatar-padrao-garcom-tavola.png'" nzIcon="person"></nz-avatar>
+                <nz-avatar 
+                  [nzSize]="24" 
+                  [nzSrc]="garcom.foto || 'assets/png/avatar-padrao-garcom-tavola.png'" 
+                  nzIcon="person"
+                  (error)="onImageError($event)">
+                </nz-avatar>
                 <span>{{ garcom.nome }}</span>
               </div>
             </mat-option>
           </mat-select>
         </mat-form-field>
+        <p *ngIf="garconsParaAdicionar.length === 0" class="no-garcons-message">
+          Todos os garçons já estão atendendo esta mesa.
+        </p>
       </div>
       
           <div class="mesa-actions">

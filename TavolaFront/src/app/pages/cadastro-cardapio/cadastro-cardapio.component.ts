@@ -115,7 +115,7 @@ export class CadastroCardapioComponent implements OnInit {
       itensFiltrados = itensFiltrados.filter(item => 
         item.nome.toLowerCase().includes(termoPesquisa) ||
         item.descricao?.toLowerCase().includes(termoPesquisa) ||
-        (item.categoria && item.categoria.nome?.toLowerCase().includes(termoPesquisa)) ||
+        this.getCategoriaNome(item.categoria).toLowerCase().includes(termoPesquisa) ||
         (item.tags && item.tags.some(tag => 
           (typeof tag === 'string' ? tag : tag.tag)?.toLowerCase().includes(termoPesquisa)
         ))
@@ -125,7 +125,7 @@ export class CadastroCardapioComponent implements OnInit {
     // Filtrar por categoria
     if (this.categoriaFiltro !== '') {
       itensFiltrados = itensFiltrados.filter(item => 
-        item.categoria && item.categoria.nome === this.categoriaFiltro
+        this.getCategoriaNome(item.categoria) === this.categoriaFiltro
       );
     }
 
@@ -146,7 +146,7 @@ export class CadastroCardapioComponent implements OnInit {
     // Atualizar categorias com itens filtrados
     this.categoriasComItensFiltradas = this.categorias.map(cat => ({
       ...cat,
-      itens: itensFiltrados.filter(item => item.categoria && item.categoria.nome === cat.nome)
+      itens: itensFiltrados.filter(item => this.getCategoriaNome(item.categoria) === cat.nome)
     }));
   }
 
@@ -202,6 +202,25 @@ export class CadastroCardapioComponent implements OnInit {
     });
   }
 
+  // Helper para obter o nome da categoria de forma segura
+  private getCategoriaNome(categoria: string | { nome: string } | undefined): string {
+    if (!categoria) return '';
+    if (typeof categoria === 'string') return categoria;
+    return categoria.nome || '';
+  }
+
+  // Helper para obter o nome da tag de forma segura (para uso no template)
+  getTagNome(tag: string | { tag: string }): string {
+    if (typeof tag === 'string') return tag;
+    return tag.tag || '';
+  }
+
+  // Helper para normalizar tags para array de strings (para uso no *ngFor)
+  getTagsNormalizadas(tags: string[] | { tag: string }[] | undefined): string[] {
+    if (!tags) return [];
+    return tags.map(t => typeof t === 'string' ? t : t.tag);
+  }
+
   private extrairTagsDisponiveis() {
     const tagsSet = new Set<string>();
     this.itens.forEach(item => {
@@ -220,7 +239,7 @@ export class CadastroCardapioComponent implements OnInit {
   private atualizarCategoriasComItens() {
     this.categoriasComItens = this.categorias.map(cat => ({
       ...cat,
-      itens: this.itens.filter(item => item.categoria && item.categoria.nome === cat.nome)
+      itens: this.itens.filter(item => this.getCategoriaNome(item.categoria) === cat.nome)
     }));
   }
 

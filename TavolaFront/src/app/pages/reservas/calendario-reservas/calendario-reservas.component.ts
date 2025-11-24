@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, type OnChanges, Output, type SimpleChanges, Optional, Inject } from "@angular/core"
+import { Component, EventEmitter, Input, type OnChanges, Output, type SimpleChanges, Optional, Inject, HostListener, OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { NzBadgeModule } from "ng-zorro-antd/badge"
 import { NzCalendarModule } from "ng-zorro-antd/calendar"
@@ -27,38 +27,101 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   ],
   template: `
   <div class="calendario-container">
-    <div class="calendario-header">
+    <!-- Header do Calendário (visível apenas quando mostra calendário) -->
+    <div class="calendario-header" *ngIf="!isMobile || visualizacaoMobile === 'CALENDARIO'">
       <h3>Calendário de Reservas</h3>
       <button mat-icon-button (click)="fecharCalendario()" class="fechar-btn">
         <mat-icon>close</mat-icon>
       </button>
     </div>
+
+    <!-- Header da Lista Mobile (visível apenas quando mostra lista no mobile) -->
+    <div class="mobile-list-header" *ngIf="isMobile && visualizacaoMobile === 'LISTA'">
+      <button mat-icon-button (click)="voltarParaCalendario()" class="voltar-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h3>Reservas de {{ dataSelecionadaParaLista | date:'dd/MM/yyyy' }}</h3>
+      <button mat-icon-button (click)="selecionarDataEFechar()" class="selecionar-btn" [disabled]="!dataSelecionadaParaLista">
+        <mat-icon>check</mat-icon>
+      </button>
+    </div>
     
-    <nz-calendar [nzFullscreen]="true" (nzSelectChange)="selecionarData($event)">
-      <ul *nzDateCell="let date" class="eventos-dia">
-        <ng-container *ngIf="getReservasParaData(date).length > 0">
-          <li *ngFor="let reserva of getReservasParaData(date); let i = index" class="evento-item">
-            <div class="reserva-info" [matTooltip]="getTooltipReserva(reserva)" matTooltipClass="tavola-tooltip">
-              <div class="cliente-info">
-                <span class="cliente-nome">{{ reserva.cliente }}</span>
-                <span class="pessoas-info">
-                  <mat-icon>person</mat-icon>
-                  {{ reserva.pessoas }}
-                </span>
+    <!-- Calendário (visível no desktop ou quando visualizacaoMobile === 'CALENDARIO') -->
+    <div class="calendario-wrapper" *ngIf="!isMobile || visualizacaoMobile === 'CALENDARIO'">
+      <nz-calendar [nzFullscreen]="true" (nzSelectChange)="selecionarData($event)">
+        <ul *nzDateCell="let date" class="eventos-dia">
+          <!-- Indicador visual simples (ponto) para dias com reservas no mobile -->
+          <ng-container *ngIf="isMobile && temReservas(date)">
+            <li class="indicador-reserva-mobile"></li>
+          </ng-container>
+          <!-- Lista completa de reservas no desktop -->
+          <ng-container *ngIf="!isMobile && getReservasParaData(date).length > 0">
+            <li *ngFor="let reserva of getReservasParaData(date); let i = index" class="evento-item">
+              <div class="reserva-info" [matTooltip]="getTooltipReserva(reserva)" matTooltipClass="tavola-tooltip">
+                <div class="cliente-info">
+                  <span class="cliente-nome">{{ reserva.cliente }}</span>
+                  <span class="pessoas-info">
+                    <mat-icon>person</mat-icon>
+                    {{ reserva.pessoas }}
+                  </span>
+                </div>
+                <div class="horario-info">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ reserva.horario }}</span>
+                </div>
+                <div class="status-badge" [ngClass]="'status-' + reserva.status.toLowerCase()">
+                  <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
+                  <span>{{ getStatusText(reserva.status) }}</span>
+                </div>
               </div>
-              <div class="horario-info">
-                <mat-icon>schedule</mat-icon>
-                <span>{{ reserva.horario }}</span>
-              </div>
-              <div class="status-badge" [ngClass]="'status-' + reserva.status.toLowerCase()">
-                <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
-                <span>{{ getStatusText(reserva.status) }}</span>
-              </div>
+            </li>
+          </ng-container>
+        </ul>
+      </nz-calendar>
+    </div>
+
+    <!-- Lista de Reservas (visível no desktop sempre, ou no mobile quando visualizacaoMobile === 'LISTA') -->
+    <div class="lista-reservas-wrapper" *ngIf="!isMobile || visualizacaoMobile === 'LISTA'">
+      <h3 *ngIf="!isMobile" class="lista-titulo">Reservas do Dia</h3>
+      <div class="lista-scroll">
+        <div *ngFor="let reserva of reservasDoDiaSelecionado" class="reserva-card">
+          <div class="card-header">
+            <span class="horario">{{ reserva.horario }}</span>
+            <span class="pessoas">
+              <mat-icon>person</mat-icon>
+              {{ reserva.pessoas }} pessoas
+            </span>
+          </div>
+          <div class="cliente-info-card">
+            <strong class="cliente-nome-card">{{ reserva.cliente }}</strong>
+            <span class="status-badge-card" [ngClass]="'status-' + reserva.status.toLowerCase()">
+              <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
+              <span>{{ getStatusText(reserva.status) }}</span>
+            </span>
+          </div>
+          <div class="reserva-detalhes" *ngIf="reserva.telefoneCliente || reserva.emailCliente">
+            <div *ngIf="reserva.telefoneCliente" class="detalhe-item">
+              <mat-icon>phone</mat-icon>
+              <span>{{ reserva.telefoneCliente }}</span>
             </div>
-          </li>
-        </ng-container>
-      </ul>
-    </nz-calendar>
+            <div *ngIf="reserva.emailCliente" class="detalhe-item">
+              <mat-icon>email</mat-icon>
+              <span>{{ reserva.emailCliente }}</span>
+            </div>
+          </div>
+          <div class="reserva-detalhes" *ngIf="reserva.nomesMesas">
+            <div class="detalhe-item">
+              <mat-icon>table_restaurant</mat-icon>
+              <span>{{ reserva.nomesMesas }}</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="reservasDoDiaSelecionado.length === 0" class="empty-day">
+          <mat-icon>event_busy</mat-icon>
+          <p>Nenhuma reserva para este dia.</p>
+        </div>
+      </div>
+    </div>
   </div>
 `,
   styles: [
@@ -340,26 +403,295 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   background-color: #9E9E9E !important; /* Cor cinza para status padrão/desconhecido */
 }
 
-@media (max-width: 800px) {
-  .calendario-container {
-    max-width: 98vw;
-    padding: 8px;
+// Header Mobile para Lista
+.mobile-list-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+  
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #3B221B;
+    flex: 1;
   }
+  
+  .voltar-btn, .selecionar-btn {
+    color: #3B221B;
+    width: 40px;
+    height: 40px;
+    
+    &[disabled] {
+      opacity: 0.3;
+    }
+  }
+}
+
+// Indicador de reserva no mobile (ponto simples)
+.indicador-reserva-mobile {
+  width: 8px;
+  height: 8px;
+  background: #F6BD38;
+  border-radius: 50%;
+  margin: 4px auto 0;
+  display: block;
+  list-style: none;
+}
+
+// Wrapper do calendário
+.calendario-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Wrapper da lista de reservas
+.lista-reservas-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  
+  .lista-titulo {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #3B221B;
+    padding: 0 16px;
+  }
+  
+  .lista-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #F6BD38;
+      border-radius: 3px;
+    }
+  }
+  
+  .reserva-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      
+      .horario {
+        font-weight: 700;
+        font-size: 18px;
+        color: #F6BD38;
+      }
+      
+      .pessoas {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #666;
+        font-size: 14px;
+        font-weight: 500;
+        
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          line-height: 18px;
+        }
+      }
+    }
+    
+    .cliente-info-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      
+      .cliente-nome-card {
+        font-size: 16px;
+        font-weight: 600;
+        color: #3B221B;
+      }
+      
+      .status-badge-card {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          line-height: 14px;
+        }
+        
+        &.status-confirmada, &.status-ativa, &.status-concluida {
+          background-color: #e8f5e8;
+          color: #4CAF50;
+        }
+        
+        &.status-pendente, &.status-lista_espera {
+          background-color: #fff3e0;
+          color: #FF9800;
+        }
+        
+        &.status-cancelada_restaurante, &.status-nao_compareceu {
+          background-color: #ffebee;
+          color: #F44336;
+        }
+      }
+    }
+    
+    .reserva-detalhes {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+      
+      .detalhe-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 14px;
+        
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          line-height: 18px;
+          color: #F6BD38;
+        }
+      }
+    }
+  }
+  
+  .empty-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #999;
+    
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      color: #ccc;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 16px;
+    }
+  }
+}
+
+// Desktop: layout lado a lado
+@media (min-width: 769px) {
+  .calendario-container {
+    flex-direction: row;
+    
+    .calendario-wrapper {
+      flex: 2;
+      border-right: 1px solid #eee;
+      padding-right: 16px;
+    }
+    
+    .lista-reservas-wrapper {
+      flex: 1;
+      padding-left: 16px;
+    }
+  }
+}
+
+// Mobile: layout empilhado
+@media (max-width: 768px) {
+  .calendario-container {
+    max-width: 100vw;
+    padding: 0;
+    height: 100%;
+    max-height: 100vh;
+    
+    .calendario-header {
+      padding: 12px 16px;
+      margin-bottom: 0;
+    }
+    
+    .calendario-wrapper {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .lista-reservas-wrapper {
+      height: 100%;
+      max-height: 100vh;
+    }
+  }
+  
   ::ng-deep .ant-picker-calendar-date-content,
   ::ng-deep .ant-picker-calendar-date {
-    height: 80px !important;
+    height: 60px !important;
+  }
+  
+  ::ng-deep .ant-picker-calendar-date-content {
+    padding: 4px !important;
   }
 }
 `,
   ],
 })
-export class CalendarioReservasComponent implements OnChanges {
+export class CalendarioReservasComponent implements OnChanges, OnInit {
   @Input() reservas: IReserva[] = []
   @Output() dataSeleccionada = new EventEmitter<Date>()
   @Output() fechar = new EventEmitter<void>()
 
   reservasPorData: { [key: string]: IReserva[] } = {}
   reservasInternas: IReserva[] = []
+  
+  // Controle de visualização mobile (Master-Detail)
+  visualizacaoMobile: 'CALENDARIO' | 'LISTA' = 'CALENDARIO'
+  reservasDoDiaSelecionado: IReserva[] = []
+  dataSelecionadaParaLista: Date | null = null
+  isMobile = window.innerWidth <= 768
 
   constructor(
     @Optional() public dialogRef?: MatDialogRef<CalendarioReservasComponent>,
@@ -369,7 +701,26 @@ export class CalendarioReservasComponent implements OnChanges {
     if (this.dialogRef && this.data) {
       this.reservasInternas = this.data.reservas || []
       this.organizarReservasPorData()
+      if (this.data.initialDate) {
+        this.dataSelecionadaParaLista = this.data.initialDate
+      }
     }
+  }
+
+  ngOnInit(): void {
+    this.checkMobile()
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    this.isMobile = event.target.innerWidth <= 768
+    if (!this.isMobile) {
+      this.visualizacaoMobile = 'CALENDARIO' // Desktop mostra tudo
+    }
+  }
+
+  private checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -427,13 +778,38 @@ export class CalendarioReservasComponent implements OnChanges {
   }
 
   selecionarData(data: Date): void {
-    // Se estiver em dialog, fecha o dialog e retorna a data
-    if (this.dialogRef) {
-      this.dialogRef.close(data)
+    this.dataSelecionadaParaLista = data
+    this.reservasDoDiaSelecionado = this.getReservasParaData(data)
+    
+    // No mobile, muda para a visualização de lista
+    if (this.isMobile) {
+      this.visualizacaoMobile = 'LISTA'
     } else {
-      // Se não estiver em dialog, emite o evento
-      this.dataSeleccionada.emit(data)
+      // No desktop, fecha o dialog e retorna a data
+      if (this.dialogRef) {
+        this.dialogRef.close(data)
+      } else {
+        this.dataSeleccionada.emit(data)
+      }
     }
+  }
+
+  voltarParaCalendario(): void {
+    this.visualizacaoMobile = 'CALENDARIO'
+  }
+
+  selecionarDataEFechar(): void {
+    if (this.dataSelecionadaParaLista) {
+      if (this.dialogRef) {
+        this.dialogRef.close(this.dataSelecionadaParaLista)
+      } else {
+        this.dataSeleccionada.emit(this.dataSelecionadaParaLista)
+      }
+    }
+  }
+
+  temReservas(data: Date): boolean {
+    return this.getReservasParaData(data).length > 0
   }
 
   fecharCalendario(): void {

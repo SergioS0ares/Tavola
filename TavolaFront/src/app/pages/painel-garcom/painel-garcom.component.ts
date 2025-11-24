@@ -25,6 +25,7 @@ import Swal from 'sweetalert2';
 
 // Importar o serviço e interfaces
 import { PainelGarcomService, GarcomInfo, Mesa, Ambiente, Pedido, IReserva } from '../../core/services/painel-garcom.service';
+import { ReservasService } from '../../core/services/reservas.service';
 import { DialogMesaAcoesComponent } from './dialog-mesa-acoes/dialog-mesa-acoes.component';
 import { DialogCardapioGarcomComponent } from './dialog-cardapio-garcom/dialog-cardapio-garcom.component';
 
@@ -113,6 +114,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
   private painelGarcomService = inject(PainelGarcomService);
+  private reservasService = inject(ReservasService);
   private cdr = inject(ChangeDetectorRef);
 
   constructor() {}
@@ -534,10 +536,24 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   // Abrir dialog do cardápio
   abrirDialogCardapio(mesaId: string, pedidoId?: string): void {
+    // Busca o nome da mesa
+    const ambientes = this.painelGarcomService.getAmbientesAtuais();
+    let mesaNome: string | undefined;
+    
+    for (const ambiente of ambientes) {
+      const mesa = ambiente.mesas.find(m => m.id === mesaId);
+      if (mesa) {
+        mesaNome = mesa.nome;
+        break;
+      }
+    }
+    
     const dialogRef = this.dialog.open(DialogCardapioGarcomComponent, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '900px',
       data: { 
         mesaId: mesaId,
+        mesaNome: mesaNome,
         pedidoId: pedidoId
       },
       panelClass: 'tavola-dialog-wrapper'
@@ -615,17 +631,70 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   }
 
   carregarReservasParaCalendario(data: Date, callback: () => void): void {
-    // Simulação: Assume que o PainelGarcomService tem um método similar
-    // ou que você busca de outra forma. Adapte conforme necessário.
     console.log(`[PainelGarcom] Carregando reservas para calendário em ${data.toLocaleDateString()}`);
-    this.isLoadingCalendario = true; 
+    this.isLoadingCalendario = true;
     
-    // ----- SUBSTITUA PELA TUA LÓGICA REAL DE BUSCA -----
-    // Exemplo usando MOCK do serviço (adapte se for API real)
-    this.reservasParaCalendario = this.painelGarcomService.getReservasParaCalendarioMock(data); 
-    console.log('[PainelGarcom] Reservas para calendário (mock):', this.reservasParaCalendario);
-    this.isLoadingCalendario = false;
-    callback(); 
+    // Obtém o restauranteId do perfil
+    const perfil = this.authService.perfil;
+    let restauranteId = '';
+    
+    if (perfil) {
+      if (perfil.tipo === 'FUNCIONARIO' && perfil.restauranteId) {
+        restauranteId = perfil.restauranteId;
+      } else if (perfil.tipo === 'RESTAURANTE' && perfil.id) {
+        restauranteId = perfil.id;
+      }
+    }
+    
+    if (!restauranteId) {
+      console.error('[PainelGarcom] RestauranteId não encontrado');
+      this.isLoadingCalendario = false;
+      this.reservasParaCalendario = [];
+      callback();
+      return;
+    }
+    
+    // Formata a data no formato YYYY-MM-DD
+    const dataFormatada = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
+    
+    // Faz a requisição HTTP real
+    this.reservasService.getReservasParaCalendario(restauranteId, dataFormatada)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // Mapeia a resposta da API para o formato IReserva
+          if (Array.isArray(response)) {
+            this.reservasParaCalendario = response.map((r: any) => ({
+              id: r.id,
+              clienteId: r.clienteId || '',
+              cliente: r.cliente || r.nomeCliente || 'Cliente',
+              mesaIds: r.mesaIds || [],
+              data: new Date(r.data || r.dataReserva),
+              horario: r.horario || r.hora || '',
+              periodo: r.periodo || 'Jantar',
+              pessoas: r.pessoas || r.numeroPessoas || 1,
+              status: r.status || 'PENDENTE',
+              preferencias: r.preferencias || '',
+              restaurante: r.restaurante || '',
+              emailCliente: r.emailCliente || r.email || '',
+              telefoneCliente: r.telefoneCliente || r.telefone || '',
+              imagemPerfilCliente: r.imagemPerfilCliente || null,
+              nomesMesas: r.nomesMesas || null
+            }));
+          } else {
+            this.reservasParaCalendario = [];
+          }
+          console.log('[PainelGarcom] Reservas carregadas:', this.reservasParaCalendario);
+          this.isLoadingCalendario = false;
+          callback();
+        },
+        error: (error: any) => {
+          console.error('[PainelGarcom] Erro ao carregar reservas:', error);
+          this.reservasParaCalendario = [];
+          this.isLoadingCalendario = false;
+          callback();
+        }
+      });
   }
 
   getReservasParaCalendario(): any[] {

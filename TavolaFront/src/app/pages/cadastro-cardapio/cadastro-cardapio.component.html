@@ -117,8 +117,8 @@
             </div>
             
             <div class="card-tags" *ngIf="item.tags && item.tags.length > 0">
-              <span *ngFor="let tag of item.tags" class="tag">
-                {{ tag.tag || tag }}
+              <span *ngFor="let tag of getTagsNormalizadas(item.tags)" class="tag">
+                {{ tag }}
               </span>
             </div>
 
