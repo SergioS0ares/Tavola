@@ -28,33 +28,30 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   template: `
   <div class="calendario-container">
     <!-- Header do Calendário (visível apenas quando mostra calendário) -->
-    <div class="calendario-header" *ngIf="!isMobile || visualizacaoMobile === 'CALENDARIO'">
+    <div class="calendario-header" *ngIf="visualizacaoMobile === 'CALENDARIO'">
       <h3>Calendário de Reservas</h3>
       <button mat-icon-button (click)="fecharCalendario()" class="fechar-btn">
         <mat-icon>close</mat-icon>
       </button>
     </div>
 
-    <!-- Header da Lista Mobile (visível apenas quando mostra lista no mobile) -->
-    <div class="mobile-list-header" *ngIf="isMobile && visualizacaoMobile === 'LISTA'">
+    <!-- Header da Lista (visível quando mostra lista de reservas) -->
+    <div class="lista-header" *ngIf="visualizacaoMobile === 'LISTA'">
       <button mat-icon-button (click)="voltarParaCalendario()" class="voltar-btn">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <h3>Reservas de {{ dataSelecionadaParaLista | date:'dd/MM/yyyy' }}</h3>
-      <button mat-icon-button (click)="selecionarDataEFechar()" class="selecionar-btn" [disabled]="!dataSelecionadaParaLista">
+      <button mat-flat-button (click)="selecionarDataEFechar()" class="selecionar-btn" [disabled]="!dataSelecionadaParaLista">
         <mat-icon>check</mat-icon>
+        <span>Selecionar Dia</span>
       </button>
     </div>
     
-    <!-- Calendário (visível no desktop ou quando visualizacaoMobile === 'CALENDARIO') -->
-    <div class="calendario-wrapper" *ngIf="!isMobile || visualizacaoMobile === 'CALENDARIO'">
+    <!-- Calendário (visível apenas quando visualizacaoMobile === 'CALENDARIO') -->
+    <div class="calendario-wrapper" *ngIf="visualizacaoMobile === 'CALENDARIO'">
       <nz-calendar [nzFullscreen]="true" (nzSelectChange)="selecionarData($event)">
         <ul *nzDateCell="let date" class="eventos-dia">
-          <!-- Indicador visual simples (ponto) para dias com reservas no mobile -->
-          <ng-container *ngIf="isMobile && temReservas(date)">
-            <li class="indicador-reserva-mobile"></li>
-          </ng-container>
-          <!-- Lista completa de reservas no desktop -->
+          <!-- Desktop: mostra lista completa de reservas -->
           <ng-container *ngIf="!isMobile && getReservasParaData(date).length > 0">
             <li *ngFor="let reserva of getReservasParaData(date); let i = index" class="evento-item">
               <div class="reserva-info" [matTooltip]="getTooltipReserva(reserva)" matTooltipClass="tavola-tooltip">
@@ -65,10 +62,6 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
                     {{ reserva.pessoas }}
                   </span>
                 </div>
-                <div class="horario-info">
-                  <mat-icon>schedule</mat-icon>
-                  <span>{{ reserva.horario }}</span>
-                </div>
                 <div class="status-badge" [ngClass]="'status-' + reserva.status.toLowerCase()">
                   <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
                   <span>{{ getStatusText(reserva.status) }}</span>
@@ -76,49 +69,37 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
               </div>
             </li>
           </ng-container>
+          <!-- Mobile: indicador visual simples (ponto) para dias com reservas -->
+          <ng-container *ngIf="isMobile && temReservas(date)">
+            <li class="indicador-reserva-mobile"></li>
+          </ng-container>
         </ul>
       </nz-calendar>
     </div>
 
-    <!-- Lista de Reservas (visível no desktop sempre, ou no mobile quando visualizacaoMobile === 'LISTA') -->
-    <div class="lista-reservas-wrapper" *ngIf="!isMobile || visualizacaoMobile === 'LISTA'">
-      <h3 *ngIf="!isMobile" class="lista-titulo">Reservas do Dia</h3>
+    <!-- Lista de Reservas (visível quando visualizacaoMobile === 'LISTA') -->
+    <div class="lista-reservas-wrapper" *ngIf="visualizacaoMobile === 'LISTA'">
       <div class="lista-scroll">
         <div *ngFor="let reserva of reservasDoDiaSelecionado" class="reserva-card">
-          <div class="card-header">
-            <span class="horario">{{ reserva.horario }}</span>
-            <span class="pessoas">
+          <div class="cliente-info-card">
+            <strong class="cliente-nome-card">{{ reserva.cliente }}</strong>
+            <span class="pessoas-info-card">
               <mat-icon>person</mat-icon>
               {{ reserva.pessoas }} pessoas
             </span>
           </div>
-          <div class="cliente-info-card">
-            <strong class="cliente-nome-card">{{ reserva.cliente }}</strong>
-            <span class="status-badge-card" [ngClass]="'status-' + reserva.status.toLowerCase()">
-              <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
-              <span>{{ getStatusText(reserva.status) }}</span>
-            </span>
-          </div>
-          <div class="reserva-detalhes" *ngIf="reserva.telefoneCliente || reserva.emailCliente">
-            <div *ngIf="reserva.telefoneCliente" class="detalhe-item">
-              <mat-icon>phone</mat-icon>
-              <span>{{ reserva.telefoneCliente }}</span>
-            </div>
-            <div *ngIf="reserva.emailCliente" class="detalhe-item">
-              <mat-icon>email</mat-icon>
-              <span>{{ reserva.emailCliente }}</span>
-            </div>
-          </div>
-          <div class="reserva-detalhes" *ngIf="reserva.nomesMesas">
-            <div class="detalhe-item">
-              <mat-icon>table_restaurant</mat-icon>
-              <span>{{ reserva.nomesMesas }}</span>
-            </div>
+          <div class="status-badge-card" [ngClass]="'status-' + reserva.status.toLowerCase()">
+            <mat-icon>{{ getStatusIcon(reserva.status) }}</mat-icon>
+            <span>{{ getStatusText(reserva.status) }}</span>
           </div>
         </div>
         <div *ngIf="reservasDoDiaSelecionado.length === 0" class="empty-day">
           <mat-icon>event_busy</mat-icon>
           <p>Nenhuma reserva para este dia.</p>
+          <button mat-flat-button (click)="selecionarDataEFechar()" class="selecionar-dia-vazio-btn">
+            <mat-icon>check</mat-icon>
+            <span>Selecionar este dia</span>
+          </button>
         </div>
       </div>
     </div>
@@ -130,16 +111,15 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   background-color: #FFFFFF;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 24px;
+  padding: 0;
   max-width: 100%;
   width: 100%;
   min-height: 600px;
-  max-height: 90vh;
+  height: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   
   &::-webkit-scrollbar {
     width: 8px;
@@ -164,8 +144,10 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 20px 24px;
+  margin-bottom: 0;
   flex-shrink: 0;
+  border-bottom: 1px solid #e8e8e8;
   
   h3 {
     margin: 0;
@@ -209,12 +191,12 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
 }
 
 .evento-item {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   
   .reserva-info {
     background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 8px;
+    border-radius: 6px;
+    padding: 6px;
     border: 1px solid #e8e8e8;
     transition: all 0.2s ease;
     cursor: pointer;
@@ -235,56 +217,46 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
       .cliente-nome {
         font-weight: 600;
         color: #3B221B;
-        font-size: 13px;
+        font-size: 12px;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-right: 4px;
       }
       
       .pessoas-info {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
         color: #666;
-        font-size: 11px;
+        font-size: 10px;
+        flex-shrink: 0;
         
         mat-icon {
-          font-size: 14px;
-          width: 14px;
-          height: 14px;
-          line-height: 14px;
+          font-size: 12px;
+          width: 12px;
+          height: 12px;
+          line-height: 12px;
         }
-      }
-    }
-    
-    .horario-info {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: #666;
-      font-size: 11px;
-      margin-bottom: 4px;
-      
-      mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
-        line-height: 14px;
       }
     }
     
     .status-badge {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       padding: 2px 6px;
-      border-radius: 12px;
-      font-size: 10px;
+      border-radius: 10px;
+      font-size: 9px;
       font-weight: 600;
       width: fit-content;
       
       mat-icon {
-        font-size: 12px;
-        width: 12px;
-        height: 12px;
-        line-height: 12px;
+        font-size: 10px;
+        width: 10px;
+        height: 10px;
+        line-height: 10px;
       }
       
       &.status-confirmada {
@@ -329,8 +301,10 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   background: #FFFFFF;
   border-radius: 8px;
   flex: 1;
-  overflow: visible;
+  overflow: auto;
   min-height: 500px;
+  display: flex;
+  flex-direction: column;
   
   .ant-picker-calendar-header {
     padding: 20px;
@@ -349,6 +323,7 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
     padding: 6px !important;
     overflow-y: auto;
     overflow-x: hidden;
+    max-height: 110px !important;
     
     &::-webkit-scrollbar {
       width: 4px;
@@ -403,12 +378,12 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   background-color: #9E9E9E !important; /* Cor cinza para status padrão/desconhecido */
 }
 
-// Header Mobile para Lista
-.mobile-list-header {
+// Header para Lista (desktop e mobile)
+.lista-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: #f5f5f5;
   border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
@@ -421,26 +396,57 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
     flex: 1;
   }
   
-  .voltar-btn, .selecionar-btn {
+  .voltar-btn {
     color: #3B221B;
     width: 40px;
     height: 40px;
+  }
+  
+  .selecionar-btn {
+    background-color: #F6BD38;
+    color: #3B221B;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
     
     &[disabled] {
-      opacity: 0.3;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
     }
   }
 }
 
-// Indicador de reserva no mobile (ponto simples)
+// Indicador de reserva no mobile (ponto simples - mais visível)
 .indicador-reserva-mobile {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   background: #F6BD38;
   border-radius: 50%;
-  margin: 4px auto 0;
+  margin: 6px auto 0;
   display: block;
   list-style: none;
+  box-shadow: 0 2px 4px rgba(246, 189, 56, 0.5), 0 0 0 2px rgba(246, 189, 56, 0.2);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
 }
 
 // Wrapper do calendário
@@ -449,6 +455,7 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 20px 24px;
 }
 
 // Wrapper da lista de reservas
@@ -457,19 +464,12 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  
-  .lista-titulo {
-    margin: 0 0 16px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #3B221B;
-    padding: 0 16px;
-  }
+  flex: 1;
   
   .lista-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 20px;
     
     &::-webkit-scrollbar {
       width: 6px;
@@ -488,115 +488,86 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
   .reserva-card {
     background: white;
     border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    max-width: 100%;
     
     &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transform: translateY(-2px);
-    }
-    
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #f0f0f0;
-      
-      .horario {
-        font-weight: 700;
-        font-size: 18px;
-        color: #F6BD38;
-      }
-      
-      .pessoas {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        color: #666;
-        font-size: 14px;
-        font-weight: 500;
-        
-        mat-icon {
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
-          line-height: 18px;
-        }
-      }
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
     }
     
     .cliente-info-card {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+      max-width: calc(100% - 120px);
       
       .cliente-nome-card {
-        font-size: 16px;
+        font-size: 13px;
         font-weight: 600;
         color: #3B221B;
+        margin-bottom: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       
-      .status-badge-card {
+      .pessoas-info-card {
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 4px 10px;
-        border-radius: 12px;
+        color: #666;
         font-size: 11px;
-        font-weight: 600;
         
         mat-icon {
-          font-size: 14px;
-          width: 14px;
-          height: 14px;
-          line-height: 14px;
-        }
-        
-        &.status-confirmada, &.status-ativa, &.status-concluida {
-          background-color: #e8f5e8;
-          color: #4CAF50;
-        }
-        
-        &.status-pendente, &.status-lista_espera {
-          background-color: #fff3e0;
-          color: #FF9800;
-        }
-        
-        &.status-cancelada_restaurante, &.status-nao_compareceu {
-          background-color: #ffebee;
-          color: #F44336;
+          font-size: 12px;
+          width: 12px;
+          height: 12px;
+          line-height: 12px;
         }
       }
     }
     
-    .reserva-detalhes {
+    .status-badge-card {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid #f0f0f0;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+      white-space: nowrap;
       
-      .detalhe-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #666;
-        font-size: 14px;
-        
-        mat-icon {
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
-          line-height: 18px;
-          color: #F6BD38;
-        }
+      mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        line-height: 12px;
+      }
+      
+      &.status-confirmada, &.status-ativa, &.status-concluida {
+        background-color: #e8f5e8;
+        color: #4CAF50;
+      }
+      
+      &.status-pendente, &.status-lista_espera {
+        background-color: #fff3e0;
+        color: #FF9800;
+      }
+      
+      &.status-cancelada_restaurante, &.status-nao_compareceu {
+        background-color: #ffebee;
+        color: #F44336;
       }
     }
   }
@@ -619,51 +590,59 @@ import { IReserva } from "../../../Interfaces/IReserva.interface"
     }
     
     p {
-      margin: 0;
+      margin: 0 0 24px 0;
       font-size: 16px;
     }
+    
+    .selecionar-dia-vazio-btn {
+      background-color: #F6BD38;
+      color: #3B221B;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin-top: 16px;
+      
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #3B221B;
+        margin: 0;
+      }
+    }
   }
 }
 
-// Desktop: layout lado a lado
-@media (min-width: 769px) {
-  .calendario-container {
-    flex-direction: row;
-    
-    .calendario-wrapper {
-      flex: 2;
-      border-right: 1px solid #eee;
-      padding-right: 16px;
-    }
-    
-    .lista-reservas-wrapper {
-      flex: 1;
-      padding-left: 16px;
-    }
-  }
-}
+// Desktop e Mobile: comportamento unificado (master-detail)
+// Não precisa mais de layout lado a lado
 
-// Mobile: layout empilhado
+// Comportamento unificado para desktop e mobile
+// Estilos já aplicados acima, não precisa duplicar
+
+// Mobile: ajustes específicos
 @media (max-width: 768px) {
   .calendario-container {
     max-width: 100vw;
     padding: 0;
-    height: 100%;
-    max-height: 100vh;
     
     .calendario-header {
       padding: 12px 16px;
-      margin-bottom: 0;
     }
     
-    .calendario-wrapper {
-      flex: 1;
-      overflow: hidden;
-    }
-    
-    .lista-reservas-wrapper {
-      height: 100%;
-      max-height: 100vh;
+    .lista-header {
+      padding: 12px 16px;
+      
+      .selecionar-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+        
+        span {
+          display: none;
+        }
+      }
     }
   }
   
@@ -687,7 +666,7 @@ export class CalendarioReservasComponent implements OnChanges, OnInit {
   reservasPorData: { [key: string]: IReserva[] } = {}
   reservasInternas: IReserva[] = []
   
-  // Controle de visualização mobile (Master-Detail)
+  // Controle de visualização (Master-Detail) - agora funciona igual para desktop e mobile
   visualizacaoMobile: 'CALENDARIO' | 'LISTA' = 'CALENDARIO'
   reservasDoDiaSelecionado: IReserva[] = []
   dataSelecionadaParaLista: Date | null = null
@@ -714,9 +693,7 @@ export class CalendarioReservasComponent implements OnChanges, OnInit {
   @HostListener('window:resize', ['$event'])
   onResize(event: any): void {
     this.isMobile = event.target.innerWidth <= 768
-    if (!this.isMobile) {
-      this.visualizacaoMobile = 'CALENDARIO' // Desktop mostra tudo
-    }
+    // Mantém o comportamento master-detail tanto no desktop quanto no mobile
   }
 
   private checkMobile(): void {
@@ -781,16 +758,16 @@ export class CalendarioReservasComponent implements OnChanges, OnInit {
     this.dataSelecionadaParaLista = data
     this.reservasDoDiaSelecionado = this.getReservasParaData(data)
     
-    // No mobile, muda para a visualização de lista
-    if (this.isMobile) {
-      this.visualizacaoMobile = 'LISTA'
-    } else {
-      // No desktop, fecha o dialog e retorna a data
+    // Se não tiver reservas, fecha o dialog e retorna a data diretamente
+    if (this.reservasDoDiaSelecionado.length === 0) {
       if (this.dialogRef) {
         this.dialogRef.close(data)
       } else {
         this.dataSeleccionada.emit(data)
       }
+    } else {
+      // Se tiver reservas, mostra a lista (comportamento master-detail)
+      this.visualizacaoMobile = 'LISTA'
     }
   }
 

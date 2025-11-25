@@ -1422,9 +1422,13 @@
   app-calendario-reservas {
     position: relative;
     z-index: 1001;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: auto;
+    max-width: 95vw;
+    max-height: 95vh;
+    width: 95vw;
+    height: 95vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 

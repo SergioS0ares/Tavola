@@ -14,6 +14,7 @@ import { CardapioService } from '../../../core/services/cardapio.service';
 import { ReservasService } from '../../../core/services/reservas.service';
 import { environment } from '../../../../environments/environment';
 import { ReservaConfirmadaDialogComponent , DialogDataReservaConfirmada} from "./reserva-confirmada-dialog/reserva-confirmada-dialog.component"
+import { ReservaDialogComponent, ReservaDialogData } from "./reserva-dialog/reserva-dialog.component"
 
 // Registrar locale português
 registerLocaleData(localePt)
@@ -244,10 +245,10 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   restauranteId!: string
   public isMobile = false
 
-  // --- NOVAS PROPRIEDADES PARA O DRAWER MOBILE ---
-  isReservaDrawerVisible = false // Controla o drawer
+  // --- PROPRIEDADES PARA O DIALOG MOBILE ---
+  isReservaDialogVisible = false // Controla o dialog
   proximosDiasDisponiveis: Date[] = [] // Array para os botões de data
-  // --- FIM DAS NOVAS PROPRIEDADES ---
+  // --- FIM DAS PROPRIEDADES ---
 
   constructor(
     @Inject(ActivatedRoute) private route: ActivatedRoute,
@@ -768,7 +769,7 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
     this.reservasService.postCriarReserva(reservaData).subscribe({
       next: () => {
         this.spinnerService.ocultar();
-        this.fecharDrawerReserva(); // Fecha o drawer após sucesso
+        this.fecharDialogReserva(); // Fecha o dialog após sucesso
         this.abrirDialogSucesso(reservaData);
         this.resetBooking(); // Limpa o formulário para uma nova reserva
       },
@@ -1007,36 +1008,67 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   /**
-   * Abre o drawer de reserva (mobile) começando na etapa de escolha de data.
+   * Abre o dialog de reserva (mobile) começando na etapa de escolha de data.
    */
-  abrirDrawerReservaEscolha(): void {
-    this.bookingStep = 1; // Começa na Etapa 1 (Data)
-    this.isReservaDrawerVisible = true; // Abre o drawer
+  abrirDialogReservaEscolha(): void {
+    this.bookingStep = 1;
+    this.isReservaDialogVisible = true;
+    
+    const dialogData: ReservaDialogData = {
+      selectedDate: this.selectedDate,
+      selectedTime: this.selectedTime,
+      selectedGuests: this.selectedGuests,
+      selectedComments: this.selectedComments,
+      availableSlots: this.availableSlots,
+      disabledDate: this.disabledDate,
+      isLoading: this.isLoading,
+      restauranteNome: this.restaurante?.nome || 'Restaurante'
+    };
+
+    const dialogRef = this.dialog.open(ReservaDialogComponent, {
+      width: '100vw',
+      maxWidth: '100vw',
+      height: '100vh',
+      maxHeight: '100vh',
+      panelClass: ['reserva-dialog-mobile'],
+      hasBackdrop: false, // Remove o backdrop cinza
+      position: {
+        top: '0',
+        left: '0'
+      },
+      data: {
+        ...dialogData,
+        onDateSelectCallback: (date: Date) => {
+          this.selectedDate = date;
+          this.generateAvailableSlots();
+          // Atualiza os slots no dialog
+          if (dialogRef && dialogRef.componentInstance) {
+            dialogRef.componentInstance.atualizarSlots(this.availableSlots);
+          }
+        }
+      },
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      this.isReservaDialogVisible = false;
+      if (result) {
+        this.selectedDate = result.selectedDate;
+        this.selectedTime = result.selectedTime;
+        this.selectedGuests = result.selectedGuests;
+        this.selectedComments = result.selectedComments;
+        this.bookingStep = 4;
+        this.prepareBookingData();
+        this.finalizarReserva();
+      }
+    });
   }
 
   /**
-   * Abre o drawer de reserva (mobile) e avança para a etapa de Horário.
-   * Mantido para compatibilidade caso seja chamado de outros lugares.
+   * Fecha o dialog de reserva (mobile).
    */
-  abrirDrawerReserva(data?: Date): void {
-    if (data) {
-      // Define a data clicada e zera a hora para consistência
-      this.selectedDate = new Date(data.getFullYear(), data.getMonth(), data.getDate());
-      this.generateAvailableSlots();  // Gera os horários para essa data
-      this.bookingStep = 2;           // Pula direto para a Etapa 2 (Horário)
-    } else {
-      this.bookingStep = 1; // Se não há data, começa na Etapa 1
-    }
-    this.isReservaDrawerVisible = true; // Abre o drawer
-  }
-
-  /**
-   * Fecha o drawer de reserva (mobile).
-   */
-  fecharDrawerReserva(): void {
-    this.isReservaDrawerVisible = false;
-    // Opcional: resetar o step se fechar o drawer
-    // this.bookingStep = 1; 
+  fecharDialogReserva(): void {
+    this.isReservaDialogVisible = false;
   }
 
   /**

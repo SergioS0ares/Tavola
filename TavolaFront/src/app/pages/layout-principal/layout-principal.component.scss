@@ -763,6 +763,9 @@
 }
 
 ::ng-deep .mobile-drawer {
+  // Z-index alto para ficar acima do toolbar (que tem z-index 1000-1001)
+  z-index: 1002 !important;
+  
   .ant-drawer-body {
     padding: 0;
     background: linear-gradient(135deg, #e5e2dc 0%, #ddd9d3 100%);
@@ -778,6 +781,26 @@
   .ant-drawer-mask {
     background: rgba(194, 37, 35, 0.2);
     backdrop-filter: blur(8px);
+    z-index: 1001 !important;
+  }
+  
+  .ant-drawer-content-wrapper {
+    z-index: 1002 !important;
+  }
+  
+  // Garante que o drawer ocupe 75% no mobile
+  @media (max-width: 768px) {
+    .ant-drawer-content-wrapper {
+      width: 75% !important;
+      max-width: 75vw !important;
+    }
+  }
+  
+  // Desktop mantém 340px
+  @media (min-width: 769px) {
+    .ant-drawer-content-wrapper {
+      width: 340px !important;
+    }
   }
 }
 
@@ -785,18 +808,18 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 40px 32px;
+  padding: 32px 24px;
   
   .sidebar-header {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 48px;
-    padding-bottom: 32px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
     border-bottom: 2px solid rgba(246, 189, 56, 0.3);
     
     .logo {
-      width: 64px;
+      width: 52px;
       height: auto;
       filter: drop-shadow(0 6px 20px rgba(246, 189, 56, 0.5));
     }
@@ -805,40 +828,45 @@
   .menu {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     
     button {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       background: transparent;
       border: 2px solid #F6BD38;
       color: #F6BD38;
-      padding: 24px 28px;
-      border-radius: 20px;
+      padding: 16px 20px;
+      border-radius: 16px;
       cursor: pointer;
-      font-weight: 700;
-      font-size: 17px;
+      font-weight: 600;
+      font-size: 15px;
       width: 100%;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      min-height: 72px;
+      min-height: 56px;
       
       mat-icon {
-        font-size: 26px;
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
         color: #F6BD38;
         transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       
       &:hover, &.active {
         background: linear-gradient(135deg, #F6BD38 0%, #f4b942 100%);
         color: #2c1810;
         border-color: #F6BD38;
-        transform: translateX(12px);
-        box-shadow: 0 12px 30px rgba(246, 189, 56, 0.4);
+        transform: translateX(8px);
+        box-shadow: 0 8px 24px rgba(246, 189, 56, 0.4);
         
         mat-icon {
           color: #2c1810;
-          transform: scale(1.2);
+          transform: scale(1.15);
         }
       }
     }

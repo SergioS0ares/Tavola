@@ -373,7 +373,7 @@
   [nzVisible]="isDrawerVisible"
   nzPlacement="left"
   (nzOnClose)="closeDrawer()"
-  nzWidth="340px"
+  [nzWidth]="(isMobile$ | async) ? '75%' : '340px'"
   class="mobile-drawer"
   [attr.aria-label]="'Menu de navegação ' + (isDrawerVisible ? 'aberto' : 'fechado')">
   <ng-container *nzDrawerContent>

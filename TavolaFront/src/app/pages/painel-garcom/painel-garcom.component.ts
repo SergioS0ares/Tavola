@@ -605,9 +605,9 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
       // 2. ABRE o dialog APÓS os dados serem carregados (dentro do callback)
       const dialogRef = this.dialog.open(CalendarioReservasComponent, {
         width: '95vw',
-        maxWidth: '1200px',
+        maxWidth: '1400px',
         maxHeight: '95vh',
-        height: '90vh',
+        height: '95vh',
         panelClass: ['tavola-dialog-wrapper', 'calendario-dialog'], // Array de classes (sem espaços)
         data: { 
           // Passa a data inicial e as reservas carregadas

@@ -1,5 +1,4 @@
 @use 'sass:color';
-// Importa os estilos compartilhados de navegação de menu
 @use '../../../../styles/shared/_menu-navigation.scss';
 
 // Variáveis
@@ -20,6 +19,465 @@ $tavola-vermelho: #DA4A24;
 $tavola-amarelo-claro: #FFF4D6;
 $tavola-cinza: #F8F9FA;
 
+// ==========================================================================
+// MIXIN: ESTILOS DO CARTÃO DE RESERVA (COMPARTILHADO DESKTOP E MOBILE)
+// ==========================================================================
+@mixin card-reserva-styles {
+  background: $white;
+  display: flex;
+  flex-direction: column;
+  
+  .cabecalho-reserva {
+    background: $tavola-amarelo;
+    padding: 20px 24px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+    
+    .titulo-reserva {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      color: $accent-color;
+    }
+    
+    .texto-gratis {
+      font-size: 15px;
+      color: $tavola-vermelho;
+      font-weight: 600;
+      margin: 0;
+    }
+    // Botão de fechar específico do drawer (só aparecerá se o HTML existir)
+    .fechar-drawer-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $text-color;
+      background: rgba(255, 255, 255, 0.2);
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+  
+  // Navegação horizontal
+  .navegacao-reserva {
+    display: flex;
+    padding: 0;
+    border-bottom: 1px solid $light-gray;
+    flex-shrink: 0;
+    
+    .etapa-nav {
+      flex: 1;
+      background: $white;
+      border: none;
+      padding: 12px 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 3px solid transparent;
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      &.active {
+        background: $white;
+        border-bottom-color: $tavola-amarelo;
+        
+        .conteudo-etapa {
+          color: $text-color;
+          font-weight: 600;
+        }
+      }
+      
+      &.completed {
+        background: $white;
+        border-bottom-color: $success-color;
+        
+        .conteudo-etapa {
+          color: $text-color;
+          font-weight: 500;
+        }
+      }
+      
+      &:hover:not(:disabled) {
+        background: $tavola-cinza;
+      }
+      
+      .conteudo-etapa {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        
+        i {
+          font-size: 16px;
+          color: $medium-gray;
+        }
+        
+        span {
+          font-size: 11px;
+          color: $dark-gray;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 70px;
+        }
+      }
+      
+      &.active .conteudo-etapa i,
+      &.completed .conteudo-etapa i {
+        color: inherit;
+      }
+    }
+  }
+  
+  // Container de conteúdo com scroll
+  .conteudo-reserva {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    min-height: 0;
+    
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: $light-gray;
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: $medium-gray;
+      border-radius: 2px;
+      
+      &:hover {
+        background: $dark-gray;
+      }
+    }
+  }
+  
+  .etapa-reserva {
+    .cabecalho-etapa {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      
+      .botao-voltar {
+        padding: 6px;
+        color: $text-color;
+        
+        &:hover {
+          color: $tavola-amarelo;
+        }
+      }
+      
+      h3 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        color: $text-color;
+      }
+    }
+    
+    // Calendário estilo Tavola
+    .calendario-tavola {
+      // Ajuste para garantir visualização no mobile
+      width: 100%;
+      display: block;
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: $light-gray;
+        border-radius: 2px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: $medium-gray;
+        border-radius: 2px;
+        
+        &:hover {
+          background: $dark-gray;
+        }
+      }
+      
+      ::ng-deep .ant-picker-calendar {
+        .ant-picker-calendar-header {
+          padding: 10px 0;
+          position: sticky;
+          top: 0;
+          background: $white;
+          z-index: 10;
+          
+          .ant-picker-calendar-year-select,
+          .ant-picker-calendar-month-select {
+            color: $text-color;
+            font-size: 15px;
+          }
+        }
+        
+        .ant-picker-body {
+          padding: 0;
+        }
+        
+        .ant-picker-content {
+          th, td {
+            padding: 3px;
+            font-size: 12px;
+          }
+          
+          th {
+            color: $dark-gray;
+            font-weight: 500;
+          }
+        }
+        
+        .ant-picker-cell {
+          &:hover .ant-picker-cell-inner {
+            background-color: $tavola-amarelo-claro;
+          }
+          
+          &.ant-picker-cell-selected .ant-picker-cell-inner {
+            background-color: $tavola-amarelo;
+            color: $text-color;
+            font-weight: 600;
+          }
+          
+          &.ant-picker-cell-disabled .ant-picker-cell-inner {
+            color: $medium-gray;
+            background-color: transparent;
+          }
+          
+          .ant-picker-cell-inner {
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
+            border-radius: 4px;
+            margin: 0 auto; // Centraliza no mobile
+          }
+        }
+      }
+    }
+    
+    // Horários estilo Tavola
+    .periodo-horario {
+      margin-bottom: 24px;
+      
+      h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 14px;
+        color: $text-color;
+      }
+      
+      .slots-horario {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        
+        .slot-horario {
+          position: relative;
+          padding: 10px 6px;
+          font-size: 12px;
+          font-weight: 500;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          border: 1px solid $medium-gray;
+          background: $white;
+          
+          &:hover:not(:disabled) {
+            background-color: $tavola-amarelo;
+            border-color: $tavola-amarelo;
+            color: $text-color;
+          }
+          
+          &.limitado {
+            border-color: $warning-color;
+            background-color: rgba(250, 173, 20, 0.1);
+            
+            .percentual {
+              position: absolute;
+              top: -6px;
+              right: -6px;
+              background-color: $warning-color;
+              color: $white;
+              font-size: 8px;
+              padding: 1px 3px;
+              border-radius: 3px;
+              font-weight: 600;
+            }
+          }
+          
+          &:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background-color: $light-gray;
+          }
+        }
+      }
+    }
+    
+    // Seleção de pessoas estilo Tavola
+    .grid-pessoas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+      
+      .botao-pessoa {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        border: 1px solid $medium-gray;
+        background: $white;
+        
+        &:hover {
+          border-color: $tavola-amarelo;
+          background-color: $tavola-amarelo-claro;
+        }
+        
+        &.selecionado {
+          background-color: $tavola-amarelo;
+          border-color: $tavola-amarelo;
+          color: $text-color;
+        }
+      }
+    }
+    
+    // Resumo da reserva
+    .resumo-reserva {
+      background-color: $tavola-amarelo-claro;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      
+      h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 16px;
+        color: $text-color;
+      }
+      
+      .resumo-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        
+        .label {
+          font-weight: 500;
+          color: rgba(59, 34, 27, 0.8);
+        }
+        
+        .value {
+          font-weight: 600;
+          color: $text-color;
+        }
+      }
+    }
+    
+    // Comentários
+    .comentarios-section {
+      margin-bottom: 24px;
+      
+      h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 8px;
+        color: $text-color;
+      }
+      
+      .comentarios-desc {
+        font-size: 14px;
+        color: rgba(59, 34, 27, 0.7);
+        margin-bottom: 16px;
+      }
+      
+      // IMPORTANTE: Garante que o input do Material ocupe a largura no mobile
+      .mat-mdc-form-field {
+        width: 100%;
+        display: block;
+      }
+      
+      .sugestoes-rapidas {
+        margin-top: 16px;
+        
+        .sugestoes-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          margin-bottom: 8px;
+          color: $text-color;
+        }
+        
+        .sugestoes-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          
+          .sugestao-chip {
+            font-size: 12px;
+            padding: 4px 8px;
+            height: auto;
+            border-color: $medium-gray;
+            
+            &:hover {
+              border-color: $tavola-amarelo;
+              color: $tavola-amarelo;
+            }
+          }
+        }
+      }
+    }
+    
+    // Confirmação
+    .confirmacao-section {
+      text-align: center;
+      padding-bottom: 24px;
+      
+      .botao-confirmar {
+        width: 100%;
+        height: 48px;
+        font-size: 16px;
+        font-weight: 600;
+        background-color: $tavola-amarelo;
+        border-color: $tavola-amarelo;
+        color: $text-color;
+        
+        &:hover {
+          background-color: color.adjust($tavola-amarelo, $lightness: -10%);
+          border-color: color.adjust($tavola-amarelo, $lightness: -10%);
+        }
+        
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// ESTILOS GERAIS E DESKTOP
+// ==========================================================================
+
 // Container principal com ajuste para drawer
 .container-rounded {
   background: $white;
@@ -32,42 +490,34 @@ $tavola-cinza: #F8F9FA;
   position: relative;
   transition: all 0.3s ease;
   
-  // Quando o drawer está aberto, não ajustar o container
   &.drawer-open {
-    // Remover ajustes que causavam problemas
     max-width: 1200px;
     margin-right: auto;
   }
-
-  /* Add styles for when sidebar is open */
+  
   &.sidebar-aberta {
-    /* Adjust max-width and margin to account for the open sidebar */
-    max-width: 960px; /* Example: Reduced max-width */
-    margin-left: auto; /* Center the container */
+    max-width: 960px;
+    margin-left: auto;
     margin-right: auto;
-
+    
     .content-area {
-      /* Adjust gap or flex basis if needed */
-      gap: 16px; /* Example: reduced gap */
+      gap: 16px;
     }
-
+    
     .coluna-reserva {
-      /* Adjust min/max width if needed */
-      min-width: 320px; /* Example: slightly smaller min-width */
-      max-width: 320px; /* Example: slightly smaller max-width */
+      min-width: 320px;
+      max-width: 320px;
     }
-
-    /* Adjust menu section height if necessary */
+    
     .menu-content {
       .categorias-nav-container {
-         /* Adjust sticky top position */
          .categorias-nav.fixed {
-           top: 76px; /* Example: adjust based on toolbar height and padding */
+           top: 76px;
          }
       }
       .categorias-content {
         .categoria-section {
-          scroll-margin-top: 150px; /* Adjust scroll margin top */
+          scroll-margin-top: 150px;
         }
       }
     }
@@ -82,16 +532,9 @@ $tavola-cinza: #F8F9FA;
     a {
       color: $text-color;
       text-decoration: none;
-      
-      &:hover {
-        color: $primary-color;
-      }
+      &:hover { color: $primary-color; }
     }
-    
-    i {
-      margin-right: 4px;
-      color: $text-color;
-    }
+    i { margin-right: 4px; color: $text-color; }
   }
 }
 
@@ -121,9 +564,7 @@ $tavola-cinza: #F8F9FA;
         border-color: $accent-color;
       }
       
-      i[nzTheme="fill"] {
-        color: $tavola-vermelho;
-      }
+      i[nzTheme="fill"] { color: $tavola-vermelho; }
     }
   }
   
@@ -132,32 +573,19 @@ $tavola-cinza: #F8F9FA;
       display: flex;
       align-items: center;
       margin-bottom: 8px;
-      
-      i {
-        margin-right: 8px;
-        color: $text-color;
-      }
+      i { margin-right: 8px; color: $text-color; }
     }
     
     .rating {
       display: flex;
       align-items: center;
-      
       ::ng-deep .ant-rate {
         font-size: 16px;
         color: $primary-color;
         margin-right: 8px;
       }
-      
-      .rating-value {
-        font-weight: 700;
-        margin-right: 4px;
-      }
-      
-      .reviews-count {
-        color: rgba(59, 34, 27, 0.7);
-        font-size: 14px;
-      }
+      .rating-value { font-weight: 700; margin-right: 4px; }
+      .reviews-count { color: rgba(59, 34, 27, 0.7); font-size: 14px; }
     }
   }
 }
@@ -166,7 +594,6 @@ $tavola-cinza: #F8F9FA;
 .photo-gallery {
   margin-bottom: 24px;
   
-  // Layout Desktop - Grid (visível por padrão)
   .gallery-grid.desktop-gallery {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
@@ -175,7 +602,6 @@ $tavola-cinza: #F8F9FA;
     height: 400px;
   }
   
-  // Layout Mobile - Slider (escondido por padrão)
   .gallery-grid-irregular.mobile-gallery,
   .scroll-indicator.mobile-gallery {
     display: none;
@@ -188,111 +614,29 @@ $tavola-cinza: #F8F9FA;
     gap: 8px;
     height: 400px;
     
-    .main-photo {
-      grid-column: 1;
-      grid-row: 1 / span 2;
-      border-radius: $border-radius;
-      overflow: hidden;
-      cursor: pointer;
-      
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        
-        &:hover {
-          transform: scale(1.05);
-        }
-      }
-    }
+    .main-photo { grid-column: 1; grid-row: 1 / span 2; }
+    .medium-photo { grid-column: 2; grid-row: 1 / span 2; }
+    .small-photo-top { grid-column: 3; grid-row: 1; }
+    .small-photo-bottom { grid-column: 3; grid-row: 2; }
     
-    .medium-photo {
-      grid-column: 2;
-      grid-row: 1 / span 2;
+    .main-photo, .medium-photo, .small-photo-top, .small-photo-bottom {
       border-radius: $border-radius;
       overflow: hidden;
       cursor: pointer;
-      
       img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        
-        &:hover {
-          transform: scale(1.05);
-        }
-      }
-    }
-    
-    .small-photo-top {
-      grid-column: 3;
-      grid-row: 1;
-      border-radius: $border-radius;
-      overflow: hidden;
-      cursor: pointer;
-      
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        
-        &:hover {
-          transform: scale(1.05);
-        }
-      }
-    }
-    
-    .small-photo-bottom {
-      grid-column: 3;
-      grid-row: 2;
-      border-radius: $border-radius;
-      overflow: hidden;
-      cursor: pointer;
-      
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        
-        &:hover {
-          transform: scale(1.05);
-        }
+        width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;
+        &:hover { transform: scale(1.05); }
       }
     }
     
     .more-photos {
-      grid-column: 3;
-      grid-row: 2;
-      position: relative;
-      border-radius: $border-radius;
-      overflow: hidden;
-      cursor: pointer;
-      
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-      }
-      
+      grid-column: 3; grid-row: 2; position: relative;
+      border-radius: $border-radius; overflow: hidden; cursor: pointer;
+      img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
       .more-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: $white;
-        font-weight: 500;
-        text-align: center;
-        padding: 0 8px;
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center;
+        justify-content: center; color: $white; font-weight: 500; text-align: center; padding: 0 8px;
       }
     }
   }
@@ -306,132 +650,47 @@ $tavola-cinza: #F8F9FA;
   z-index: 100;
   
   &.fixed {
-    position: sticky;
-    top: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: sticky; top: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   ::ng-deep {
     .mat-mdc-tab {
       color: $text-color;
-      
-      &.mdc-tab--active {
-        color: $primary-color;
-      }
+      &.mdc-tab--active { color: $primary-color; }
     }
-    
-    .mdc-tab-indicator__content--underline {
-      border-color: $primary-color !important;
-    }
-    
-    .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label {
-      color: $primary-color !important;
-    }
-    
-    .mat-mdc-tab:not(.mat-mdc-tab-active) .mdc-tab__text-label {
-      color: $text-color !important;
-    }
+    .mdc-tab-indicator__content--underline { border-color: $primary-color !important; }
+    .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label { color: $primary-color !important; }
+    .mat-mdc-tab:not(.mat-mdc-tab-active) .mdc-tab__text-label { color: $text-color !important; }
   }
 }
 
 // Área de Conteúdo
 .content-area {
   display: flex;
-  gap: 16px; // <-- "VÃO" REDUZIDO (era 24px)
+  gap: 16px;
   
   .content-column {
-    flex: 1; // Reduzido de 1.5 para 1
+    flex: 1;
     transition: all 0.3s ease;
     min-width: 0;
     
-    h2 {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0 0 16px;
-      color: $text-color;
-    }
+    h2 { font-size: 24px; font-weight: 700; margin: 0 0 16px; color: $text-color; }
+    h3 { font-size: 18px; font-weight: 600; margin: 0 0 12px; color: $text-color; }
+    p { line-height: 1.6; color: rgba(59, 34, 27, 0.9); margin-bottom: 16px; }
     
-    h3 {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 0 0 12px;
-      color: $text-color;
-    }
-    
-    p {
-      line-height: 1.6;
-      color: rgba(59, 34, 27, 0.9);
-      margin-bottom: 16px;
-    }
-    
-    // Seção Sobre
     .sobre-content {
-      .descricao-section {
-        margin-bottom: 32px;
-      }
-      
+      .descricao-section { margin-bottom: 32px; }
       .localizacao-section {
         margin-bottom: 32px;
-        
-        .mapa-container {
-          border-radius: $border-radius;
-          overflow: hidden;
-          margin-bottom: 16px;
-        }
-        
+        .mapa-container { border-radius: $border-radius; overflow: hidden; margin-bottom: 16px; }
         .endereco-completo {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 16px;
-          
-          .endereco-copy {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            
-            p {
-              margin: 0;
-            }
-            
-            // Estilos removidos - agora usando classes globais do styles.scss
-          }
-          
+          display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;
+          .endereco-copy { display: flex; align-items: center; gap: 8px; flex: 1; p { margin: 0; } }
           .como-chegar-btn {
-            color: $primary-color;
-            border-color: $primary-color;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            margin-left: 12px;
-            
-            &:disabled {
-              opacity: 0.6;
-              cursor: not-allowed;
-            }
-            
-            mat-icon {
-              margin-right: 8px;
-            }
-            
-            &:hover:not(:disabled) {
-              background-color: rgba(246, 189, 56, 0.1);
-            }
-          }
-        }
-        
-        .transporte-section {
-          margin-top: 16px;
-          
-          .transporte-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            
-            i {
-              margin-right: 8px;
-              color: $text-color;
-            }
+            color: $primary-color; border-color: $primary-color; transition: all 0.2s ease; flex-shrink: 0; margin-left: 12px;
+            &:disabled { opacity: 0.6; cursor: not-allowed; }
+            mat-icon { margin-right: 8px; }
+            &:hover:not(:disabled) { background-color: rgba(246, 189, 56, 0.1); }
           }
         }
       }
@@ -439,54 +698,24 @@ $tavola-cinza: #F8F9FA;
       .mais-detalhes-section {
         .horarios-section {
           margin-bottom: 24px;
-          
-          .horarios-lista {
-            margin-bottom: 16px;
-          }
-          
+          .horarios-lista { margin-bottom: 16px; }
           .horario-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(59, 34, 27, 0.1);
-            
-            .dia {
-              font-weight: 500;
-            }
-            
-            .horas {
-              color: rgba(59, 34, 27, 0.8);
-            }
+            display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(59, 34, 27, 0.1);
+            .dia { font-weight: 500; } .horas { color: rgba(59, 34, 27, 0.8); }
           }
-          
-          .mostrar-mais {
-            color: $primary-color;
-          }
+          .mostrar-mais { color: $primary-color; }
         }
-        
-        .recursos-section {
-          .recursos-lista {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-            
-            .recurso-item {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              
-              mat-icon {
-                color: $primary-color;
-              }
-            }
-          }
+        .recursos-section .recursos-lista {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;
+          .recurso-item { display: flex; align-items: center; gap: 8px; mat-icon { color: $primary-color; } }
         }
       }
     }
   }
   
+  // COLUNA LATERAL (DESKTOP)
   .coluna-reserva {
-    flex: 0 0 380px; // Aumentado de 320px para 380px
+    flex: 0 0 380px;
     min-width: 380px;
     max-width: 380px;
     
@@ -494,1491 +723,535 @@ $tavola-cinza: #F8F9FA;
       position: sticky;
       top: 20px;
       
-      // Card estilo Tavola
       .card-reserva-tavola {
-        background: $white;
+        // APLICA O MIXIN AQUI PARA O DESKTOP
+        @include card-reserva-styles;
+        
+        // Estilos específicos desktop
         border-radius: 12px;
         box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
         overflow: hidden;
         height: 500px;
-        display: flex;
-        flex-direction: column;
-        
-        .cabecalho-reserva {
-          background: $tavola-amarelo;
-          padding: 20px 24px;
-          text-align: center;
-          
-          .titulo-reserva {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 0 0 6px;
-            color: $accent-color;
-          }
-          
-          .texto-gratis {
-            font-size: 15px;
-            color: $tavola-vermelho;
-            font-weight: 600;
-            margin: 0;
-          }
-        }
-        
-        // Navegação horizontal estilo Tavola
-        .navegacao-reserva {
-          display: flex;
-          padding: 0;
-          border-bottom: 1px solid $light-gray;
-          
-          .etapa-nav {
-            flex: 1;
-            background: $white;
-            border: none;
-            padding: 12px 8px; // Reduzido para acomodar 4 steps
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 3px solid transparent;
-            
-            &:disabled {
-              opacity: 0.5;
-              cursor: not-allowed;
-            }
-            
-            &.active {
-              background: $white;
-              border-bottom-color: $tavola-amarelo;
-              
-              .conteudo-etapa {
-                color: $text-color;
-                font-weight: 600;
-              }
-            }
-            
-            &.completed {
-              background: $white;
-              border-bottom-color: $success-color;
-              
-              .conteudo-etapa {
-                color: $text-color;
-                font-weight: 500;
-              }
-            }
-            
-            &:hover:not(:disabled) {
-              background: $tavola-cinza;
-            }
-            
-            .conteudo-etapa {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 4px; // Reduzido
-              
-              i {
-                font-size: 16px; // Reduzido
-                color: $medium-gray;
-              }
-              
-              span {
-                font-size: 11px; // Reduzido para acomodar 4 steps
-                color: $dark-gray;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-width: 70px; // Reduzido
-              }
-            }
-            
-            &.active .conteudo-etapa i,
-            &.completed .conteudo-etapa i {
-              color: inherit;
-            }
-          }
-        }
-        
-        // Container de conteúdo com scroll
-        .conteudo-reserva {
-          flex: 1;
-          overflow-y: auto;
-          padding: 20px 24px;
-          
-          &::-webkit-scrollbar {
-            width: 4px;
-          }
-          
-          &::-webkit-scrollbar-track {
-            background: $light-gray;
-            border-radius: 2px;
-          }
-          
-          &::-webkit-scrollbar-thumb {
-            background: $medium-gray;
-            border-radius: 2px;
-            
-            &:hover {
-              background: $dark-gray;
-            }
-          }
-        }
-        
-        .etapa-reserva {
-          .cabecalho-etapa {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            
-            .botao-voltar {
-              padding: 6px;
-              color: $text-color;
-              
-              &:hover {
-                color: $tavola-amarelo;
-              }
-            }
-            
-            h3 {
-              margin: 0;
-              font-size: 17px;
-              font-weight: 600;
-              color: $text-color;
-            }
-          }
-          
-          // Calendário estilo Tavola
-          .calendario-tavola {
-            ::ng-deep .ant-picker-calendar {
-              .ant-picker-calendar-header {
-                padding: 10px 0;
-                
-                .ant-picker-calendar-year-select,
-                .ant-picker-calendar-month-select {
-                  color: $text-color;
-                  font-size: 15px;
-                }
-              }
-              
-              .ant-picker-body {
-                padding: 0;
-              }
-              
-              .ant-picker-content {
-                th, td {
-                  padding: 3px;
-                  font-size: 12px;
-                }
-                
-                th {
-                  color: $dark-gray;
-                  font-weight: 500;
-                }
-              }
-              
-              .ant-picker-cell {
-                &:hover .ant-picker-cell-inner {
-                  background-color: $tavola-amarelo-claro;
-                }
-                
-                &.ant-picker-cell-selected .ant-picker-cell-inner {
-                  background-color: $tavola-amarelo;
-                  color: $text-color;
-                  font-weight: 600;
-                }
-                
-                &.ant-picker-cell-disabled .ant-picker-cell-inner {
-                  color: $medium-gray;
-                  background-color: transparent;
-                }
-                
-                .ant-picker-cell-inner {
-                  width: 32px; // Aumentado para acomodar o card maior
-                  height: 32px;
-                  line-height: 32px;
-                  font-size: 12px;
-                  border-radius: 4px;
-                }
-              }
-            }
-          }
-          
-          // Horários estilo Tavola
-          .periodo-horario {
-            margin-bottom: 24px;
-            
-            h4 {
-              font-size: 15px;
-              font-weight: 600;
-              margin: 0 0 14px;
-              color: $text-color;
-            }
-            
-            .slots-horario {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 8px;
-              
-              .slot-horario {
-                position: relative;
-                padding: 10px 6px;
-                font-size: 12px;
-                font-weight: 500;
-                border-radius: 6px;
-                transition: all 0.2s ease;
-                border: 1px solid $medium-gray;
-                background: $white;
-                
-                &:hover:not(:disabled) {
-                  background-color: $tavola-amarelo;
-                  border-color: $tavola-amarelo;
-                  color: $text-color;
-                }
-                
-                &.limitado {
-                  border-color: $warning-color;
-                  background-color: rgba(250, 173, 20, 0.1);
-                  
-                  .percentual {
-                    position: absolute;
-                    top: -6px;
-                    right: -6px;
-                    background-color: $warning-color;
-                    color: $white;
-                    font-size: 8px;
-                    padding: 1px 3px;
-                    border-radius: 3px;
-                    font-weight: 600;
-                  }
-                }
-                
-                &:disabled {
-                  opacity: 0.3;
-                  cursor: not-allowed;
-                  background-color: $light-gray;
-                }
-              }
-            }
-          }
-          
-          // Seleção de pessoas estilo Tavola
-          .grid-pessoas {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 24px;
-            
-            .botao-pessoa {
-              aspect-ratio: 1;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 15px;
-              font-weight: 600;
-              border-radius: 8px;
-              transition: all 0.2s ease;
-              border: 1px solid $medium-gray;
-              background: $white;
-              
-              &:hover {
-                border-color: $tavola-amarelo;
-                background-color: $tavola-amarelo-claro;
-              }
-              
-              &.selecionado {
-                background-color: $tavola-amarelo;
-                border-color: $tavola-amarelo;
-                color: $text-color;
-              }
-            }
-          }
-          
-          .info-disponibilidade {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px;
-            background-color: rgba(218, 74, 36, 0.1);
-            border-radius: 8px;
-            border-left: 3px solid $accent-color;
-            
-            i {
-              color: $accent-color;
-              font-size: 15px;
-            }
-            
-            span {
-              font-size: 13px;
-              color: $text-color;
-              font-weight: 500;
-            }
-          }
-        }
       }
     }
   }
 }
 
-// Modal de Galeria Completa
-.full-gallery {
-  .gallery-grid-modal {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    
-    .gallery-item {
-      border-radius: $border-radius;
-      overflow: hidden;
-      aspect-ratio: 4/3;
-      
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-  }
+// Estilos para aba Menu, Modal Galeria, Avaliações (mantidos iguais)
+.full-gallery .gallery-grid-modal { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 16px; 
+  .gallery-item { 
+    border-radius: $border-radius; 
+    overflow: hidden; 
+    aspect-ratio: 4/3; 
+    img { width: 100%; height: 100%; object-fit: cover; } 
+  } 
 }
 
-// Modal de Horários
-.horarios-descricao {
-  margin-bottom: 16px;
-  color: $text-color;
+.horarios-descricao { margin-bottom: 16px; color: $text-color; }
+
+.horarios-lista-completa .horario-item { 
+  display: flex; 
+  justify-content: space-between; 
+  padding: 12px 0; 
+  border-bottom: 1px solid rgba(59, 34, 27, 0.1); 
+  .dia { font-weight: 500; color: $text-color; } 
+  .horas { color: rgba(59, 34, 27, 0.8); } 
 }
 
-.horarios-lista-completa {
-  .horario-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(59, 34, 27, 0.1);
-    
-    .dia {
-      font-weight: 500;
-      color: $text-color;
-    }
-    
-    .horas {
-      color: rgba(59, 34, 27, 0.8);
-    }
-  }
+.back-to-top { 
+  position: fixed; 
+  bottom: 24px; 
+  right: 24px; 
+  z-index: 99; 
+  background-color: $primary-color !important; 
+  color: $text-color !important; 
 }
 
-// Botão de voltar ao topo
-.back-to-top {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 99;
-  background-color: $primary-color !important;
-  color: $text-color !important;
-}
-
-// Estilos específicos para o NzImageModule
 ::ng-deep {
-  .ant-image-preview-operations {
-    background-color: rgba(0, 0, 0, 0.5);
+  .ant-image-preview-operations { background-color: rgba(0, 0, 0, 0.5); }
+  .ant-image-preview-img { max-width: 90%; max-height: 90%; }
+  .ant-image-preview-switch-left, .ant-image-preview-switch-right { 
+    color: white; 
+    background-color: rgba(0, 0, 0, 0.3); 
+    &:hover { background-color: rgba(0, 0, 0, 0.5); } 
   }
-  
-  .ant-image-preview-img {
-    max-width: 90%;
-    max-height: 90%;
-  }
-  
-  .ant-image-preview-switch-left, 
-  .ant-image-preview-switch-right {
-    color: white;
-    background-color: rgba(0, 0, 0, 0.3);
-    
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-  }
-  
-  .ant-tooltip-inner {
-    background-color: $text-color;
-    color: white;
-  }
-  
-  .ant-tooltip-arrow-content {
-    background-color: $text-color;
-  }
+  .ant-tooltip-inner { background-color: $text-color; color: white; }
+  .ant-tooltip-arrow-content { background-color: $text-color; }
 }
 
-// Estilos para a aba Menu
 .menu-content {
   .menu-intro {
     margin-bottom: 32px;
-    
-    h2 {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0 0 8px;
-      color: $text-color;
-    }
-    
-    p {
-      color: rgba(59, 34, 27, 0.8);
-      margin-bottom: 24px;
-    }
-    
-    .menu-info {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      
-      .opcoes-dieteticas {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        border-radius: $border-radius;
-        background-color: $light-gray;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        
-        &:hover {
-          background-color: darken($light-gray, 3%);
-        }
-        
-        i {
-          color: $text-color;
-          font-size: 20px;
-        }
-        
-        div {
-          flex: 1;
-          
-          span {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 4px;
-          }
-          
-          p {
-            margin: 0;
-            font-size: 14px;
-            color: rgba(59, 34, 27, 0.7);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 400px;
-          }
-        }
+    h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: $text-color; }
+    p { color: rgba(59, 34, 27, 0.8); margin-bottom: 24px; }
+    .menu-info .opcoes-dieteticas {
+      display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: $border-radius; background-color: $light-gray; cursor: pointer; transition: all 0.2s ease;
+      &:hover { background-color: darken($light-gray, 3%); }
+      i { color: $text-color; font-size: 20px; }
+      div { 
+        flex: 1; 
+        span { display: block; font-weight: 500; margin-bottom: 4px; } 
+        p { margin: 0; font-size: 14px; color: rgba(59, 34, 27, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; } 
       }
     }
   }
 }
 
-// Estilos para o drawer de opções dietéticas
-.drawer-description {
-  margin-bottom: 24px;
-  color: rgba(59, 34, 27, 0.8);
-  line-height: 1.6;
+.drawer-description { margin-bottom: 24px; color: rgba(59, 34, 27, 0.8); line-height: 1.6; }
+
+.opcoes-dieteticas-drawer .opcao-item { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  margin-bottom: 16px; 
+  padding: 8px 0; 
+  i { color: $primary-color; font-size: 16px; } 
+  span { font-size: 16px; color: $text-color; } 
 }
 
-.opcoes-dieteticas-drawer {
-  .opcao-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding: 8px 0;
-    
-    i {
-      color: $primary-color;
-      font-size: 16px;
+// Estilos para o Drawer de Opções Dietéticas
+::ng-deep .opcoes-dieteticas-drawer-wrapper {
+  // No mobile, garante que ocupe 60% da tela
+  @media (max-width: 768px) {
+    .ant-drawer-content-wrapper {
+      width: 60% !important;
+      max-width: 60vw !important;
     }
     
-    span {
-      font-size: 16px;
-      color: $text-color;
-    }
-  }
-}
-
-// Responsividade ajustada
-@media (max-width: 992px) {
-  .content-area {
-    flex-direction: column;
-    
-    // ESCONDE A COLUNA LATERAL DE RESERVA
-    .coluna-reserva {
-      display: none; // <-- ALTERADO DE 'flex: none' PARA 'display: none'
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  // 1. CORRIGE O CONTAINER "TORTO" - OCUPA TODA A LARGURA DA TELA
-  // Compensa o padding do router-container (24px 20px) para ocupar toda a largura
-  // 72px (altura da toolbar) + 16px (padding que já tinhas) = 88px
-  .container-rounded {
-    margin: 0 -20px; // Margem negativa horizontal para compensar o padding do router-container
-    padding: 88px 20px 80px 20px; // <-- Altera o padding-top de 16px para 88px
-    max-width: calc(100vw); // Garante que não estoure
-    width: calc(100vw); // Ocupa toda a largura da viewport
-    border-radius: 0; // Remove bordas no mobile
-    box-shadow: none; // Remove sombra no mobile
-    background: $white; // Garante fundo branco
-    position: relative; // Para garantir posicionamento correto
-  }
-
-  // Ajusta Breadcrumb no mobile (agora visível)
-  .breadcrumb {
-    margin-bottom: 16px; // Menos espaço
-    padding: 0; // Garante que não tem padding extra
-  }
-  
-  .restaurant-header {
-    // 2. FAVORITO AO LADO DO NOME
-    .title-row {
-      flex-direction: row; // <-- ALTERADO DE 'column' PARA 'row'
-      align-items: center; // Alinha verticalmente
-      gap: 12px;
-      
-      .restaurant-title {
-        font-size: 24px; // Título menor
-        flex: 1; // Deixa o título ocupar o espaço
-        line-height: 1.2;
-      }
-      .favorite-button {
-        flex-shrink: 0; // Impede o botão de encolher
-      }
-    }
-  }
-  
-  // 3. IMPLEMENTA A GALERIA MOBILE
-  .photo-gallery {
-    margin: 24px -20px; // Compensa o padding do container para "sangrar" até as bordas
-    padding-bottom: 0; // Remove padding inferior
-
-    // Esconde o grid do desktop
-    .gallery-grid.desktop-gallery {
-      display: none;
-    }
-
-    // Mostra e estiliza o slider do telemóvel (estilo TheFork/meu-restaurante)
-    .gallery-grid-irregular.mobile-gallery {
-      display: flex; // <-- ATIVA O FLEX
-      overflow-x: auto;
-      overflow-y: hidden;
-      height: auto;
-      gap: 12px;
-      padding: 0 16px; // Padding lateral para "espreitar"
-      scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
-      
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-      &::-webkit-scrollbar {
-        display: none;
-      }
-
-      .mobile-gallery-item {
-        scroll-snap-align: start;
-        flex-shrink: 0;
-        width: 85%; // <-- A CHAVE: Ocupa 85%
-        height: auto;
-        aspect-ratio: 4 / 3;
-        border-radius: 12px;
-        overflow: hidden;
-        position: relative;
-        cursor: pointer;
-        
-        .gallery-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        
-        .more-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 600;
-          font-size: 14px;
-          text-align: center;
-          z-index: 1;
-        }
-      }
-    }
-    
-    // Mostra o indicador de scroll
-    .scroll-indicator.mobile-gallery {
-      display: block; // <-- ATIVA O DISPLAY
-      text-align: center;
-      padding: 12px 0 0 0; // Ajusta padding
-      color: rgba(59, 34, 27, 0.5);
-      font-size: 11px;
-      font-weight: 500;
-      
-      &::before {
-        content: "← →";
-        display: block;
-        font-size: 14px;
-        margin-bottom: 4px;
-        opacity: 0.7;
-      }
-    }
-  }
-  
-  // Esconde a coluna de reserva (já feito no @media 992px)
-  .coluna-reserva {
-    display: none !important;
-  }
-
-  // 4. CORRIGE CONTEÚDO CORTADO (ex: "Aceita cartões")
-  .recursos-section .recursos-lista {
-    // Garante que o grid quebre colunas corretamente
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  }
-  
-  .localizacao-section {
-    .endereco-completo {
-      flex-direction: column;
-      align-items: flex-start !important;
-      
-      .como-chegar-btn {
-        margin-top: 12px;
-        margin-left: 0;
-        width: 100%;
-      }
-    }
-  }
-  
-  // Ajustes mobile para sistema de reservas estilo Tavola
-  .coluna-reserva {
-    .card-reserva-tavola {
-      .navegacao-reserva {
-        .etapa-nav {
-          .conteudo-etapa {
-            span {
-              font-size: 10px;
-              max-width: 60px;
-            }
-          }
-        }
-      }
-      
-      .etapa-reserva {
-        .calendario-tavola {
-          ::ng-deep .ant-picker-calendar {
-            .ant-picker-cell {
-              .ant-picker-cell-inner {
-                width: 28px;
-                height: 28px;
-                line-height: 28px;
-              }
-            }
-          }
-        }
-        
-        .periodo-horario {
-          .slots-horario {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-        
-        .grid-pessoas {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .container-rounded {
-    margin: 0 -20px; // Mantém margem negativa para compensar router-container
-    padding: 12px 20px 80px 20px; // Padding menor, mantém 80px no fundo
-  }
-  
-  .photo-gallery {
-    margin: 16px -20px; // Ajusta a margem negativa para compensar o padding do container
-  }
-
-  .full-gallery {
-    .gallery-grid-modal {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .recursos-section {
-    .recursos-lista {
-      grid-template-columns: 1fr !important;
-    }
-  }
-  
-  // Ajusta o card de item de menu no mobile
-  .menu-content .categorias-content .categoria-section {
-    .categoria-titulo { 
-      font-size: 18px; 
-    }
-    
-    .itens-lista .item-card .item-content {
-      flex-direction: column;
-      align-items: stretch;
-      
-      .item-image {
-        width: 100%;
-        height: 150px;
-        border-radius: $border-radius $border-radius 0 0;
-      }
-      
-      .item-info {
-        text-align: center;
-        padding: 12px 12px 8px 12px;
-        
-        .item-tags { 
-          justify-content: center; 
-        }
-      }
-      
-      .item-preco {
-        text-align: center;
-        padding: 8px 12px 12px 12px;
-        border-top: 1px solid #eee;
-        width: 100%;
-      }
-    }
-  }
-  
-  // Ajustes nas avaliações
-  .avaliacoes-content {
-    .resumo-avaliacoes-card {
-      padding: 20px;
-      
-      .resumo-header {
-        flex-direction: column;
-        gap: 20px;
-      }
-    }
-    
-    .lista-avaliacoes ::ng-deep .ant-comment {
-      .ant-comment-avatar {
-        margin-right: 12px;
-        
-        ::ng-deep .ant-avatar {
-          width: 48px !important;
-          height: 48px !important;
-          
-          .anticon { 
-            font-size: 24px; 
-          }
-        }
-      }
-      
-      .ant-comment-content {
-        .avaliacao-header-custom {
-          .nome-data-wrapper {
-            .nome-cliente { 
-              font-size: 15px; 
-            }
-            .data-reserva { 
-              font-size: 13px; 
-            }
-          }
-          
-          .avaliacao-rating {
-            gap: 8px;
-            
-            .nota-numero { 
-              font-size: 13px; 
-            }
-          }
-        }
-        
-        .comentario-texto { 
-          font-size: 14px; 
-        }
-      }
-    }
-  }
-  
-  // Ajustes para telas muito pequenas
-  .coluna-reserva {
-    .card-reserva-tavola {
-      .etapa-reserva {
-        .periodo-horario {
-          .slots-horario {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-        
-        .grid-pessoas {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-    }
-  }
-}
-
-// Estilos para o step 4 de confirmação
-.etapa-reserva {
-  .resumo-reserva {
-    background-color: $tavola-amarelo-claro;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 24px;
-    
-    h4 {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 16px;
-      color: $text-color;
-    }
-    
-    .resumo-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      
-      .label {
-        font-weight: 500;
-        color: rgba(59, 34, 27, 0.8);
-      }
-      
-      .value {
-        font-weight: 600;
-        color: $text-color;
-      }
-    }
-  }
-  
-  .comentarios-section {
-    margin-bottom: 24px;
-    
-    h4 {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 8px;
-      color: $text-color;
-    }
-    
-    .comentarios-desc {
-      font-size: 14px;
-      color: rgba(59, 34, 27, 0.7);
-      margin-bottom: 16px;
-    }
-    
-    .char-count {
-      text-align: right;
-      font-size: 12px;
-      color: rgba(59, 34, 27, 0.6);
-      margin-top: 4px;
-    }
-    
-    .mat-mdc-form-field {
+    .ant-drawer-content {
       width: 100%;
     }
     
-    .sugestoes-rapidas {
-      margin-top: 16px;
-      
-      .sugestoes-label {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        margin-bottom: 8px;
-        color: $text-color;
-      }
-      
-      .sugestoes-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        
-        .sugestao-chip {
-          font-size: 12px;
-          padding: 4px 8px;
-          height: auto;
-          border-color: $medium-gray;
-          
-          &:hover {
-            border-color: $tavola-amarelo;
-            color: $tavola-amarelo;
-          }
-        }
-      }
+    .ant-drawer-body {
+      padding: 24px;
+      overflow-y: auto;
+      height: calc(100% - 55px); // Altura total menos o header
     }
   }
   
-  .confirmacao-section {
-    text-align: center;
-    
-    .botao-confirmar {
-      width: 100%;
-      height: 48px;
-      font-size: 16px;
-      font-weight: 600;
-      background-color: $tavola-amarelo;
-      border-color: $tavola-amarelo;
-      color: $text-color;
-      margin-bottom: 0;
-      
-      &:hover {
-        background-color: color.adjust($tavola-amarelo, $lightness: -10%);
-        border-color: color.adjust($tavola-amarelo, $lightness: -10%);
-      }
-      
-      i {
-        margin-right: 8px;
-      }
-    }
-    
-    
-    .confirmacao-info {
-      font-size: 12px;
-      color: rgba(59, 34, 27, 0.7);
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      
-      i {
-        font-size: 14px;
-      }
+  // Desktop mantém 400px
+  @media (min-width: 769px) {
+    .ant-drawer-content-wrapper {
+      width: 400px !important;
     }
   }
 }
 
-// Styles for the rounded Material button
-.mat-rounded-button {
-  border-radius: 8px !important;
-  height: 48px !important;
-  font-size: 16px !important;
-  font-weight: 800 !important;
-  background-color: $tavola-amarelo !important;
-  color: $text-color !important;
-  
-  &:hover {
-    background-color: color.adjust($tavola-amarelo, $lightness: -10%) !important;
-  }
-  
-  mat-icon {
-    margin-right: 8px;
-  }
+.mat-rounded-button { 
+  border-radius: 8px !important; 
+  height: 48px !important; 
+  font-size: 16px !important; 
+  font-weight: 800 !important; 
+  background-color: $tavola-amarelo !important; 
+  color: $text-color !important; 
+  &:hover { background-color: color.adjust($tavola-amarelo, $lightness: -10%) !important; } 
+  mat-icon { margin-right: 8px; } 
 }
 
-.descricao-restaurante {
-  white-space: pre-line;
-  word-break: break-word;
-}
+.descricao-restaurante { white-space: pre-line; word-break: break-word; }
 
-// Estilos para a aba de Avaliações
 .avaliacoes-content {
-  .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px;
-    gap: 16px;
-
-    p {
-      color: $dark-gray;
-      margin: 0;
-    }
+  .loading-container { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 48px; 
+    gap: 16px; 
+    p { color: $dark-gray; margin: 0; } 
   }
 
   .avaliacoes-container {
-    .avaliacoes-titulo {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0 0 24px;
-      color: $text-color;
-    }
+    .avaliacoes-titulo { font-size: 24px; font-weight: 700; margin: 0 0 24px; color: $text-color; }
 
     .resumo-avaliacoes-card {
-      background: $white;
-      border-radius: $border-radius;
-      padding: 32px;
-      margin-bottom: 32px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      display: flex;
-      flex-direction: column;
+      background: $white; 
+      border-radius: $border-radius; 
+      padding: 32px; 
+      margin-bottom: 32px; 
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); 
+      display: flex; 
+      flex-direction: column; 
       gap: 24px;
 
-      .resumo-header {
-        display: flex;
-        align-items: center;
-        gap: 32px;
-        flex-wrap: wrap;
-      }
+      .resumo-header { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
 
-      .resumo-left {
-        .circulo-avaliacao {
-          position: relative;
-          display: inline-block;
-
-
-          .progress-circle-fill {
-            transition: stroke-dasharray 0.5s ease;
-          }
-
-          .nota-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-
-            .nota-valor {
-              font-size: 36px;
-              font-weight: 700;
-              color: $text-color;
-              line-height: 1;
-            }
-
-            .nota-max {
-              font-size: 14px;
-              color: $dark-gray;
-              margin-top: 4px;
-            }
-          }
+      .resumo-left .circulo-avaliacao {
+        position: relative; display: inline-block;
+        .progress-circle-fill { transition: stroke-dasharray 0.5s ease; }
+        .nota-overlay { 
+          position: absolute; 
+          top: 50%; 
+          left: 50%; 
+          transform: translate(-50%, -50%); 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: center; 
+          .nota-valor { font-size: 36px; font-weight: 700; color: $text-color; line-height: 1; } 
+          .nota-max { font-size: 14px; color: $dark-gray; margin-top: 4px; } 
         }
       }
 
       .resumo-right {
         flex: 1;
-
-        .badge-avaliacao {
-          display: inline-block;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: 600;
-          margin-bottom: 8px;
-
-          &.excelente {
-            background-color: #E8F5E9;
-            color: #2E7D32;
-          }
-
-          &.muito-bom {
-            background-color: #C8E6C9;
-            color: #388E3C;
-          }
-
-          &.bom {
-            background-color: #DCEDC8;
-            color: #558B2F;
-          }
-
-          &.regular {
-            background-color: #FFF9C4;
-            color: #F57F17;
-          }
-
-          &.ruim {
-            background-color: #FFE0B2;
-            color: #E65100;
-          }
-
-          &.pessimo {
-            background-color: #FFCDD2;
-            color: #C62828;
-          }
+        .badge-avaliacao { 
+          display: inline-block; 
+          padding: 8px 16px; 
+          border-radius: 20px; 
+          font-size: 14px; 
+          font-weight: 600; 
+          margin-bottom: 8px; 
+          &.excelente { background-color: #E8F5E9; color: #2E7D32; } 
+          &.muito-bom { background-color: #C8E6C9; color: #388E3C; } 
+          &.bom { background-color: #DCEDC8; color: #558B2F; } 
+          &.regular { background-color: #FFF9C4; color: #F57F17; } 
+          &.ruim { background-color: #FFE0B2; color: #E65100; } 
+          &.pessimo { background-color: #FFCDD2; color: #C62828; } 
         }
-
-        .total-avaliacoes {
-          font-size: 16px;
-          color: $dark-gray;
-          margin: 0;
-        }
+        .total-avaliacoes { font-size: 16px; color: $dark-gray; margin: 0; }
       }
 
       .card-informativo-avaliacoes {
-        background: $light-gray;
-        border: 1px solid rgba(59, 34, 27, 0.1);
-        border-radius: $border-radius;
-        padding: 20px;
-        margin-top: 0;
+        background: $light-gray; 
+        border: 1px solid rgba(59, 34, 27, 0.1); 
+        border-radius: $border-radius; 
+        padding: 20px; 
+        margin-top: 0; 
         margin-bottom: 0;
-
-        .informativo-content {
-          display: flex;
-          align-items: flex-start;
-          gap: 16px;
-
-          .informativo-icon {
-            color: #52c41a;
-            font-size: 24px;
-            width: 24px;
-            height: 24px;
-            margin-top: 2px;
-            flex-shrink: 0;
-          }
-
-          .informativo-texto {
-            flex: 1;
-
-            .informativo-titulo {
-              font-size: 16px;
-              font-weight: 600;
-              color: $text-color;
-              margin: 0 0 8px;
-            }
-
-            .informativo-descricao {
-              font-size: 14px;
-              color: rgba(59, 34, 27, 0.8);
-              margin: 0;
-              line-height: 1.6;
-            }
-          }
+        .informativo-content { 
+          display: flex; 
+          align-items: flex-start; 
+          gap: 16px; 
+          .informativo-icon { color: #52c41a; font-size: 24px; width: 24px; height: 24px; margin-top: 2px; flex-shrink: 0; } 
+          .informativo-texto { 
+            flex: 1; 
+            .informativo-titulo { font-size: 16px; font-weight: 600; color: $text-color; margin: 0 0 8px; } 
+            .informativo-descricao { font-size: 14px; color: rgba(59, 34, 27, 0.8); margin: 0; line-height: 1.6; } 
+          } 
         }
       }
     }
 
-    .lista-avaliacoes {
-      ::ng-deep {
-        .ant-list-item {
-          padding: 0;
-          border-bottom: none;
+    .lista-avaliacoes ::ng-deep {
+      .ant-list-item { 
+        padding: 0; 
+        border-bottom: none; 
+        .comentario-item { 
+          padding: 24px 0; 
+          border-bottom: 2px solid rgba(59, 34, 27, 0.12); 
+          margin-bottom: 0; 
+          &:last-child { border-bottom: none; } 
+        } 
+      }
 
-          .comentario-item {
-            padding: 24px 0;
-            border-bottom: 2px solid rgba(59, 34, 27, 0.12);
-            margin-bottom: 0;
-
-            &:last-child {
-              border-bottom: none;
-            }
-          }
+      .ant-comment {
+        .ant-comment-inner { padding: 0; }
+        .ant-comment-avatar { 
+          margin-right: 20px; 
+          flex-shrink: 0; 
+          ::ng-deep .ant-avatar { 
+            width: 64px !important; 
+            height: 64px !important; 
+            border: 2px solid rgba(59, 34, 27, 0.1) !important; 
+            border-radius: 50% !important; 
+            display: flex !important; 
+            align-items: center !important; 
+            justify-content: center !important; 
+            overflow: hidden !important; 
+            img { width: 100% !important; height: 100% !important; object-fit: cover !important; } 
+            .anticon { font-size: 32px; } 
+          } 
         }
-
-        .ant-comment {
-          .ant-comment-inner {
-            padding: 0;
+        .ant-comment-content {
+          .avaliacao-header-custom { 
+            margin-bottom: 12px; 
+            .nome-data-wrapper { 
+              display: flex; 
+              flex-direction: column; 
+              gap: 4px; 
+              margin-bottom: 8px; 
+              .nome-cliente { font-size: 16px; font-weight: 600; color: $text-color; line-height: 1.4; } 
+              .data-reserva { font-size: 14px; color: rgba(59, 34, 27, 0.7); font-weight: 400; } 
+            } 
+            .avaliacao-rating { 
+              display: flex; 
+              align-items: center; 
+              gap: 12px; 
+              .rating-stars-comment ::ng-deep .ant-rate { font-size: 16px; color: $tavola-amarelo; } 
+              .nota-numero { font-size: 14px; font-weight: 600; color: $text-color; } 
+            } 
           }
-
-          .ant-comment-avatar {
-            margin-right: 20px;
-            flex-shrink: 0;
-
-            ::ng-deep .ant-avatar {
-              width: 64px !important;
-              height: 64px !important;
-              border: 2px solid rgba(59, 34, 27, 0.1) !important;
-              border-radius: 50% !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-              overflow: hidden !important;
-
-              img {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: cover !important;
-              }
-
-              .anticon {
-                font-size: 32px;
-              }
-            }
-          }
-
-          .ant-comment-content {
-            .avaliacao-header-custom {
-              margin-bottom: 12px;
-
-              .nome-data-wrapper {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                margin-bottom: 8px;
-
-                .nome-cliente {
-                  font-size: 16px;
-                  font-weight: 600;
-                  color: $text-color;
-                  line-height: 1.4;
-                }
-
-                .data-reserva {
-                  font-size: 14px;
-                  color: rgba(59, 34, 27, 0.7);
-                  font-weight: 400;
-                }
-              }
-
-              .avaliacao-rating {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-
-                .rating-stars-comment {
-                  ::ng-deep .ant-rate {
-                    font-size: 16px;
-                    color: $tavola-amarelo;
-                  }
-                }
-
-                .nota-numero {
-                  font-size: 14px;
-                  font-weight: 600;
-                  color: $text-color;
-                }
-              }
-            }
-
-            .comentario-texto {
-              font-size: 15px;
-              color: rgba(59, 34, 27, 0.8);
-              line-height: 1.6;
-              margin: 0;
-            }
-          }
+          .comentario-texto { font-size: 15px; color: rgba(59, 34, 27, 0.8); line-height: 1.6; margin: 0; }
         }
       }
     }
 
-    .sem-avaliacoes {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 64px 32px;
-      text-align: center;
-
-      mat-icon {
-        font-size: 64px;
-        width: 64px;
-        height: 64px;
-        color: $medium-gray;
-        margin-bottom: 16px;
-      }
-
-      p {
-        font-size: 16px;
-        color: $dark-gray;
-        margin: 0;
-      }
+    .sem-avaliacoes { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 64px 32px; 
+      text-align: center; 
+      mat-icon { font-size: 64px; width: 64px; height: 64px; color: $medium-gray; margin-bottom: 16px; } 
+      p { font-size: 16px; color: $dark-gray; margin: 0; } 
     }
   }
 }
 
-// ===================================
-// === NOVOS ESTILOS: FOOTER E DRAWER ===
-// ===================================
+// ==========================================================================
+// ESTILOS MOBILE E RESPONSIVIDADE
+// ==========================================================================
 
 // Footer Fixo para Reserva (Mobile)
 .sticky-booking-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: $white;
-  padding: 16px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
-  z-index: 100;
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  right: 0; 
+  background-color: $white; 
+  padding: 16px; 
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12); 
+  z-index: 100; 
   border-top: 1px solid $medium-gray;
 
-  .botao-escolha-reserva {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    background: linear-gradient(135deg, $tavola-amarelo, #f4a261);
-    color: $text-color;
-    border: none;
-    border-radius: 12px;
-    padding: 16px 24px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3);
+  .botao-escolha-reserva { 
+    width: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 12px; 
+    background: linear-gradient(135deg, $tavola-amarelo, #f4a261); 
+    color: $text-color; 
+    border: none; 
+    border-radius: 12px; 
+    padding: 16px 24px; 
+    font-size: 16px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+    box-shadow: 0 4px 12px rgba(246, 189, 56, 0.3); 
+    mat-icon { font-size: 24px; width: 24px; height: 24px; } 
+    span { font-weight: 700; letter-spacing: 0.3px; } 
+    &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(246, 189, 56, 0.4); } 
+    &:active { transform: translateY(0); } 
+  }
+}
 
-    mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+// Estilos para o Dialog de Reserva (Mobile) - APLICA O MIXIN
+::ng-deep {
+  // Container do overlay - z-index alto para ficar acima de tudo
+  .cdk-overlay-container {
+    z-index: 10000 !important;
+  }
+  
+  // Remove backdrop cinza
+  .cdk-overlay-backdrop {
+    &.reserva-dialog-backdrop,
+    &.cdk-overlay-backdrop-showing {
+      background: transparent !important;
     }
-
-    span {
-      font-weight: 700;
-      letter-spacing: 0.3px;
+  }
+  
+  // Pane do dialog - ocupa toda a tela
+  .cdk-overlay-pane.reserva-dialog-mobile {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 10000 !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+  
+  // Container do dialog
+  .reserva-dialog-mobile {
+    .mat-mdc-dialog-container {
+      padding: 0 !important;
+      overflow: hidden !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      border-radius: 0 !important;
+      position: relative !important;
+      margin: 0 !important;
     }
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(246, 189, 56, 0.4);
+    
+    .mat-mdc-dialog-surface {
+      border-radius: 0 !important;
+      overflow: hidden !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      width: 100vw !important;
     }
-
-    &:active {
-      transform: translateY(0);
+    
+    .card-reserva-tavola.card-reserva-dialog {
+      // APLICA O MIXIN AQUI PARA O MOBILE
+      @include card-reserva-styles;
+      
+      // Estilos específicos mobile
+      background: $white;
+      border-radius: 0;
+      box-shadow: none;
+      overflow: hidden;
+      height: 100vh;
+      max-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
   }
 }
 
-// Estilos para o Drawer de Reserva (Mobile) - IGUAL AO DESKTOP
-::ng-deep .reserva-drawer-mobile {
-  // O container do drawer
-  .ant-drawer-content {
-    border-radius: 24px 24px 0 0;
-  }
-  
-  // O corpo (onde o conteúdo é injetado)
-  .ant-drawer-body {
-    padding: 0;
-    overflow: hidden; // O scroll será interno
-  }
-  
-  .card-reserva-tavola.card-reserva-drawer {
-    // AJUSTADO: Altura máxima, não fixa
-    max-height: 85vh; // Ocupa no MÁXIMO 85% da altura
-    height: auto; // Altura automática baseada no conteúdo
-    box-shadow: none;
-    border-radius: 24px 24px 0 0;
-    display: flex;
+@media (max-width: 992px) {
+  .content-area {
     flex-direction: column;
-    background: $white;
-    overflow: hidden;
+    .coluna-reserva { display: none; }
+  }
+}
 
-    // Cabeçalho estilo Tavola (com título dinâmico)
-    .cabecalho-reserva.cabecalho-drawer {
-      background: $tavola-amarelo;
-      padding: 16px 20px; // Padding menor
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-      position: relative; // Para posicionar o botão de fechar
-      
-      .titulo-reserva {
-        flex: 1; // Título ocupa espaço
-        text-align: center; // Centraliza título
-        font-size: 18px; // Fonte menor
-        font-weight: 700;
-        margin: 0;
-        color: $accent-color;
-        padding-left: 36px; // Compensa o botão de fechar
-        padding-right: 36px; // Compensa o botão de fechar
+@media (max-width: 768px) {
+  .container-rounded {
+    margin: 0 -20px;
+    padding: 88px 20px 80px 20px;
+    max-width: calc(100vw); 
+    width: calc(100vw);
+    border-radius: 0; 
+    box-shadow: none; 
+    background: $white; 
+    position: relative;
+  }
+  
+  .breadcrumb { margin-bottom: 16px; padding: 0; }
+  
+  .restaurant-header .title-row { 
+    flex-direction: row; 
+    align-items: center; 
+    gap: 12px; 
+    .restaurant-title { font-size: 24px; flex: 1; line-height: 1.2; } 
+    .favorite-button { flex-shrink: 0; } 
+  }
+  
+  .photo-gallery {
+    margin: 24px -20px; 
+    padding-bottom: 0;
+    .gallery-grid.desktop-gallery { display: none; }
+    .gallery-grid-irregular.mobile-gallery {
+      display: flex; 
+      overflow-x: auto; 
+      overflow-y: hidden; 
+      height: auto; 
+      gap: 12px; 
+      padding: 0 16px; 
+      scroll-behavior: smooth; 
+      scroll-snap-type: x mandatory; 
+      -ms-overflow-style: none; 
+      scrollbar-width: none; 
+      &::-webkit-scrollbar { display: none; }
+      .mobile-gallery-item { 
+        scroll-snap-align: start; 
+        flex-shrink: 0; 
+        width: 85%; 
+        height: auto; 
+        aspect-ratio: 4 / 3; 
+        border-radius: 12px; 
+        overflow: hidden; 
+        position: relative; 
+        cursor: pointer; 
+        .gallery-image { width: 100%; height: 100%; object-fit: cover; } 
+        .more-overlay { 
+          position: absolute; 
+          top: 0; 
+          left: 0; 
+          width: 100%; 
+          height: 100%; 
+          background: rgba(0, 0, 0, 0.7); 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          color: white; 
+          font-weight: 600; 
+          font-size: 14px; 
+          text-align: center; 
+          z-index: 1; 
+        } 
       }
-      
-      .fechar-drawer-btn {
-        color: $text-color;
-        background: rgba(255, 255, 255, 0.2);
-        flex-shrink: 0;
-        // Posição absoluta para ficar no canto
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        
-        &:hover { 
-          background: rgba(255, 255, 255, 0.3); 
-        }
-      }
     }
-    
-    // Navegação (mantém)
-    .navegacao-reserva {
-       flex-shrink: 0; // Não encolhe
+    .scroll-indicator.mobile-gallery { 
+      display: block; 
+      text-align: center; 
+      padding: 12px 0 0 0; 
+      color: rgba(59, 34, 27, 0.5); 
+      font-size: 11px; 
+      font-weight: 500; 
+      &::before { content: "← →"; display: block; font-size: 14px; margin-bottom: 4px; opacity: 0.7; } 
     }
-    
-    // Ajusta o container do conteúdo para ter scroll
-    .conteudo-reserva {
-      flex: 1; // Ocupa o espaço restante
-      overflow-y: auto; // <-- HABILITA SCROLL
-      padding: 20px 24px; // Padding interno
-    }
+  }
+  
+  .coluna-reserva { display: none !important; }
+  
+  .recursos-section .recursos-lista { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  
+  .localizacao-section .endereco-completo { 
+    flex-direction: column; 
+    align-items: flex-start !important; 
+    .como-chegar-btn { margin-top: 12px; margin-left: 0; width: 100%; } 
+  }
+}
 
-    // Ajusta o tamanho da fonte dos steps
-    .navegacao-reserva .etapa-nav .conteudo-etapa span {
-      font-size: 10px;
-      max-width: 60px; // Limita largura
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    // NOVO: Estilos para o nz-date-picker inline (Calendário Mobile)
-    .etapa-calendario-mobile {
-      nz-date-picker[nzInline] {
-        width: 100%; // Ocupa 100% do container
-        
-        // Remove borda e sombra
-        ::ng-deep .ant-picker-panel {
-          border: none;
-          box-shadow: none;
-          background: transparent;
-        }
-        
-        // Estiliza o cabeçalho (Mês, Ano, Setas)
-        ::ng-deep .ant-picker-calendar-header {
-          padding: 10px 0;
-          border-bottom: 1px solid $medium-gray;
-          
-          .ant-picker-calendar-year-select,
-          .ant-picker-calendar-month-select {
-            font-size: 16px;
-            font-weight: 600;
-            color: $text-color;
-          }
-          .ant-picker-calendar-mode-switch {
-            display: none; // Esconde "Mês/Ano"
-          }
-        }
-        
-        // Estiliza os dias
-        ::ng-deep .ant-picker-cell-inner {
-          height: 36px; // Tamanho do dia
-          width: 36px;
-          line-height: 36px;
-          font-size: 14px;
-          border-radius: 50%; // Dias redondos
-          
-          &.ant-picker-cell-selected { // Dia selecionado
-            background: $tavola-amarelo;
-            color: $text-color;
-            font-weight: 700;
-          }
-          &.ant-picker-cell-today { // Dia de hoje
-            border-color: $tavola-amarelo;
-          }
-        }
-        
-        ::ng-deep .ant-picker-cell-disabled .ant-picker-cell-inner {
-          background: $tavola-cinza; // Fundo cinza para desabilitado
-          color: $medium-gray;
-          opacity: 0.7;
-        }
-      }
-    }
-    
-    // Ajustes para as etapas 2, 3, 4 (slots, pessoas, confirmação)
-    .etapa-reserva {
-      // Garante que o botão de confirmar não fique perdido no fundo
-      .confirmacao-section {
-        padding-bottom: 24px; // Adiciona espaço no final do scroll
-        
-        .botao-confirmar {
-          width: 100%; // Botão ocupa 100%
-        }
-      }
-      
-      // Garante que o grid de pessoas e slots funcionem bem
-      .slots-horario {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); // Mais colunas
-      }
-      .grid-pessoas {
-        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); // Mais colunas
-      }
-    }
+@media (max-width: 480px) {
+  .container-rounded { margin: 0 -20px; padding: 12px 20px 80px 20px; }
+  .photo-gallery { margin: 16px -20px; }
+  .full-gallery .gallery-grid-modal { grid-template-columns: 1fr; }
+  .recursos-section .recursos-lista { grid-template-columns: 1fr !important; }
+  
+  .menu-content .categorias-content .categoria-section { 
+    .categoria-titulo { font-size: 18px; } 
+    .itens-lista .item-card .item-content { 
+      flex-direction: column; 
+      align-items: stretch; 
+      .item-image { width: 100%; height: 150px; border-radius: $border-radius $border-radius 0 0; } 
+      .item-info { text-align: center; padding: 12px 12px 8px 12px; .item-tags { justify-content: center; } } 
+      .item-preco { text-align: center; padding: 8px 12px 12px 12px; border-top: 1px solid #eee; width: 100%; } 
+    } 
+  }
+  
+  .avaliacoes-content { 
+    .resumo-avaliacoes-card { 
+      padding: 20px; 
+      .resumo-header { flex-direction: column; gap: 20px; } 
+    } 
+    .lista-avaliacoes ::ng-deep .ant-comment { 
+      .ant-comment-avatar { 
+        margin-right: 12px; 
+        ::ng-deep .ant-avatar { 
+          width: 48px !important; 
+          height: 48px !important; 
+          .anticon { font-size: 24px; } 
+        } 
+      } 
+      .ant-comment-content { 
+        .avaliacao-header-custom { 
+          .nome-data-wrapper { 
+            .nome-cliente { font-size: 15px; } 
+            .data-reserva { font-size: 13px; } 
+          } 
+          .avaliacao-rating { 
+            gap: 8px; 
+            .nota-numero { font-size: 13px; } 
+          } 
+        } 
+        .comentario-texto { font-size: 14px; } 
+      } 
+    } 
   }
 }

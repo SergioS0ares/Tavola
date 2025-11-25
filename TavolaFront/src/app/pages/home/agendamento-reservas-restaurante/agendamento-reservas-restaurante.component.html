@@ -639,8 +639,9 @@
     nzPlacement="right"
     nzTitle="Opções dietéticas"
     (nzOnClose)="closeDietOptions()"
-    nzWidth="400px"
-    [nzMaskClosable]="true">
+    [nzWidth]="isMobile ? '60%' : '400px'"
+    [nzMaskClosable]="true"
+    class="opcoes-dieteticas-drawer-wrapper">
     
     <ng-container *nzDrawerContent>
       <p class="drawer-description">Este restaurante informou-nos que oferece pratos com as seguintes opções dietéticas:</p>
@@ -653,172 +654,11 @@
     </ng-container>
   </nz-drawer>
 
-  <!-- Drawer de Reserva (Mobile) -->
-  <nz-drawer
-    [nzVisible]="isReservaDrawerVisible"
-    (nzOnClose)="fecharDrawerReserva()"
-    nzPlacement="bottom"
-    [nzClosable]="false"
-    nzHeight="auto"
-    class="reserva-drawer-mobile"
-    [nzBodyStyle]="{ 'padding': '0', 'border-radius': '24px 24px 0 0', 'overflow': 'hidden' }">
-    
-    <ng-container *nzDrawerContent>
-      <div class="card-reserva-tavola card-reserva-drawer">
-        <!-- Cabeçalho estilo Tavola (com título dinâmico) -->
-        <div class="cabecalho-reserva cabecalho-drawer">
-          <h2 class="titulo-reserva">
-            <span *ngIf="bookingStep === 1">Escolha uma data</span>
-            <span *ngIf="bookingStep === 2">Escolha um horário</span>
-            <span *ngIf="bookingStep === 3">Quantas pessoas?</span>
-            <span *ngIf="bookingStep === 4">Confirme sua reserva</span>
-          </h2>
-          <button nz-button nzType="text" nzShape="circle" (click)="fecharDrawerReserva()" class="fechar-drawer-btn">
-            <i nz-icon nzType="close" nzTheme="outline"></i>
-          </button>
-        </div>
-
-        <div class="navegacao-reserva">
-          <button class="etapa-nav" [class.active]="bookingStep === 1" [class.completed]="bookingStep > 1" (click)="setBookingStep(1)">
-            <div class="conteudo-etapa">
-              <i nz-icon nzType="calendar" nzTheme="outline"></i>
-              <span>{{ bookingStep > 1 ? getFormattedDate() : 'Data' }}</span>
-            </div>
-          </button>
-          <button class="etapa-nav" [class.active]="bookingStep === 2" [class.completed]="bookingStep > 2" [disabled]="bookingStep < 2" (click)="setBookingStep(2)">
-            <div class="conteudo-etapa">
-              <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
-              <span>{{ bookingStep > 2 ? selectedTime : 'Horário' }}</span>
-            </div>
-          </button>
-          <button class="etapa-nav" [class.active]="bookingStep === 3" [class.completed]="bookingStep > 3" [disabled]="bookingStep < 3" (click)="setBookingStep(3)">
-            <div class="conteudo-etapa">
-              <i nz-icon nzType="team" nzTheme="outline"></i>
-              <span>{{ bookingStep > 3 ? selectedGuests + ' p.' : 'Pessoas' }}</span>
-            </div>
-          </button>
-          <button class="etapa-nav" [class.active]="bookingStep === 4" [class.completed]="bookingStep > 4" [disabled]="bookingStep < 4" (click)="setBookingStep(4)">
-            <div class="conteudo-etapa">
-              <i nz-icon nzType="check-circle" nzTheme="outline"></i>
-              <span>Confirmar</span>
-            </div>
-          </button>
-        </div>
-
-        <div class="conteudo-reserva">
-          <div *ngIf="bookingStep === 1" class="etapa-reserva etapa-calendario-mobile">
-            <nz-calendar 
-              *ngIf="!isLoading"
-              [(ngModel)]="selectedDate" 
-              [nzDisabledDate]="disabledDate"
-              (nzSelectChange)="onDateSelect($event)"
-              nzMode="month"
-              class="calendario-tavola calendario-tavola-mobile">
-            </nz-calendar>
-          </div>
-
-          <div *ngIf="bookingStep === 2" class="etapa-reserva">
-            <div *ngFor="let period of availableSlots" class="periodo-horario">
-              <h4>{{ period.period }}</h4>
-              <div class="slots-horario">
-                <button 
-                  *ngFor="let slot of period.slots" 
-                  nz-button 
-                  [nzType]="slot.availability === 'available' ? 'default' : 'dashed'"
-                  [disabled]="slot.availability === 'unavailable'"
-                  class="slot-horario"
-                  [class.limitado]="slot.availability === 'limited'"
-                  (click)="onTimeSelect(slot.time)">
-                  {{ slot.time }}
-                  <span *ngIf="slot.percentage" class="percentual">{{ slot.percentage }}%</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="bookingStep === 3" class="etapa-reserva">
-            <div class="grid-pessoas">
-              <button 
-                *ngFor="let num of [1,2,3,4,5,6,7,8,9,10,11,12]" 
-                nz-button 
-                nzType="default"
-                class="botao-pessoa"
-                [class.selecionado]="selectedGuests === num"
-                (click)="onGuestsSelect(num)">
-                {{ num }}
-              </button>
-            </div>
-          </div>
-
-          <div *ngIf="bookingStep === 4" class="etapa-reserva">
-            <div class="resumo-reserva">
-              <h4>Resumo da sua reserva</h4>
-              <div class="resumo-item">
-                <span class="label">Restaurante:</span>
-                <span class="value">{{ bookingData?.restaurant }}</span>
-              </div>
-              <div class="resumo-item">
-                <span class="label">Data:</span>
-                <span class="value">{{ bookingData?.formattedDate }}</span>
-              </div>
-              <div class="resumo-item">
-                <span class="label">Horário:</span>
-                <span class="value">{{ bookingData?.time }}</span>
-              </div>
-              <div class="resumo-item">
-                <span class="label">Pessoas:</span>
-                <span class="value">{{ bookingData?.guests }} {{ bookingData?.guests === 1 ? 'pessoa' : 'pessoas' }}</span>
-              </div>
-            </div>
-            <div class="comentarios-section">
-              <h4>Comentários ou preferências especiais</h4>
-              <p class="comentarios-desc">Adicione qualquer informação que possa nos ajudar a tornar sua experiência ainda melhor.</p>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Comentários</mat-label>
-                <textarea
-                  matInput
-                  [(ngModel)]="selectedComments"
-                  placeholder="Ex: Mesa perto da janela, aniversário, alergias alimentares..."
-                  rows="3"
-                  maxlength="200">
-                </textarea>
-                <mat-hint align="end">{{ selectedComments.length }}/200</mat-hint>
-              </mat-form-field>
-              <div class="sugestoes-rapidas">
-                <span class="sugestoes-label">Sugestões rápidas:</span>
-                <div class="sugestoes-chips">
-                  <button 
-                    *ngFor="let sugestao of ['Mesa perto da janela', 'É aniversário', 'Mesa mais reservada', 'Primeira visita']"
-                    nz-button 
-                    nzType="dashed" 
-                    nzSize="small"
-                    class="sugestao-chip"
-                    (click)="selectedComments = selectedComments ? selectedComments + ', ' + sugestao : sugestao">
-                    {{ sugestao }}
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="confirmacao-section">
-              <button
-                mat-raised-button
-                color="primary"
-                class="botao-confirmar"
-                (click)="finalizarReserva()">
-                <mat-icon>check</mat-icon>
-                Confirmar Reserva
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </ng-container>
-  </nz-drawer>
 </div>
 
 <!-- Footer Fixo para Reserva (Mobile) -->
-<div class="sticky-booking-footer" *ngIf="isMobile && !isReservaDrawerVisible">
-  <button class="botao-escolha-reserva" (click)="abrirDrawerReservaEscolha()">
+<div class="sticky-booking-footer" *ngIf="isMobile && !isReservaDialogVisible">
+  <button class="botao-escolha-reserva" (click)="abrirDialogReservaEscolha()">
     <mat-icon>calendar_today</mat-icon>
     <span>Escolha sua reserva</span>
   </button>
