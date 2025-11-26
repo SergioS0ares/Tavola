@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import TavolaSoftware.TavolaApp.REST.dto.requests.PedidoRequest;
+import TavolaSoftware.TavolaApp.REST.dto.responses.ItemPedidoResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.PedidoResponse;
 import TavolaSoftware.TavolaApp.REST.dto.responses.WebSocketMessage;
 import TavolaSoftware.TavolaApp.REST.model.Cardapio;
@@ -44,18 +45,26 @@ public class PedidoService {
     @Autowired private JwtUtil jwtUtil;
     @Autowired private SimpMessagingTemplate messagingTemplate;
     @Autowired private CardapioRepository cardapioRepository;
-    // <<< INJETAR AtendimentoMesaService >>>
     @Autowired private AtendimentoMesaService atendimentoMesaService; 
-
-    // <<< MÉTODO atenderChamadoMesa REMOVIDO >>>
-    // (Código obsoleto removido)
-
-    // <<< MÉTODO liberarAtendimentoMesa REMOVIDO >>>
-    // (Código obsoleto removido)
     
+    // NOVO MÉTODO DE MAPEAMENTO, ENRIQUECE OS ITENS COM A IMAGEM DO CARDAPIO
+    private List<ItemPedidoResponse> mapearItensParaResposta(List<ItemPedido> itens) {
+        return itens.stream()
+                .map(item -> {
+                    // Busca a URL da imagem no repositório do Cardápio
+                    String imagemUrl = cardapioRepository.findById(item.getProdutoId())
+                            .map(Cardapio::getImagem) // Assumindo que o Cardapio tem um método getImagem() ou getImagemUrl()
+                            .orElse(null);
+                    
+                    // Constrói o DTO do item enriquecido
+                    return new ItemPedidoResponse(item, imagemUrl);
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // MÉTODO MODIFICADO
     @Transactional(readOnly = true)
     public List<PedidoResponse> findPedidosAtivosPorMesa(UUID mesaId) {
-        // ... (Extração de token e validação de mesa - sem alterações) ...
         String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
         Claims claims = jwtUtil.parseToken(token);
         UUID restauranteId = UUID.fromString(claims.get("restauranteId", String.class));
@@ -65,21 +74,23 @@ public class PedidoService {
             throw new SecurityException("Acesso negado. A mesa não pertence ao seu restaurante.");
         }
 
-        // Define os status ativos (já estava correto, PENDENTE, EM_PREPARO, PRONTO)
+        // Define os status ativos
         Set<PedidoStatus> statusAtivos = Set.of(
             PedidoStatus.PENDENTE,
             PedidoStatus.EM_PREPARO,
             PedidoStatus.PRONTO
-            // Não inclui mais ATENDIMENTO nem AGUARDANDO_ATENDIMENTO
-        ); //
+        ); 
 
-        // Busca os pedidos (já estava correto)
-        List<Pedido> pedidosAtivos = pedidoRepository.findByMesaIdAndStatusInAndItensIsNotEmpty(mesaId, statusAtivos); //
+        // Busca os pedidos (Assuma que o Repositório usa JOIN FETCH para carregar os Itens e a Mesa)
+        List<Pedido> pedidosAtivos = pedidoRepository.findByMesaIdAndStatusInAndItensIsNotEmpty(mesaId, statusAtivos); 
 
-        // Mapeia para DTOs (já estava correto)
+        // Mapeia para DTOs (Usando o novo método de mapeamento para injetar a imagemUrl)
         return pedidosAtivos.stream()
-                .map(PedidoResponse::new)
-                .collect(Collectors.toList()); //
+                .map(pedido -> {
+                    List<ItemPedidoResponse> itensEnriquecidos = mapearItensParaResposta(pedido.getItens());
+                    return new PedidoResponse(pedido, itensEnriquecidos);
+                })
+                .collect(Collectors.toList()); 
     }
     
     @Transactional
@@ -96,16 +107,16 @@ public class PedidoService {
             throw new SecurityException("Acesso negado. O pedido não pertence ao seu restaurante.");
         }
         
-        // Validação de Status (já estava correta, bloqueia EM_PREPARO, PRONTO, ENTREGUE, CANCELADO)
+        // Validação de Status (sem alterações)
         Set<PedidoStatus> statusBloqueados = Set.of(
             PedidoStatus.EM_PREPARO,
             PedidoStatus.PRONTO,
             PedidoStatus.ENTREGUE,
             PedidoStatus.CANCELADO
-        ); //
+        ); 
         if (statusBloqueados.contains(pedido.getStatus())) {
              throw new IllegalStateException("Não é possível adicionar/remover itens de um pedido que está 'EM PREPARO', 'PRONTO', 'ENTREGUE' ou 'CANCELADO'. Status atual: " + pedido.getStatus());
-        } //
+        } 
         
         // ... (Garante lista vazia se request.getItens() for nulo - sem alterações) ...
         if (request.getItens() == null) {
@@ -113,7 +124,7 @@ public class PedidoService {
         }
 
         // LÓGICA DE ATUALIZAÇÃO (REPLACE)
-        pedido.getItens().clear(); //
+        pedido.getItens().clear(); 
 
         List<ItemPedido> novosItens = request.getItens().stream().map(itemDto -> {
             // ... (Busca Cardapio, valida restaurante, cria ItemPedido - sem alterações) ...
@@ -132,26 +143,30 @@ public class PedidoService {
             return itemPedido;
         }).collect(Collectors.toList());
 
-        pedido.getItens().addAll(novosItens); //
+        pedido.getItens().addAll(novosItens); 
         
-        // <<< LÓGICA DE MUDANÇA DE STATUS REMOVIDA >>>
-        // A lógica que mudava de ATENDIMENTO para PENDENTE foi removida, pois ATENDIMENTO não existe mais.
-
-        // Lógica de cancelamento se itens ficarem vazios (sem alterações)
+        // Lógica de cancelamento se itens ficarem vazios
         if (pedido.getItens().isEmpty()) {
-            pedido.setStatus(PedidoStatus.CANCELADO); //
+            pedido.setStatus(PedidoStatus.CANCELADO); 
             String topicCancel = "/topic/restaurante/" + restauranteId + "/pedidos";
-            messagingTemplate.convertAndSend(topicCancel, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_CANCEL, new PedidoResponse(pedido))); //
-            pedidoRepository.delete(pedido); //
-            PedidoResponse responseAntesDeDeletar = new PedidoResponse(pedido);
-            responseAntesDeDeletar.setStatus(PedidoStatus.CANCELADO); 
-            return responseAntesDeDeletar; //
+            // CHAMA CONSTRUTOR SIMPLES (sem itens enriquecidos)
+            messagingTemplate.convertAndSend(topicCancel, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_CANCEL, new PedidoResponse(pedido))); 
+            pedidoRepository.delete(pedido); 
+            
+            // Para o retorno do Controller, usa o mapeamento completo, mas com status CANCELADO
+            List<ItemPedidoResponse> itensCancelados = mapearItensParaResposta(pedido.getItens());
+            return new PedidoResponse(pedido, itensCancelados); 
         } else {
-             // Salva e notifica (sem alterações)
-             Pedido pedidoAtualizado = pedidoRepository.save(pedido); //
+             // Salva e notifica
+             Pedido pedidoAtualizado = pedidoRepository.save(pedido); 
              String topicUpdate = "/topic/restaurante/" + restauranteId + "/pedidos";
-             messagingTemplate.convertAndSend(topicUpdate, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, new PedidoResponse(pedidoAtualizado))); //
-             return new PedidoResponse(pedidoAtualizado); //
+             
+             // Usa mapeamento completo para a notificação e o retorno
+             List<ItemPedidoResponse> itensEnriquecidos = mapearItensParaResposta(pedidoAtualizado.getItens());
+             PedidoResponse responseCompleto = new PedidoResponse(pedidoAtualizado, itensEnriquecidos);
+             
+             messagingTemplate.convertAndSend(topicUpdate, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, responseCompleto)); 
+             return responseCompleto; 
         }
     }
     
@@ -174,37 +189,37 @@ public class PedidoService {
             throw new SecurityException("Acesso negado. O pedido não pertence ao seu restaurante.");
         }
 
-        pedido.setStatus(novoStatus); //
+        pedido.setStatus(novoStatus); 
 
-        // Associa garçom se ENTREGUE (sem alterações)
-        if (novoStatus == PedidoStatus.ENTREGUE) { //
+        // Associa garçom se ENTREGUE
+        if (novoStatus == PedidoStatus.ENTREGUE) { 
             Garcom garcom = garcomRepository.findById(garcomId)
                 .orElseThrow(() -> new EntityNotFoundException("Garçom não encontrado."));
-            pedido.setGarcom(garcom); //
+            pedido.setGarcom(garcom); 
         }
 
-        // Define o canal e o tipo de evento (sem alterações)
-        String topic = "/topic/restaurante/" + restauranteIdDoGarcom + "/pedidos"; //
-        EventLabel eventLabel = (novoStatus == PedidoStatus.CANCELADO) ? EventLabel.PEDIDO_UPDATE_CANCEL : EventLabel.PEDIDO_UPDATE_NEW; //
+        // Define o canal e o tipo de evento
+        String topic = "/topic/restaurante/" + restauranteIdDoGarcom + "/pedidos"; 
+        EventLabel eventLabel = (novoStatus == PedidoStatus.CANCELADO) ? EventLabel.PEDIDO_UPDATE_CANCEL : EventLabel.PEDIDO_UPDATE_NEW; 
 
-        // --- CORREÇÃO AQUI ---
-        // REGRA DE NEGÓCIO: SE O NOVO STATUS FOR *CANCELADO*, DELETAMOS O PEDIDO.
-        // ANTES: if (novoStatus == PedidoStatus.ENTREGUE || novoStatus == PedidoStatus.CANCELADO) {
-        if (novoStatus == PedidoStatus.CANCELADO) { // DEPOIS: Só deleta se for CANCELADO
-        // --- FIM DA CORREÇÃO ---
+        if (novoStatus == PedidoStatus.CANCELADO) { 
             
-            // Dispara a mensagem ANTES de deletar (sem alterações)
-            messagingTemplate.convertAndSend(topic, new WebSocketMessage(eventLabel, new PedidoResponse(pedido))); //
+            // Dispara a mensagem ANTES de deletar (usa construtor simples)
+            messagingTemplate.convertAndSend(topic, new WebSocketMessage(eventLabel, new PedidoResponse(pedido))); 
             
-            pedidoRepository.delete(pedido); //
-            return Optional.empty(); //
+            pedidoRepository.delete(pedido); 
+            return Optional.empty(); 
         } else {
             // Se for PENDENTE, EM_PREPARO, PRONTO ou ENTREGUE, apenas salva e notifica
-            Pedido pedidoAtualizado = pedidoRepository.save(pedido); //
-
-            messagingTemplate.convertAndSend(topic, new WebSocketMessage(eventLabel, new PedidoResponse(pedidoAtualizado))); //
+            Pedido pedidoAtualizado = pedidoRepository.save(pedido); 
             
-            return Optional.of(pedidoAtualizado); //
+            // Usa mapeamento completo para a notificação
+            List<ItemPedidoResponse> itensEnriquecidos = mapearItensParaResposta(pedidoAtualizado.getItens());
+            PedidoResponse responseCompleto = new PedidoResponse(pedidoAtualizado, itensEnriquecidos);
+
+            messagingTemplate.convertAndSend(topic, new WebSocketMessage(eventLabel, responseCompleto)); 
+            
+            return Optional.of(pedidoAtualizado); 
         }
     }
     
@@ -228,11 +243,11 @@ public class PedidoService {
         // <<< FIM DA VALIDAÇÃO >>>
 
         // Cria e popula o Pedido
-        Pedido novoPedido = new Pedido(); //
-        novoPedido.setMesa(mesa); //
-        novoPedido.setGarcom(garcom); //
-        novoPedido.setRestaurante(mesa.getAmbiente().getRestaurante()); //
-        novoPedido.setDataHora(LocalDateTime.now()); //
+        Pedido novoPedido = new Pedido(); 
+        novoPedido.setMesa(mesa); 
+        novoPedido.setGarcom(garcom); 
+        novoPedido.setRestaurante(mesa.getAmbiente().getRestaurante()); 
+        novoPedido.setDataHora(LocalDateTime.now()); 
         
         novoPedido.setStatus(PedidoStatus.PENDENTE);
         
@@ -260,13 +275,18 @@ public class PedidoService {
             itemPedido.setObservacoes(itemDto.getObservacao());
             return itemPedido;
         }).collect(Collectors.toList());
-        novoPedido.setItens(itensDoPedido); //
+        novoPedido.setItens(itensDoPedido); 
         
-        // Salva e notifica (sem alterações)
+        // Salva e notifica
         Pedido pedidoSalvo = pedidoRepository.save(novoPedido); 
         String topic = "/topic/restaurante/" + restauranteId + "/pedidos"; 
-        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, new PedidoResponse(pedidoSalvo))); 
+        
+        // Usa mapeamento completo para a notificação e o retorno
+        List<ItemPedidoResponse> itensEnriquecidos = mapearItensParaResposta(pedidoSalvo.getItens());
+        PedidoResponse responseCompleto = new PedidoResponse(pedidoSalvo, itensEnriquecidos);
 
-        return new PedidoResponse(pedidoSalvo); 
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, responseCompleto)); 
+
+        return responseCompleto; 
     }
 }
