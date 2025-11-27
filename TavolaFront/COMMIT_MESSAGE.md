@@ -111,3 +111,4 @@ feat: melhorias de UX mobile e ajustes de layout em reservas e navegação
 
 **Migration Guide:** Nenhuma migração necessária
 
+
