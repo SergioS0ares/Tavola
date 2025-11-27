@@ -307,7 +307,15 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
       // Handle missing ID, perhaps navigate away or show an error
     }
 
+    // Garante que o scroll está no topo ao entrar na tela
     window.scrollTo(0, 0)
+    // Também garante que o router-container está no topo
+    setTimeout(() => {
+      const routerContainer = document.querySelector('.router-container');
+      if (routerContainer) {
+        routerContainer.scrollTo(0, 0);
+      }
+    }, 0);
     this.selectedDate = new Date()
     this.selectedDate.setHours(0, 0, 0, 0) // Zerando hora para evitar problemas na comparação
     
@@ -351,6 +359,13 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
   }
 
   ngAfterViewInit() {
+    // Garante que o scroll está no topo após a view ser inicializada
+    window.scrollTo(0, 0)
+    const routerContainer = document.querySelector('.router-container');
+    if (routerContainer) {
+      routerContainer.scrollTo(0, 0);
+    }
+    
     setTimeout(() => {
       if (this.tabsContainer) {
         this.checkTabPosition()

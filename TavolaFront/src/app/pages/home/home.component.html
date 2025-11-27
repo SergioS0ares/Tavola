@@ -8,10 +8,11 @@
       
       <div class="banner-left">
         <h1>Descubra e reserve o melhor restaurante</h1>
-        <div #searchSentinel></div>
-        <div class="search-wrapper">
+        
+        <div #searchSentinel style="height: 1px; width: 100%; margin-bottom: 1px; background: transparent;"></div>
+        
+        <div class="search-wrapper" [style.visibility]="stickySearch ? 'hidden' : 'visible'">
           <app-search-bar
-            *ngIf="!stickySearch"
             #searchBarHome
             [citySuggestions]="filteredCitySuggestions"
             [querySuggestions]="querySuggestions"

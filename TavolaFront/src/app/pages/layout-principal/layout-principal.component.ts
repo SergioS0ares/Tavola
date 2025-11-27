@@ -84,7 +84,6 @@ export class LayoutPrincipalComponent implements OnInit {
   // Propriedades para notificações
   avaliacoesPendentes: Notificacao[] = []
   carregandoAvaliacoes = false
-  activeTab: "pendentes" | "lidas" = "pendentes"
 
   // Filtros de busca para a search bar sticky
   filtrosAtuais: FiltrosDialogResult = {
@@ -107,36 +106,48 @@ export class LayoutPrincipalComponent implements OnInit {
 
   // Propriedades para responsividade
   isDrawerVisible = false
+  public isHomePage = false // Controla se estamos na raiz da home (público para uso no template)
   isMobile$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map((result) => result.matches),
     shareReplay(),
   )
 
   constructor() {
-    // Assina o estado da search bar sticky do StickySearchService
+    // Assina o estado do serviço
     this.stickyService.sticky$.subscribe((val) => {
-      const isHome = this.router.url.startsWith("/home")
-      // Evita flickering: só atualiza se realmente mudou
-      const newShowSticky = val && isHome
-      if (this.showStickySearchBar !== newShowSticky) {
-        this.showStickySearchBar = newShowSticky
+      // Só aceita ativar o sticky se estivermos de fato na raiz da home
+      const isHomeRoot = this.router.url === "/home" || this.router.url === "/home/";
+      
+      if (isHomeRoot) {
+        this.showStickySearchBar = val;
         // Se a sticky search bar aparecer, e tivermos um HomeComponent ativo,
         // sincroniza os FormControls da sticky search bar com os do HomeComponent.
         if (this.showStickySearchBar && this.currentHomeComponent) {
           this.cityCtrl.setValue(this.currentHomeComponent.cityCtrl.value, { emitEvent: false })
           this.queryCtrl.setValue(this.currentHomeComponent.queryCtrl.value, { emitEvent: false })
         }
+      } else {
+        this.showStickySearchBar = false;
       }
     })
 
-    // Atualiza a visibilidade da search bar sticky ao navegar para fora de /home
+    // Atualiza a visibilidade da search bar sticky ao navegar
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        const isHome = this.router.url.startsWith("/home")
-        if (!isHome) {
-          this.showStickySearchBar = false
-          this.currentHomeComponent = null // Limpa a referência quando sai da Home
-        }
+        const url = this.router.url;
+        // Verifica se é EXATAMENTE a home, não sub-rotas como /home/agendamento...
+        const isHomeRoot = url === "/home" || url === "/home/";
+        
+        // Atualiza a propriedade isHomePage para controlar o padding
+        this.isHomePage = isHomeRoot;
+        
+        // Se NÃO for a raiz da home (ex: é agendamento), força o sticky a false
+        if (!isHomeRoot) {
+          this.showStickySearchBar = false;
+          this.stickyService.setSticky(false); // Garante que o serviço também saiba
+          this.currentHomeComponent = null;
+        } 
+        // Se for a home, deixa o comportamento padrão (controlado pelo scroll)
       }
     })
 
@@ -162,6 +173,17 @@ export class LayoutPrincipalComponent implements OnInit {
   ngOnInit() {
     // Inicializa o estado da sidebar no serviço ao carregar o LayoutPrincipal
     this.stickyService.setSidebarAberta(this.sidebarAberta)
+
+    // Verifica se está na raiz da home (não sub-rotas)
+    const url = this.router.url;
+    const isHomeRoot = url === "/home" || url === "/home/";
+    this.isHomePage = isHomeRoot;
+    
+    if (!isHomeRoot) {
+      // Se não for a raiz, garante que o sticky está desativado
+      this.showStickySearchBar = false
+      this.stickyService.setSticky(false)
+    }
 
     // Carrega notificações se for cliente
     if (this.isCliente) {
@@ -445,13 +467,6 @@ export class LayoutPrincipalComponent implements OnInit {
     return notificacao.id
   }
 
-  /**
-   * Define a aba ativa no menu de notificações
-   */
-  setActiveTab(tab: "pendentes" | "lidas"): void {
-    this.activeTab = tab
-  }
-
   abrirDialogFiltros(): void {
     const dialogData: FiltrosDialogData = {
       diaSemana: this.filtrosAtuais.diaSemana,
@@ -476,7 +491,9 @@ export class LayoutPrincipalComponent implements OnInit {
   }
 
   expandSearch(): void {
-    this.searchExpanded = true
+    // Sempre apenas expande o search, independente da página
+    // O redirecionamento para home só acontece quando o usuário faz a busca (onSearchSticky)
+    this.searchExpanded = true;
   }
 
   collapseSearch(): void {

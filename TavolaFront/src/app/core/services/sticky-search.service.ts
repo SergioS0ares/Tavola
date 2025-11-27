@@ -15,6 +15,10 @@ export class StickySearchService {
     this._sticky.next(value);
   }
 
+  getSticky(): boolean {
+    return this._sticky.value;
+  }
+
   setSidebarAberta(value: boolean) {
     this._sidebarAberta.next(value);
   }

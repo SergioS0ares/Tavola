@@ -313,117 +313,62 @@ input::placeholder, .mat-input-element::placeholder, .mat-form-field-input::plac
 }
 
 @media (max-width: 700px) {
-  .banner-content { max-width: 100%; padding: 0; }
-  .banner-row { flex-direction: column; align-items: center; }
-  .banner-left { align-items: center; margin-left: 0; margin-right: 0; max-width: 100%; }
-  
-  // TheFork-style mobile layout: vertical stacking
+  .search-bar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
   .input-group {
     flex-direction: column;
-    gap: 12px;
     width: 100%;
-    max-width: 100%;
+    // Importante: largura maxima 100% do pai, não da viewport
+    max-width: 100%; 
+    min-width: auto;
+    height: auto;
     padding: 16px;
+    margin: 0;
+    box-sizing: border-box;
+    gap: 12px;
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    margin: 0;
-    height: auto;
   }
   
   .custom-field {
-    min-width: 100%;
-    max-width: 100%;
-    margin-right: 0;
-    height: 52px;
+    width: 100%;
+    min-width: 0; // Permite encolher
+    margin: 0;
+    height: 56px;
     
     .mat-form-field {
+      width: 100%;
       background: #f8f9fa;
       border-radius: 12px;
       border: 2px solid #e9ecef;
-      transition: all 0.3s ease;
-      height: 100%;
       
-      &:focus-within {
-        border-color: #F6BD38;
-        box-shadow: 0 0 0 3px rgba(246, 189, 56, 0.1);
-        background: white;
+      // Garante que o input ocupe o espaço correto
+      .mat-mdc-form-field-infix {
+        width: auto; 
       }
     }
   }
   
-  // Buttons side by side on mobile (TheFork style)
   .buttons-container {
-    flex-direction: row;
     width: 100%;
+    display: flex;
+    flex-direction: row;
     gap: 12px;
+    margin-top: 4px;
   }
   
   .filtros-btn, .search-btn {
-    margin: 0;
-    height: 52px;
     flex: 1;
-    min-width: auto;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    font-weight: 700;
-    
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-    
-    .btn-text {
-      font-size: 13px;
-      font-weight: 700;
-    }
-  }
-  
-  // Filter button - estilo layout-principal
-  .filtros-btn {
-    background: #f8f9fa;
-    color: #495057;
-    border: 2px solid #e9ecef;
-    
-    mat-icon {
-      color: #495057;
-    }
-    
-    .btn-text {
-      color: #495057;
-    }
-    
-    &:hover, &:active {
-      background: #e9ecef;
-      border-color: #c22523;
-      box-shadow: 0 6px 16px rgba(194, 37, 35, 0.3);
-      
-      mat-icon {
-        color: #c22523;
-      }
-    }
-  }
-  
-  // Bright yellow search button (highlighted)
-  .search-btn {
-    background: #F6BD38;
-    color: #3B221B;
-    font-weight: 800;
-    
-    &:hover, &:active {
-      background: #f4a261;
-      box-shadow: 0 6px 16px rgba(246, 189, 56, 0.5);
-    }
-  }
-  
-  .pizza-img { max-width: 200px; }
-  .banner h1 { 
-    font-size: 1.6rem; 
-    text-align: center; 
-    margin-right: 0; 
-    margin-bottom: 24px;
-    color: white;
+    margin: 0;
+    width: auto;
+    min-width: 0;
+    height: 48px;
   }
 }
 

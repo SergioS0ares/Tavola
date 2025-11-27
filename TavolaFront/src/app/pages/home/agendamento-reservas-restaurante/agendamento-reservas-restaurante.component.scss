@@ -1122,7 +1122,8 @@ $tavola-cinza: #F8F9FA;
 @media (max-width: 768px) {
   .container-rounded {
     margin: 0 -20px;
-    padding: 88px 20px 80px 20px;
+    // Aumenta o padding-top para empurrar o conteúdo (breadcrumb, título) para baixo do header fixo
+    padding: 110px 20px 80px 20px;
     max-width: calc(100vw); 
     width: calc(100vw);
     border-radius: 0; 

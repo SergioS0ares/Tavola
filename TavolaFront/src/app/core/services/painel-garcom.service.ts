@@ -296,7 +296,7 @@ export class PainelGarcomService {
       id: `p-${Math.floor(Math.random() * 1000)}`,
       mesaId: mesaId,
       mesaNome: mesa?.nome || 'Desconhecida',
-      status: 'ATIVO',
+      status: 'ATIVO',  
       itens: itens, // Recebe os itens do dialog do cardápio
       total: itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0),
       dataCriacao: new Date(),

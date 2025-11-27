@@ -170,15 +170,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       this.cdr.detectChanges();
     });
-
-    setTimeout(() => {
-        if (this.searchSentinel) {
-            this.initStickyObserver(this.searchSentinel.nativeElement);
-        }
-    }, 0);
   }
 
   ngAfterViewInit() {
+    // Inicializa o sticky observer após a view estar pronta
+    // Delay maior para garantir que o router-container esteja disponível
+    setTimeout(() => {
+      if (this.searchSentinel?.nativeElement) {
+        this.initStickyObserver(this.searchSentinel.nativeElement);
+      }
+    }, 200);
     if (this.scrollContainers) {
       this.scrollContainers.changes.subscribe((list: QueryList<ElementRef>) => {
           list.forEach(containerRef => {
@@ -212,23 +213,121 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             containerRef.nativeElement._hasScrollListener = false;
         }
     });
+    
+    // Remove o observer ou listener de scroll
+    if (this.searchSentinel) {
+      const element = this.searchSentinel.nativeElement;
+      if ((element as any)._observer) {
+        (element as any)._observer.disconnect();
+        (element as any)._observer = null;
+      }
+      if ((element as any)._scrollHandler && (element as any)._scrollContainer) {
+        (element as any)._scrollContainer.removeEventListener('scroll', (element as any)._scrollHandler);
+        (element as any)._scrollHandler = null;
+        (element as any)._scrollContainer = null;
+      }
+    }
+    
+    // Importante: Reseta o estado global ao sair da Home
+    this.stickyService.setSticky(false);
   }
 
   initStickyObserver(elementToObserve: HTMLElement) {
-    const observer = new IntersectionObserver(entries => {
-      const isIntersecting = entries[0].isIntersecting;
+    // Limpa observers/listeners antigos se existirem
+    if ((elementToObserve as any)._observer) {
+      (elementToObserve as any)._observer.disconnect();
+      (elementToObserve as any)._observer = null;
+    }
+    if ((elementToObserve as any)._scrollHandler && (elementToObserve as any)._scrollContainer) {
+      (elementToObserve as any)._scrollContainer.removeEventListener('scroll', (elementToObserve as any)._scrollHandler);
+      (elementToObserve as any)._scrollHandler = null;
+      (elementToObserve as any)._scrollContainer = null;
+    }
+
+    // Função para verificar a posição e atualizar o sticky
+    const checkStickyState = () => {
+      if (!elementToObserve) return;
+
+      const rect = elementToObserve.getBoundingClientRect();
+      const HEADER_HEIGHT = 80;
       
-      // Evita flickering: só muda o estado se realmente mudou
-      if (this.stickySearch === isIntersecting) {
-        this.stickySearch = !isIntersecting;
-        this.stickyService.setSticky(this.stickySearch);
+      // Se o topo do sentinela for MENOR que a altura do header,
+      // significa que o sentinela subiu e passou por baixo do header
+      const shouldBeSticky = rect.top <= HEADER_HEIGHT;
+
+      if (this.stickySearch !== shouldBeSticky) {
+        this.stickySearch = shouldBeSticky;
+        this.stickyService.setSticky(shouldBeSticky);
         this.cdr.detectChanges();
       }
-    }, {
-      threshold: [0, 1],
-      rootMargin: '-10px 0px 0px 0px' // Adiciona margem para evitar flickering
-    });
+    };
+
+    // Tenta encontrar o router-container (onde o scroll realmente acontece)
+    let routerContainer = document.querySelector('.router-container') as HTMLElement;
+    
+    // Se não encontrou imediatamente, tenta novamente após um pequeno delay
+    if (!routerContainer) {
+      setTimeout(() => {
+        routerContainer = document.querySelector('.router-container') as HTMLElement;
+        if (routerContainer) {
+          this.setupScrollListener(routerContainer, elementToObserve, checkStickyState);
+        } else {
+          // Fallback: usa IntersectionObserver com viewport
+          this.setupIntersectionObserver(elementToObserve, checkStickyState);
+        }
+      }, 100);
+    } else {
+      this.setupScrollListener(routerContainer, elementToObserve, checkStickyState);
+    }
+  }
+
+  private setupScrollListener(container: HTMLElement, elementToObserve: HTMLElement, checkStickyState: () => void) {
+    const handleScroll = () => {
+      checkStickyState();
+    };
+    
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Verifica estado inicial
+    checkStickyState();
+    
+    // Salva referência para limpar depois
+    (elementToObserve as any)._scrollHandler = handleScroll;
+    (elementToObserve as any)._scrollContainer = container;
+  }
+
+  private setupIntersectionObserver(elementToObserve: HTMLElement, checkStickyState: () => void) {
+    const observerOptions = {
+      root: null, // viewport
+      threshold: 0,
+      rootMargin: '-80px 0px 0px 0px' 
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const isTopHeader = entry.boundingClientRect.top < 80; 
+        
+        if (isTopHeader && !entry.isIntersecting) {
+          if (!this.stickySearch) {
+            this.stickySearch = true;
+            this.stickyService.setSticky(true);
+            this.cdr.detectChanges();
+          }
+        } else {
+          if (this.stickySearch) {
+            this.stickySearch = false;
+            this.stickyService.setSticky(false);
+            this.cdr.detectChanges();
+          }
+        }
+      });
+    }, observerOptions);
+
     observer.observe(elementToObserve);
+    (elementToObserve as any)._observer = observer;
+    
+    // Verifica estado inicial também
+    checkStickyState();
   }
 
   private _filter(val: string, list: string[]): string[] {
@@ -338,9 +437,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkScrollArrows(container: HTMLElement, cuisine: string): void {
-    const canScrollLeft = container.scrollLeft > 0;
-    const canScrollRight = container.scrollWidth > container.clientWidth &&
-                           container.scrollLeft < container.scrollWidth - container.clientWidth - 5;
+    // Verifica se há conteúdo suficiente para scroll
+    const hasScroll = container.scrollWidth > container.clientWidth;
+    const canScrollLeft = hasScroll && container.scrollLeft > 0;
+    const canScrollRight = hasScroll && 
+                           container.scrollLeft < (container.scrollWidth - container.clientWidth - 5);
 
     if (this.scrollStates[cuisine] &&
         (this.scrollStates[cuisine].canScrollLeft !== canScrollLeft ||
@@ -358,13 +459,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!containerRef) return;
 
     const container = containerRef.nativeElement;
-    const scrollAmount = container.clientWidth * 0.75;
+    
+    // No mobile, scrolla por card (280px + gap)
+    // No desktop, scrolla por porcentagem da largura visível
+    const isMobile = window.innerWidth <= 700;
+    const scrollAmount = isMobile 
+      ? 280 + 18 // Largura do card + gap no mobile
+      : container.clientWidth * 0.75;
 
     if (direction === 'left') {
-      container.scrollLeft -= scrollAmount;
+      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     } else {
-      container.scrollLeft += scrollAmount;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+    
+    // Atualiza o estado dos botões após o scroll
+    setTimeout(() => {
+      this.checkScrollArrows(container, cuisine);
+    }, 300);
   }
 
   setRestaurants(restaurants: IRestaurante[]) {

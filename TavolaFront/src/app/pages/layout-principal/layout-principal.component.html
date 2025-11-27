@@ -92,6 +92,7 @@
       (click)="closeDrawer()"
       type="button"
       aria-label="Acessar configurações"
+      class="config-button"
       *ngIf="!isFuncionario">
       <mat-icon aria-hidden="true">settings</mat-icon>
       <span>Configurações</span>
@@ -124,7 +125,8 @@
     </button>
     
     <!-- Expanded search container (GitHub/99 Food style) -->
-    <div class="expanded-search-container" *ngIf="showStickySearchBar && searchExpanded">
+    <!-- Aparece quando o search está expandido, independente de estar na home ou não -->
+    <div class="expanded-search-container" *ngIf="searchExpanded">
       <!-- City chip -->
       <button class="city-chip" (click)="openCitySelector()" type="button">
         <mat-icon>location_on</mat-icon>
@@ -186,9 +188,10 @@
     <!-- Hide header actions when search is expanded on mobile -->
     <div class="header-actions" *ngIf="!searchExpanded" style="display: flex; align-items: center; gap: 20px;"> 
       <!-- Search icon button when sticky and not expanded - positioned next to bell -->
+      <!-- Aparece sempre no mobile (exceto quando o search está expandido), ou na home quando sticky -->
       <button 
         class="search-icon-btn" 
-        *ngIf="showStickySearchBar && !searchExpanded"
+        *ngIf="(!isHomePage || showStickySearchBar) && !searchExpanded"
         (click)="expandSearch()"
         type="button"
         aria-label="Expandir busca">
@@ -213,100 +216,37 @@
           </nz-badge>
         </button>
       
-        <mat-menu #menuNotificacoes="matMenu" (menuClosed)="onMenuClosed($event)">
-          <div  (click)="$event.stopPropagation();">
-            <div >
-              <div class="header-icon">
-                <mat-icon>notifications</mat-icon>
-              </div>
-              <div class="header-text">
-                <h4>Notificações</h4>
-                <p>{{ avaliacoesPendentes.length }} avaliação(ões) aguardando</p>
-              </div>
-            </div>
+        <mat-menu #menuNotificacoes="matMenu" class="user-dropdown notifications-menu" xPosition="before" yPosition="below" (menuClosed)="onMenuClosed($event)">
+          <!-- Estado de carregamento -->
+          <div *ngIf="carregandoAvaliacoes" class="notifications-loading">
+            <mat-icon>hourglass_empty</mat-icon>
+            <span>Carregando avaliações...</span>
           </div>
-
-          <!-- Tabs de navegação -->
-          <div>
-            <button 
-              class="tab-button" 
-              [class.active]="activeTab === 'pendentes'"
-              (click)="setActiveTab('pendentes')">
-              <mat-icon>schedule</mat-icon>
-              <span>Pendentes</span>
-              <span class="badge" *ngIf="avaliacoesPendentes.length > 0">{{ avaliacoesPendentes.length }}</span>
-            </button>
-            <button 
-              class="tab-button" 
-              [class.active]="activeTab === 'lidas'"
-              (click)="setActiveTab('lidas')">
-              <mat-icon>check_circle</mat-icon>
-              <span>Lidas</span>
-            </button>
+          
+          <!-- Estado vazio -->
+          <div *ngIf="!carregandoAvaliacoes && !temAvaliacoesPendentes" class="notifications-empty">
+            <mat-icon>check_circle</mat-icon>
+            <span>Tudo em dia!</span>
+            <p>Nenhuma avaliação pendente no momento.</p>
           </div>
       
-          <div class="dropdown-content" role="list">
-            <!-- Tab Pendentes -->
-            <div *ngIf="activeTab === 'pendentes'" class="tab-content">
-              <div *ngIf="carregandoAvaliacoes" class="loading-state" role="status" aria-live="polite">
-                <div class="loading-spinner">
-                  <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
-                </div>
-                <span>Carregando avaliações...</span>
+          <!-- Lista de avaliações pendentes -->
+          <ng-container *ngIf="!carregandoAvaliacoes && temAvaliacoesPendentes">
+            <button 
+              *ngFor="let avaliacao of avaliacoesPendentes; trackBy: trackByAvaliacaoId" 
+              mat-menu-item
+              (click)="abrirDialogoAvaliacao(avaliacao)"
+              type="button"
+              role="menuitem"
+              class="notification-item"
+              [attr.aria-label]="'Avaliar ' + avaliacao.nomeRestaurante + ' da visita em ' + formatarDataReserva(avaliacao.dataReserva)">
+              <mat-icon>restaurant</mat-icon>
+              <div class="notification-content">
+                <span class="notification-title">{{ avaliacao.nomeRestaurante }}</span>
+                <span class="notification-date">{{ formatarDataReserva(avaliacao.dataReserva) }}</span>
               </div>
-              
-              <div *ngIf="!carregandoAvaliacoes && !temAvaliacoesPendentes" class="empty-state">
-                <div class="empty-icon">
-                  <mat-icon aria-hidden="true">check_circle</mat-icon>
-                </div>
-                <h5>Tudo em dia!</h5>
-                <p>Nenhuma avaliação pendente no momento.</p>
-              </div>
-        
-              <ng-container *ngIf="!carregandoAvaliacoes && temAvaliacoesPendentes">
-                <div class="avaliacoes-list">
-                  <button 
-                    *ngFor="let avaliacao of avaliacoesPendentes; trackBy: trackByAvaliacaoId" 
-                    mat-menu-item
-                    class="avaliacao-item"
-                    (click)="abrirDialogoAvaliacao(avaliacao)"
-                    type="button"
-                    role="menuitem"
-                    [attr.aria-label]="'Avaliar ' + avaliacao.nomeRestaurante + ' da visita em ' + formatarDataReserva(avaliacao.dataReserva)">
-                    <div class="avaliacao-content">
-                      <div class="restaurante-info">
-                        <div class="restaurante-icon">
-                          <mat-icon>restaurant</mat-icon>
-                        </div>
-                        <div class="restaurante-details">
-                          <h5>{{ avaliacao.nomeRestaurante }}</h5>
-                          <p class="data-visita">
-                            <mat-icon>schedule</mat-icon>
-                            Visita em {{ formatarDataReserva(avaliacao.dataReserva) }}
-                          </p>
-                        </div>
-                      </div>
-                      <div class="avaliacao-action">
-                        <mat-icon>star_border</mat-icon>
-                        <span>Avaliar</span>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              </ng-container>
-            </div>
-
-            <!-- Tab Lidas -->
-            <div *ngIf="activeTab === 'lidas'" class="tab-content">
-              <div class="empty-state">
-                <div class="empty-icon">
-                  <mat-icon aria-hidden="true">inbox</mat-icon>
-                </div>
-                <h5>Nenhuma notificação lida</h5>
-                <p>As avaliações que você responder aparecerão aqui.</p>
-              </div>
-            </div>
-          </div>
+            </button>
+          </ng-container>
         </mat-menu>
       </div>
 
@@ -331,7 +271,7 @@
         </div>
       </div>
 
-      <mat-menu #menu="matMenu" class="user-dropdown" (menuClosed)="onMenuClosed($event)">
+      <mat-menu #menu="matMenu" class="user-dropdown" xPosition="before" yPosition="below" (menuClosed)="onMenuClosed($event)">
         <button mat-menu-item routerLink="/configuracoes" type="button" *ngIf="!isFuncionario">
           <mat-icon aria-hidden="true">settings</mat-icon>
           <span>Configurações</span>
@@ -360,7 +300,7 @@
 
     <!-- Enhanced Content area with proper scroll -->
     <main class="content" role="main">
-      <div class="router-container">
+      <div class="router-container" [class.home-padding]="isHomePage">
         <router-outlet (activate)="onOutletActivate($event)"></router-outlet>
       </div>
     </main>

@@ -409,6 +409,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative; // Importante para posicionamento do menu
 
     .avatar-mobile {
       width: 60px; // Avatar maior no mobile
@@ -440,11 +441,15 @@
   flex-direction: row;
   overflow: hidden;
   min-height: 0;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
 
   // Ajuste para mobile quando estiver na home
   @media (max-width: 700px) {
     &.home-page {
       margin-top: 0; // Remove margem para o banner ocupar o topo
+      overflow-x: hidden; // Previne scroll horizontal
     }
   }
 }
@@ -612,13 +617,20 @@
   flex-direction: column;
   min-height: 0;
   background:#eae7e1;
+  overflow-x: hidden; /* Previne scroll horizontal no container principal*/
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
 
   .router-container {
     flex: 1;
     padding: 40px;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Previne scroll horizontal*/
     scroll-behavior: smooth;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     
     &::-webkit-scrollbar {
       width: 10px;
@@ -760,6 +772,156 @@
       }
     }
   }
+  
+  // Menu de notificações - herda o visual do user-dropdown
+  .notifications-menu {
+    margin-top: 12px;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15) !important;
+    border: 2px solid rgba(194, 37, 35, 0.3) !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(20px) !important;
+    
+    .mat-mdc-menu-content {
+      padding: 12px !important;
+      background: #fffefb !important;
+    }
+    
+    .mat-mdc-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px !important;
+      border-radius: 16px !important;
+      margin: 6px 0 !important;
+      transition: all 0.3s ease !important;
+      font-weight: 600 !important;
+      font-size: 15px !important;
+      width: 100%;
+      min-width: 280px;
+      
+      &:hover {
+        background: rgba(194, 37, 35, 0.12) !important;
+        transform: translateX(6px) !important;
+        box-shadow: 0 4px 15px rgba(194, 37, 35, 0.2) !important;
+      }
+      
+      mat-icon {
+        margin: 0 !important;
+        color: #c22523 !important;
+        font-size: 22px !important;
+        flex-shrink: 0;
+      }
+      
+      &.notification-item {
+        .notification-content {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          flex: 1;
+          min-width: 0;
+          
+          .notification-title {
+            color: #3B221B !important;
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          
+          .notification-date {
+            font-size: 13px;
+            color: rgba(59, 34, 27, 0.6) !important;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+    
+    // Estados de loading e empty
+    .notifications-loading,
+    .notifications-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+      
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: rgba(194, 37, 35, 0.3) !important;
+        margin-bottom: 16px;
+      }
+      
+      span {
+        font-size: 16px;
+        font-weight: 600;
+        color: #3B221B;
+        margin-bottom: 8px;
+      }
+      
+      p {
+        font-size: 14px;
+        color: rgba(59, 34, 27, 0.6);
+        margin: 0;
+      }
+    }
+  }
+  
+  // Ajuste para mobile - menus aparecem abaixo dos ícones
+  @media (max-width: 768px) {
+    // Menu do usuário
+    .user-dropdown {
+      .cdk-overlay-pane {
+        position: fixed !important;
+        top: auto !important;
+        left: auto !important;
+        right: 16px !important;
+        bottom: auto !important;
+        transform: translateY(0) !important;
+        margin-top: 8px !important;
+      }
+    }
+    
+    // Menu de notificações
+    .mat-mdc-menu-panel {
+      .cdk-overlay-pane {
+        position: fixed !important;
+        top: auto !important;
+        left: auto !important;
+        right: 16px !important;
+        bottom: auto !important;
+        transform: translateY(0) !important;
+        margin-top: 8px !important;
+      }
+    }
+  }
+}
+
+// Ajuste global para menus no mobile - posiciona abaixo dos ícones
+@media (max-width: 768px) {
+  ::ng-deep .cdk-overlay-container {
+    .cdk-overlay-pane {
+      // Remove transformações que podem causar posicionamento incorreto
+      &[style*="transform"] {
+        transform: translateY(0) !important;
+      }
+      
+      // Força posicionamento relativo ao botão trigger para menus
+      &.mat-mdc-menu-panel {
+        position: fixed !important;
+        top: auto !important;
+        left: auto !important;
+        right: 16px !important;
+        bottom: auto !important;
+        margin-top: 8px !important;
+      }
+    }
+  }
 }
 
 ::ng-deep .mobile-drawer {
@@ -786,6 +948,10 @@
   
   .ant-drawer-content-wrapper {
     z-index: 1002 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
   }
   
   // Garante que o drawer ocupe 75% no mobile
@@ -837,24 +1003,42 @@
       background: transparent;
       border: 2px solid #F6BD38;
       color: #F6BD38;
-      padding: 16px 20px;
+      padding: 18px 24px; // Padding aumentado para todos os botões
       border-radius: 16px;
       cursor: pointer;
       font-weight: 600;
       font-size: 15px;
       width: 100%;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      min-height: 56px;
+      min-height: 64px; // Altura aumentada para todos os botões
+      box-sizing: border-box;
       
       mat-icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
+        font-size: 24px; // Ícone maior para todos
+        width: 24px;
+        height: 24px;
         color: #F6BD38;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0; // Evita que o ícone encolha
+      }
+      
+      span {
+        white-space: nowrap; // Evita quebra de linha
+        overflow: hidden;
+        text-overflow: ellipsis; // Adiciona "..." se o texto for muito longo
+        flex: 1; // Permite que o texto ocupe o espaço disponível
+        min-width: 0; // Permite que o texto encolha se necessário
+      }
+      
+      // Botão de configurações específico - ícone mais visível
+      &.config-button {
+        mat-icon {
+          opacity: 1; // Garante opacidade total
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); // Sombra sutil para melhor visibilidade
+        }
       }
       
       &:hover, &.active {
@@ -867,6 +1051,7 @@
         mat-icon {
           color: #2c1810;
           transform: scale(1.15);
+          filter: none; // Remove sombra no hover
         }
       }
     }
@@ -942,7 +1127,17 @@
   }
   
   .content .router-container {
-    padding: 24px 20px;
+    // Padding padrão para TODAS as páginas (exceto home)
+    // Como o header é sticky (não fixed) em outras páginas, não precisa de padding-top extra
+    // Mas mantemos um pequeno padding-top para espaçamento visual
+    padding: 20px 20px 80px 20px !important; 
+    margin-top: 0;
+    
+    // Padding específico APENAS para a Home (para o banner colar no header)
+    // Na home, o header é fixed no mobile, então o banner precisa colar
+    &.home-padding {
+      padding: 0 20px 80px 20px !important;
+    }
   }
 }
 
