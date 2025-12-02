@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List; // Importar List
 import java.util.Optional; // Importar Optional
 import java.util.Set; // Importar Set
@@ -33,6 +34,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, UUID> {
      * (Usado para buscar pedidos "ativos" da mesa: PENDENTE, EM_PREPARO, PRONTO).
      */
     List<Pedido> findByMesaIdAndStatusInAndItensIsNotEmpty(UUID mesaId, Set<PedidoStatus> statusAtivos);
+    
+    List<Pedido> findByRestauranteIdAndStatusInOrderByDataHoraAsc(UUID restauranteId, Collection<PedidoStatus> status);
 
 	List<Pedido> findByMesaIdAndDataHoraBetweenAndStatusIn(UUID id, LocalDateTime inicio, LocalDateTime fim,
 			Set<PedidoStatus> of);

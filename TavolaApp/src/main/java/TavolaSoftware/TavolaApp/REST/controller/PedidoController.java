@@ -22,6 +22,19 @@ public class PedidoController {
     @Autowired
     private PedidoService pedidoService;
     
+    @GetMapping("/ativos")
+    public ResponseEntity<?> getTodosPedidosAtivos(@PathVariable UUID idRestaurante) {
+        try {
+            // Chama o novo método do serviço que busca por Restaurante, não por Mesa
+            List<PedidoResponse> pedidos = pedidoService.findPedidosAtivosPorRestaurante(idRestaurante);
+            return ResponseEntity.ok(pedidos);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("erro", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao buscar pedidos do restaurante: " + e.getMessage()));
+        }
+    }
+    
     @PostMapping ("/{mesaId}/salvar")
     public ResponseEntity<?> criarPedido(@PathVariable UUID mesaId, @RequestBody PedidoRequest request) {
         try {

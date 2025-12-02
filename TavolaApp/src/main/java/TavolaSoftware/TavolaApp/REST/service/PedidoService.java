@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import io.jsonwebtoken.Claims;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,8 +34,7 @@ import TavolaSoftware.TavolaApp.REST.repository.PedidoRepository;
 import TavolaSoftware.TavolaApp.REST.security.JwtUtil;
 import TavolaSoftware.TavolaApp.tools.EventLabel;
 import TavolaSoftware.TavolaApp.tools.PedidoStatus;
-import io.jsonwebtoken.Claims;
-import jakarta.persistence.EntityNotFoundException;
+
 
 @Service
 public class PedidoService {
@@ -46,6 +47,33 @@ public class PedidoService {
     @Autowired private SimpMessagingTemplate messagingTemplate;
     @Autowired private CardapioRepository cardapioRepository;
     @Autowired private AtendimentoMesaService atendimentoMesaService; 
+    
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> findPedidosAtivosPorRestaurante(UUID restauranteId) {
+        // 1. Validação de Segurança (Opcional, mas recomendado se o usuário for garçom de outro restaurante)
+        // UUID restauranteIdToken = ... logica de pegar do token ...
+        // if (!restauranteId.equals(restauranteIdToken)) throw new SecurityException(...)
+
+        // 2. Define quais status são considerados "Ativos" para o garçom/cozinha
+        Set<PedidoStatus> statusAtivos = Set.of(
+            PedidoStatus.PENDENTE,
+            PedidoStatus.EM_PREPARO,
+            PedidoStatus.PRONTO
+            // Se quiser ver os entregues que ainda não foram pagos, adicione PedidoStatus.ENTREGUE
+        );
+
+        // 3. Busca no repositório
+        // Precisamos garantir que o PedidoRepository tenha este método ou criar uma query customizada
+        List<Pedido> pedidos = pedidoRepository.findByRestauranteIdAndStatusInOrderByDataHoraAsc(
+            restauranteId, 
+            statusAtivos
+        );
+
+        // 4. Converte para DTO
+        return pedidos.stream()
+                .map(PedidoResponse::new)
+                .collect(Collectors.toList());
+    }
     
     // NOVO MÉTODO DE MAPEAMENTO, ENRIQUECE OS ITENS COM A IMAGEM DO CARDAPIO
     private List<ItemPedidoResponse> mapearItensParaResposta(List<ItemPedido> itens) {

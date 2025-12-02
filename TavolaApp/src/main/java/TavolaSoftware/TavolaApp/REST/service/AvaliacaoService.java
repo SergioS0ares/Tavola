@@ -111,9 +111,9 @@ public class AvaliacaoService {
     }
 
     private int formatarScore(double score) {
-        if (score < 0.5) return 1; 
-        if (score > 10.0) score = 10.0; 
-        return (int) Math.round(score / 2.0);
+    	if (score < 1.0) return 1; 
+        if (score > 5.0) return 5; 
+        return (int) Math.round(score);
     }
 
     public void enviarEmailLembreteAvaliacao(Reserva reserva) {
