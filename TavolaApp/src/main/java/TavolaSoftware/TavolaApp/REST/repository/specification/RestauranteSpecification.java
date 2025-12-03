@@ -2,7 +2,6 @@ package TavolaSoftware.TavolaApp.REST.repository.specification;
 
 import TavolaSoftware.TavolaApp.REST.model.Restaurante;
 import TavolaSoftware.TavolaApp.REST.model.Servico;
-// <<< MUDANÇA: Usar o SEU Enum de DiaDaSemana >>>
 import TavolaSoftware.TavolaApp.tools.DiaDaSemana; 
 import TavolaSoftware.TavolaApp.tools.HorarioFuncionamento;
 
@@ -18,13 +17,11 @@ public class RestauranteSpecification {
      */
     public static Specification<Restaurante> comTermo(String termo) {
         if (termo == null || termo.isBlank()) {
-            // Retorna uma spec neutra que não faz nada (Evita NullPointerException).
             return (root, query, cb) -> cb.conjunction();
         }
         String termoLike = "%" + termo.toLowerCase() + "%";
         
         return (root, query, cb) -> {
-            // Lógica de busca (sem alterações)
             return cb.or(
                 cb.like(cb.lower(root.get("usuario").get("nome").as(String.class)), termoLike),
                 cb.like(cb.lower(root.get("descricao").as(String.class)), termoLike),
@@ -63,15 +60,12 @@ public class RestauranteSpecification {
         }
         return (root, query, cb) -> {
             query.distinct(true);
-            // Assumindo que a entidade Servico tem o campo 'nome'
             return root.join("servicos").get("nome").in(servicos);
         };
     }
 
     /**
      * Specification para verificar se o restaurante abre em um determinado dia da semana.
-     * ATUALIZADO: Valida o 'dia' (String) contra o Enum 'DiaDaSemana' 
-     * e compara String com String (do banco).
      */
     public static Specification<Restaurante> comDiaSemanaDisponivel(String dia) {
         if (dia == null || dia.isBlank()) {
@@ -81,23 +75,17 @@ public class RestauranteSpecification {
         String diaUpper = dia.toUpperCase(Locale.ROOT);
         
         try {
-            // Passo 1: Validar se a String é um dia válido (ex: "SEGUNDA", "TERCA")
-            // Usamos o *seu* Enum 'DiaDaSemana' para isso.
-            DiaDaSemana.valueOf(diaUpper); //
+            // Usa o Enum 'DiaDaSemana' para validar o input
+            DiaDaSemana.valueOf(diaUpper); 
             
         } catch (IllegalArgumentException e) {
-            // Se o front mandar "undefined" ou "flaseiujgbhwer...", ele falha aqui
-            //
             System.err.println("Filtro de dia da semana inválido, ignorando: " + dia);
-            return (root, query, cb) -> cb.conjunction(); // Ignora o filtro
+            return (root, query, cb) -> cb.conjunction(); 
         }
         
-        // Passo 2: Se for válido, comparar a String validada com a String do banco
+        // Compara a String validada (em maiúsculas) com o valor da coluna 'diaSemana' no banco
         return (root, query, cb) -> {
             Join<Restaurante, HorarioFuncionamento> horariosJoin = root.join("horariosFuncionamento");
-            
-            // ANTES (errado): return cb.equal(horariosJoin.get("diaSemana"), diaDaSemanaEnum);
-            // DEPOIS (correto): Compara String (do banco) com String (do input validado)
             return cb.equal(horariosJoin.get("diaSemana"), diaUpper);
         };
     }

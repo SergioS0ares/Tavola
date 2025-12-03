@@ -48,6 +48,41 @@ public class PedidoService {
     @Autowired private CardapioRepository cardapioRepository;
     @Autowired private AtendimentoMesaService atendimentoMesaService; 
     
+    @Transactional
+    public Pedido criarPedidoMock(Mesa mesa, Cliente cliente, Garcom garcom, Cardapio itemCardapio) {
+        
+        // 1. Cria e popula o Pedido
+        Pedido novoPedido = new Pedido(); 
+        novoPedido.setMesa(mesa); 
+        novoPedido.setGarcom(garcom); 
+        novoPedido.setRestaurante(mesa.getAmbiente().getRestaurante()); 
+        novoPedido.setDataHora(LocalDateTime.now()); 
+        novoPedido.setStatus(PedidoStatus.PENDENTE);
+        novoPedido.setCliente(cliente);
+        
+        // 2. Cria o ItemPedido (snapshot)
+        ItemPedido itemPedido = new ItemPedido();
+        itemPedido.setPedido(novoPedido); 
+        itemPedido.setProdutoId(itemCardapio.getId()); 
+        itemPedido.setNomeProduto(itemCardapio.getNome());
+        itemPedido.setPrecoUnitario(itemCardapio.getPreco());
+        itemPedido.setQuantidade(1);
+        itemPedido.setObservacoes("Item de Mock.");
+        
+        novoPedido.setItens(List.of(itemPedido)); 
+        
+        // 3. Salva
+        Pedido pedidoSalvo = pedidoRepository.save(novoPedido); 
+        
+        // 4. Notificação (Opcional, mas mantido)
+        List<ItemPedidoResponse> itensEnriquecidos = mapearItensParaResposta(pedidoSalvo.getItens());
+        PedidoResponse responseCompleto = new PedidoResponse(pedidoSalvo, itensEnriquecidos);
+        String topic = "/topic/restaurante/" + pedidoSalvo.getRestaurante().getId() + "/pedidos"; 
+        messagingTemplate.convertAndSend(topic, new WebSocketMessage(EventLabel.PEDIDO_UPDATE_NEW, responseCompleto)); 
+
+        return pedidoSalvo;
+    }
+    
     @Transactional(readOnly = true)
     public List<PedidoResponse> findPedidosAtivosPorRestaurante(UUID restauranteId) {
         // 1. Validação de Segurança (Opcional, mas recomendado se o usuário for garçom de outro restaurante)

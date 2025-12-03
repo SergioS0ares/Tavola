@@ -1,5 +1,6 @@
 package TavolaSoftware.TavolaApp.REST.service;
 
+import TavolaSoftware.TavolaApp.REST.dto.requests.AvaliacaoRequest;
 import TavolaSoftware.TavolaApp.REST.dto.requests.ReservaRequest;
 import TavolaSoftware.TavolaApp.REST.dto.responses.ReservaResponse;
 import TavolaSoftware.TavolaApp.REST.model.*;
@@ -16,19 +17,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class MockDataService {
 
-    // Contador estático para os e-mails mock
-    //
     private static final AtomicInteger mockUserCounter = new AtomicInteger(0);
 
     // Listas pré-carregadas dos TXTs
@@ -36,7 +36,11 @@ public class MockDataService {
     private final List<String> nomesPratos;
     private final List<String> nomesClientes;
     private final List<String> sobrenomesClientes;
+    private final List<String> tiposCozinha; 
+    private final List<String> avaliacoesPositivas; 
+    private final List<String> avaliacoesNegativas;
 
+    // Injeções de Dependência
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private RestauranteRepository restauranteRepository;
     @Autowired private ClienteRepository clienteRepository;
@@ -46,7 +50,10 @@ public class MockDataService {
     @Autowired private CardapioRepository cardapioRepository;
     @Autowired private CategoriaService categoriaService;
     @Autowired private ReservaRepository reservaRepository;
-    @Autowired private ReservaService reservaService;
+    @Autowired private ReservaService reservaService; 
+    @Autowired private AvaliacaoService avaliacaoService; 
+    @Autowired private AtendimentoMesaService atendimentoMesaService; 
+    @Autowired private PedidoService pedidoService; 
     @Autowired private BCryptPasswordEncoder passwordEncoder;
     @Autowired private UploadUtils uploadUtils;
 
@@ -56,38 +63,46 @@ public class MockDataService {
         nomesPratos = loadTxtFile("mock-data/pratos.txt");
         nomesClientes = loadTxtFile("mock-data/nomes.txt");
         sobrenomesClientes = loadTxtFile("mock-data/sobrenomes.txt");
+        tiposCozinha = loadTxtFile("cozinha.txt"); 
+        avaliacoesPositivas = loadTxtFile("avaliacaopositiva.txt"); 
+        avaliacoesNegativas = loadTxtFile("avaliacaonegativa");
     }
 
-    // --- TAREFA 1: GERAR RESTAURANTE ---
+    // --- MÉTODOS DE CRIAÇÃO DE ENTIDADES (RESTAURANTE) ---
     
     @Transactional
     public Restaurante createMockRestaurante() {
         // 1. Criar Usuário Restaurante
-        String email = String.format("%04d@tavola.com", mockUserCounter.getAndIncrement());
+        String email = String.format("restaurante%04d@tavola.com", mockUserCounter.getAndIncrement()); 
         Usuario usuario = new Usuario();
         usuario.setNome(getRandom(nomesEstabelecimentos));
         usuario.setEmail(email);
         usuario.setSenha(passwordEncoder.encode("senha"));
         usuario.setTipo(TipoUsuario.RESTAURANTE);
-        usuario.setEmailVerificado(true); // Pula 2FA
+        usuario.setEmailVerificado(true); 
+        
         usuario.setEndereco(getPasseioDasAguasAddress());
+        usuario.setTelefone("6299" + randomInt(1000, 9999));
+        
         usuarioRepository.save(usuario);
 
         // 2. Criar Restaurante
         Restaurante restaurante = new Restaurante();
         restaurante.setUsuario(usuario);
-        restaurante.setTipoCozinha("Teste");
-        restaurante.setDescricao("teste");
+        
+        // Tipo de Cozinha aleatório
+        restaurante.setTipoCozinha(getRandom(tiposCozinha)); 
+        
+        restaurante.setDescricao("Um delicioso restaurante com pratos incríveis.");
         restaurante.setHorariosFuncionamento(getHorariosMock());
         
         // Imagem aleatória (0-9)
         String imgPath = "/upl/mock/restaurantes/" + randomInt(0, 9) + ".jpeg";
         restaurante.setImagemPrincipal(imgPath);
-        // (Assumindo que a imagem de perfil do usuário é a mesma)
         usuario.setImagem(imgPath);
-        usuarioRepository.save(usuario); // Salva a imagem no usuário
         
-        restauranteRepository.save(restaurante); // Salva o restaurante para ter ID
+        usuarioRepository.save(usuario);
+        restauranteRepository.save(restaurante);
 
         // 3. Criar Garçons
         createMockGarcons(restaurante, 3);
@@ -95,7 +110,7 @@ public class MockDataService {
         // 4. Criar Ambientes e Mesas
         createMockAmbientes(restaurante);
 
-        // 5. Criar Cardápio
+        // 5. Criar Cardápio (CATEGORIAS FIXAS)
         createMockCardapio(restaurante, 5);
 
         return restaurante;
@@ -107,7 +122,7 @@ public class MockDataService {
             garcom.setRestaurante(restaurante);
             garcom.setNome(getRandom(sobrenomesClientes));
             garcom.setSenha(passwordEncoder.encode("senha"));
-            garcom.setCodigoIdentidade(gerarCodigoUnico(restaurante.getId())); // Lógica de geração aleatória
+            garcom.setCodigoIdentidade(gerarCodigoUnico(restaurante.getId()));
             garcom.setImagem("/upl/mock/garcons/" + randomInt(0, 9) + ".jpeg");
             garcomRepository.save(garcom);
         }
@@ -132,34 +147,37 @@ public class MockDataService {
             Mesa mesa = new Mesa();
             mesa.setAmbiente(ambiente);
             mesa.setNome(String.valueOf(i));
-            mesa.setCapacidade(4); // Valor padrão
+            mesa.setCapacidade(4);
             mesa.setStatus(MesaStatus.LIVRE);
             mesaRepository.save(mesa);
         }
     }
 
     private void createMockCardapio(Restaurante restaurante, int quantidade) {
-        // Garante que a categoria "Entradas" exista
-        Categoria categoria = categoriaService.saveIfNotExists("Entradas", restaurante);
+        Categoria entrada = categoriaService.saveIfNotExists("Entrada", restaurante);
+        Categoria pratoPrincipal = categoriaService.saveIfNotExists("Prato Principal", restaurante);
         
-        // Garante que não repetimos os pratos
         Set<Integer> indicesUsados = new HashSet<>();
 
         for (int i = 0; i < quantidade; i++) {
             int index;
             do {
-                index = randomInt(0, 9); // Pega um índice de 0 a 9
-            } while (indicesUsados.contains(index)); // Tenta de novo se já usou
+                index = randomInt(0, nomesPratos.size() - 1); 
+            } while (indicesUsados.contains(index)); 
             indicesUsados.add(index);
 
             Cardapio item = new Cardapio();
             item.setRestaurante(restaurante);
-            item.setCategoria(categoria);
             item.setDisponivel(true);
             
-            // Lógica de imagem/nome correspondente
-            item.setImagem("/upl/mock/cardapios/" + index + ".jpeg");
-            item.setNome(nomesPratos.get(index)); //
+            if (i % 2 == 0) {
+                item.setCategoria(entrada);
+            } else {
+                item.setCategoria(pratoPrincipal);
+            }
+            
+            item.setImagem("/upl/mock/cardapios/" + (index % 10) + ".jpeg"); 
+            item.setNome(nomesPratos.get(index)); 
             
             item.setDescricao("Descrição de teste para o prato " + item.getNome());
             item.setPreco(randomDouble(20.00, 150.00));
@@ -168,19 +186,23 @@ public class MockDataService {
     }
 
 
-    // --- TAREFA 2: GERAR CLIENTE E RESERVAS ---
+    // --- MÉTODOS DE CRIAÇÃO DE ENTIDADES (CLIENTE E RESERVAS) ---
     
     @Transactional
     public Cliente createMockCliente(List<UUID> idsRestaurantesMock) {
         // 1. Criar Usuário Cliente
-        String email = String.format("%04d@tavola.com", mockUserCounter.getAndIncrement());
+        String email = String.format("cliente%04d@tavola.com", mockUserCounter.getAndIncrement());
         Usuario usuario = new Usuario();
         usuario.setNome(getRandom(nomesClientes) + " " + getRandom(sobrenomesClientes));
         usuario.setEmail(email);
         usuario.setSenha(passwordEncoder.encode("senha"));
         usuario.setTipo(TipoUsuario.CLIENTE);
         usuario.setEmailVerificado(true);
+        
+        // Preenchimento completo do Endereço
         usuario.setEndereco(getCerradoAddress());
+        usuario.setTelefone("6299" + randomInt(1000, 9999)); 
+        
         usuario.setImagem("/upl/mock/usuarios/" + randomInt(0, 9) + ".jpeg");
         usuarioRepository.save(usuario);
 
@@ -189,85 +211,130 @@ public class MockDataService {
         cliente.setUsuario(usuario);
         clienteRepository.save(cliente);
 
-        // 3. Criar Reservas
-        createMockReservas(cliente, idsRestaurantesMock);
+        // 3. Criar Histórico de Reservas (Concluídas e Avaliadas)
+        createMockReservasHistorico(cliente, idsRestaurantesMock);
 
+        // 4. Criar Sessão Ativa (Reserva Ativa, Atendimento, Pedido)
+        if (!idsRestaurantesMock.isEmpty()) {
+            UUID restIdAtivo = idsRestaurantesMock.get(randomInt(0, idsRestaurantesMock.size() - 1)); // Escolhe um aleatório
+            createMockSessaoAtiva(cliente, restIdAtivo);
+        }
+        
         return cliente;
     }
 
-    private void createMockReservas(Cliente cliente, List<UUID> idsRestaurantes) {
-        //
+    /**
+     * Cria reservas no passado (CONCLUIDAS) e gera avaliações.
+     */
+    private void createMockReservasHistorico(Cliente cliente, List<UUID> idsRestaurantes) {
         Collections.shuffle(idsRestaurantes);
         
-        LocalDate dataAtual = LocalDate.now();
-        int diasAdicionados = 1;
-
-        for (UUID restId : idsRestaurantes) {
+        // Itera sobre metade dos restaurantes para criar histórico (garante no mínimo 1)
+        int numHistorico = Math.max(1, idsRestaurantes.size() / 2);
+        
+        for (int i = 0; i < numHistorico; i++) {
+            UUID restId = idsRestaurantes.get(i);
             Restaurante restaurante = restauranteRepository.findById(restId).orElse(null);
-            if (restaurante == null) continue; // Pula se o ID for inválido
-
-            //
-            LocalDate dataReserva = dataAtual.plusDays(diasAdicionados++);
+            if (restaurante == null) continue;
             
-            // (09:00 - 21:00)
-            LocalTime horaReserva = LocalTime.of(randomInt(9, 20), 0); // ex: 13:00, 18:00
+            // 1. Define data e hora no passado
+            LocalDate dataReservaPassada = LocalDate.now().minusDays(randomInt(5, 30));
+            LocalTime horaReservaPassada = LocalTime.of(randomInt(18, 21), 0);
             
-            ReservaRequest request = new ReservaRequest();
-            request.setIdRestaurante(restId);
-            request.setQuantidadePessoasReserva(3);
-            request.setDataReserva(dataReserva.toString());
-            request.setHorarioReserva(horaReserva.toString());
-            request.setComentariosPreferenciaReserva("teste");
-
             try {
-                // Tenta criar uma reserva (Cenário 2: ATIVA)
-                //
-                Mesa mesaDisponivel = findRandomMesa(restaurante.getId(), dataReserva, horaReserva, 3);
+                // Tenta achar uma mesa que estava livre na data passada (ou pega a primeira)
+                Mesa mesa = findRandomMesa(restaurante.getId(), dataReservaPassada, horaReservaPassada, 2);
                 
-                request.setIdsMesas(List.of(mesaDisponivel.getId()));
-                reservaService.criarReserva(request, cliente.getUsuario().getEmail());
+                // 2. Cria a reserva CONCLUIDA (usando o novo helper)
+                Reserva reserva = reservaService.criarReservaMock(
+                    cliente, restaurante, mesa, 
+                    dataReservaPassada, horaReservaPassada, 
+                    randomInt(2, 4), StatusReserva.CONCLUIDA
+                );
                 
+                // 3. Cria a Avaliação (Lógica Aleatória)
+                createMockAvaliacao(cliente, restaurante, reserva);
+
             } catch (Exception e) {
-                // Se falhar (ex: colisão ou limite), tenta criar na Lista de Espera (Cenário 1)
-                //
-                try {
-                    request.setIdsMesas(null); // Remove a mesa para cair na lógica de lista de espera
-                    ReservaResponse r = reservaService.criarReserva(request, cliente.getUsuario().getEmail());
-                    // Força a lista de espera (se a lógica do service não o fizer)
-                    Reserva reserva = reservaRepository.findById(r.getId()).get();
-                    reserva.setStatus(StatusReserva.LISTA_ESPERA);
-                    reservaRepository.save(reserva);
-                } catch (Exception e2) {
-                    System.err.println("Falha ao criar mock de reserva: " + e2.getMessage());
-                }
+                // Silenciar erros de colisão de mesa, que são comuns em mocks
             }
         }
     }
 
-    // Método complexo para achar mesa (lógica de colisão)
-    private Mesa findRandomMesa(UUID restauranteId, LocalDate data, LocalTime hora, int capacidade) throws Exception {
-        List<Mesa> mesasDisponiveis = mesaRepository.findMesasDisponiveis(restauranteId, data, hora, capacidade);
+    /**
+     * Cria reserva ATIVA, Atendimento e Pedido.
+     */
+    private void createMockSessaoAtiva(Cliente cliente, UUID restauranteId) {
+        Restaurante restaurante = restauranteRepository.findById(restauranteId).orElse(null);
+        if (restaurante == null) return;
         
-        if (mesasDisponiveis.isEmpty()) {
-            //
-            // (Embora na lógica acima, estamos a jogar na lista de espera em vez de avançar o dia)
-            throw new RuntimeException("Nenhuma mesa encontrada, tentando lista de espera.");
+        // 1. Busca Mesa, Garçom e Cardápio aleatórios
+        List<Mesa> mesas = mesaRepository.findByAmbienteIdIn(restaurante.getAmbientes().stream().map(Ambiente::getId).collect(Collectors.toList()));
+        List<Garcom> garcons = garcomRepository.findAllByRestauranteId(restauranteId);
+        List<Cardapio> cardapio = cardapioRepository.findByRestauranteId(restauranteId);
+        
+        if (mesas.isEmpty() || garcons.isEmpty() || cardapio.isEmpty()) return;
+        
+        // Pega um item aleatório para a sessão
+        Mesa mesaAtiva = mesas.get(randomInt(0, mesas.size() - 1));
+        Garcom garcomAtivo = garcons.get(randomInt(0, garcons.size() - 1));
+        Cardapio itemPedido = cardapio.get(randomInt(0, cardapio.size() - 1));
+        
+        // 2. Cria a Reserva ATIVA na data atual
+        try {
+            reservaService.criarReservaMock(
+                cliente, restaurante, mesaAtiva, 
+                LocalDate.now(), LocalTime.now().plusMinutes(randomInt(5, 10)), 
+                2, StatusReserva.ATIVA
+            );
+        } catch (Exception e) {
+            // Reserva pode falhar por limite, mas vamos forçar o atendimento ativo mesmo assim
         }
         
-        //
-        return mesasDisponiveis.get(randomInt(0, mesasDisponiveis.size() - 1));
+        // 3. Inicia o Atendimento (Mesa OCUPADA)
+        AtendimentoMesa atendimento = atendimentoMesaService.iniciarAtendimentoMock(mesaAtiva, garcomAtivo);
+        
+        // 4. Cria o Pedido (Status PENDENTE)
+        pedidoService.criarPedidoMock(mesaAtiva, cliente, garcomAtivo, itemPedido);
+    }
+    
+    /**
+     * Lógica de avaliação aleatória (1-3 Negativa, 4-5 Positiva).
+     */
+    private void createMockAvaliacao(Cliente cliente, Restaurante restaurante, Reserva reserva) {
+        int score = randomInt(1, 5); // Escolhe o score
+        String comentario;
+        
+        if (score <= 3) {
+            // 1, 2, 3 -> Negativa
+            comentario = getRandom(avaliacoesNegativas);
+        } else {
+            // 4, 5 -> Positiva
+            comentario = getRandom(avaliacoesPositivas);
+        }
+        
+        // Simula o pedido de avaliação
+        AvaliacaoRequest request = new AvaliacaoRequest();
+        request.setScore((double) score);
+        request.setComentario(comentario);
+        
+        try {
+            // Submete a avaliação (o AvaliacaoService fará o cálculo da média)
+            avaliacaoService.submeterMockAvaliacao(request, restaurante.getId(), cliente.getUsuario().getEmail(), reserva);
+        } catch (Exception e) {
+            // Silenciar erros de avaliação, pois o objetivo é ter dados
+        }
     }
 
 
     // --- Métodos Auxiliares ---
 
-    // Lê um ficheiro TXT do 'resources'
     private List<String> loadTxtFile(String path) {
         try {
             InputStream is = new ClassPathResource(path).getInputStream();
             return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
                     .lines()
-                    .map(line -> line.replaceAll("^[0-9]+\\.", "").trim()) // Remove "0."
+                    .map(line -> line.replaceAll("^[0-9]+\\.", "").trim())
                     .collect(Collectors.toList());
         } catch (IOException e) {
             System.err.println("FALHA AO CARREGAR MOCK TXT: " + path);
@@ -275,24 +342,21 @@ public class MockDataService {
         }
     }
 
-    // Pega um item aleatório de uma lista
     private String getRandom(List<String> list) {
         return list.get(randomInt(0, list.size() - 1));
     }
     
-    // Gera horário das 09:00 às 21:00 para todos os dias
     private List<HorarioFuncionamento> getHorariosMock() {
-        return Arrays.stream(DayOfWeek.values())
+        return Arrays.stream(DiaDaSemana.values())
             .map(dia -> {
                 HorarioFuncionamento hf = new HorarioFuncionamento();
-                hf.setDiaSemana(dia.toString()); // Salva como "MONDAY", "TUESDAY"...
+                hf.setDiaSemana(dia.getNomeBanco()); 
                 hf.setAbertura("09:00");
                 hf.setFechamento("21:00");
                 return hf;
             }).collect(Collectors.toList());
     }
 
-    // Endereço do Passeio das Águas
     private Endereco getPasseioDasAguasAddress() {
         Endereco end = new Endereco();
         end.setCep("74573-260");
@@ -300,10 +364,11 @@ public class MockDataService {
         end.setEstado("GO");
         end.setBairro("Fazenda Caveiras");
         end.setRua("Av. Perimetral Norte, 8303");
+        end.setNumero("8303"); 
+        end.setComplemento("Loja 101"); 
         return end;
     }
     
-    // Endereço do Shopping Cerrado
     private Endereco getCerradoAddress() {
         Endereco end = new Endereco();
         end.setCep("74435-090");
@@ -311,6 +376,8 @@ public class MockDataService {
         end.setEstado("GO");
         end.setBairro("Aeroviário");
         end.setRua("Av. Anhanguera, 10790");
+        end.setNumero("10790"); 
+        end.setComplemento("Torre A, Sala 50"); 
         return end;
     }
 
@@ -320,10 +387,9 @@ public class MockDataService {
     
     private double randomDouble(double min, double max) {
         double val = ThreadLocalRandom.current().nextDouble(min, max);
-        return Math.round(val * 100.0) / 100.0; // Arredonda para 2 casas decimais
+        return Math.round(val * 100.0) / 100.0;
     }
     
-    // Pega a geração de código que já existe no GarcomService
     private String gerarCodigoUnico(UUID restauranteId) {
         String codigo;
         do {
@@ -332,5 +398,22 @@ public class MockDataService {
             codigo = numeroStr.substring(0, 4) + "-" + numeroStr.substring(4);
         } while (garcomRepository.findByRestauranteIdAndCodigoIdentidade(restauranteId, codigo).isPresent());
         return codigo;
+    }
+    
+    // Método complexo para achar mesa (lógica de colisão)
+    private Mesa findRandomMesa(UUID restauranteId, LocalDate data, LocalTime hora, int capacidade) throws Exception {
+        List<Mesa> mesasDisponiveis = mesaRepository.findMesasDisponiveis(restauranteId, data, hora, capacidade);
+        
+        if (mesasDisponiveis.isEmpty()) {
+            // Tenta pegar qualquer mesa (risco de colisão ignorado para mock)
+            Restaurante restaurante = restauranteRepository.findById(restauranteId).orElseThrow(() -> new EntityNotFoundException("Restaurante não encontrado."));
+            
+            List<Mesa> todasMesas = mesaRepository.findByAmbienteIdIn(restaurante.getAmbientes().stream().map(Ambiente::getId).collect(Collectors.toList()));
+            if (!todasMesas.isEmpty()) return todasMesas.get(0);
+            
+            throw new RuntimeException("Nenhuma mesa encontrada.");
+        }
+        
+        return mesasDisponiveis.get(randomInt(0, mesasDisponiveis.size() - 1));
     }
 }
