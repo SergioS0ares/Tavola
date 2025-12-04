@@ -56,19 +56,19 @@
         
         <!-- Menu de filtros -->
         <mat-menu #filterMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
-          <div class="filter-menu-content">
+          <div class="filter-menu-content" (click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()">
             <div class="filter-header">
               <h4>Filtros</h4>
-              <button mat-icon-button (click)="limparFiltros()" matTooltip="Limpar filtros" [matTooltipDisabled]="isMobile">
+              <button mat-icon-button (click)="limparFiltros(); $event.stopPropagation()" matTooltip="Limpar filtros" [matTooltipDisabled]="isMobile">
                 <mat-icon>clear</mat-icon>
               </button>
             </div>
             
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Categoria</mat-label>
-              <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltrosSemFechar()">
+              <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltrosSemFechar()" (click)="$event.stopPropagation()">
                 <mat-option value="">Todas as categorias</mat-option>
-                <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome">
+                <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome" (click)="$event.stopPropagation(); $event.preventDefault()">
                   {{ categoria.nome }}
                 </mat-option>
               </mat-select>
@@ -76,15 +76,15 @@
             
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Tags</mat-label>
-              <mat-select [(ngModel)]="tagFiltro" (selectionChange)="aplicarFiltrosSemFechar()" multiple>
-                <mat-option *ngFor="let tag of tagsDisponiveis" [value]="tag">
+              <mat-select [(ngModel)]="tagFiltro" (selectionChange)="aplicarFiltrosSemFechar()" multiple (click)="$event.stopPropagation()">
+                <mat-option *ngFor="let tag of tagsDisponiveis" [value]="tag" (click)="$event.stopPropagation(); $event.preventDefault()">
                   {{ tag }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
             
             <div class="filter-options">
-              <mat-checkbox [(ngModel)]="apenasDisponiveis" (change)="aplicarFiltrosSemFechar()">
+              <mat-checkbox [(ngModel)]="apenasDisponiveis" (change)="aplicarFiltrosSemFechar()" (click)="$event.stopPropagation()">
                 Apenas disponíveis
               </mat-checkbox>
             </div>
