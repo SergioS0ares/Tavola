@@ -353,28 +353,24 @@
 
           <!-- Lista de Avaliações -->
           <div class="lista-avaliacoes" *ngIf="avaliacoesData.avaliacoes && avaliacoesData.avaliacoes.length > 0">
-            <nz-list [nzDataSource]="avaliacoesData.avaliacoes" [nzRenderItem]="item" [nzItemLayout]="'horizontal'">
-              <ng-template #item let-avaliacao>
-                <div class="comentario-item">
-                  <nz-comment>
-                    <nz-avatar nz-comment-avatar [nzSrc]="getAvatarCliente(avaliacao.imagemCliente)" nzIcon="user"></nz-avatar>
-                    <nz-comment-content>
-                      <div class="avaliacao-header-custom">
-                        <div class="nome-data-wrapper">
-                          <span class="nome-cliente">{{ avaliacao.nomeCliente }}</span>
-                          <span class="data-reserva">{{ formatarDataReserva(avaliacao.dataReserva) }}</span>
-                        </div>
-                        <div class="avaliacao-rating">
-                          <nz-rate [ngModel]="avaliacao.nota" nzDisabled [nzCount]="5" class="rating-stars-comment"></nz-rate>
-                          <span class="nota-numero">{{ avaliacao.nota }}/5</span>
-                        </div>
-                      </div>
-                      <p class="comentario-texto">{{ avaliacao.comentario }}</p>
-                    </nz-comment-content>
-                  </nz-comment>
-                </div>
-              </ng-template>
-            </nz-list>
+            <div class="comentario-item" *ngFor="let avaliacao of avaliacoesData.avaliacoes; let i = index">
+              <nz-comment>
+                <nz-avatar nz-comment-avatar [nzSrc]="getAvatarCliente(avaliacao.imagemCliente)" nzIcon="user"></nz-avatar>
+                <nz-comment-content>
+                  <div class="avaliacao-header-custom">
+                    <div class="nome-data-wrapper">
+                      <span class="nome-cliente">{{ avaliacao.nomeCliente }}</span>
+                      <span class="data-reserva">{{ avaliacao.dataReservaPorExtenso ?? formatarDataReserva(avaliacao.dataReserva) }}</span>
+                    </div>
+                    <div class="avaliacao-rating">
+                      <nz-rate [ngModel]="avaliacao.nota" nzDisabled [nzCount]="5" class="rating-stars-comment"></nz-rate>
+                      <span class="nota-numero">{{ avaliacao.nota }}/5</span>
+                    </div>
+                  </div>
+                  <p class="comentario-texto">{{ avaliacao.comentario }}</p>
+                </nz-comment-content>
+              </nz-comment>
+            </div>
           </div>
 
           <!-- Mensagem quando não há avaliações -->

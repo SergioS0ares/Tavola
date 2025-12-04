@@ -990,12 +990,38 @@ export class AgendamentoReservasRestauranteComponent implements OnInit, AfterVie
    */
   formatarDataReserva(dataReserva: string): string {
     if (!dataReserva) return '';
-    const data = new Date(dataReserva + 'T00:00:00'); // Adiciona hora para evitar problemas de timezone
-    return data.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
-    });
+    
+    // Se a data vier no formato DD/MM/YYYY, converte para Date
+    if (dataReserva.includes('/')) {
+      const partes = dataReserva.split('/');
+      if (partes.length === 3) {
+        // Formato: DD/MM/YYYY -> converte para YYYY-MM-DD
+        const dia = partes[0].padStart(2, '0');
+        const mes = partes[1].padStart(2, '0');
+        const ano = partes[2];
+        const data = new Date(`${ano}-${mes}-${dia}T00:00:00`);
+        
+        if (!isNaN(data.getTime())) {
+          return data.toLocaleDateString('pt-BR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          });
+        }
+      }
+    }
+    
+    // Tenta parse padrão
+    const data = new Date(dataReserva + 'T00:00:00');
+    if (!isNaN(data.getTime())) {
+      return data.toLocaleDateString('pt-BR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+    
+    return dataReserva; // Retorna a string original se não conseguir fazer parse
   }
 
   // --- NOVAS FUNÇÕES PARA O DRAWER MOBILE ---
