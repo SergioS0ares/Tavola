@@ -36,6 +36,29 @@ public class AtendimentoMesaService {
     @Autowired private PedidoRepository pedidoRepository; // Para buscar pedidos ao finalizar
     @Autowired private RegistroAtendimentoRepository registroRepository; // Para salvar o histórico
 
+    @Transactional
+    public AtendimentoMesa iniciarAtendimentoMock(Mesa mesa, Garcom garcom) {
+        
+        AtendimentoMesa atendimento = atendimentoRepository.findAtendimentoAtivoByMesaId(mesa.getId())
+                .orElseGet(() -> {
+                    AtendimentoMesa novoAtendimento = new AtendimentoMesa();
+                    novoAtendimento.setMesa(mesa);
+                    novoAtendimento.setRestaurante(mesa.getAmbiente().getRestaurante());
+                    novoAtendimento.setHoraInicio(LocalDateTime.now().minusMinutes(30)); // Inicia há 30 min atrás
+                    novoAtendimento.setAtivo(true);
+                    return novoAtendimento;
+                });
+
+        atendimento.getGarcons().add(garcom);
+        
+        if (mesa.getStatus() != MesaStatus.OCUPADA) {
+            mesa.setStatus(MesaStatus.OCUPADA);
+            mesaRepository.save(mesa); 
+        }
+
+        return atendimentoRepository.save(atendimento);
+    }
+    
     /**
      * Garçom registra que está iniciando o atendimento em uma mesa.
      * (Método sem alterações)

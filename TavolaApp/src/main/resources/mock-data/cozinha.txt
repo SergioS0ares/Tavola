@@ -8,3 +8,13 @@
 7.Japonesa
 8.Tailandesa
 9.Indiana
+10.Vietnamita
+11.Vegana
+12.Vegetariana
+13.Carnívora
+14.Cafeteria
+15.Bar
+16.Buteco
+17.Assados
+18.Embalados
+19.Petiscaria

@@ -56,6 +56,29 @@ public class ReservaService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @Transactional
+    public Reserva criarReservaMock(Cliente cliente, Restaurante restaurante, Mesa mesa, 
+                                    LocalDate dataReserva, LocalTime horaReserva, 
+                                    int quantidadePessoas, StatusReserva status) {
+        
+        Reserva novaReserva = new Reserva();
+        novaReserva.setCliente(cliente);
+        novaReserva.setRestaurante(restaurante);
+        novaReserva.setDataReserva(dataReserva);
+        novaReserva.setHoraReserva(horaReserva);
+        novaReserva.setQuantidadePessoas(quantidadePessoas);
+        novaReserva.setStatus(status);
+        novaReserva.setObservacoes("Reserva gerada por MockDataService.");
+        novaReserva.setMesas(Collections.singletonList(mesa));
+        
+        // PULA A VALIDAÇÃO DE DATA/HORA PASSADA: validarDataHoraReserva(dataReserva, horaReserva);
+        validarQuantidadePessoas(quantidadePessoas); // Mantém a validação de quantidade
+
+        // Aqui ignoramos a lógica de limite de reservas para simplificar o mock
+
+        return reservaRepository.save(novaReserva);
+    }
+    
+    @Transactional
     public ReservaResponse criarReserva(ReservaRequest requestDto, String emailClienteLogado) {
         Cliente cliente = clienteRepository.findByUsuarioEmail(emailClienteLogado);
         if (cliente == null) {

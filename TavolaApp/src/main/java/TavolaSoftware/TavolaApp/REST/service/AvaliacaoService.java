@@ -44,6 +44,35 @@ public class AvaliacaoService {
     @Value("${spring.mail.username}")
     private String emailRemetente;
 
+    @Transactional
+    public Avaliacao submeterMockAvaliacao(AvaliacaoRequest request, UUID restauranteId, String emailCliente, Reserva reserva) {
+        
+        int scoreFinal = formatarScore(request.getScore());
+        String comentario = request.getComentario();
+
+        Cliente cliente = servCliente.findByEmail(emailCliente)
+                                        .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado para o email: " + emailCliente));
+
+        Restaurante restaurante = repoRestaurante.findById(restauranteId)
+                                                 .orElseThrow(() -> new IllegalArgumentException("Restaurante com ID " + restauranteId + " não encontrado."));
+        
+        // 1. Cria a nova avaliação, usando a reserva fornecida (não busca no banco)
+        Avaliacao avaliacao = new Avaliacao(restaurante, cliente, scoreFinal, comentario, reserva);
+        
+        // 2. Associa a avaliação à reserva
+        reserva.setAvaliacao(avaliacao);
+        
+        // 3. Analisa o sentimento
+        String sentimentoAnalisado = lexico.analisarComentario(avaliacao.getComentario());
+        avaliacao.setSentimento(sentimentoAnalisado);
+
+        Avaliacao avaliacaoSalva = avaliacaoRepository.save(avaliacao);
+        reservaRepository.save(reserva); // Salva a associação na reserva
+        
+        calcularMedia(restauranteId);
+        
+        return avaliacaoSalva;
+    }
     
     @Transactional
     // <<< ASSINATURA ATUALIZADA >>>
