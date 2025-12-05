@@ -30,6 +30,7 @@ export interface AvaliacaoCliente {
   idCliente: string;
   comentario: string;
   dataReserva: string;
+  dataReservaPorExtenso?: string; // Data formatada por extenso (opcional)
 }
 
 export interface AvaliacoesRestaurante {
