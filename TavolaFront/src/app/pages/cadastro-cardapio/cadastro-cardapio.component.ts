@@ -153,6 +153,14 @@ export class CadastroCardapioComponent implements OnInit {
   // Método para aplicar filtros sem fechar o menu
   aplicarFiltrosSemFechar(): void {
     this.aplicarFiltros();
+    // Previne que o menu feche ao selecionar um item
+    setTimeout(() => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.closest('.filter-menu-content')) {
+        // Mantém o foco dentro do menu
+        return;
+      }
+    }, 0);
   }
 
   // Método para limpar pesquisa

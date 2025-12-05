@@ -107,6 +107,7 @@ export class LayoutPrincipalComponent implements OnInit {
   // Propriedades para responsividade
   isDrawerVisible = false
   public isHomePage = false // Controla se estamos na raiz da home (público para uso no template)
+  public isAgendamentoPage = false // Controla se estamos na página de agendamento
   isMobile$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map((result) => result.matches),
     shareReplay(),
@@ -137,12 +138,15 @@ export class LayoutPrincipalComponent implements OnInit {
         const url = this.router.url;
         // Verifica se é EXATAMENTE a home, não sub-rotas como /home/agendamento...
         const isHomeRoot = url === "/home" || url === "/home/";
+        // Verifica se está na página de agendamento
+        const isAgendamento = url.includes("/home/agendamento-reservas-restaurante");
         
-        // Atualiza a propriedade isHomePage para controlar o padding
+        // Atualiza as propriedades para controlar o padding e visibilidade da lupa
         this.isHomePage = isHomeRoot;
+        this.isAgendamentoPage = isAgendamento;
         
         // Se NÃO for a raiz da home (ex: é agendamento), força o sticky a false
-        if (!isHomeRoot) {
+        if (!isHomeRoot && !isAgendamento) {
           this.showStickySearchBar = false;
           this.stickyService.setSticky(false); // Garante que o serviço também saiba
           this.currentHomeComponent = null;
@@ -174,13 +178,15 @@ export class LayoutPrincipalComponent implements OnInit {
     // Inicializa o estado da sidebar no serviço ao carregar o LayoutPrincipal
     this.stickyService.setSidebarAberta(this.sidebarAberta)
 
-    // Verifica se está na raiz da home (não sub-rotas)
+    // Verifica se está na raiz da home (não sub-rotas) ou no agendamento
     const url = this.router.url;
     const isHomeRoot = url === "/home" || url === "/home/";
+    const isAgendamento = url.includes("/home/agendamento-reservas-restaurante");
     this.isHomePage = isHomeRoot;
+    this.isAgendamentoPage = isAgendamento;
     
-    if (!isHomeRoot) {
-      // Se não for a raiz, garante que o sticky está desativado
+    if (!isHomeRoot && !isAgendamento) {
+      // Se não for a raiz nem o agendamento, garante que o sticky está desativado
       this.showStickySearchBar = false
       this.stickyService.setSticky(false)
     }
