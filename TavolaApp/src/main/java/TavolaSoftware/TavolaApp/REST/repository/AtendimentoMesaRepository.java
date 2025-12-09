@@ -19,22 +19,28 @@ public interface AtendimentoMesaRepository extends JpaRepository<AtendimentoMesa
      * Usa JOIN FETCH para trazer os garçons associados.
      */
     @Query("SELECT a FROM AtendimentoMesa a LEFT JOIN FETCH a.garcons WHERE a.mesa.id = :mesaId AND a.ativo = true")
-    Optional<AtendimentoMesa> findAtendimentoAtivoByMesaId(UUID mesaId);
+    Optional<AtendimentoMesa> findAtendimentoAtivoByMesaId(@Param("mesaId") UUID mesaId);
     
     /**
-     * Busca todos os atendimentos (ativos ou finalizados) que ocorreram
-     * (iniciaram) em uma data específica, para uma lista de mesas.
+     * Busca Atendimentos para o Dashboard.
+     * Regra: Traz o atendimento se:
+     * 1. Pertence a uma das mesas da lista.
+     * 2. E satisfaz UMA das condições:
+     * a) Começou na data solicitada (Histórico do dia).
+     * b) OU está ATIVO (garante que mesas ocupadas apareçam sempre, independente da data de início).
      */
     @Query("SELECT a FROM AtendimentoMesa a " +
+           "LEFT JOIN FETCH a.garcons " + // Otimização: Traz logo os garçons para evitar N+1 no dashboard
            "WHERE a.mesa.id IN :mesaIds " +
-           "AND CAST(a.horaInicio AS DATE) = :data")
+           "AND (" +
+           "   CAST(a.horaInicio AS DATE) = :data " +
+           "   OR " +
+           "   a.ativo = true " + 
+           ")")
     List<AtendimentoMesa> findAtendimentosByMesaIdsAndData(
             @Param("mesaIds") List<UUID> mesaIds, 
             @Param("data") LocalDate data
     );
 
-    // Poderemos adicionar outros métodos de busca aqui se necessário (ex: por restaurante)
- // Adicione este método
     List<AtendimentoMesa> findByMesaIdIn(List<UUID> mesaIds);
-    
 }
