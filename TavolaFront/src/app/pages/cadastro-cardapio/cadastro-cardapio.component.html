@@ -160,6 +160,10 @@
           </mat-card-content>
 
           <mat-menu #menu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
+            <button mat-menu-item (click)="itemMenuTrigger.closeMenu()" class="close-menu-mobile" *ngIf="isMobile">
+              <mat-icon>close</mat-icon>
+              <span>Fechar</span>
+            </button>
             <button mat-menu-item (click)="editar(item)">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>

@@ -872,9 +872,24 @@
     }
   }
   
+  // Estilo para botão de fechar no mobile
+  .close-menu-mobile {
+    background: rgba(194, 37, 35, 0.1) !important;
+    border-bottom: 2px solid rgba(194, 37, 35, 0.2) !important;
+    margin-bottom: 8px !important;
+    
+    &:hover {
+      background: rgba(194, 37, 35, 0.2) !important;
+    }
+    
+    mat-icon {
+      color: #c22523 !important;
+    }
+  }
+  
   // Ajuste para mobile - menus aparecem abaixo dos ícones
   @media (max-width: 768px) {
-    // Menu do usuário
+    // Menu do usuário - posiciona abaixo do avatar
     .user-dropdown {
       .cdk-overlay-pane {
         position: fixed !important;
@@ -887,8 +902,8 @@
       }
     }
     
-    // Menu de notificações
-    .mat-mdc-menu-panel {
+    // Menu de notificações - posiciona abaixo do sino
+    .notifications-menu {
       .cdk-overlay-pane {
         position: fixed !important;
         top: auto !important;
@@ -920,6 +935,21 @@
         bottom: auto !important;
         margin-top: 8px !important;
       }
+    }
+  }
+  
+  // Estilo global para botão de fechar menu no mobile
+  ::ng-deep .close-menu-mobile {
+    background: rgba(194, 37, 35, 0.1) !important;
+    border-bottom: 2px solid rgba(194, 37, 35, 0.2) !important;
+    margin-bottom: 8px !important;
+    
+    &:hover {
+      background: rgba(194, 37, 35, 0.2) !important;
+    }
+    
+    mat-icon {
+      color: #c22523 !important;
     }
   }
 }

@@ -1,5 +1,5 @@
 // src/app/pages/layout-principal/layout-principal.component.ts
-import { Component, inject, type OnInit } from "@angular/core"
+import { Component, inject, ViewChild, type OnInit } from "@angular/core"
 import { Router, RouterModule, NavigationEnd } from "@angular/router"
 import { RouterOutlet } from "@angular/router"
 import { MatIconModule } from "@angular/material/icon"
@@ -62,6 +62,9 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout"
   ],
 })
 export class LayoutPrincipalComponent implements OnInit {
+  @ViewChild('userMenuTrigger') userMenuTrigger?: MatMenuTrigger;
+  @ViewChild('userMenuTriggerMobile') userMenuTriggerMobile?: MatMenuTrigger;
+  
   sidebarAberta = true // Estado inicial da sidebar
   showStickySearchBar = false // Controla a visibilidade da search bar no cabeçalho
   searchExpanded = false // Added searchExpanded state for dynamic search behavior
@@ -522,5 +525,39 @@ export class LayoutPrincipalComponent implements OnInit {
         activeElement.blur();
       }
     }, 0);
+  }
+
+  /**
+   * Fecha o menu do usuário (usado pelo botão X no mobile)
+   */
+  fecharMenuUsuario(): void {
+    if (this.userMenuTrigger) {
+      this.userMenuTrigger.closeMenu();
+    }
+    if (this.userMenuTriggerMobile) {
+      this.userMenuTriggerMobile.closeMenu();
+    }
+  }
+
+  /**
+   * Ajusta o posicionamento do menu quando aberto no mobile
+   */
+  onMenuOpened(trigger: MatMenuTrigger): void {
+    // Ajusta o posicionamento apenas no mobile
+    if (window.innerWidth <= 768) {
+      setTimeout(() => {
+        const overlayPane = document.querySelector('.cdk-overlay-pane.mat-mdc-menu-panel') as HTMLElement;
+        if (overlayPane) {
+          // Calcula a posição baseada no avatar (toolbar height + margin)
+          const toolbarHeight = 80; // Altura do toolbar
+          const margin = 8;
+          overlayPane.style.top = `${toolbarHeight + margin}px`;
+          overlayPane.style.right = '16px';
+          overlayPane.style.left = 'auto';
+          overlayPane.style.transform = 'none';
+          overlayPane.style.position = 'fixed';
+        }
+      }, 0);
+    }
   }
 }

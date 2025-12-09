@@ -107,6 +107,10 @@
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
+            <button mat-menu-item (click)="memberMenuTriggerDesktop.closeMenu()" class="close-menu-mobile" *ngIf="isMobile">
+              <mat-icon>close</mat-icon>
+              <span>Fechar</span>
+            </button>
             <button mat-menu-item (click)="abrirDialogEdicao(membro)">
               <mat-icon>edit</mat-icon>
               <span>Editar</span>

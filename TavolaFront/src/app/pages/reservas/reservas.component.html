@@ -457,6 +457,10 @@
                     </button>
 
                     <mat-menu #areaMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
+                      <button mat-menu-item (click)="areaMenuTrigger.closeMenu()" class="close-menu-mobile" *ngIf="isMobile()">
+                        <mat-icon>close</mat-icon>
+                        <span>Fechar</span>
+                      </button>
                       <button mat-menu-item (click)="iniciarEdicao($event, i)">
                         <mat-icon>edit</mat-icon>
                         <span>Editar Nome</span>
@@ -510,6 +514,10 @@
                       <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #mesaMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
+                      <button mat-menu-item (click)="mesaMenuTrigger.closeMenu()" class="close-menu-mobile" *ngIf="isMobile()">
+                        <mat-icon>close</mat-icon>
+                        <span>Fechar</span>
+                      </button>
                       <button mat-menu-item (click)="abrirModalGerenciarMesas('editar', mesa)">
                         <mat-icon>edit</mat-icon>
                         <span>Editar</span>

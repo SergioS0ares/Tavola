@@ -12,6 +12,7 @@ import { HttpClient } from '@angular/common/http';
 import { PainelGarcomService, PedidoItem } from '../../../core/services/painel-garcom.service';
 import { CardapioService } from '../../../core/services/cardapio.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PedidosService, ItemPedidoAddRequest } from '../../../core/services/pedidos.service';
 import { IItemCardapio } from '../../../Interfaces/IItem-cardapio';
 import { environment } from '../../../../environments/environment';
 
@@ -28,6 +29,7 @@ interface CardapioItem {
   preco: number;
   categoria: string;
   imagem?: string;
+  imagemOriginal?: string; // URL relativa original da API
   tags?: string[];
   quantidade?: number; // Para o carrinho
   observacao?: string; // Para observações do item no pedido
@@ -77,6 +79,7 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
   private cardapioService = inject(CardapioService);
   private authService = inject(AuthService);
   private http = inject(HttpClient);
+  private pedidosService = inject(PedidosService);
   
   constructor(
     public dialogRef: MatDialogRef<DialogCardapioGarcomComponent>,
@@ -87,14 +90,14 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     // Detecta se está em mobile
     this.isMobile = window.innerWidth <= 768;
-    
-    // Carrega itens existentes se estiver editando um pedido
-    if (this.data.pedidoId) {
-      this.carregarItensExistentes();
-    }
 
     // Carrega o cardápio da API
     this.carregarCardapio();
+    
+    // Se estiver editando um pedido, carrega os itens existentes
+    if (this.data.pedidoId) {
+      this.carregarItensExistentes();
+    }
   }
 
   private carregarCardapio(): void {
@@ -115,7 +118,10 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
             categoriaNome = 'Outros';
           }
           
-          // Converte a imagem para URL absoluta se necessário
+          // Armazena a imagem original (relativa) antes de processar
+          const imagemOriginal = item.imagem;
+          
+          // Converte a imagem para URL absoluta se necessário (para exibição)
           let imagemUrl = item.imagem;
           if (imagemUrl && !imagemUrl.startsWith('http') && !imagemUrl.startsWith('assets/') && !imagemUrl.startsWith('data:')) {
             imagemUrl = this.authService.getAbsoluteImageUrl(imagemUrl);
@@ -127,7 +133,8 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
             descricao: item.descricao,
             preco: item.preco,
             categoria: categoriaNome,
-            imagem: imagemUrl,
+            imagem: imagemUrl, // URL absoluta para exibição
+            imagemOriginal: imagemOriginal, // URL relativa original para a API
             tags: item.tags?.map(t => typeof t === 'string' ? t : t.tag) || []
           };
           
@@ -215,23 +222,60 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
       return;
     }
     
-    // Obtém o restauranteId do perfil
-    const perfil = this.authService.perfil;
-    let restauranteId = '';
-    
-    if (perfil) {
-      if (perfil.tipo === 'FUNCIONARIO' && perfil.restauranteId) {
-        restauranteId = perfil.restauranteId;
-      } else if (perfil.tipo === 'RESTAURANTE' && perfil.id) {
-        restauranteId = perfil.id;
-      }
-    }
+    const restauranteId = this.pedidosService.getRestauranteId();
     
     if (!restauranteId) {
       console.error('RestauranteId não encontrado');
       return;
     }
     
+    this.isLoading = true;
+    
+    // Se tiver pedidoId, faz PUT para adicionar itens ao pedido existente
+    if (this.data.pedidoId) {
+      this.adicionarItensAoPedido(restauranteId);
+    } else {
+      // Senão, faz POST para criar novo pedido
+      this.criarNovoPedido(restauranteId);
+    }
+  }
+
+  private adicionarItensAoPedido(restauranteId: string): void {
+    // Prepara o payload no formato esperado pela API
+    const itens: ItemPedidoAddRequest[] = this.carrinho.map(item => {
+      // Calcula o valor total do item
+      const valorTotalItem = (item.preco || 0) * (item.quantidade || 1);
+      
+      // Usa a imagem original (relativa) se disponível, senão usa a processada
+      const imagemUrl = item.imagemOriginal || item.imagem || '';
+      
+      return {
+        cardapioItemId: item.id,
+        nome: item.nome,
+        valorUnitario: item.preco || 0,
+        quantidade: item.quantidade || 1,
+        observacao: item.observacao || '',
+        imagemUrl: imagemUrl,
+        valorTotalItem: valorTotalItem
+      };
+    });
+    
+    this.pedidosService.adicionarItensAoPedido(restauranteId, this.data.pedidoId!, itens)
+      .subscribe({
+        next: (response) => {
+          console.log('Itens adicionados ao pedido com sucesso:', response);
+          this.isLoading = false;
+          this.dialogRef.close({ sucesso: true, pedido: response });
+        },
+        error: (error) => {
+          console.error('Erro ao adicionar itens ao pedido:', error);
+          this.isLoading = false;
+          this.dialogRef.close({ sucesso: false, erro: error });
+        }
+      });
+  }
+
+  private criarNovoPedido(restauranteId: string): void {
     // Prepara o payload do pedido
     const payload = {
       clienteId: '', // Pode ser vazio se não houver cliente específico
@@ -245,7 +289,6 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
     // Faz o POST do pedido
     const url = `${environment.apiUrl}/auth/api/restaurantes/${restauranteId}/pedidos/${this.data.mesaId}/salvar`;
     
-    this.isLoading = true;
     this.http.post(url, payload).subscribe({
       next: (response) => {
         console.log('Pedido criado com sucesso:', response);
@@ -270,16 +313,72 @@ export class DialogCardapioGarcomComponent implements OnInit, AfterViewInit {
     const pedidos = this.painelGarcomService.getPedidosAtuais();
     const pedido = pedidos.find(p => p.id === this.data.pedidoId);
     
-    if (pedido) {
-      // Adiciona os itens existentes ao carrinho
-      this.carrinho = pedido.itens.map(item => ({
-        id: item.id,
-        nome: item.nome,
-        descricao: '', // Mock - em produção viria do cardápio
-        preco: item.preco,
-        categoria: '', // Mock - em produção viria do cardápio
-        quantidade: item.quantidade
-      }));
+    if (pedido && pedido.itens) {
+      // Mapeia os itens do pedido para o formato do carrinho
+      // Precisamos aguardar o cardápio carregar para ter as informações completas
+      this.cardapioService.listarItens().subscribe({
+        next: (itensCardapio: IItemCardapio[]) => {
+          // Cria um mapa dos itens do cardápio por ID para busca rápida
+          const cardapioMap = new Map<string, IItemCardapio>();
+          itensCardapio.forEach(item => {
+            if (item.id) {
+              cardapioMap.set(item.id, item);
+            }
+          });
+          
+          // Mapeia os itens do pedido para o formato do carrinho
+          this.carrinho = pedido.itens.map(itemPedido => {
+            // Busca o item completo no cardápio
+            const itemCardapio = cardapioMap.get(itemPedido.id);
+            
+            // Determina a categoria
+            let categoriaNome = 'Outros';
+            if (itemCardapio) {
+              if (typeof itemCardapio.categoria === 'string') {
+                categoriaNome = itemCardapio.categoria || 'Outros';
+              } else if (itemCardapio.categoria?.nome) {
+                categoriaNome = itemCardapio.categoria.nome;
+              }
+            }
+            
+            // Processa a imagem
+            const imagemOriginal = itemCardapio?.imagem || '';
+            let imagemUrl = imagemOriginal;
+            if (imagemUrl && !imagemUrl.startsWith('http') && !imagemUrl.startsWith('assets/') && !imagemUrl.startsWith('data:')) {
+              imagemUrl = this.authService.getAbsoluteImageUrl(imagemUrl);
+            }
+            
+            return {
+              id: itemPedido.id,
+              nome: itemPedido.nome,
+              descricao: itemCardapio?.descricao || '',
+              preco: itemPedido.preco,
+              categoria: categoriaNome,
+              imagem: imagemUrl,
+              imagemOriginal: imagemOriginal,
+              tags: itemCardapio?.tags?.map(t => typeof t === 'string' ? t : t.tag) || [],
+              quantidade: itemPedido.quantidade,
+              observacao: itemPedido.observacoes || ''
+            };
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao carregar cardápio para mapear itens existentes:', error);
+          // Em caso de erro, ainda tenta mapear com os dados básicos do pedido
+          this.carrinho = pedido.itens.map(itemPedido => ({
+            id: itemPedido.id,
+            nome: itemPedido.nome,
+            descricao: '',
+            preco: itemPedido.preco,
+            categoria: 'Outros',
+            imagem: '',
+            imagemOriginal: '',
+            tags: [],
+            quantidade: itemPedido.quantidade,
+            observacao: itemPedido.observacoes || ''
+          }));
+        }
+      });
     }
   }
 

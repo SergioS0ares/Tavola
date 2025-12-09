@@ -245,7 +245,7 @@
               <span>Mesa {{ pedido.mesaNome }}</span>
             </div>
             <div class="pedido-status" [ngClass]="'status-' + pedido.status.toLowerCase()">
-              {{ pedido.status }}
+              {{ getStatusTexto(pedido) }}
             </div>
           </div>
           
@@ -258,7 +258,7 @@
           </div>
           
           <div class="pedido-total">
-            <strong>Total: {{ calcularTotalPedido(pedido) | currency:'BRL' }}</strong>
+            <strong>Total: {{ pedido.total | currency:'BRL' }}</strong>
           </div>
               
           <div class="pedido-actions">

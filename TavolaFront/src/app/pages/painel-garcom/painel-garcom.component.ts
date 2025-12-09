@@ -26,6 +26,7 @@ import Swal from 'sweetalert2';
 // Importar o serviço e interfaces
 import { PainelGarcomService, GarcomInfo, Mesa, Ambiente, Pedido, IReserva } from '../../core/services/painel-garcom.service';
 import { ReservasService } from '../../core/services/reservas.service';
+import { PedidosService } from '../../core/services/pedidos.service';
 import { DialogMesaAcoesComponent } from './dialog-mesa-acoes/dialog-mesa-acoes.component';
 import { DialogCardapioGarcomComponent } from './dialog-cardapio-garcom/dialog-cardapio-garcom.component';
 
@@ -115,6 +116,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private painelGarcomService = inject(PainelGarcomService);
   private reservasService = inject(ReservasService);
+  private pedidosService = inject(PedidosService);
   private cdr = inject(ChangeDetectorRef);
 
   constructor() {}
@@ -127,6 +129,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     console.log('[PainelGarcomComponent] ngOnInit - Token presente:', this.authService.getToken() ? 'SIM' : 'NÃO');
     
     this.carregarDadosIniciais();
+    this.carregarPedidosAtivos();
     this.iniciarAtualizacaoTempo();
     this.carregarDadosGarcom();
   }
@@ -178,6 +181,33 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('[PainelGarcom] Erro ao carregar ambientes:', error);
           this.isLoading.ambientes = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  private carregarPedidosAtivos(): void {
+    const restauranteId = this.pedidosService.getRestauranteId();
+    
+    if (!restauranteId) {
+      console.error('[PainelGarcom] RestauranteId não encontrado para carregar pedidos');
+      return;
+    }
+
+    this.isLoading.pedidos = true;
+    this.pedidosService.getPedidosAtivos(restauranteId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (pedidos) => {
+          console.log('[PainelGarcom] Pedidos ativos carregados:', pedidos);
+          // Atualiza o BehaviorSubject do serviço com os pedidos carregados
+          this.painelGarcomService.atualizarPedidosAtivos(pedidos);
+          this.isLoading.pedidos = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('[PainelGarcom] Erro ao carregar pedidos ativos:', error);
+          this.isLoading.pedidos = false;
           this.cdr.detectChanges();
         }
       });
@@ -477,8 +507,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   // Gestão de pedidos
   atualizarPedidos(): void {
-    // Os pedidos são atualizados automaticamente via observable
-    console.log('Pedidos atualizados via observable');
+    this.carregarPedidosAtivos();
   }
 
   editarPedido(pedido: Pedido): void {
@@ -513,6 +542,17 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   calcularTotalPedido(pedido: Pedido): number {
     return pedido.itens.reduce((total, item) => total + (item.preco * item.quantidade), 0);
+  }
+
+  getStatusTexto(pedido: Pedido): string {
+    // Retorna o texto formatado do status
+    const statusMap: { [key: string]: string } = {
+      'ATIVO': 'PENDENTE',
+      'PREPARANDO': 'EM PREPARO',
+      'PRONTO': 'PRONTO',
+      'ENTREGUE': 'ENTREGUE'
+    };
+    return statusMap[pedido.status] || pedido.status;
   }
 
   verPedidoCompleto(pedido: Pedido): void {
@@ -560,8 +600,10 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(resultado => {
-      if (resultado) {
-        console.log('Cardápio fechado com sucesso');
+      if (resultado && resultado.sucesso) {
+        console.log('Cardápio fechado com sucesso, recarregando pedidos...');
+        // Recarrega os pedidos após criar/editar um pedido
+        this.carregarPedidosAtivos();
       }
     });
   }

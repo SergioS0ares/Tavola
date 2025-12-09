@@ -345,6 +345,10 @@ export class PainelGarcomService {
     return this._pedidosAtivos.getValue();
   }
 
+  public atualizarPedidosAtivos(pedidos: IPedido[]): void {
+    this._pedidosAtivos.next(pedidos);
+  }
+
   public ocuparMesa(mesaId: string): void {
     const ambientesAtuais = this._ambientes.getValue();
     const novosAmbientes: IAmbientePainel[] = ambientesAtuais.map(amb => ({
