@@ -55,13 +55,18 @@
         </button>
         
         <!-- Menu de filtros -->
-        <mat-menu #filterMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
+        <mat-menu #filterMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)" [hasBackdrop]="true">
           <div class="filter-menu-content" (click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()">
             <div class="filter-header">
               <h4>Filtros</h4>
-              <button mat-icon-button (click)="limparFiltros(); $event.stopPropagation()" matTooltip="Limpar filtros" [matTooltipDisabled]="isMobile">
-                <mat-icon>clear</mat-icon>
-              </button>
+              <div class="filter-header-actions">
+                <button mat-icon-button (click)="limparFiltros(); $event.stopPropagation()" matTooltip="Limpar filtros" [matTooltipDisabled]="isMobile">
+                  <mat-icon>clear</mat-icon>
+                </button>
+                <button mat-icon-button (click)="filterMenuTrigger.closeMenu(); $event.stopPropagation()" matTooltip="Fechar" [matTooltipDisabled]="isMobile">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
             </div>
             
             <mat-form-field appearance="outline" class="filter-field">
