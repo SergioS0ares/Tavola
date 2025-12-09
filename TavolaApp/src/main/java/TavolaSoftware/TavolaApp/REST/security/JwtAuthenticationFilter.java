@@ -41,8 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         	    path.startsWith("/auth/cardapios/public/") ||
         		path.startsWith("/auth/mudar-senha") ||
         	    path.startsWith("/v3/api-docs") ||
+        	    path.startsWith("/auth/uploads/mock") ||
         	    path.startsWith("/swagger-ui") ||
         	    path.startsWith("/upl")
+        	    
         	) {
         	    System.out.println("[JwtFilter] Path público (ou ignorado pelo filtro), pulando autenticação JWT: " + path);
         	    filterChain.doFilter(request, response);

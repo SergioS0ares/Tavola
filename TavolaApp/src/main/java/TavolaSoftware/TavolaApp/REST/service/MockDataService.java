@@ -5,6 +5,7 @@ import TavolaSoftware.TavolaApp.REST.model.*;
 import TavolaSoftware.TavolaApp.REST.repository.*;
 import TavolaSoftware.TavolaApp.tools.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -29,7 +29,10 @@ import java.util.stream.Collectors;
 public class MockDataService {
 
     private static final AtomicInteger mockUserCounter = new AtomicInteger(0);
-    private static final AtomicInteger clienteIndexGlobal = new AtomicInteger(0); // Para distribuição Round-Robin
+    private static final AtomicInteger clienteIndexGlobal = new AtomicInteger(0);
+    
+    // Cache para evitar tentar restaurantes cheios na mesma execução
+    private final Set<UUID> restaurantesCheiosHoje = new HashSet<>();
 
     // Listas pré-carregadas dos TXTs
     private final List<String> nomesEstabelecimentos;
@@ -56,8 +59,13 @@ public class MockDataService {
     @Autowired private BCryptPasswordEncoder passwordEncoder;
     @Autowired private UploadUtils uploadUtils;
 
+    // --- CORREÇÃO DO PROXY BYPASS ---
+    // Injetamos a própria classe para garantir que as anotações @Transactional funcionem
+    @Autowired
+    @Lazy // Lazy para evitar Dependência Circular na inicialização
+    private MockDataService self; 
+
     public MockDataService() {
-        // Carregamento dos arquivos TXT (Caminhos ajustados conforme sua estrutura)
         nomesEstabelecimentos = loadTxtFile("mock-data/estabelecimentos.txt");
         nomesPratos = loadTxtFile("mock-data/pratos.txt");
         nomesClientes = loadTxtFile("mock-data/nomes.txt");
@@ -65,10 +73,13 @@ public class MockDataService {
         tiposCozinha = loadTxtFile("mock-data/cozinha.txt");
         avaliacoesPositivas = loadTxtFile("mock-data/avaliacaopositiva.txt");
         avaliacoesNegativas = loadTxtFile("mock-data/avaliacaonegativa.txt");
+        
+        // Validação simples para garantir que os arquivos existem
+        if(nomesPratos.isEmpty()) System.err.println("ALERTA MOCK: pratos.txt vazio ou não encontrado!");
     }
 
     // ============================================================================================
-    //  CRIAÇÃO DE RESTAURANTE (COM CARDÁPIO GARANTIDO)
+    //  CRIAÇÃO DE RESTAURANTE
     // ============================================================================================
 
     @Transactional
@@ -104,7 +115,13 @@ public class MockDataService {
 
         createMockGarcons(restaurante, 3);
         createMockAmbientes(restaurante);
-        createMockCardapio(restaurante, 10); // Aumentei para 10 itens para ter variedade
+        
+        // Garante que o cardápio seja criado
+        if (!nomesPratos.isEmpty()) {
+            createMockCardapio(restaurante, 12); // Cria 12 itens
+        } else {
+            System.err.println("MOCK AVISO: Cardápio não criado pois a lista de pratos está vazia.");
+        }
 
         return restaurante;
     }
@@ -122,19 +139,17 @@ public class MockDataService {
     }
 
     private void createMockAmbientes(Restaurante restaurante) {
-        // Ambiente 1
         Ambiente principal = new Ambiente();
         principal.setNome("Salão Principal");
         principal.setRestaurante(restaurante);
         ambienteRepository.save(principal);
-        createMockMesas(principal, 6, "Mesa "); // 6 Mesas no principal
+        createMockMesas(principal, 6, "Mesa ");
 
-        // Ambiente 2 (para garantir mais mesas)
         Ambiente varanda = new Ambiente();
         varanda.setNome("Varanda");
         varanda.setRestaurante(restaurante);
         ambienteRepository.save(varanda);
-        createMockMesas(varanda, 4, "Varanda "); // 4 Mesas na varanda
+        createMockMesas(varanda, 4, "Varanda ");
     }
 
     private void createMockMesas(Ambiente ambiente, int quantidade, String prefixo) {
@@ -149,89 +164,90 @@ public class MockDataService {
     }
 
     private void createMockCardapio(Restaurante restaurante, int quantidade) {
-        if (nomesPratos.isEmpty()) return;
-
-        // Cria categorias primeiro
+        // Garante a criação das categorias antes
         Categoria entrada = categoriaService.saveIfNotExists("Entradas", restaurante);
         Categoria principal = categoriaService.saveIfNotExists("Prato Principal", restaurante);
         Categoria bebida = categoriaService.saveIfNotExists("Bebidas", restaurante);
+        Categoria sobremesa = categoriaService.saveIfNotExists("Sobremesa", restaurante);
         
-        List<Categoria> categorias = List.of(entrada, principal, bebida);
+        List<Categoria> categorias = List.of(entrada, principal, bebida, sobremesa);
 
         for (int i = 0; i < quantidade; i++) {
             Cardapio item = new Cardapio();
             item.setRestaurante(restaurante);
             item.setDisponivel(true);
             
-            // Distribuição de categorias
+            // Distribuição ciclica de categorias
             item.setCategoria(categorias.get(i % categorias.size()));
             
-            String nomePrato = getRandom(nomesPratos);
-            item.setNome(nomePrato + " Especial"); // Adiciona sufixo para variar
+            // Garante nomes variados
+            String nomePratoBase = getRandom(nomesPratos);
+            item.setNome(nomePratoBase + " " + (i + 1)); 
             
             item.setImagem("/upl/mock/cardapios/" + (i % 10) + ".jpeg");
-            item.setDescricao("Delicioso prato de " + nomePrato + " preparado com ingredientes frescos.");
+            item.setDescricao("Descrição deliciosa para " + nomePratoBase);
             item.setPreco(randomDouble(25.00, 120.00));
             
             cardapioRepository.save(item);
         }
+        // Force flush para garantir que os itens vão para o banco
+        cardapioRepository.flush();
     }
 
     // ============================================================================================
-    //  CRIAÇÃO DE CLIENTE E ORQUESTRAÇÃO DE RESERVAS
+    //  CRIAÇÃO DE CLIENTE (USANDO SELF-INJECTION PARA TRANSAÇÕES REAIS)
     // ============================================================================================
 
-    // Removemos @Transactional global para gerenciar falhas individualmente
+    // NOTA: Este método NÃO tem @Transactional propositalmente.
+    // Ele orquestra chamadas transactionais independentes.
     public Cliente createMockCliente(List<UUID> idsRestaurantesMock) {
         int indiceClienteAtual = clienteIndexGlobal.getAndIncrement();
         
-        // 1. Criar o Cliente (Transação isolada)
-        Cliente cliente = createClienteBase();
+        // 1. Criar o Cliente (Chama via 'self' para abrir nova transação)
+        Cliente cliente = self.createClienteBase();
 
-        // Se não houver restaurantes, retorna só o cliente
         if (idsRestaurantesMock == null || idsRestaurantesMock.isEmpty()) return cliente;
 
-        // 2. Reserva PASSADA (Histórico + Avaliação)
-        // Escolhe um restaurante aleatório para o histórico
+        // 2. Reserva PASSADA
         try {
             UUID idRestHistorico = idsRestaurantesMock.get(randomInt(0, idsRestaurantesMock.size() - 1));
-            createMockReservaPassada(cliente, idRestHistorico);
+            self.createMockReservaPassada(cliente, idRestHistorico);
         } catch (Exception e) {
-            System.err.println("Erro ao criar histórico para cliente " + cliente.getId() + ": " + e.getMessage());
+            System.err.println("Log Mock: Falha no histórico para cliente " + cliente.getId() + " (Ignorado)");
         }
 
         // 3. Sessão ATIVA (Atendimento ocorrendo AGORA)
-        // Tenta encontrar um restaurante livre na lista.
-        boolean sessaoCriada = false;
-        // Embaralha para tentar restaurantes aleatórios, mas percorre todos se necessário
         List<UUID> candidatosSessao = new ArrayList<>(idsRestaurantesMock);
         Collections.shuffle(candidatosSessao);
         
+        // Tenta encontrar um restaurante onde consiga sentar AGORA
+        boolean sessaoCriada = false;
         for (UUID restId : candidatosSessao) {
+            // Se já falhou hoje, pula para economizar tempo
+            if (restaurantesCheiosHoje.contains(restId)) continue;
+
             try {
-                // Tenta criar neste restaurante. Se der certo, para o loop.
-                createMockSessaoAtiva(cliente, restId);
+                // Chama via 'self' para garantir que se falhar, faz rollback só da tentativa
+                self.createMockSessaoAtiva(cliente, restId);
                 sessaoCriada = true;
-                break; 
+                break; // Sucesso, sai do loop
             } catch (Exception e) {
-                // Se falhar (ex: sem mesa), tenta o próximo restaurante da lista
-                continue;
+                // Marca restaurante como cheio para não tentar de novo nesta execução em lote
+                restaurantesCheiosHoje.add(restId);
             }
         }
-        if (!sessaoCriada) {
-            System.out.println("Aviso: Não foi possível criar sessão ativa para o cliente (todos os restaurantes cheios hoje?).");
-        }
 
-        // 4. Reservas FUTURAS (6 Dias seguintes)
-        // Usa lógica Round-Robin baseada no indiceClienteAtual para distribuir a carga
+        // 4. Reservas FUTURAS (Round-Robin)
         try {
-            createMockReservasFuturas(cliente, idsRestaurantesMock, indiceClienteAtual);
+            self.createMockReservasFuturas(cliente, idsRestaurantesMock, indiceClienteAtual);
         } catch (Exception e) {
-            System.err.println("Erro ao criar reservas futuras: " + e.getMessage());
+            System.err.println("Log Mock: Falha nas reservas futuras (Ignorado)");
         }
 
         return cliente;
     }
+
+    // --- MÉTODOS ATÓMICOS (Chamados via 'self') ---
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Cliente createClienteBase() {
@@ -246,109 +262,95 @@ public class MockDataService {
         usuario.setEndereco(getCerradoAddress());
         usuario.setTelefone("6299" + randomInt(1000, 9999));
         usuario.setImagem("/upl/mock/usuarios/" + randomInt(0, 9) + ".jpeg");
+        
         usuarioRepository.save(usuario);
 
         Cliente cliente = new Cliente();
         cliente.setUsuario(usuario);
-        return clienteRepository.save(cliente);
+        Cliente salvo = clienteRepository.save(cliente);
+        
+        // IMPORTANTE: Força a ida ao banco imediatamente
+        clienteRepository.flush(); 
+        return salvo;
     }
 
-    // --- CENÁRIO 1: PASSADO (Reserva Concluída + Avaliação) ---
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createMockReservaPassada(Cliente cliente, UUID restauranteId) {
         Restaurante restaurante = restauranteRepository.findById(restauranteId).orElseThrow();
-        
-        // Data no passado (entre 5 e 30 dias atrás)
         LocalDate dataPassada = LocalDate.now().minusDays(randomInt(5, 30));
         LocalTime hora = LocalTime.of(19, 0);
 
-        // Tenta achar mesa (pega a primeira disponível naquela data)
         Mesa mesa = findFirstAvailableMesa(restauranteId, dataPassada, hora, 2);
         
-        // Cria Reserva CONCLUIDA
         Reserva reserva = reservaService.criarReservaMock(
             cliente, restaurante, mesa, 
             dataPassada, hora, 
             randomInt(2, 4), StatusReserva.CONCLUIDA
         );
+        
+        // Garante que a reserva existe antes de avaliar
+        reservaRepository.flush();
 
-        // Cria Avaliação
         createMockAvaliacao(cliente, restaurante, reserva);
     }
 
-    // --- CENÁRIO 2: PRESENTE (Atendimento Ativo + Pedido) ---
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createMockSessaoAtiva(Cliente cliente, UUID restauranteId) {
-        Restaurante restaurante = restauranteRepository.findById(restauranteId).orElseThrow();
-        
-        // Busca mesa disponível AGORA
-        // Se lançar exceção (sem mesa), o loop no método pai tenta outro restaurante.
-        Mesa mesaAtiva = findFirstAvailableMesa(restauranteId, LocalDate.now(), LocalTime.now(), 2);
-
-        // Dados para o atendimento
-        List<Garcom> garcons = garcomRepository.findAllByRestauranteId(restauranteId);
+        // Verifica se há mesas e cardápio
         List<Cardapio> cardapio = cardapioRepository.findAllDisponiveisByRestaurante(restauranteId);
+        List<Garcom> garcons = garcomRepository.findAllByRestauranteId(restauranteId);
         
-        if (garcons.isEmpty() || cardapio.isEmpty()) {
-            throw new RuntimeException("Restaurante sem garçom ou cardápio, pulando.");
+        if (cardapio.isEmpty() || garcons.isEmpty()) {
+            throw new RuntimeException("Restaurante incompleto (sem pratos ou garçons)");
         }
 
+        // Tenta achar mesa LIVRE AGORA
+        Mesa mesaAtiva = findFirstAvailableMesa(restauranteId, LocalDate.now(), LocalTime.now(), 2);
         Garcom garcom = garcons.get(randomInt(0, garcons.size() - 1));
         Cardapio itemPedido = cardapio.get(randomInt(0, cardapio.size() - 1));
 
-        // 1. Cria Reserva ATIVA (para constar no sistema)
-        // Marcamos para daqui a 1 hora para simular que ele "chegou na hora" ou está lá
+        // 1. Reserva ATIVA (futura imediata)
         reservaService.criarReservaMock(
-            cliente, restaurante, mesaAtiva, 
+            cliente, restauranteRepository.getReferenceById(restauranteId), mesaAtiva, 
             LocalDate.now(), LocalTime.now().plusMinutes(60), 
             2, StatusReserva.ATIVA
         );
 
-        // 2. Inicia Atendimento (Muda status mesa para OCUPADA)
+        // 2. Inicia Atendimento
         atendimentoMesaService.iniciarAtendimentoMock(mesaAtiva, garcom);
 
-        // 3. Cria Pedido PENDENTE
+        // 3. Pedido
         pedidoService.criarPedidoMock(mesaAtiva, cliente, garcom, itemPedido);
     }
 
-    // --- CENÁRIO 3: FUTURO (Reservas Round-Robin) ---
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createMockReservasFuturas(Cliente cliente, List<UUID> idsRestaurantes, int indiceCliente) {
         int totalRestaurantes = idsRestaurantes.size();
         
-        // Cria 6 reservas em dias seguidos
         for (int i = 1; i <= 6; i++) {
-            // Lógica Round-Robin:
-            // Dia 1: Cliente 0 vai no Restaurante 0. Cliente 1 vai no Restaurante 1.
-            // Dia 2: Cliente 0 vai no Restaurante 1. Cliente 1 vai no Restaurante 2.
+            // Lógica Round-Robin para distribuir carga
             int indiceRestaurante = (indiceCliente + i) % totalRestaurantes;
             UUID restId = idsRestaurantes.get(indiceRestaurante);
             
-            Restaurante restaurante = restauranteRepository.findById(restId).orElse(null);
-            if (restaurante == null) continue;
-
-            LocalDate dataFutura = LocalDate.now().plusDays(i);
-            LocalTime hora = LocalTime.of(20, 0);
-
             try {
-                // Tenta achar mesa
+                LocalDate dataFutura = LocalDate.now().plusDays(i);
+                LocalTime hora = LocalTime.of(20, 0);
+                
                 Mesa mesa = findFirstAvailableMesa(restId, dataFutura, hora, 2);
                 
-                // Cria Reserva CONFIRMADA
                 reservaService.criarReservaMock(
-                    cliente, restaurante, mesa, 
+                    cliente, restauranteRepository.getReferenceById(restId), mesa, 
                     dataFutura, hora, 
                     randomInt(2, 4), StatusReserva.CONFIRMADA
                 );
             } catch (Exception e) {
-                // Se não tiver mesa nesse dia nesse restaurante, tudo bem, pula.
-                // Como estamos distribuindo bem com o Round-Robin, colisões serão raras se houver mesas suficientes.
+                // Pula dia/restaurante se cheio
             }
         }
     }
 
     // ============================================================================================
-    //  MÉTODOS AUXILIARES
+    //  AUXILIARES
     // ============================================================================================
 
     private void createMockAvaliacao(Cliente cliente, Restaurante restaurante, Reserva reserva) {
@@ -360,21 +362,17 @@ public class MockDataService {
         request.setComentario(comentario);
         
         try {
-            // Chama o service real para calcular a média e salvar
             avaliacaoService.submeterMockAvaliacao(request, restaurante.getId(), cliente.getUsuario().getEmail(), reserva);
         } catch (Exception e) {
-            System.err.println("Erro ao criar avaliação mock: " + e.getMessage());
+            // Falha silenciosa na avaliação não é crítica
         }
     }
 
     private Mesa findFirstAvailableMesa(UUID restauranteId, LocalDate data, LocalTime hora, int capacidade) {
         List<Mesa> mesasDisponiveis = mesaRepository.findMesasDisponiveis(restauranteId, data, hora, capacidade);
-        
         if (mesasDisponiveis.isEmpty()) {
-            throw new RuntimeException("Sem mesas disponíveis.");
+            throw new RuntimeException("Mesa indisponível");
         }
-        // Pega a primeira mesa livre da lista (que o JPA retornou)
-        // Como o Round-Robin distribui os restaurantes, isso naturalmente distribui as mesas.
         return mesasDisponiveis.get(0); 
     }
 
@@ -383,16 +381,15 @@ public class MockDataService {
             InputStream is = new ClassPathResource(path).getInputStream();
             return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
                     .lines()
-                    .map(line -> line.replaceAll("^[0-9]+\\.", "").trim())
+                    .map(line -> line.replaceAll("^[0-9]+\\.", "").trim()) // Remove numeração "1." se houver
                     .toList();
         } catch (IOException e) {
-            System.err.println("MOCK ERROR: Não foi possível carregar " + path);
             return new ArrayList<>();
         }
     }
 
     private String getRandom(List<String> list) {
-        if (list == null || list.isEmpty()) return "Dado Genérico";
+        if (list == null || list.isEmpty()) return "Genérico";
         return list.get(randomInt(0, list.size() - 1));
     }
 

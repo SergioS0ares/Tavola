@@ -62,6 +62,7 @@ public class SecurityConfig {
                     "/auth/esqueci-senha",
                     "/auth/mudar-senha/**", // A rota de reset com token
                     "/auth/cardapios/public/**",
+                    "/auth/uploads/mock/**",
                     
                     // Rotas do Swagger e Arquivos
                     "/v3/api-docs/**",
