@@ -1,12 +1,19 @@
 <div class="cardapio-publico-container">
-  <div class="header-publico">
-    <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo-img">
-    <div class="restaurante-header-info">
-      <img *ngIf="imagemRestaurante" [src]="imagemRestaurante" [alt]="nomeRestaurante" class="restaurante-img">
-      <h1 class="page-title">{{ nomeRestaurante }}</h1>
+  <!-- Novo hero header com imagem grande e overlay -->
+  <div class="hero-header" *ngIf="!isLoading && !hasError">
+    <div class="hero-background" [style.background-image]="imagemRestaurante ? 'url(' + imagemRestaurante + ')' : 'url(assets/jpg/placeholder-comida.jpg)'"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <img src="assets/png/LogoTavolaSimples.png" alt="Logo Tavola" class="logo-img">
+      <h1 class="restaurante-nome">{{ nomeRestaurante }}</h1>
+      <p class="hero-subtitle">Descubra sabores extraordinários</p>
+    </div>
+    <div class="hero-scroll-indicator">
+      <i nz-icon nzType="down" nzTheme="outline"></i>
     </div>
   </div>
 
+  <!-- Loading e error states movidos para cima -->
   <div *ngIf="isLoading" class="loading-spinner">
     <mat-spinner diameter="50"></mat-spinner>
     <p>Carregando cardápio...</p>
@@ -21,64 +28,64 @@
   </div>
 
   <div *ngIf="!isLoading && !hasError && categorias.length > 0" class="menu-content-publico">
-    <div class="menu-intro-publico">
-      <h2>Experimente este menu</h2>
-      <p>Explore a oferta gastronômica deste restaurante e deixe-se inspirar.</p>
-      
-      <div class="menu-info">
-        <!-- Campo de Busca -->
-        <div class="busca-menu-container">
-          <mat-form-field appearance="outline" class="busca-menu-field">
-            <mat-label>Buscar no cardápio</mat-label>
-            <input matInput 
-              [(ngModel)]="pesquisa" 
-              (input)="aplicarFiltros()"
-              placeholder="Digite o nome, descrição ou tag do item">
-            <button mat-icon-button matSuffix *ngIf="pesquisa" (click)="limparPesquisa()" aria-label="Limpar busca">
-              <mat-icon>close</mat-icon>
-            </button>
-            <button mat-icon-button matSuffix *ngIf="!pesquisa" aria-label="Buscar">
-              <mat-icon>search</mat-icon>
-            </button>
-          </mat-form-field>
-        </div>
-        
-        <!-- Opções Dietéticas - Estilo do Agendamento -->
-        <div class="opcoes-dieteticas" (click)="openDietOptions()" *ngIf="dietOptions.length > 0">
-          <i nz-icon nzType="check-circle" nzTheme="outline"></i>
-          <div>
-            <span>Opções dietéticas</span>
-            <p>{{ dietOptions.join(', ') }}</p>
-          </div>
-          <i nz-icon nzType="right" nzTheme="outline"></i>
-        </div>
-        
-        <!-- Botão de Filtros Avançados -->
-        <div class="filtros-avancados-container">
+    <!-- Nova seção de busca e filtros com design moderno -->
+    <div class="search-section">
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput 
+            [(ngModel)]="pesquisa" 
+            (input)="aplicarFiltros()"
+            placeholder="Buscar pratos, ingredientes...">
+          <button mat-icon-button matSuffix *ngIf="pesquisa" (click)="limparPesquisa()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <div class="filter-chips">
+          <button mat-stroked-button 
+                  class="filter-chip"
+                  [class.active]="dietOptions.length > 0"
+                  (click)="openDietOptions()" 
+                  *ngIf="dietOptions.length > 0"
+                  matTooltip="Opções dietéticas"
+                  matTooltipClass="tavola-tooltip"
+                  [matTooltipDisabled]="isMobile">
+            <mat-icon>restaurant</mat-icon>
+            <span>Opções Dietéticas</span>
+            <mat-icon class="chevron">chevron_right</mat-icon>
+          </button>
+          
           <button mat-icon-button 
                   class="filter-button" 
                   [matMenuTriggerFor]="filterMenu"
                   #filterMenuTrigger="matMenuTrigger"
                   matTooltip="Filtros avançados"
-                  [matTooltipDisabled]="false">
+                  matTooltipClass="tavola-tooltip"
+                  [matTooltipDisabled]="isMobile">
             <mat-icon>tune</mat-icon>
           </button>
           
           <!-- Menu de filtros -->
-          <mat-menu #filterMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)">
-            <div class="filter-menu-content" (click)="$event.stopPropagation()">
+          <mat-menu #filterMenu="matMenu" class="tavola-menu-bar" (menuClosed)="onMenuClosed($event)" [hasBackdrop]="true">
+            <div class="filter-menu-content" (click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()">
               <div class="filter-header">
                 <h4>Filtros</h4>
-                <button mat-icon-button (click)="limparFiltros()" matTooltip="Limpar filtros">
-                  <mat-icon>clear</mat-icon>
-                </button>
+                <div class="filter-header-actions">
+                  <button mat-icon-button (click)="limparFiltros(); $event.stopPropagation()" matTooltip="Limpar filtros" [matTooltipDisabled]="isMobile">
+                    <mat-icon>clear</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="filterMenuTrigger.closeMenu(); $event.stopPropagation()" matTooltip="Fechar" [matTooltipDisabled]="isMobile">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
               </div>
               
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Categoria</mat-label>
                 <mat-select [(ngModel)]="categoriaFiltro" (selectionChange)="aplicarFiltrosSemFechar()" (click)="$event.stopPropagation()">
                   <mat-option value="">Todas as categorias</mat-option>
-                  <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome" (click)="$event.stopPropagation()">
+                  <mat-option *ngFor="let categoria of categorias" [value]="categoria.nome" (click)="$event.stopPropagation(); $event.preventDefault()">
                     {{ categoria.nome }}
                   </mat-option>
                 </mat-select>
@@ -87,79 +94,75 @@
               <mat-form-field appearance="outline" class="filter-field">
                 <mat-label>Tags</mat-label>
                 <mat-select [(ngModel)]="tagFiltro" (selectionChange)="aplicarFiltrosSemFechar()" multiple (click)="$event.stopPropagation()">
-                  <mat-option *ngFor="let tag of tagsDisponiveis" [value]="tag" (click)="$event.stopPropagation()">
+                  <mat-option *ngFor="let tag of tagsDisponiveis" [value]="tag" (click)="$event.stopPropagation(); $event.preventDefault()">
                     {{ tag }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-              
-              <div class="filter-options">
-                <mat-checkbox [(ngModel)]="apenasDisponiveis" (change)="aplicarFiltrosSemFechar()" (click)="$event.stopPropagation()">
-                  Apenas disponíveis
-                </mat-checkbox>
-              </div>
             </div>
           </mat-menu>
         </div>
       </div>
     </div>
     
-    <!-- Categorias de navegação com setas e comportamento sticky -->
-    <div #categoriasNavContainer class="categorias-nav-container">
-      <div class="categorias-nav" [class.fixed]="categoriasFixas">
-        <div class="categorias-wrapper">
-          <!-- Seta Esquerda -->
+    <!-- Navegação de categorias redesenhada com estilo moderno -->
+    <div #categoriasNavContainer class="categorias-nav-wrapper" [class.sticky]="categoriasFixas">
+      <div class="categorias-nav">
+        <button 
+          class="nav-arrow left" 
+          (click)="scrollCategorias('left')" 
+          [class.visible]="mostrarSetaEsquerda">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        
+        <div class="categorias-scroll" #categoriasScrollContainer (scroll)="onCategoriaScroll($event)">
           <button 
-            class="nav-arrow left-arrow" 
-            (click)="scrollCategorias('left')" 
-            [class.hidden]="!mostrarSetaEsquerda">
-            <i nz-icon nzType="left" nzTheme="outline"></i>
-          </button>
-          
-          <!-- Container de Scroll -->
-          <div class="categorias-scroll" #categoriasScrollContainer (scroll)="onCategoriaScroll($event)">
-            <button 
-              *ngFor="let categoria of categoriasFiltradas" 
-              class="categoria-btn" 
-              [class.active]="categoriaAtiva === categoria.nome"
-              (click)="selecionarCategoria(categoria.nome)">
-              {{ categoria.nome }}
-            </button>
-          </div>
-          
-          <!-- Seta Direita -->
-          <button 
-            class="nav-arrow right-arrow" 
-            (click)="scrollCategorias('right')" 
-            [class.hidden]="!mostrarSetaDireita">
-            <i nz-icon nzType="right" nzTheme="outline"></i>
+            *ngFor="let categoria of categoriasFiltradas" 
+            class="categoria-btn" 
+            [class.active]="categoriaAtiva === categoria.nome"
+            (click)="selecionarCategoria(categoria.nome)">
+            {{ categoria.nome }}
           </button>
         </div>
+        
+        <button 
+          class="nav-arrow right" 
+          (click)="scrollCategorias('right')" 
+          [class.visible]="mostrarSetaDireita">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
       </div>
     </div>
 
+    <!-- Grid de itens redesenhado com cards modernos -->
     <nz-image-group>
-      <div class="categorias-content">
-        <div *ngFor="let categoria of categoriasFiltradas" class="categoria-section" [id]="'categoria-' + categoria.nome.toLowerCase().replace(' ', '-')">
-          <h3 class="categoria-titulo">{{ categoria.nome }}</h3>
+      <div class="menu-grid">
+        <div *ngFor="let categoria of categoriasFiltradas" 
+             class="categoria-section" 
+             [id]="'categoria-' + categoria.nome.toLowerCase().replace(' ', '-')">
+          <div class="categoria-header">
+            <h2 class="categoria-titulo">
+              <span class="titulo-text">{{ categoria.nome }}</span>
+              <span class="titulo-line"></span>
+            </h2>
+            <span class="categoria-count">{{ categoria.itens.length }} {{ categoria.itens.length === 1 ? 'item' : 'itens' }}</span>
+          </div>
 
-          <div class="itens-lista">
+          <div class="itens-grid">
             <div *ngFor="let item of categoria.itens" class="item-card">
-              <div class="item-content">
-                <div class="item-image" *ngIf="item.imagem">
-                  <img nz-image [nzSrc]="item.imagem" [alt]="item.nome">
+              <div class="card-image-container">
+                <img nz-image [nzSrc]="item.imagem || 'assets/png/placeholder.png'" [alt]="item.nome">
+              </div>
+              <div class="item-details">
+                <div class="item-header">
+                  <h3 class="item-nome">{{ item.nome }}</h3>
+                  <span class="item-preco">{{ item.preco | currency:'BRL' }}</span>
                 </div>
-                <div class="item-info">
-                  <h4 class="item-nome">{{ item.nome }}</h4>
-                  <p class="item-descricao" *ngIf="item.descricao">{{ item.descricao }}</p>
-                  <div class="item-tags" *ngIf="item.tags && item.tags.length > 0">
-                    <span *ngFor="let tag of item.tags" class="tag-chip">
-                      {{ getTagName(tag) }}
-                    </span>
-                  </div>
-                </div>
-                <div class="item-preco">
-                  {{ item.preco | currency:'BRL' }}
+                <p class="item-descricao" *ngIf="item.descricao">{{ item.descricao }}</p>
+                <div class="item-tags" *ngIf="item.tags && item.tags.length > 0">
+                  <span *ngFor="let tag of item.tags" class="tag-badge">
+                    {{ getTagName(tag) }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -169,9 +172,13 @@
     </nz-image-group>
   </div>
   
-  <!-- Mensagem quando não há resultados -->
+  <!-- Mensagem de sem resultados atualizada -->
   <div *ngIf="!isLoading && !hasError && categorias.length > 0 && categoriasFiltradas.length === 0" class="sem-resultados">
-    <nz-empty nzNotFoundContent="Nenhum item encontrado com os filtros selecionados."></nz-empty>
+    <nz-empty nzNotFoundContent="Nenhum item encontrado com os filtros selecionados.">
+      <button nz-empty-footer mat-raised-button color="primary" (click)="limparFiltros()">
+        Limpar Filtros
+      </button>
+    </nz-empty>
   </div>
   
   <!-- Drawer de Opções Dietéticas -->
@@ -180,7 +187,7 @@
     nzPlacement="right"
     nzTitle="Opções dietéticas"
     (nzOnClose)="closeDietOptions()"
-    [nzWidth]="'400px'"
+    [nzWidth]="isMobile ? '60%' : '400px'"
     [nzMaskClosable]="true"
     class="opcoes-dieteticas-drawer-wrapper">
     
