@@ -29,6 +29,8 @@ $tavola-cinza: #F8F9FA;
     padding: 8px 0;
     border-bottom: 1px solid $light-gray;
     transition: all 0.3s ease;
+    border-radius: 16px;
+    overflow: hidden;
     
     &.fixed {
       position: sticky;
@@ -39,6 +41,7 @@ $tavola-cinza: #F8F9FA;
       margin-right: -24px;
       padding-left: 24px;
       padding-right: 24px;
+      border-radius: 16px;
     }
     
     .categorias-wrapper {
@@ -66,8 +69,8 @@ $tavola-cinza: #F8F9FA;
       
       .categoria-btn {
         white-space: nowrap;
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 10px 20px;
+        border-radius: 24px;
         background-color: $light-gray;
         border: none;
         color: $text-color;
@@ -77,6 +80,8 @@ $tavola-cinza: #F8F9FA;
         flex-shrink: 0;
         min-width: calc((100% - 120px) / 4);
         text-align: center;
+        overflow: hidden;
+        box-sizing: border-box;
         
         &:hover {
           background-color: color.adjust($light-gray, $lightness: -5%);

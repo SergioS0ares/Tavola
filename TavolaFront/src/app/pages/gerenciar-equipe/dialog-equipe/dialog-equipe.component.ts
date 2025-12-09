@@ -163,8 +163,11 @@ export class DialogEquipeComponent implements OnInit {
 
   /**
    * Fecha o diálogo
+   * Se dadosGerados existir, significa que o membro foi criado com sucesso
    */
   fechar(): void {
-    this.dialogRef.close({ success: false });
+    // Se estamos no segundo estágio (dadosGerados existe), significa que o membro foi criado com sucesso
+    const success = this.dadosGerados !== null;
+    this.dialogRef.close({ success: success });
   }
 }
