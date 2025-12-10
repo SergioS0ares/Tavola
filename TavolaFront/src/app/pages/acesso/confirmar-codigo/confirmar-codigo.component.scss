@@ -90,33 +90,43 @@
     }
 
     // ESTILIZANDO O COMPONENTE DO NG-ZORRO
-    ::ng-deep .ant-input-otp {
-      gap: 0.75rem;
-    }
-    
-    ::ng-deep .ant-input-otp-input {
-      width: 56px !important;
-      height: 64px !important;
-      font-size: 1.75rem !important;
-      font-weight: 700 !important;
-      border: 2px solid #666 !important;
-      border-radius: 12px !important;
-      background: #5A4A3F !important;
-      color: $primary-color !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      text-align: center !important;
-      
-      &:focus,
-      &.ant-input-otp-input-active {
-        border-color: $primary-color !important;
-        box-shadow: 0 0 0 3px rgba(246, 189, 56, 0.25) !important;
-        transform: translateY(-2px) scale(1.05);
-        background: #6B5A4F !important;
+    ::ng-deep {
+      .ant-input-otp {
+        gap: 0.75rem;
+        display: flex;
+        justify-content: center;
       }
       
-      &:disabled {
-        opacity: 0.6 !important;
-        cursor: not-allowed !important;
+      .ant-input-otp-input {
+        width: 56px !important;
+        height: 64px !important;
+        min-width: 56px !important;
+        min-height: 64px !important;
+        max-width: 56px !important;
+        max-height: 64px !important;
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        border: 2px solid #666 !important;
+        border-radius: 12px !important;
+        background: #5A4A3F !important;
+        color: $primary-color !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        text-align: center !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        
+        &:focus,
+        &.ant-input-otp-input-active {
+          border-color: $primary-color !important;
+          box-shadow: 0 0 0 3px rgba(246, 189, 56, 0.25) !important;
+          transform: translateY(-2px) scale(1.05);
+          background: #6B5A4F !important;
+        }
+        
+        &:disabled {
+          opacity: 0.6 !important;
+          cursor: not-allowed !important;
+        }
       }
     }
   }
@@ -250,15 +260,28 @@
       padding: 0.75rem;
       margin: 1.5rem 0;
       
-      ::ng-deep .ant-input-otp {
-        gap: 0.4rem;
-      }
-      
-      ::ng-deep .ant-input-otp-input {
-        width: 40px !important;
-        height: 48px !important;
-        font-size: 1.4rem !important;
-        border-radius: 8px !important;
+      ::ng-deep {
+        .ant-input-otp {
+          gap: 0.3rem !important;
+        }
+        
+        .ant-input-otp-input {
+          width: 30px !important;
+          height: 36px !important;
+          min-width: 30px !important;
+          min-height: 36px !important;
+          max-width: 30px !important;
+          max-height: 36px !important;
+          font-size: 1rem !important;
+          border-radius: 8px !important;
+          padding: 0 !important;
+          border-width: 1.5px !important;
+          
+          &:focus,
+          &.ant-input-otp-input-active {
+            transform: translateY(-1px) scale(1.02) !important;
+          }
+        }
       }
     }
   }
@@ -284,16 +307,63 @@
       padding: 0.5rem;
       margin: 1rem 0;
       
-      ::ng-deep .ant-input-otp {
-        gap: 0.3rem;
+      ::ng-deep {
+        .ant-input-otp {
+          gap: 0.2rem !important;
+        }
+        
+        .ant-input-otp-input {
+          width: 26px !important;
+          height: 32px !important;
+          min-width: 26px !important;
+          min-height: 32px !important;
+          max-width: 26px !important;
+          max-height: 32px !important;
+          font-size: 0.9rem !important;
+          border-radius: 6px !important;
+          border-width: 1.5px !important;
+          padding: 0 !important;
+          line-height: 1 !important;
+          
+          &:focus,
+          &.ant-input-otp-input-active {
+            transform: translateY(-1px) scale(1.02) !important;
+          }
+        }
       }
+    }
+  }
+}
+
+@media (max-width: 360px) {
+  .codigo-content {
+    .codigo-inputs-wrapper {
+      padding: 0.4rem;
+      margin: 1rem 0;
       
-      ::ng-deep .ant-input-otp-input {
-        width: 36px !important;
-        height: 42px !important;
-        font-size: 1.2rem !important;
-        border-radius: 8px !important;
-        border-width: 1.5px !important;
+      ::ng-deep {
+        .ant-input-otp {
+          gap: 0.15rem !important;
+        }
+        
+        .ant-input-otp-input {
+          width: 24px !important;
+          height: 30px !important;
+          min-width: 24px !important;
+          min-height: 30px !important;
+          max-width: 24px !important;
+          max-height: 30px !important;
+          font-size: 0.85rem !important;
+          border-radius: 6px !important;
+          padding: 0 !important;
+          border-width: 1.5px !important;
+          line-height: 1 !important;
+          
+          &:focus,
+          &.ant-input-otp-input-active {
+            transform: translateY(-1px) scale(1.01) !important;
+          }
+        }
       }
     }
   }

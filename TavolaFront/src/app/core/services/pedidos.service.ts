@@ -111,6 +111,19 @@ export class PedidosService {
   }
 
   /**
+   * Cancela um pedido alterando seu status para CANCELADO
+   */
+  cancelarPedido(restauranteId: string, pedidoId: string): Observable<any> {
+    const url = `${environment.apiUrl}/auth/api/restaurantes/${restauranteId}/pedidos/${pedidoId}/status`;
+    
+    const payload = {
+      novoStatus: 'CANCELADO'
+    };
+    
+    return this.http.put(url, payload);
+  }
+
+  /**
    * Obtém o ID do restaurante do perfil autenticado
    */
   getRestauranteId(): string {

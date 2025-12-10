@@ -12,22 +12,17 @@
       </mat-autocomplete>
     </mat-form-field>
 
-    <!-- Campo Cozinha/Restaurante com Autocomplete -->
+    <!-- Campo Cozinha/Restaurante SEM Autocomplete -->
     <mat-form-field appearance="outline" class="custom-field query">
       <!-- <mat-label>Nome do restaurante</mat-label> -->
       <mat-icon matPrefix class="icon brown">search</mat-icon>
-      <input matInput placeholder="Nome do restaurante..." [formControl]="queryCtrl" [matAutocomplete]="autoQuery" class="brown-text long-query">
-      <mat-autocomplete #autoQuery="matAutocomplete">
-        <mat-option *ngFor="let suggestion of filteredQueries$ | async" [value]="suggestion">
-          <mat-icon class="icon brown">search</mat-icon> {{suggestion}}
-        </mat-option>
-      </mat-autocomplete>
+      <input matInput placeholder="Nome do restaurante..." [formControl]="queryCtrl" class="brown-text long-query">
     </mat-form-field>
 
     <!-- Botões container para mobile -->
     <div class="buttons-container">
       <!-- Botão de filtros -->
-      <button type="button" class="filtros-btn tavola-tooltip" (click)="onFiltrosClick()" matTooltip="Filtros de busca" matTooltipClass="tavola-tooltip">
+      <button type="button" class="filtros-btn tavola-tooltip" (click)="onFiltrosClick()" matTooltip="Filtros de busca" matTooltipClass="tavola-tooltip" [matTooltipDisabled]="isMobile">
         <mat-icon>tune</mat-icon>
         <span class="btn-text">Filtros</span>
       </button>

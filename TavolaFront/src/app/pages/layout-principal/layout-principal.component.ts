@@ -119,10 +119,13 @@ export class LayoutPrincipalComponent implements OnInit {
   constructor() {
     // Assina o estado do serviço
     this.stickyService.sticky$.subscribe((val) => {
-      // Só aceita ativar o sticky se estivermos de fato na raiz da home
-      const isHomeRoot = this.router.url === "/home" || this.router.url === "/home/";
+      // Verifica se está na home ou agendamento
+      const url = this.router.url;
+      const isHomeRoot = url === "/home" || url === "/home/";
+      const isAgendamento = url.includes("/home/agendamento-reservas-restaurante");
       
-      if (isHomeRoot) {
+      // Só controla o sticky se estiver na home ou agendamento
+      if (isHomeRoot || isAgendamento) {
         this.showStickySearchBar = val;
         // Se a sticky search bar aparecer, e tivermos um HomeComponent ativo,
         // sincroniza os FormControls da sticky search bar com os do HomeComponent.
@@ -148,13 +151,16 @@ export class LayoutPrincipalComponent implements OnInit {
         this.isHomePage = isHomeRoot;
         this.isAgendamentoPage = isAgendamento;
         
-        // Se NÃO for a raiz da home (ex: é agendamento), força o sticky a false
+        // Se NÃO for a raiz da home nem agendamento, força o sticky a false
         if (!isHomeRoot && !isAgendamento) {
           this.showStickySearchBar = false;
           this.stickyService.setSticky(false); // Garante que o serviço também saiba
           this.currentHomeComponent = null;
-        } 
-        // Se for a home, deixa o comportamento padrão (controlado pelo scroll)
+        } else if (isHomeRoot || isAgendamento) {
+          // Se for home ou agendamento, verifica o estado atual do sticky
+          // A lupa deve aparecer quando showStickySearchBar é false (search bar visível na home)
+          // E sumir quando showStickySearchBar é true (search bar sticky ativa)
+        }
       }
     })
 

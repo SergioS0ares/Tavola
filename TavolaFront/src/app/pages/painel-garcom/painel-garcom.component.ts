@@ -9,6 +9,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -19,8 +21,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CalendarioReservasComponent } from '../reservas/calendario-reservas/calendario-reservas.component';
 import { AuthService } from '../../core/services/auth.service';
-import { Subject, interval, Subscription, Observable } from 'rxjs';
-import { takeUntil, take, finalize } from 'rxjs/operators';
+import { Subject, interval, Subscription, Observable, combineLatest, BehaviorSubject } from 'rxjs';
+import { takeUntil, take, finalize, map } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 // Importar o serviço e interfaces
@@ -44,6 +46,8 @@ import { DialogCardapioGarcomComponent } from './dialog-cardapio-garcom/dialog-c
     MatButtonToggleModule,
     MatDividerModule,
     MatDialogModule,
+    MatInputModule,
+    MatFormFieldModule,
     NzEmptyModule,
     NzAvatarModule,
     NzIconModule,
@@ -78,10 +82,15 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   // Observables para a UI (ligados ao serviço)
   public ambientes$!: Observable<Ambiente[]>;
   public pedidosAtivos$!: Observable<Pedido[]>;
+  public pedidosFiltrados$!: Observable<Pedido[]>;
   
   // Dados das mesas e ambientes
   ambienteAtivo: Ambiente | null = null;
   mesasAtendidas = 0;
+  
+  // Busca de pedidos
+  private termoBuscaSubject = new BehaviorSubject<string>('');
+  termoBusca: string = '';
 
   // Visualização
   visualizacaoAtiva: 'mapa' | 'pedidos' = 'mapa';
@@ -130,6 +139,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
     
     this.carregarDadosIniciais();
     this.carregarPedidosAtivos();
+    this.configurarFiltroBusca();
     this.iniciarAtualizacaoTempo();
     this.carregarDadosGarcom();
   }
@@ -137,6 +147,7 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.termoBuscaSubject.complete();
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
     }
@@ -211,6 +222,29 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  private configurarFiltroBusca(): void {
+    // Cria um observable que combina os pedidos com o termo de busca
+    this.pedidosFiltrados$ = combineLatest([
+      this.pedidosAtivos$,
+      this.termoBuscaSubject.asObservable()
+    ]).pipe(
+      map(([pedidos, termo]) => {
+        if (!termo || termo.trim() === '') {
+          return pedidos;
+        }
+        const termoLower = termo.toLowerCase().trim();
+        return pedidos.filter(pedido => 
+          pedido.mesaNome.toLowerCase().includes(termoLower)
+        );
+      })
+    );
+  }
+
+  onBuscaChange(termo: string): void {
+    this.termoBusca = termo;
+    this.termoBuscaSubject.next(termo);
   }
 
   private carregarDadosGarcom(): void {
@@ -516,27 +550,60 @@ export class PainelGarcomComponent implements OnInit, OnDestroy {
 
   async removerPedido(pedido: Pedido): Promise<void> {
     const result = await Swal.fire({
-      title: 'Remover Pedido',
-      text: `Tem certeza que deseja remover o pedido da Mesa ${pedido.mesaNome}?`,
+      title: 'Cancelar Pedido',
+      text: `Tem certeza que deseja cancelar o pedido da Mesa ${pedido.mesaNome}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#F44336',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sim, remover!',
+      confirmButtonText: 'Sim, cancelar!',
       cancelButtonText: 'Cancelar',
       reverseButtons: true
     });
 
     if (result.isConfirmed) {
-      this.painelGarcomService.removerPedido(pedido.id);
+      const restauranteId = this.pedidosService.getRestauranteId();
       
-      Swal.fire({
-        title: 'Removido!',
-        text: 'O pedido foi removido com sucesso.',
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      if (!restauranteId) {
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Não foi possível identificar o restaurante.',
+          icon: 'error',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      this.isLoading.pedidos = true;
+      this.pedidosService.cancelarPedido(restauranteId, pedido.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            // Recarrega os pedidos após cancelar
+            this.carregarPedidosAtivos();
+            
+            Swal.fire({
+              title: 'Cancelado!',
+              text: 'O pedido foi cancelado com sucesso.',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          },
+          error: (error) => {
+            console.error('[PainelGarcom] Erro ao cancelar pedido:', error);
+            this.isLoading.pedidos = false;
+            
+            Swal.fire({
+              title: 'Erro!',
+              text: 'Não foi possível cancelar o pedido. Tente novamente.',
+              icon: 'error',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          }
+        });
     }
   }
 

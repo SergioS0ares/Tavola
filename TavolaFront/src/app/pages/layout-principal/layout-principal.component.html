@@ -188,10 +188,10 @@
     <!-- Hide header actions when search is expanded on mobile -->
     <div class="header-actions" *ngIf="!searchExpanded" style="display: flex; align-items: center; gap: 20px;"> 
       <!-- Search icon button when sticky and not expanded - positioned next to bell -->
-      <!-- Aparece na home, no agendamento ou quando sticky search bar está ativa -->
+      <!-- Aparece na home ou agendamento quando a search bar da home ESTÁ sticky (ou seja, quando sumiu da home e foi para o topo) -->
       <button 
         class="search-icon-btn" 
-        *ngIf="(isHomePage || isAgendamentoPage || showStickySearchBar) && !searchExpanded"
+        *ngIf="(isHomePage || isAgendamentoPage) && showStickySearchBar && !searchExpanded"
         (click)="expandSearch()"
         type="button"
         aria-label="Expandir busca">

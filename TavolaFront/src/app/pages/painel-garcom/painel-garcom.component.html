@@ -237,8 +237,27 @@
         </div>
       </div>
       
+      <!-- Campo de busca -->
+      <div class="busca-pedidos">
+        <mat-form-field appearance="outline" class="busca-field">
+          <mat-label>Buscar por mesa</mat-label>
+          <input matInput 
+                 [(ngModel)]="termoBusca" 
+                 (ngModelChange)="onBuscaChange($event)"
+                 placeholder="Digite o nome da mesa"
+                 type="text">
+          <mat-icon matPrefix>search</mat-icon>
+          <button mat-icon-button matSuffix 
+                  *ngIf="termoBusca" 
+                  (click)="termoBusca = ''; onBuscaChange('')"
+                  aria-label="Limpar busca">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      
       <div class="pedidos-list">
-        <div *ngFor="let pedido of (pedidosAtivos$ | async)" class="pedido-card">
+        <div *ngFor="let pedido of (pedidosFiltrados$ | async)" class="pedido-card">
           <div class="pedido-header">
             <div class="mesa-info">
               <mat-icon>table_restaurant</mat-icon>
@@ -273,7 +292,10 @@
           </div>
         </div>
         
-        <div *ngIf="(pedidosAtivos$ | async)?.length === 0" class="sem-pedidos">
+        <div *ngIf="(pedidosFiltrados$ | async)?.length === 0 && termoBusca" class="sem-pedidos">
+          <nz-empty nzDescription="Nenhum pedido encontrado para a busca"></nz-empty>
+        </div>
+        <div *ngIf="(pedidosFiltrados$ | async)?.length === 0 && !termoBusca" class="sem-pedidos">
           <nz-empty nzDescription="Nenhum pedido ativo no momento"></nz-empty>
         </div>
       </div>

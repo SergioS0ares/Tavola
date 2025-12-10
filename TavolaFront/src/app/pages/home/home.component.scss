@@ -60,6 +60,11 @@
   width: 100%;
 }
 
+.search-wrapper {
+  position: relative; // Permite posicionamento absoluto do dropdown relativo a este elemento
+  width: 100%;
+}
+
 .input-group {
   display: flex;
   background: #fff;
@@ -159,14 +164,30 @@
   color: #222;
 }
 
+.search-wrapper {
+  position: relative; // Permite posicionamento absoluto do dropdown relativo a este elemento
+  width: 100%;
+}
+
 .city-dropdown-absolute {
   position: absolute;
-  left: 50%;
-  top: 100px;
-  transform: translateX(-50%);
-  width: 340px;
+  left: 0;
+  top: calc(100% + 4px); // Posiciona logo abaixo do input-group
+  width: 100%;
+  max-width: 220px; // Largura máxima do campo de cidade (max-width do custom-field)
   z-index: 100;
-  margin-left: 0;
+  
+  @media (max-width: 1100px) {
+    max-width: 98vw;
+    left: 0;
+  }
+  
+  @media (max-width: 700px) {
+    max-width: 100%;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px); // Mais espaçamento no mobile
+  }
 }
 .dropdown {
   background: #fff;
@@ -347,7 +368,8 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    min-height: 56px; 
+    min-height: 56px;
+    position: relative; // Permite posicionamento absoluto do dropdown
   }
 
   // --- SEÇÃO DE RESTAURANTES ---
