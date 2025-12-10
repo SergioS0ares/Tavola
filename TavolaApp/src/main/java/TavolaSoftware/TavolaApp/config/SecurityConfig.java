@@ -3,6 +3,7 @@ package TavolaSoftware.TavolaApp.config;
 import TavolaSoftware.TavolaApp.REST.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value; // Importante
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +26,10 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
 
+    // Injeta a lista de origens permitidas (separadas por vírgula no properties)
+    @Value("#{'${app.cors.allowed-origins}'.split(',')}")
+    private List<String> allowedOrigins;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -33,13 +38,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://64.181.187.11")); //
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); //
-        configuration.setAllowedHeaders(List.of("*")); //
-        configuration.setAllowCredentials(true); //
+        
+        // Usa a lista dinâmica em vez de valores fixos
+        configuration.setAllowedOrigins(allowedOrigins); 
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); //
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
@@ -48,11 +56,8 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            
-            // --- CORREÇÃO DE SEGURANÇA AQUI ---
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    // Rotas públicas (baseadas no seu JwtFilter e SecurityConfig)
                     "/auth/register",
                     "/auth/login",
                     "/auth/login/garcom",
@@ -60,25 +65,17 @@ public class SecurityConfig {
                     "/auth/refresh",
                     "/auth/reenviar-codigo",
                     "/auth/esqueci-senha",
-                    "/auth/mudar-senha/**", // A rota de reset com token
+                    "/auth/mudar-senha/**",
                     "/auth/cardapios/public/**",
                     "/auth/uploads/mock/**",
-                    
-                    // Rotas do Swagger e Arquivos
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/upl/**"
+                    "/upl/**" 
                 ).permitAll()
-                // ANTES: /auth/** era todo permitAll
-                // AGORA: Qualquer outra requisição DEVE ser autenticada
                 .anyRequest().authenticated()
             )
-            // --- FIM DA CORREÇÃO ---
-
-            .sessionManagement(sess ->
-                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Não autorizado: " + authException.getMessage())

@@ -1,21 +1,23 @@
-# Dockerfile Multi-stage para o Backend (A versão robusta e recomendada)
-
-# ---- Estágio 1: Build (O Padeiro do Java) ----
-# Ele cria um ambiente temporário com Maven e Java para compilar o projeto.
+# Etapa 1: Build da aplicação (Maven)
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
-RUN mvn dependency:go-offline
 COPY src ./src
+# Executa o build pulando os testes para ser mais rápido no deploy
 RUN mvn clean package -DskipTests
 
-# ---- Estágio 2: Run (O Garçom do Java) ----
-# Agora, pegamos uma imagem leve, só com o Java para rodar.
-FROM openjdk:21-jdk-slim
+# Etapa 2: Imagem final leve (JDK 21)
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# A mágica: copiamos APENAS o .jar do estágio de build para a imagem final.
+# Cria a pasta de uploads dentro do container
+RUN mkdir -p /app/uploads
+
+# Copia o .jar gerado na etapa anterior
 COPY --from=build /app/target/*.jar app.jar
 
+# Expõe a porta
 EXPOSE 8080
+
+# Comando de inicialização
 ENTRYPOINT ["java", "-jar", "app.jar"]
