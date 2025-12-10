@@ -13,8 +13,10 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { Mesa, GarcomInfo, PainelGarcomService } from '../../../core/services/painel-garcom.service';
 import { MesaService } from '../../../core/services/mesa.service';
 import { AtendimentoService } from '../../../core/services/atendimento.service';
+import { PedidosService } from '../../../core/services/pedidos.service';
 import { inject } from '@angular/core';
 import Swal from 'sweetalert2';
+import { take } from 'rxjs/operators';
 
 export interface DialogMesaData {
   mesa: Mesa;
@@ -53,6 +55,7 @@ export class DialogMesaAcoesComponent {
   ];
 
   private painelGarcomService = inject(PainelGarcomService);
+  private pedidosService = inject(PedidosService);
 
   constructor(
     public dialogRef: MatDialogRef<DialogMesaAcoesComponent>,
@@ -180,7 +183,89 @@ export class DialogMesaAcoesComponent {
   }
 
   liberarMesa(): void {
-    this.dialogRef.close({ acao: 'liberar_mesa' });
+    // Busca o pedido ativo da mesa
+    const restauranteId = this.pedidosService.getRestauranteId();
+    if (!restauranteId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'ID do restaurante não encontrado.',
+        confirmButtonColor: '#F6BD38'
+      });
+      return;
+    }
+
+    // Busca os pedidos ativos para encontrar o pedido da mesa
+    this.pedidosService.getPedidosAtivos(restauranteId)
+      .pipe(take(1))
+      .subscribe({
+        next: (pedidos) => {
+          // Encontra o pedido ativo da mesa
+          const pedidoMesa = pedidos.find(p => p.mesaId === this.data.mesa.id);
+          
+          if (!pedidoMesa) {
+            // Se não houver pedido, apenas fecha o dialog
+            Swal.fire({
+              icon: 'info',
+              title: 'Mesa sem pedido',
+              text: 'Esta mesa não possui pedidos ativos.',
+              confirmButtonColor: '#F6BD38'
+            });
+            this.dialogRef.close({ acao: 'liberar_mesa' });
+            return;
+          }
+
+          // Confirma a ação
+          Swal.fire({
+            title: 'Liberar Mesa',
+            text: `Tem certeza que deseja liberar a mesa ${this.data.mesa.nome}? O pedido será marcado como ENTREGUE.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#F6BD38',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sim, Liberar!',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Atualiza o status do pedido para ENTREGUE
+              this.pedidosService.atualizarStatusPedido(restauranteId, pedidoMesa.id, 'ENTREGUE')
+                .pipe(take(1))
+                .subscribe({
+                  next: () => {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Mesa liberada!',
+                      text: `A mesa ${this.data.mesa.nome} foi liberada com sucesso.`,
+                      timer: 2000,
+                      showConfirmButton: false,
+                      confirmButtonColor: '#F6BD38'
+                    });
+                    this.dialogRef.close({ acao: 'liberar_mesa', pedidoId: pedidoMesa.id });
+                  },
+                  error: (error) => {
+                    console.error('Erro ao liberar mesa:', error);
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Erro ao liberar mesa',
+                      text: 'Não foi possível liberar a mesa. Tente novamente.',
+                      confirmButtonColor: '#F6BD38'
+                    });
+                  }
+                });
+            }
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao buscar pedidos:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Erro',
+            text: 'Não foi possível buscar os pedidos da mesa.',
+            confirmButtonColor: '#F6BD38'
+          });
+        }
+      });
   }
 
   fechar(): void {
